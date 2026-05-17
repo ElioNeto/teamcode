@@ -3,7 +3,7 @@ import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui"
 import * as Clipboard from "@tui/util/clipboard"
 import * as Selection from "@tui/util/selection"
 import * as TuiAudio from "@tui/util/audio"
-import { createCliRenderer, MouseButton, type CliRendererConfig } from "@opentui/core"
+import { createCliRenderer, MouseButton, type CliRenderer, type CliRendererConfig } from "@opentui/core"
 import { RouteProvider, useRoute } from "@tui/context/route"
 import {
   Switch,
@@ -182,7 +182,17 @@ export function tui(input: {
       TuiAudio.dispose()
     }
 
-    const renderer = await createCliRenderer(rendererConfig(input.config))
+    let renderer: CliRenderer
+    try {
+      renderer = await createCliRenderer(rendererConfig(input.config))
+    } catch (error) {
+      const msg = errorMessage(error)
+      console.error(`Failed to create TUI renderer: ${msg}
+This usually means the native opentui renderer is missing for your platform.
+Try reinstalling: npm i -g opencode-ai
+If the problem persists, use --no-tui or run in headless mode: opencode run`)
+      throw error
+    }
     // Prewarm palette before ThemeProvider mounts so `system` theme avoids a first-paint fallback flash.
     void renderer.getPalette({ size: 16 }).catch(() => undefined)
     const mode = (await renderer.waitForThemeMode(1000)) ?? "dark"

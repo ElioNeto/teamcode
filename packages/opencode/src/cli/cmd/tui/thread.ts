@@ -249,6 +249,9 @@ export const TuiThreadCommand = cmd({
             fork: args.fork,
           },
         })
+      } catch (error) {
+        UI.error(`TUI failed to start: ${errorMessage(error)}`)
+        process.exitCode = 1
       } finally {
         await stop()
       }
