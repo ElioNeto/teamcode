@@ -403,12 +403,17 @@ export const layer = Layer.effect(
             )
             const omitted = normalized.filter(Exit.isFailure).length
             const attachments = normalized.filter(Exit.isSuccess).map((item) => item.value)
+            // Defensively clone the tool result to strip any readonly / getter-based
+            // properties (e.g. process.env) that would cause Immer's produce() to throw
+            // when the result flows into session state.
             const output = {
-              ...value.output,
+              ...JSON.parse(JSON.stringify(value.output)),
               output:
                 omitted === 0
-                  ? value.output.output
-                  : `${value.output.output}\n\n[${omitted} image${omitted === 1 ? "" : "s"} omitted: could not be resized below the image size limit.]`,
+                  ? typeof value.output.output === "string"
+                    ? value.output.output
+                    : JSON.stringify(value.output.output)
+                  : `${typeof value.output.output === "string" ? value.output.output : JSON.stringify(value.output.output)}\n\n[${omitted} image${omitted === 1 ? "" : "s"} omitted: could not be resized below the image size limit.]`,
               attachments: attachments?.length ? attachments : undefined,
             }
             // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
@@ -777,6 +782,13 @@ export const layer = Layer.effect(
                   )
                 },
               }),
+            ),
+            Effect.catchIf(
+              (e) => e instanceof DOMException && e.name === "AbortError",
+              (e) => {
+                aborted = true
+                return Effect.void
+              },
             ),
             Effect.catch(halt),
             Effect.ensuring(cleanup()),

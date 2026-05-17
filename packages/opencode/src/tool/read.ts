@@ -298,6 +298,13 @@ export const ReadTool = Tool.define(
       }
 
       const file = yield* lines(filepath, { limit: params.limit ?? DEFAULT_READ_LIMIT, offset: params.offset || 1 })
+      if (file.count === 0 && file.offset === 1) {
+        return {
+          title,
+          output: `<path>${filepath}</path>\n<type>file</type>\n<content>\n\n(File is empty)</content>`,
+          metadata: { preview: "(empty file)", truncated: false, loaded: loaded.map((item) => item.filepath) },
+        }
+      }
       if (file.count < file.offset && !(file.count === 0 && file.offset === 1)) {
         return yield* Effect.fail(
           new Error(`Offset ${file.offset} is out of range for this file (${file.count} lines)`),

@@ -239,6 +239,12 @@ export namespace AppFileSystem {
   }
 
   export function contains(parent: string, child: string) {
-    return !relative(parent, child).startsWith("..")
+    const rel = relative(parent, child)
+    if (rel.startsWith("..")) return false
+    // Cross-drive paths on Windows: path.relative("C:\\a", "D:\\b") returns
+    // "D:\\b" which is absolute and does not start with "..".  Detect this
+    // by checking whether the relative result is itself an absolute path.
+    if (pathResolve(rel) === rel) return false
+    return true
   }
 }

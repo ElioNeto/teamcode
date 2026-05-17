@@ -105,7 +105,11 @@ export const make = Effect.gen(function* () {
   })
 
   const env = (opts: ChildProcess.CommandOptions) =>
-    opts.extendEnv ? { ...globalThis.process.env, ...opts.env } : opts.env
+    opts.extendEnv
+      ? Object.assign({}, globalThis.process.env, opts.env)
+      : opts.env && Object.keys(opts.env).length > 0
+        ? Object.assign({}, opts.env)
+        : opts.env
 
   const input = (x: ChildProcess.CommandInput | undefined): NodeChildProcess.IOType | undefined =>
     Stream.isStream(x) ? "pipe" : x
