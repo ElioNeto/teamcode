@@ -1646,6 +1646,8 @@ NOTE: At any point in time through this workflow you should feel free to ask the
         const slog = elog.with({ sessionID })
         let structured: unknown
         let step = 0
+        let consecutiveCompactions = 0
+        const MAX_CONSECUTIVE_COMPACTIONS = 3
         const session = yield* sessions.get(sessionID).pipe(Effect.orDie)
 
         while (true) {
@@ -1696,6 +1698,22 @@ NOTE: At any point in time through this workflow you should feel free to ask the
           }
 
           if (task?.type === "compaction") {
+            consecutiveCompactions++
+            if (consecutiveCompactions > MAX_CONSECUTIVE_COMPACTIONS) {
+              yield* slog.warn("compaction loop limit reached — forcing stop", { consecutiveCompactions })
+              yield* bus.publish(Session.Event.Error, {
+                sessionID,
+                error: {
+                  name: "UnknownError",
+                  data: {
+                    message:
+                      `Context compaction ran ${consecutiveCompactions} times without resolving overflow. ` +
+                      "This may indicate an unusually large context or insufficient model context window.",
+                  },
+                },
+              })
+              break
+            }
             const result = yield* compaction.process({
               messages: msgs,
               parentID: lastUser.id,
@@ -1715,6 +1733,9 @@ NOTE: At any point in time through this workflow you should feel free to ask the
             yield* compaction.create({ sessionID, agent: lastUser.agent, model: lastUser.model, auto: true })
             continue
           }
+
+          // Reset consecutive compaction counter since we're doing a regular agent step
+          consecutiveCompactions = 0
 
           const agent = yield* agents.get(lastUser.agent)
           if (!agent) {
