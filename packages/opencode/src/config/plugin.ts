@@ -30,7 +30,7 @@ export async function load(dir: string) {
     cwd: dir,
     absolute: true,
     dot: true,
-    symlink: true,
+    symlink: false,
   })) {
     plugins.push(pathToFileURL(item).href)
   }

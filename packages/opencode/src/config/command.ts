@@ -28,7 +28,7 @@ export async function load(dir: string) {
     cwd: dir,
     absolute: true,
     dot: true,
-    symlink: true,
+    symlink: false,
   })) {
     const md = await ConfigMarkdown.parse(item).catch((err) => {
       log.error("failed to load command", { command: item, err })

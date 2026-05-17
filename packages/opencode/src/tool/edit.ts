@@ -676,6 +676,18 @@ export function replace(content: string, oldString: string, newString: string, r
     throw new Error("No changes to apply: oldString and newString are identical.")
   }
 
+  // If oldString itself appears in multiple locations, fail early —
+  // fuzzy replacers would only make the match less accurate.
+  const exactFirst = content.indexOf(oldString)
+  if (exactFirst !== -1) {
+    const exactLast = content.lastIndexOf(oldString)
+    if (exactFirst !== exactLast) {
+      throw new Error(
+        "Found multiple matches for oldString. Provide more surrounding context to make the match unique.",
+      )
+    }
+  }
+
   let notFound = true
 
   for (const replacer of [
@@ -698,6 +710,25 @@ export function replace(content: string, oldString: string, newString: string, r
       }
       const lastIndex = content.lastIndexOf(search)
       if (index !== lastIndex) continue
+      // Validate matches from aggressive fuzzy replacers that normalize
+      // whitespace. These can match at the wrong position in files with
+      // significant indentation (Python, YAML), corrupting the file.
+      if (
+        replacer === WhitespaceNormalizedReplacer ||
+        replacer === IndentationFlexibleReplacer ||
+        replacer === TrimmedBoundaryReplacer ||
+        replacer === ContextAwareReplacer
+      ) {
+        const matchLines = content.substring(index, index + search.length).split("\n")
+        const oldLines = normalizeLineEndings(oldString).split("\n")
+        if (matchLines.length > 1 && matchLines.length === oldLines.length) {
+          const firstMatch = matchLines[0]
+          const firstOld = oldLines[0]
+          const lastMatch = matchLines[matchLines.length - 1]
+          const lastOld = oldLines[oldLines.length - 1]
+          if (firstMatch !== firstOld || lastMatch !== lastOld) continue
+        }
+      }
       return content.substring(0, index) + newString + content.substring(index + search.length)
     }
   }

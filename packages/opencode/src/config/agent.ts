@@ -108,7 +108,7 @@ export async function load(dir: string) {
     cwd: dir,
     absolute: true,
     dot: true,
-    symlink: true,
+    symlink: false,
   })) {
     const md = await ConfigMarkdown.parse(item).catch((err) => {
       log.error("failed to load agent", { agent: item, err })
@@ -135,7 +135,7 @@ export async function loadMode(dir: string) {
     cwd: dir,
     absolute: true,
     dot: true,
-    symlink: true,
+    symlink: false,
   })) {
     const md = await ConfigMarkdown.parse(item).catch((err) => {
       log.error("failed to load mode", { mode: item, err })

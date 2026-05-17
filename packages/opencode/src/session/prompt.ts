@@ -1681,6 +1681,33 @@ NOTE: At any point in time through this workflow you should feel free to ask the
             !hasToolCalls &&
             lastUser.id < lastAssistant.id
           ) {
+            // Clean up dangling tool call parts (pending/running) before exiting the loop.
+            // Otherwise unpaired tool_use blocks get re-sent to the LLM on the next turn
+            // and cause 400 errors (especially with Anthropic).
+            if (lastAssistantMsg) {
+              for (const part of lastAssistantMsg.parts) {
+                if (
+                  part.type === "tool" &&
+                  (part.state.status === "pending" || part.state.status === "running")
+                ) {
+                  const interruptErr = "[Tool execution interrupted — loop exited before tool could run]"
+                  const meta = part.state.status === "running" ? part.state.metadata : undefined
+                  yield* sessions.updatePart({
+                    ...part,
+                    state: {
+                      status: "error",
+                      input: part.state.input,
+                      error: interruptErr,
+                      metadata: { ...meta, interrupted: true },
+                      time: {
+                        start: part.state.status === "running" ? part.state.time.start : Date.now(),
+                        end: Date.now(),
+                      },
+                    },
+                  } satisfies MessageV2.ToolPart)
+                }
+              }
+            }
             yield* slog.info("exiting loop")
             break
           }

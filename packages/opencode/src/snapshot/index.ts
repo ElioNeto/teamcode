@@ -88,9 +88,18 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
 
           const git = Effect.fnUntraced(
             function* (cmd: string[], opts?: { cwd?: string; env?: Record<string, string>; stdin?: string }) {
+              const env = { ...opts?.env, GIT_OPTIONAL_LOCKS: "0" }
               const result = yield* appProcess.run(
-                ChildProcess.make("git", cmd, { cwd: opts?.cwd, env: opts?.env, extendEnv: true }),
+                ChildProcess.make("git", cmd, { cwd: opts?.cwd, env, extendEnv: true }),
                 { stdin: opts?.stdin },
+              ).pipe(
+                Effect.retry({
+                  times: 5,
+                  schedule: Schedule.exponential(Duration.millis(100), 2.0),
+                  while: (err) =>
+                    err instanceof Error &&
+                    (err.message.includes("index.lock") || err.message.includes("Unable to create")),
+                }),
               )
               return {
                 code: ChildProcessSpawner.ExitCode(result.exitCode),

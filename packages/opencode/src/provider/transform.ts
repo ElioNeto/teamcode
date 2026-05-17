@@ -409,7 +409,7 @@ function unsupportedParts(msgs: ModelMessage[], model: Provider.Model): ModelMes
         }
       }
 
-      const mime = part.type === "image" ? String(part.image).split(";")[0].replace("data:", "") : part.mediaType
+      const mime = part.type === "image" ? String(part.image).split(";")[0].replace("data:", "") : (part.mediaType ?? "")
       const filename = part.type === "file" ? part.filename : undefined
       const modality = mimeToModality(mime)
       if (!modality) return part
