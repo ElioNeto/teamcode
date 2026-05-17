@@ -1,56 +1,73 @@
 import { Config, ConfigProvider, Context, Effect, Layer } from "effect"
 import { ConfigService } from "@/effect/config-service"
 
-const bool = (name: string) => Config.boolean(name).pipe(Config.withDefault(false))
-const positiveInteger = (name: string) =>
-  Config.number(name).pipe(
+const bool = (name: string, alias?: string) => {
+  if (!alias) return Config.boolean(name).pipe(Config.withDefault(false))
+  return Config.boolean(name).pipe(
+    Config.orElse(() => Config.boolean(alias)),
+    Config.withDefault(false),
+  )
+}
+
+const positiveInteger = (name: string, alias?: string) => {
+  const handler = Config.number(name).pipe(
     Config.map((value) => (Number.isInteger(value) && value > 0 ? value : undefined)),
     Config.orElse(() => Config.succeed(undefined)),
   )
-const experimental = bool("OPENCODE_EXPERIMENTAL")
-const enabledByExperimental = (name: string) =>
-  Config.all({ experimental, enabled: bool(name) }).pipe(Config.map((flags) => flags.experimental || flags.enabled))
+  if (!alias) return handler
+  return Config.number(alias).pipe(
+    Config.map((value) => (Number.isInteger(value) && value > 0 ? value : undefined)),
+    Config.orElse(() => handler),
+  )
+}
 
-export class Service extends ConfigService.Service<Service>()("@opencode/RuntimeFlags", {
-  autoShare: bool("OPENCODE_AUTO_SHARE"),
-  pure: bool("OPENCODE_PURE"),
-  disableDefaultPlugins: bool("OPENCODE_DISABLE_DEFAULT_PLUGINS"),
-  disableChannelDb: bool("OPENCODE_DISABLE_CHANNEL_DB"),
-  disableEmbeddedWebUi: bool("OPENCODE_DISABLE_EMBEDDED_WEB_UI"),
-  disableExternalSkills: bool("OPENCODE_DISABLE_EXTERNAL_SKILLS"),
-  disableLspDownload: bool("OPENCODE_DISABLE_LSP_DOWNLOAD"),
-  skipMigrations: bool("OPENCODE_SKIP_MIGRATIONS"),
+const experimental = bool("TEAMCODE_EXPERIMENTAL", "OPENCODE_EXPERIMENTAL")
+const enabledByExperimental = (name: string, alias?: string) =>
+  Config.all({ experimental, enabled: bool(name, alias) }).pipe(Config.map((flags) => flags.experimental || flags.enabled))
+
+export class Service extends ConfigService.Service<Service>()("@teamcode/RuntimeFlags", {
+  autoShare: bool("TEAMCODE_AUTO_SHARE", "OPENCODE_AUTO_SHARE"),
+  pure: bool("TEAMCODE_PURE", "OPENCODE_PURE"),
+  disableDefaultPlugins: bool("TEAMCODE_DISABLE_DEFAULT_PLUGINS", "OPENCODE_DISABLE_DEFAULT_PLUGINS"),
+  disableChannelDb: bool("TEAMCODE_DISABLE_CHANNEL_DB", "OPENCODE_DISABLE_CHANNEL_DB"),
+  disableEmbeddedWebUi: bool("TEAMCODE_DISABLE_EMBEDDED_WEB_UI", "OPENCODE_DISABLE_EMBEDDED_WEB_UI"),
+  disableExternalSkills: bool("TEAMCODE_DISABLE_EXTERNAL_SKILLS", "OPENCODE_DISABLE_EXTERNAL_SKILLS"),
+  disableLspDownload: bool("TEAMCODE_DISABLE_LSP_DOWNLOAD", "OPENCODE_DISABLE_LSP_DOWNLOAD"),
+  skipMigrations: bool("TEAMCODE_SKIP_MIGRATIONS", "OPENCODE_SKIP_MIGRATIONS"),
   disableClaudeCodePrompt: Config.all({
-    broad: bool("OPENCODE_DISABLE_CLAUDE_CODE"),
-    direct: bool("OPENCODE_DISABLE_CLAUDE_CODE_PROMPT"),
+    broad: bool("TEAMCODE_DISABLE_CLAUDE_CODE", "OPENCODE_DISABLE_CLAUDE_CODE"),
+    direct: bool("TEAMCODE_DISABLE_CLAUDE_CODE_PROMPT", "OPENCODE_DISABLE_CLAUDE_CODE_PROMPT"),
   }).pipe(Config.map((flags) => flags.broad || flags.direct)),
   disableClaudeCodeSkills: Config.all({
-    broad: bool("OPENCODE_DISABLE_CLAUDE_CODE"),
-    direct: bool("OPENCODE_DISABLE_CLAUDE_CODE_SKILLS"),
+    broad: bool("TEAMCODE_DISABLE_CLAUDE_CODE", "OPENCODE_DISABLE_CLAUDE_CODE"),
+    direct: bool("TEAMCODE_DISABLE_CLAUDE_CODE_SKILLS", "OPENCODE_DISABLE_CLAUDE_CODE_SKILLS"),
   }).pipe(Config.map((flags) => flags.broad || flags.direct)),
   enableExa: Config.all({
     experimental,
-    enabled: bool("OPENCODE_ENABLE_EXA"),
-    legacy: bool("OPENCODE_EXPERIMENTAL_EXA"),
+    enabled: bool("TEAMCODE_ENABLE_EXA", "OPENCODE_ENABLE_EXA"),
+    legacy: bool("TEAMCODE_EXPERIMENTAL_EXA", "OPENCODE_EXPERIMENTAL_EXA"),
   }).pipe(Config.map((flags) => flags.experimental || flags.enabled || flags.legacy)),
   enableParallel: Config.all({
-    enabled: bool("OPENCODE_ENABLE_PARALLEL"),
-    legacy: bool("OPENCODE_EXPERIMENTAL_PARALLEL"),
+    enabled: bool("TEAMCODE_ENABLE_PARALLEL", "OPENCODE_ENABLE_PARALLEL"),
+    legacy: bool("TEAMCODE_EXPERIMENTAL_PARALLEL", "OPENCODE_EXPERIMENTAL_PARALLEL"),
   }).pipe(Config.map((flags) => flags.enabled || flags.legacy)),
-  enableExperimentalModels: bool("OPENCODE_ENABLE_EXPERIMENTAL_MODELS"),
-  enableQuestionTool: bool("OPENCODE_ENABLE_QUESTION_TOOL"),
-  experimentalScout: enabledByExperimental("OPENCODE_EXPERIMENTAL_SCOUT"),
-  experimentalBackgroundSubagents: enabledByExperimental("OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS"),
-  experimentalLspTy: bool("OPENCODE_EXPERIMENTAL_LSP_TY"),
-  experimentalLspTool: enabledByExperimental("OPENCODE_EXPERIMENTAL_LSP_TOOL"),
-  experimentalOxfmt: enabledByExperimental("OPENCODE_EXPERIMENTAL_OXFMT"),
-  experimentalPlanMode: enabledByExperimental("OPENCODE_EXPERIMENTAL_PLAN_MODE"),
-  experimentalEventSystem: enabledByExperimental("OPENCODE_EXPERIMENTAL_EVENT_SYSTEM"),
-  experimentalWorkspaces: enabledByExperimental("OPENCODE_EXPERIMENTAL_WORKSPACES"),
-  experimentalIconDiscovery: enabledByExperimental("OPENCODE_EXPERIMENTAL_ICON_DISCOVERY"),
-  outputTokenMax: positiveInteger("OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX"),
-  bashDefaultTimeoutMs: positiveInteger("OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS"),
-  client: Config.string("OPENCODE_CLIENT").pipe(Config.withDefault("cli")),
+  enableExperimentalModels: bool("TEAMCODE_ENABLE_EXPERIMENTAL_MODELS", "OPENCODE_ENABLE_EXPERIMENTAL_MODELS"),
+  enableQuestionTool: bool("TEAMCODE_ENABLE_QUESTION_TOOL", "OPENCODE_ENABLE_QUESTION_TOOL"),
+  experimentalScout: enabledByExperimental("TEAMCODE_EXPERIMENTAL_SCOUT", "OPENCODE_EXPERIMENTAL_SCOUT"),
+  experimentalBackgroundSubagents: enabledByExperimental("TEAMCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS", "OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS"),
+  experimentalLspTy: bool("TEAMCODE_EXPERIMENTAL_LSP_TY", "OPENCODE_EXPERIMENTAL_LSP_TY"),
+  experimentalLspTool: enabledByExperimental("TEAMCODE_EXPERIMENTAL_LSP_TOOL", "OPENCODE_EXPERIMENTAL_LSP_TOOL"),
+  experimentalOxfmt: enabledByExperimental("TEAMCODE_EXPERIMENTAL_OXFMT", "OPENCODE_EXPERIMENTAL_OXFMT"),
+  experimentalPlanMode: enabledByExperimental("TEAMCODE_EXPERIMENTAL_PLAN_MODE", "OPENCODE_EXPERIMENTAL_PLAN_MODE"),
+  experimentalEventSystem: enabledByExperimental("TEAMCODE_EXPERIMENTAL_EVENT_SYSTEM", "OPENCODE_EXPERIMENTAL_EVENT_SYSTEM"),
+  experimentalWorkspaces: enabledByExperimental("TEAMCODE_EXPERIMENTAL_WORKSPACES", "OPENCODE_EXPERIMENTAL_WORKSPACES"),
+  experimentalIconDiscovery: enabledByExperimental("TEAMCODE_EXPERIMENTAL_ICON_DISCOVERY", "OPENCODE_EXPERIMENTAL_ICON_DISCOVERY"),
+  outputTokenMax: positiveInteger("TEAMCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX", "OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX"),
+  bashDefaultTimeoutMs: positiveInteger("TEAMCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS", "OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS"),
+  client: Config.string("TEAMCODE_CLIENT").pipe(
+    Config.orElse(() => Config.string("OPENCODE_CLIENT")),
+    Config.withDefault("cli"),
+  ),
 }) {}
 
 export type Info = Context.Service.Shape<typeof Service>

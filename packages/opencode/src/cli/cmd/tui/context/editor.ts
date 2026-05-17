@@ -216,7 +216,7 @@ export const { use: useEditorContext, provider: EditorContextProvider } = create
         request("initialize", {
           protocolVersion: MCP_PROTOCOL_VERSION,
           capabilities: {},
-          clientInfo: { name: "opencode", version: "0.0.0" },
+          clientInfo: { name: "teamcode", version: "0.0.0" },
         })
       })
 
@@ -358,7 +358,7 @@ function parsePort(value: string | undefined) {
 }
 
 function resolveEditorConnection(directory: string): EditorConnection | undefined {
-  const port = parsePort(process.env.CLAUDE_CODE_SSE_PORT || process.env.OPENCODE_EDITOR_SSE_PORT)
+  const port = parsePort(process.env.CLAUDE_CODE_SSE_PORT || (process.env.TEAMCODE_EDITOR_SSE_PORT ?? process.env.OPENCODE_EDITOR_SSE_PORT))
   if (port) {
     return {
       url: `ws://127.0.0.1:${port}`,

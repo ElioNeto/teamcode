@@ -59,7 +59,7 @@ const args = hideBin(process.argv)
 
 function show(out: string) {
   const text = out.trimStart()
-  if (!text.startsWith("opencode ")) {
+  if (!text.startsWith("teamcode ")) {
     process.stderr.write(UI.logo() + EOL + EOL)
     process.stderr.write(text)
     return
@@ -69,7 +69,7 @@ function show(out: string) {
 
 const cli = yargs(args)
   .parserConfiguration({ "populate--": true })
-  .scriptName("opencode")
+  .scriptName("teamcode")
   .wrap(100)
   .help("help", "show help")
   .alias("help", "h")
@@ -90,6 +90,7 @@ const cli = yargs(args)
   })
   .middleware(async (opts) => {
     if (opts.pure) {
+      process.env.TEAMCODE_PURE = "1"
       process.env.OPENCODE_PURE = "1"
     }
 
@@ -106,10 +107,12 @@ const cli = yargs(args)
     Heap.start()
 
     process.env.AGENT = "1"
+    process.env.TEAMCODE = "1"
     process.env.OPENCODE = "1"
+    process.env.TEAMCODE_PID = String(process.pid)
     process.env.OPENCODE_PID = String(process.pid)
 
-    Log.Default.info("opencode", {
+    Log.Default.info("teamcode", {
       version: InstallationVersion,
       args: process.argv.slice(2),
       process_role: processMetadata.processRole,

@@ -446,7 +446,7 @@ export const ProvidersLoginCommand = effectCmd({
       }
 
       yield* Prompt.log.warn(
-        `This only stores a credential for ${provider} - you will need configure it in opencode.json, check the docs for examples.`,
+        `This only stores a credential for ${provider} - you will need configure it in teamcode.json, check the docs for examples.`,
       )
     }
 
@@ -460,8 +460,8 @@ export const ProvidersLoginCommand = effectCmd({
       )
     }
 
-    if (provider === "opencode") {
-      yield* Prompt.log.info("Create an api key at https://opencode.ai/auth")
+    if (provider === "teamcode") {
+      yield* Prompt.log.info("Create an api key at https://teamcode.ai/auth")
     }
 
     if (provider === "vercel") {
@@ -470,7 +470,7 @@ export const ProvidersLoginCommand = effectCmd({
 
     if (["cloudflare", "cloudflare-ai-gateway"].includes(provider)) {
       yield* Prompt.log.info(
-        "Cloudflare AI Gateway can be configured with CLOUDFLARE_GATEWAY_ID, CLOUDFLARE_ACCOUNT_ID, and CLOUDFLARE_API_TOKEN environment variables. Read more: https://opencode.ai/docs/providers/#cloudflare-ai-gateway",
+        "Cloudflare AI Gateway can be configured with CLOUDFLARE_GATEWAY_ID, CLOUDFLARE_ACCOUNT_ID, and CLOUDFLARE_API_TOKEN environment variables. Read more: https://teamcode.ai/docs/providers/#cloudflare-ai-gateway",
       )
     }
 

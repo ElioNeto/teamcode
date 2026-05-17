@@ -4,10 +4,10 @@
   "version": "1.15.4",
   "type": "module",
   "license": "MIT",
-  "homepage": "https://opencode.ai",
+  "homepage": "https://teamcode.ai",
   "author": {
-    "name": "OpenCode",
-    "email": "hello@opencode.ai"
+    "name": "TeamCode",
+    "email": "hello@teamcode.ai"
   },
   "scripts": {
     "typecheck": "tsgo -b",

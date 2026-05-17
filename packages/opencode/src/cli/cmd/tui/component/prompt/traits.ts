@@ -8,7 +8,7 @@ export interface PromptTraitsInput {
 }
 
 export type PromptTraits = EditorTraits & {
-  owner: "opencode"
+  owner: "teamcode"
   role: "prompt"
 }
 
@@ -29,7 +29,7 @@ export function computePromptTraits(input: PromptTraitsInput): PromptTraits {
   return {
     capture,
     status: input.mode === "shell" ? "SHELL" : undefined,
-    owner: "opencode",
+    owner: "teamcode",
     role: "prompt",
   }
 }

@@ -239,7 +239,7 @@ export const GithubInstallCommand = effectCmd({
               "",
               "    3. Go to a GitHub issue and comment `/oc summarize` to see the agent in action",
               "",
-              "   Learn more about the GitHub agent - https://opencode.ai/docs/github/#usage-examples",
+              "   Learn more about the GitHub agent - https://teamcode.ai/docs/github/#usage-examples",
             ].join("\n"),
           )
         }
@@ -323,7 +323,7 @@ export const GithubInstallCommand = effectCmd({
           if (installation) return s.stop("GitHub app already installed")
 
           // Open browser
-          const url = "https://github.com/apps/opencode-agent"
+          const url = "https://github.com/apps/teamcode-agent"
           const command =
             process.platform === "darwin"
               ? `open "${url}"`
@@ -360,7 +360,7 @@ export const GithubInstallCommand = effectCmd({
 
           async function getInstallation() {
             return await fetch(
-              `https://api.opencode.ai/get_github_app_installation?owner=${app.owner}&repo=${app.repo}`,
+              `https://api.teamcode.ai/get_github_app_installation?owner=${app.owner}&repo=${app.repo}`,
             )
               .then((res) => res.json())
               .then((data) => data.installation)
@@ -481,7 +481,7 @@ export const GithubRunCommand = effectCmd({
           ? (payload as IssueCommentEvent | IssuesEvent).issue.number
           : (payload as PullRequestEvent | PullRequestReviewCommentEvent).pull_request.number
       const runUrl = `/${owner}/${repo}/actions/runs/${runId}`
-      const shareBaseUrl = isMock ? "https://dev.opencode.ai" : "https://opencode.ai"
+      const shareBaseUrl = isMock ? "https://dev.teamcode.ai" : "https://teamcode.ai"
 
       let appToken: string
       let octoRest: Octokit
@@ -742,7 +742,7 @@ export const GithubRunCommand = effectCmd({
 
       function normalizeOidcBaseUrl(): string {
         const value = process.env["OIDC_BASE_URL"]
-        if (!value) return "https://api.opencode.ai"
+        if (!value) return "https://api.teamcode.ai"
         return value.replace(/\/+$/, "")
       }
 

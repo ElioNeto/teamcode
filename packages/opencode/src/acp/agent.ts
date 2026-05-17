@@ -517,9 +517,9 @@ export class Agent implements ACPAgent {
     if (params.clientCapabilities?._meta?.["terminal-auth"] === true) {
       authMethod._meta = {
         "terminal-auth": {
-          command: "opencode",
+          command: "teamcode",
           args: ["auth", "login"],
-          label: "OpenCode Login",
+          label: "TeamCode Login",
         },
       }
     }
@@ -545,7 +545,7 @@ export class Agent implements ACPAgent {
       },
       authMethods: [authMethod],
       agentInfo: {
-        name: "OpenCode",
+        name: "TeamCode",
         version: InstallationVersion,
       },
     }
@@ -1697,7 +1697,7 @@ async function defaultModel(config: ACPConfig, cwd?: string): Promise<{ provider
   const lastUsed = await lastUsedModel(sdk, directory, providers)
   if (lastUsed) return lastUsed
 
-  const opencodeProvider = providers.find((p) => p.id === "opencode")
+  const opencodeProvider = providers.find((p) => p.id === "teamcode")
   if (opencodeProvider) {
     const [best] = Provider.sort(Object.values(opencodeProvider.models))
     if (best) {

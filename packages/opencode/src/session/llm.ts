@@ -318,7 +318,7 @@ const live: Layer.Layer<
           })
         : undefined
 
-      const opencodeProjectID = input.model.providerID.startsWith("opencode")
+      const opencodeProjectID = input.model.providerID.startsWith("teamcode")
         ? (yield* InstanceState.context).project.id
         : undefined
 
@@ -359,13 +359,13 @@ const live: Layer.Layer<
         maxOutputTokens: params.maxOutputTokens,
         abortSignal: input.abort,
         headers: {
-          ...(input.model.providerID.startsWith("opencode")
+          ...(input.model.providerID.startsWith("teamcode")
             ? {
-                "x-opencode-project": opencodeProjectID,
-                "x-opencode-session": input.sessionID,
-                "x-opencode-request": input.user.id,
-                "x-opencode-client": flags.client,
-                "User-Agent": `opencode/${InstallationVersion}`,
+                "x-teamcode-project": opencodeProjectID,
+                "x-teamcode-session": input.sessionID,
+                "x-teamcode-request": input.user.id,
+                "x-teamcode-client": flags.client,
+                "User-Agent": `teamcode/${InstallationVersion}`,
               }
             : {
                 "x-session-affinity": input.sessionID,

@@ -26,14 +26,14 @@ function systemManagedConfigDir(): string {
     case "darwin":
       return "/Library/Application Support/opencode"
     case "win32":
-      return path.join(process.env.ProgramData || "C:\\ProgramData", "opencode")
+      return path.join(process.env.ProgramData || "C:\\ProgramData", "teamcode")
     default:
       return "/etc/opencode"
   }
 }
 
 export function managedConfigDir() {
-  return process.env.OPENCODE_TEST_MANAGED_CONFIG_DIR || systemManagedConfigDir()
+  return process.env.TEAMCODE_TEST_MANAGED_CONFIG_DIR ?? process.env.OPENCODE_TEST_MANAGED_CONFIG_DIR ?? systemManagedConfigDir()
 }
 
 export function parseManagedPlist(json: string): string {

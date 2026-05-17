@@ -129,15 +129,15 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
     )
 
     const getBrewFormula = Effect.fnUntraced(function* () {
-      const tapFormula = yield* text(["brew", "list", "--formula", "anomalyco/tap/opencode"])
-      if (tapFormula.includes("opencode")) return "anomalyco/tap/opencode"
-      const coreFormula = yield* text(["brew", "list", "--formula", "opencode"])
-      if (coreFormula.includes("opencode")) return "opencode"
-      return "opencode"
+      const tapFormula = yield* text(["brew", "list", "--formula", "teamcode/tap/teamcode"])
+      if (tapFormula.includes("teamcode")) return "teamcode/tap/teamcode"
+      const coreFormula = yield* text(["brew", "list", "--formula", "teamcode"])
+      if (coreFormula.includes("teamcode")) return "teamcode"
+      return "teamcode"
     })
 
     const upgradeCurl = Effect.fnUntraced(function* (target: string) {
-      const response = yield* httpOk.execute(HttpClientRequest.get("https://opencode.ai/install"))
+      const response = yield* httpOk.execute(HttpClientRequest.get("https://teamcode.ai/install"))
       const body = yield* response.text
       const bodyBytes = new TextEncoder().encode(body)
       const result = yield* appProcess.run(
@@ -171,9 +171,9 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
           { name: "yarn", command: () => text(["yarn", "global", "list"]) },
           { name: "pnpm", command: () => text(["pnpm", "list", "-g", "--depth=0"]) },
           { name: "bun", command: () => text(["bun", "pm", "ls", "-g"]) },
-          { name: "brew", command: () => text(["brew", "list", "--formula", "opencode"]) },
-          { name: "scoop", command: () => text(["scoop", "list", "opencode"]) },
-          { name: "choco", command: () => text(["choco", "list", "--limit-output", "opencode"]) },
+          { name: "brew", command: () => text(["brew", "list", "--formula", "teamcode"]) },
+          { name: "scoop", command: () => text(["scoop", "list", "teamcode"]) },
+          { name: "choco", command: () => text(["choco", "list", "--limit-output", "teamcode"]) },
         ]
 
         checks.sort((a, b) => {
@@ -187,7 +187,7 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
         for (const check of checks) {
           const output = yield* check.command()
           const installedName =
-            check.name === "brew" || check.name === "choco" || check.name === "scoop" ? "opencode" : "opencode-ai"
+            check.name === "brew" || check.name === "choco" || check.name === "scoop" ? "teamcode" : "opencode-ai"
           if (output.includes(installedName)) {
             return check.name
           }
@@ -290,10 +290,10 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
             break
           }
           case "choco":
-            upgradeResult = yield* run(["choco", "upgrade", "opencode", `--version=${target}`, "-y"])
+            upgradeResult = yield* run(["choco", "upgrade", "teamcode", `--version=${target}`, "-y"])
             break
           case "scoop":
-            upgradeResult = yield* run(["scoop", "install", `opencode@${target}`])
+            upgradeResult = yield* run(["scoop", "install", `teamcode@${target}`])
             break
           default:
             return yield* new UpgradeFailedError({ stderr: `Unknown method: ${m}` })
