@@ -176,15 +176,6 @@ export interface Interface {
 
 export class Service extends Context.Service<Service, Interface>()("@opencode/Sandbox") {}
 
-// Worktree error type, re-exported for convenience
-type WorktreeError = Worktree.NotGitError
-  | Worktree.NameGenerationFailedError
-  | Worktree.CreateFailedError
-  | Worktree.StartCommandFailedError
-  | Worktree.RemoveFailedError
-  | Worktree.ResetFailedError
-  | Worktree.ListFailedError
-
 // ---------------------------------------------------------------------------
 // Layer
 // ---------------------------------------------------------------------------
@@ -199,139 +190,142 @@ export const layer: Layer.Layer<
     const pathSvc = yield* Path.Path
     const project = yield* Project.Service
     const worktree = yield* Worktree.Service
+    const appProcess = yield* AppProcess.Service
 
     // -----------------------------------------------------------------------
     // enter
     // -----------------------------------------------------------------------
 
-    const enter: Interface["enter"] = (name?: string) =>
-      Effect.gen(function* () {
-        const ctx = yield* InstanceState.context
-        if (ctx.project.vcs !== "git") {
-          return yield* new NotGitError({ message: "Sandbox mode requires a git project" })
-        }
+    const enter = Effect.fn("Sandbox.enter")(function* (name?: string) {
+      const ctx = yield* InstanceState.context
+      if (ctx.project.vcs !== "git") {
+        return yield* new NotGitError({ message: "Sandbox mode requires a git project" })
+      }
 
-        const info = yield* worktree.makeWorktreeInfo({ name, detached: false }).pipe(
-          Effect.catch((e: WorktreeError) =>
-            Effect.fail(new EnterFailedError({ message: errorMessage(e) || "Failed to create worktree info" })),
-          ),
-        )
-        yield* worktree.createFromInfo(info).pipe(
-          Effect.catch((e: WorktreeError) =>
-            Effect.fail(new EnterFailedError({ message: errorMessage(e) || "Failed to create sandbox worktree" })),
-          ),
-        )
+      const info = yield* worktree.makeWorktreeInfo({ name, detached: false }).pipe(
+        Effect.catch((e: Worktree.Error) =>
+          Effect.fail(new EnterFailedError({ message: errorMessage(e) || "Failed to create worktree info" })),
+        ),
+      )
+      yield* worktree.createFromInfo(info).pipe(
+        Effect.catch((e: Worktree.Error) =>
+          Effect.fail(new EnterFailedError({ message: errorMessage(e) || "Failed to create sandbox worktree" })),
+        ),
+      )
 
-        const workspaceID = yield* InstanceState.workspaceID
-        GlobalBus.emit("event", {
-          directory: info.directory,
-          project: ctx.project.id,
-          workspace: workspaceID,
-          payload: {
-            type: Event.Entered.type,
-            properties: { name: info.name, directory: info.directory, branch: info.branch },
-          },
-        })
-
-        log.info("sandbox entered", { name: info.name, directory: info.directory, branch: info.branch })
-
-        return {
-          name: info.name,
-          directory: info.directory,
-          branch: info.branch,
-          worktree: ctx.worktree,
-        } satisfies SandboxInfo
+      const workspaceID = yield* InstanceState.workspaceID
+      GlobalBus.emit("event", {
+        directory: info.directory,
+        project: ctx.project.id,
+        workspace: workspaceID,
+        payload: {
+          type: Event.Entered.type,
+          properties: { name: info.name, directory: info.directory, branch: info.branch },
+        },
       })
+
+      log.info("sandbox entered", { name: info.name, directory: info.directory, branch: info.branch })
+
+      return {
+        name: info.name,
+        directory: info.directory,
+        branch: info.branch,
+        worktree: ctx.worktree,
+      } satisfies SandboxInfo
+    })
 
     // -----------------------------------------------------------------------
     // exit
     // -----------------------------------------------------------------------
 
-    const exit: Interface["exit"] = (input: ExitInput) =>
-      Effect.gen(function* () {
-        const ctx = yield* InstanceState.context
+    const gitPush = Effect.fnUntraced(
+      function* (branch: string, directory: string) {
+        return yield* appProcess.run(
+          ChildProcess.make("git", ["push", "-u", "origin", branch], {
+            cwd: directory,
+            extendEnv: true,
+            stdin: "ignore",
+          }),
+        )
+      },
+      Effect.catch(() => Effect.succeed(null)),
+    )
 
-        if (input.createPR && input.branch) {
-          const appProcess = yield* AppProcess.Service
-          const pushResult = yield* appProcess.run(
-            ChildProcess.make("git", ["push", "-u", "origin", input.branch], {
-              cwd: input.directory,
-              extendEnv: true,
-              stdin: "ignore",
-            }),
-          )
-          if (pushResult.exitCode !== 0) {
-            log.warn("sandbox push failed (continuing cleanup)", {
-              branch: input.branch,
-              stderr: pushResult.stderr.toString("utf8"),
-            })
-          }
+    const exit = Effect.fn("Sandbox.exit")(function* (input: ExitInput) {
+      const ctx = yield* InstanceState.context
+
+      if (input.createPR && input.branch) {
+        const result = yield* gitPush(input.branch, input.directory)
+        if (result && result.exitCode !== 0) {
+          log.warn("sandbox push failed (continuing cleanup)", {
+            branch: input.branch,
+            stderr: result.stderr.toString("utf8"),
+          })
         }
+      }
 
-        yield* worktree.remove({ directory: input.directory }).pipe(Effect.ignore)
+      yield* worktree.remove({ directory: input.directory }).pipe(Effect.ignore)
 
-        const workspaceID = yield* InstanceState.workspaceID
-        GlobalBus.emit("event", {
-          directory: input.directory,
-          project: ctx.project.id,
-          workspace: workspaceID,
-          payload: {
-            type: Event.Exited.type,
-            properties: {
-              name: input.name,
-              directory: input.directory,
-              discarded: !input.createPR,
-              branch: input.branch,
-            },
+      const workspaceID = yield* InstanceState.workspaceID
+      GlobalBus.emit("event", {
+        directory: input.directory,
+        project: ctx.project.id,
+        workspace: workspaceID,
+        payload: {
+          type: Event.Exited.type,
+          properties: {
+            name: input.name,
+            directory: input.directory,
+            discarded: !input.createPR,
+            branch: input.branch,
           },
-        })
-
-        log.info("sandbox exited", {
-          name: input.name,
-          directory: input.directory,
-          discarded: !input.createPR,
-        })
+        },
       })
+
+      log.info("sandbox exited", {
+        name: input.name,
+        directory: input.directory,
+        discarded: !input.createPR,
+      })
+    })
 
     // -----------------------------------------------------------------------
     // list
     // -----------------------------------------------------------------------
 
-    const list: Interface["list"] = () =>
-      Effect.gen(function* () {
-        const ctx = yield* InstanceState.context
-        if (ctx.project.vcs !== "git") return [] as const
+    const list = Effect.fn("Sandbox.list")(function* () {
+      const ctx = yield* InstanceState.context
+      if (ctx.project.vcs !== "git") return [] as const
 
-        const wts = yield* worktree.list().pipe(
-          Effect.catch((_: WorktreeError) => Effect.succeed([] as const)),
-        )
+      const wts = yield* worktree.list().pipe(
+        Effect.catch((_: Worktree.Error) => Effect.succeed([] as const)),
+      )
 
-        return wts.map((w: { name: string; branch?: string; directory: string }) => ({
-          name: w.name,
-          directory: w.directory,
-          branch: w.branch,
-          worktree: ctx.worktree,
-        }))
-      })
+      return wts.map((w: { name: string; branch?: string; directory: string }) => ({
+        name: w.name,
+        directory: w.directory,
+        branch: w.branch,
+        worktree: ctx.worktree,
+      }))
+    })
 
     // -----------------------------------------------------------------------
     // isSandbox
     // -----------------------------------------------------------------------
 
-    const isSandbox: Interface["isSandbox"] = (directory: string) =>
-      Effect.gen(function* () {
-        const sandboxes = yield* list()
-        const canonDir = pathSvc.resolve(directory)
-        for (const s of sandboxes) {
-          const sandDir = pathSvc.resolve(s.directory)
-          if (process.platform === "win32") {
-            if (sandDir.toLowerCase() === canonDir.toLowerCase()) return true
-          } else {
-            if (sandDir === canonDir) return true
-          }
+    const isSandbox = Effect.fn("Sandbox.isSandbox")(function* (directory: string) {
+      const sandboxes = yield* list()
+      const canonDir = pathSvc.resolve(directory)
+      for (const s of sandboxes) {
+        const sandDir = pathSvc.resolve(s.directory)
+        if (process.platform === "win32") {
+          if (sandDir.toLowerCase() === canonDir.toLowerCase()) return true
+        } else {
+          if (sandDir === canonDir) return true
         }
-        return false
-      })
+      }
+      return false
+    })
 
     return Service.of({ enter, exit, list, isSandbox })
   }),
