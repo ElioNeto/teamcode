@@ -13,6 +13,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js"
 import { Config } from "@/config/config"
 import { ConfigMCP } from "../config/mcp"
+import { ConfigVariable } from "@/config/variable"
 import * as Log from "@opencode-ai/core/util/log"
 import { NamedError } from "@opencode-ai/core/util/error"
 import { Installation } from "../installation"
@@ -153,7 +154,12 @@ function listTools(key: string, client: MCPClient, timeout: number) {
 }
 
 // Convert MCP tool definition to AI SDK Tool type
-function convertMcpTool(mcpTool: MCPToolDef, client: MCPClient, timeout?: number): Tool {
+function convertMcpTool(
+  mcpTool: MCPToolDef,
+  client: MCPClient,
+  options?: { timeout?: number; onConnectionError?: (err: Error) => void },
+): Tool {
+  const { timeout, onConnectionError } = options ?? {}
   const inputSchema = mcpTool.inputSchema
 
   // Spread first, then override type to ensure it's always "object"
@@ -168,17 +174,27 @@ function convertMcpTool(mcpTool: MCPToolDef, client: MCPClient, timeout?: number
     description: mcpTool.description ?? "",
     inputSchema: jsonSchema(schema),
     execute: async (args: unknown) => {
-      return client.callTool(
-        {
-          name: mcpTool.name,
-          arguments: (args || {}) as Record<string, unknown>,
-        },
-        CallToolResultSchema,
-        {
-          resetTimeoutOnProgress: true,
-          timeout,
-        },
-      )
+      try {
+        return await client.callTool(
+          {
+            name: mcpTool.name,
+            arguments: (args || {}) as Record<string, unknown>,
+          },
+          CallToolResultSchema,
+          {
+            resetTimeoutOnProgress: true,
+            timeout,
+          },
+        )
+      } catch (err) {
+        if (
+          err instanceof Error &&
+          /ECONNRESET|ECONNREFUSED|ETIMEDOUT|ERR_CONN_|transport/i.test(err.message)
+        ) {
+          onConnectionError?.(err)
+        }
+        throw err
+      }
     },
   })
 }
@@ -315,7 +331,18 @@ export const layer = Layer.effect(
     ) {
       const oauthDisabled = mcp.oauth === false
       const oauthConfig = typeof mcp.oauth === "object" ? mcp.oauth : undefined
-      const url = remoteURL(key, mcp.url)
+      // Substitute env/file vars in URL and headers at connection time
+      const resolvedUrl = yield* Effect.promise(() =>
+        ConfigVariable.substitute({ text: mcp.url, type: "virtual", source: "mcp", dir: "" }),
+      )
+      const resolvedHeaders = mcp.headers
+        ? yield* Effect.forEach(Object.entries(mcp.headers), ([k, v]) =>
+            Effect.promise(() =>
+              ConfigVariable.substitute({ text: v, type: "virtual", source: "mcp", dir: "" }).then((val) => [k, val] as const),
+            ),
+          ).pipe(Effect.map((entries) => Object.fromEntries(entries)))
+        : undefined
+      const url = remoteURL(key, resolvedUrl)
       if (!url) {
         return {
           client: undefined as MCPClient | undefined,
@@ -327,7 +354,7 @@ export const layer = Layer.effect(
       if (!oauthDisabled) {
         authProvider = new McpOAuthProvider(
           key,
-          mcp.url,
+          resolvedUrl,
           {
             clientId: oauthConfig?.clientId,
             clientSecret: oauthConfig?.clientSecret,
@@ -348,14 +375,14 @@ export const layer = Layer.effect(
           name: "StreamableHTTP",
           transport: new StreamableHTTPClientTransport(url, {
             authProvider,
-            requestInit: mcp.headers ? { headers: mcp.headers } : undefined,
+            requestInit: resolvedHeaders ? { headers: resolvedHeaders } : undefined,
           }),
         },
         {
           name: "SSE",
           transport: new SSEClientTransport(url, {
             authProvider,
-            requestInit: mcp.headers ? { headers: mcp.headers } : undefined,
+            requestInit: resolvedHeaders ? { headers: resolvedHeaders } : undefined,
           }),
         },
       ]
@@ -404,7 +431,7 @@ export const layer = Layer.effect(
             log.debug("transport connection failed", {
               key,
               transport: name,
-              url: mcp.url,
+              url: resolvedUrl,
               error: lastError.message,
             })
             lastStatus = { status: "failed" as const, error: lastError.message }
@@ -718,7 +745,12 @@ export const layer = Layer.effect(
 
             const timeout = entry?.timeout ?? defaultTimeout
             for (const mcpTool of listed) {
-              result[sanitize(clientName) + "_" + sanitize(mcpTool.name)] = convertMcpTool(mcpTool, client, timeout)
+              result[sanitize(clientName) + "_" + sanitize(mcpTool.name)] = convertMcpTool(mcpTool, client, {
+                timeout,
+                onConnectionError: (err) => {
+                  s.status[clientName] = { status: "failed", error: err.message }
+                },
+              })
             }
           }),
         { concurrency: "unbounded" },
@@ -810,7 +842,10 @@ export const layer = Layer.effect(
       if (!mcpConfig) throw new Error(`MCP server ${mcpName} not found or disabled`)
       if (mcpConfig.type !== "remote") throw new Error(`MCP server ${mcpName} is not a remote server`)
       if (mcpConfig.oauth === false) throw new Error(`MCP server ${mcpName} has OAuth explicitly disabled`)
-      const url = remoteURL(mcpName, mcpConfig.url)
+      const resolvedUrl = yield* Effect.promise(() =>
+        ConfigVariable.substitute({ text: mcpConfig.url, type: "virtual", source: "mcp", dir: "" }),
+      )
+      const url = remoteURL(mcpName, resolvedUrl)
       if (!url) throw new Error(`Invalid MCP URL for "${mcpName}"`)
 
       // OAuth config is optional - if not provided, we'll use auto-discovery
@@ -826,7 +861,7 @@ export const layer = Layer.effect(
       let capturedUrl: URL | undefined
       const authProvider = new McpOAuthProvider(
         mcpName,
-        mcpConfig.url,
+        resolvedUrl,
         {
           clientId: oauthConfig?.clientId,
           clientSecret: oauthConfig?.clientSecret,
