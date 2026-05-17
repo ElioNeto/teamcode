@@ -47,6 +47,9 @@ const FILES = [
   "**/temp/**",
   "**/*.log",
 
+  // Watchman
+  "**/.watchman-cookie-*",
+
   // Coverage/test outputs
   "**/coverage/**",
   "**/.nyc_output/**",

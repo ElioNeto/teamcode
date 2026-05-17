@@ -661,7 +661,17 @@ export const toModelMessagesEffect = Effect.fnUntraced(function* (
       return { type: "text", value: output }
     }
 
-    if (typeof output === "object") {
+    if (typeof output === "object" && output !== null) {
+      // MCP CallToolResult shape: { content: Array<{type, text?, data?, mimeType?}>, isError?: boolean }
+      const mcpResult = output as { content?: Array<{ type: string; text?: string; data?: string; mimeType?: string }>; isError?: boolean }
+      if (mcpResult.content && Array.isArray(mcpResult.content)) {
+        const text = mcpResult.content
+          .filter((c) => c.type === "text" && c.text != null)
+          .map((c) => c.text)
+          .join("\n")
+        return { type: "text", value: text || JSON.stringify(mcpResult.content) }
+      }
+
       const outputObject = output as {
         text: string
         attachments?: Array<{ mime: string; url: string }>

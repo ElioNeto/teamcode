@@ -142,7 +142,7 @@ const scan = Effect.fnUntraced(function* (
         cwd: root,
         absolute: true,
         include: "file",
-        symlink: true,
+        symlink: false,
         dot: opts?.dot,
       }),
     catch: (error) => error,
