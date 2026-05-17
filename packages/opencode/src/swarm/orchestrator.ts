@@ -1,4 +1,4 @@
-import { Effect, Context, Layer, Fiber, Scope } from "effect"
+import { Effect, Context, Layer, Fiber, Scope, Option } from "effect"
 import { SwarmDefinition, SwarmResult, SwarmAgent } from "./types"
 import { Event as SwarmEvent } from "./events"
 import { Bus } from "@/bus"
@@ -22,7 +22,7 @@ type AgentRunResult = {
 }
 
 type State = {
-  readonly running: Map<string, Fiber.Fiber<AgentRunResult>>
+  readonly running: Map<string, Fiber.Fiber<unknown>>
 }
 
 export interface Interface {
@@ -30,7 +30,12 @@ export interface Interface {
   readonly cancel: (swarmID: string) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/SwarmOrchestrator") {}
+export class Service extends Context.Service<Service, Interface>()("@code/SwarmOrchestrator") {}
+
+const defaultRuleset: Permission.Ruleset = [
+  { permission: "edit", pattern: "*", action: "ask" },
+  { permission: "bash", pattern: "*", action: "ask" },
+]
 
 export const layer = Layer.effect(
   Service,
@@ -42,21 +47,16 @@ export const layer = Layer.effect(
 
     const state = yield* InstanceState.make<State>(
       Effect.fn("SwarmOrchestrator.state")(() =>
-        Effect.succeed({ running: new Map<string, Fiber.Fiber<AgentRunResult>>() }),
+        Effect.succeed({ running: new Map<string, Fiber.Fiber<unknown>>() }),
       ),
     )
 
-    const defaultRuleset: Permission.Ruleset = [
-      { permission: "edit", pattern: "*", action: "ask" },
-      { permission: "bash", pattern: "*", action: "ask" },
-    ]
-
-    function runAgent(
+    const runAgentFn = (
       agent: SwarmAgent,
       parentSessionID: SessionID,
       swarmID: string,
-    ): Effect.Effect<AgentRunResult> {
-      return Effect.gen(function* () {
+    ): Effect.Effect<AgentRunResult> =>
+      Effect.gen(function* () {
         const agentInfo = yield* agentSvc.get(agent.role).pipe(Effect.option)
         const resolvedPermission = agentInfo._tag === "Some"
           ? agentInfo.value.permission
@@ -115,35 +115,38 @@ export const layer = Layer.effect(
           return { id: agent.id, role: agent.role, sessionID: child.id, status: "failed" as const, error: errorMsg }
         }
       })
-    }
 
-    function runAgents(
+    const runAgentsFn = (
       def: SwarmDefinition,
       parentSessionID: SessionID,
-    ): Effect.Effect<AgentRunResult[]> {
-      return Effect.gen(function* () {
+    ): Effect.Effect<AgentRunResult[]> =>
+      Effect.gen(function* () {
         if (def.mode === "parallel") {
-          const scope = yield* Scope.Scope
-          const effects = def.agents.map((agent) =>
-            runAgent(agent, parentSessionID, def.id).pipe(Effect.forkIn(scope)),
+          const results: AgentRunResult[] = yield* Effect.scoped(
+            Effect.gen(function* () {
+              const scope = yield* Scope.Scope
+              const effects = def.agents.map((agent) =>
+                runAgentFn(agent, parentSessionID, def.id).pipe(Effect.forkIn(scope)),
+              )
+              const fibers = yield* Effect.all(effects)
+              const results: AgentRunResult[] = []
+              for (const fiber of fibers) {
+                results.push(yield* Fiber.join(fiber))
+              }
+              return results
+            }),
           )
-          const fibers = yield* Effect.all(effects)
-          const results: AgentRunResult[] = []
-          for (const fiber of fibers) {
-            results.push(yield* Fiber.join(fiber))
-          }
           return results
         }
 
         const results: AgentRunResult[] = []
         for (const agent of def.agents) {
-          results.push(yield* runAgent(agent, parentSessionID, def.id))
+          results.push(yield* runAgentFn(agent, parentSessionID, def.id))
         }
         return results
       })
-    }
 
-    const run: Interface["run"] = (def, parentSessionID) =>
+    const runFn = (def: SwarmDefinition, parentSessionID: SessionID): Effect.Effect<SwarmResult> =>
       Effect.gen(function* () {
         yield* bus.publish(SwarmEvent.SwarmCreated, {
           swarmID: def.id,
@@ -155,55 +158,46 @@ export const layer = Layer.effect(
         log.info("swarm created", { swarmID: def.id, mode: def.mode, agentCount: def.agents.length })
 
         const runEffect = def.timeout
-          ? runAgents(def, parentSessionID).pipe(Effect.timeout(def.timeout))
-          : runAgents(def, parentSessionID)
+          ? runAgentsFn(def, parentSessionID).pipe(Effect.timeout(def.timeout))
+          : runAgentsFn(def, parentSessionID)
 
-        const result = yield* runEffect.pipe(Effect.catchAll(() => Effect.succeed(null)))
+        const result = yield* runEffect.pipe(Effect.option)
 
-        if (result === null) {
-          const swarmResult: SwarmResult = {
-            swarmID: def.id,
-            status: "timeout",
-            agents: def.agents.map((a) => ({ id: a.id, role: a.role, status: "skipped" as const })),
-            aggregatedOutput: "Swarm timed out",
-          }
+        if (result._tag === "None") {
+          const empty: readonly { readonly id: string; readonly role: string; readonly status: "skipped" }[] =
+            def.agents.map((a) => ({ id: a.id, role: a.role, status: "skipped" as const }))
 
           yield* bus.publish(SwarmEvent.SwarmCompleted, {
             swarmID: def.id,
             status: "timeout",
-            agentResults: swarmResult.agents.map((a) => ({
-              agentID: a.id,
-              role: a.role,
-              status: a.status,
-            })),
+            agentResults: empty.map((a) => ({ agentID: a.id, role: a.role, status: a.status })),
           })
 
-          return swarmResult
+          return {
+            swarmID: def.id,
+            status: "timeout" as const,
+            agents: empty,
+            aggregatedOutput: "Swarm timed out or failed",
+          } satisfies SwarmResult as SwarmResult
         }
 
-        const hasFailed = result.some((r) => r.status === "failed")
-        const swarmStatus = hasFailed ? ("failed" as const) : ("completed" as const)
+        const agentResults = result.value
+        const hasFailed = agentResults.some((r: AgentRunResult) => r.status === "failed")
+        const swarmStatus: "completed" | "failed" = hasFailed ? "failed" : "completed"
 
-        const swarmResult: SwarmResult = {
-          swarmID: def.id,
-          status: swarmStatus,
-          agents: result.map((r) => ({
-            id: r.id,
-            role: r.role,
-            status: r.status === "completed" ? ("completed" as const) : ("failed" as const),
-            sessionID: r.sessionID,
-            output: r.output,
-            error: r.error,
-          })),
-          aggregatedOutput: result
-            .map((r) => `[${r.role}] ${r.status}: ${r.output ?? r.error ?? "no output"}`)
-            .join("\n"),
-        }
+        const agents = agentResults.map((r: AgentRunResult) => ({
+          id: r.id,
+          role: r.role,
+          status: (r.status === "completed" ? "completed" : "failed") as "completed" | "failed",
+          sessionID: r.sessionID,
+          output: r.output,
+          error: r.error,
+        }))
 
         yield* bus.publish(SwarmEvent.SwarmCompleted, {
           swarmID: def.id,
           status: swarmStatus,
-          agentResults: result.map((a) => ({
+          agentResults: agentResults.map((a: AgentRunResult) => ({
             agentID: a.id,
             role: a.role,
             status: a.status,
@@ -213,10 +207,17 @@ export const layer = Layer.effect(
 
         log.info("swarm completed", { swarmID: def.id, status: swarmStatus })
 
-        return swarmResult
+        return {
+          swarmID: def.id,
+          status: swarmStatus,
+          agents,
+          aggregatedOutput: agentResults
+            .map((r: AgentRunResult) => `[${r.role}] ${r.status}: ${r.output ?? r.error ?? "no output"}`)
+            .join("\n"),
+        } satisfies SwarmResult as SwarmResult
       })
 
-    const cancel: Interface["cancel"] = (swarmID) =>
+    const cancelFn = (swarmID: string): Effect.Effect<void> =>
       Effect.gen(function* () {
         const data = yield* InstanceState.get(state)
         const fiber = data.running.get(swarmID)
@@ -226,7 +227,10 @@ export const layer = Layer.effect(
         }
       })
 
-    return Service.of({ run, cancel })
+    return Service.of({
+      run: runFn,
+      cancel: cancelFn,
+    })
   }),
 )
 
