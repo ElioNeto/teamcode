@@ -154,6 +154,7 @@ export class Agent implements ACPAgent {
     { optionId: "always", kind: "allow_always", name: "Always allow" },
     { optionId: "reject", kind: "reject_once", name: "Reject" },
   ]
+  private deltaChain = new Map<string, Promise<void>>()
 
   constructor(connection: AgentSideConnection, config: ACPConfig) {
     this.connection = connection
@@ -443,63 +444,69 @@ export class Agent implements ACPAgent {
         if (!session) return
         const sessionId = session.id
 
-        const message = await this.sdk.session
-          .message(
-            {
-              sessionID: props.sessionID,
-              messageID: props.messageID,
-              directory: session.cwd,
-            },
-            { throwOnError: true },
-          )
-          .then((x) => x.data)
-          .catch((error) => {
-            log.error("unexpected error when fetching message", { error })
-            return undefined
+        const prev = this.deltaChain.get(sessionId) ?? Promise.resolve()
+        const next = prev
+          .then(async () => {
+            const message = await this.sdk.session
+              .message(
+                {
+                  sessionID: props.sessionID,
+                  messageID: props.messageID,
+                  directory: session.cwd,
+                },
+                { throwOnError: true },
+              )
+              .then((x) => x.data)
+              .catch((error) => {
+                log.error("unexpected error when fetching message", { error })
+                return undefined
+              })
+
+            if (!message || message.info.role !== "assistant") return
+
+            const part = message.parts.find((p) => p.id === props.partID)
+            if (!part) return
+
+            if (part.type === "text" && props.field === "text" && part.ignored !== true) {
+              await this.connection
+                .sessionUpdate({
+                  sessionId,
+                  update: {
+                    sessionUpdate: "agent_message_chunk",
+                    messageId: props.messageID,
+                    content: {
+                      type: "text",
+                      text: props.delta,
+                    },
+                  },
+                })
+                .catch((error) => {
+                  log.error("failed to send text delta to ACP", { error })
+                })
+              return
+            }
+
+            if (part.type === "reasoning" && props.field === "text") {
+              await this.connection
+                .sessionUpdate({
+                  sessionId,
+                  update: {
+                    sessionUpdate: "agent_thought_chunk",
+                    messageId: props.messageID,
+                    content: {
+                      type: "text",
+                      text: props.delta,
+                    },
+                  },
+                })
+                .catch((error) => {
+                  log.error("failed to send reasoning delta to ACP", { error })
+                })
+            }
           })
-
-        if (!message || message.info.role !== "assistant") return
-
-        const part = message.parts.find((p) => p.id === props.partID)
-        if (!part) return
-
-        if (part.type === "text" && props.field === "text" && part.ignored !== true) {
-          await this.connection
-            .sessionUpdate({
-              sessionId,
-              update: {
-                sessionUpdate: "agent_message_chunk",
-                messageId: props.messageID,
-                content: {
-                  type: "text",
-                  text: props.delta,
-                },
-              },
-            })
-            .catch((error) => {
-              log.error("failed to send text delta to ACP", { error })
-            })
-          return
-        }
-
-        if (part.type === "reasoning" && props.field === "text") {
-          await this.connection
-            .sessionUpdate({
-              sessionId,
-              update: {
-                sessionUpdate: "agent_thought_chunk",
-                messageId: props.messageID,
-                content: {
-                  type: "text",
-                  text: props.delta,
-                },
-              },
-            })
-            .catch((error) => {
-              log.error("failed to send reasoning delta to ACP", { error })
-            })
-        }
-        return
+          .catch(() => {})
+        this.deltaChain.set(sessionId, next)
+        return next
       }
     }
   }
@@ -1443,10 +1450,11 @@ export class Agent implements ACPAgent {
         parts,
         agent,
         directory,
-      })
+      }, { throwOnError: true })
       const msg = response.data?.info
 
       await sendUsageUpdate(this.connection, this.sdk, sessionID, directory)
+      await this.waitForSessionDeltas(sessionID)
 
       return {
         stopReason: "end_turn" as const,
@@ -1470,6 +1478,7 @@ export class Agent implements ACPAgent {
       const msg = response.data?.info
 
       await sendUsageUpdate(this.connection, this.sdk, sessionID, directory)
+      await this.waitForSessionDeltas(sessionID)
 
       return {
         stopReason: "end_turn" as const,
@@ -1493,10 +1502,20 @@ export class Agent implements ACPAgent {
     }
 
     await sendUsageUpdate(this.connection, this.sdk, sessionID, directory)
+    await this.waitForSessionDeltas(sessionID)
 
     return {
       stopReason: "end_turn" as const,
       _meta: {},
+    }
+  }
+
+  private async waitForSessionDeltas(sessionID: string) {
+    while (true) {
+      const chain = this.deltaChain.get(sessionID)
+      if (!chain) return
+      await chain
+      if (this.deltaChain.get(sessionID) === chain) return
     }
   }
 
