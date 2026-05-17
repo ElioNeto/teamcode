@@ -1,0 +1,40 @@
+name: beta
+
+on:
+  push:
+    branches:
+      - beta
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
+jobs:
+  build:
+    if: github.repository == 'teamcode/teamcode'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-tags: true
+
+      - uses: ./.github/actions/setup-bun
+
+      - name: Setup git committer
+        id: committer
+        uses: ./.github/actions/setup-git-committer
+        with:
+          teamcode-app-id: ${{ vars.TEAMCODE_APP_ID }}
+          teamcode-app-secret: ${{ secrets.TEAMCODE_APP_SECRET }}
+
+      - name: Install TeamCode
+        run: bun i -g teamcode-ai
+
+      - name: Build
+        run: |
+          ./packages/teamcode/script/build.ts --sourcemaps
+        env:
+          TEAMCODE_API_KEY: ${{ secrets.TEAMCODE_API_KEY }}
