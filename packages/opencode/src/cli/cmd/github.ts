@@ -33,6 +33,7 @@ import { Git } from "@/git"
 import { setTimeout as sleep } from "node:timers/promises"
 import { Process } from "@/util/process"
 import { parseGitHubRemote } from "@/util/repository"
+import { EffectBridge } from "@/effect/bridge"
 import { Effect } from "effect"
 
 type GitHubAuthor = {
@@ -436,8 +437,7 @@ export const GithubRunCommand = effectCmd({
     const sessionShare = yield* SessionShare.Service
     const sessionPrompt = yield* SessionPrompt.Service
     const busSvc = yield* Bus.Service
-    const runLocalEffect = <A, E>(effect: Effect.Effect<A, E>) =>
-      Effect.runPromise(effect.pipe(Effect.provideService(InstanceRef, ctx)))
+    const bridge = yield* EffectBridge.make()
     yield* Effect.promise(async () => {
       const isMock = args.token || args.event
 
@@ -551,7 +551,7 @@ export const GithubRunCommand = effectCmd({
 
         // Setup opencode session
         const repoData = await fetchRepo()
-        session = await runLocalEffect(
+        session = await bridge.promise(
           sessionSvc.create({
             permission: [
               {
@@ -566,7 +566,7 @@ export const GithubRunCommand = effectCmd({
         shareId = await (async () => {
           if (share === false) return
           if (!share && repoData.data.private) return
-          await runLocalEffect(sessionShare.share(session.id))
+          await bridge.promise(sessionShare.share(session.id))
           return session.id.slice(-8)
         })()
         console.log("opencode session", session.id)
@@ -896,7 +896,7 @@ export const GithubRunCommand = effectCmd({
         }
 
         let text = ""
-        await runLocalEffect(
+        await bridge.promise(
           busSvc.subscribeCallback(MessageV2.Event.PartUpdated, (evt) => {
             if (evt.properties.part.sessionID !== session.id) return
             //if (evt.properties.part.messageID === messageID) return
@@ -941,7 +941,7 @@ export const GithubRunCommand = effectCmd({
       async function chat(message: string, files: PromptFiles = []) {
         console.log("Sending message to opencode...")
 
-        return runLocalEffect(
+        return bridge.promise(
           Effect.gen(function* () {
             const prompt = sessionPrompt
             const result = yield* prompt.prompt({

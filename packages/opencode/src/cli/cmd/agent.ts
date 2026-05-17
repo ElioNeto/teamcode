@@ -8,6 +8,7 @@ import path from "path"
 import fs from "fs/promises"
 import { Filesystem } from "@/util/filesystem"
 import matter from "gray-matter"
+import { EffectBridge } from "@/effect/bridge"
 import { InstanceRef } from "@/effect/instance-ref"
 import { EOL } from "os"
 import type { Argv } from "yargs"
@@ -66,8 +67,8 @@ const AgentCreateCommand = effectCmd({
     if (!maybeCtx) return yield* Effect.die("InstanceRef not provided")
     const ctx = maybeCtx
     const agentSvc = yield* Agent.Service
-    const runLocalEffect = <A, E>(effect: Effect.Effect<A, E>) =>
-      Effect.runPromise(effect.pipe(Effect.provideService(InstanceRef, ctx)))
+    const bridge = yield* EffectBridge.make()
+
     yield* Effect.promise(async () => {
       const cliPath = args.path
       const cliDescription = args.description
@@ -129,7 +130,7 @@ const AgentCreateCommand = effectCmd({
       const spinner = prompts.spinner()
       spinner.start("Generating agent configuration...")
       const model = args.model ? Provider.parseModel(args.model) : undefined
-      const generated = await runLocalEffect(agentSvc.generate({ description, model })).catch((error) => {
+      const generated = await bridge.promise(agentSvc.generate({ description, model })).catch((error) => {
         spinner.stop(`LLM failed to generate agent: ${error.message}`, 1)
         if (isFullyNonInteractive) process.exit(1)
         throw new UI.CancelledError()
