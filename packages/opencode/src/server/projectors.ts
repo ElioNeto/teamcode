@@ -15,9 +15,12 @@ export function initProjectors() {
 
         if (!row) return data
 
+        const parsed = Session.fromRow(row)
+        if (!parsed) return data
+
         return {
           sessionID: id,
-          info: Session.fromRow(row),
+          info: parsed,
         }
       }
       return data

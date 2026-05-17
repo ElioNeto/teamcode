@@ -646,7 +646,8 @@ NOTE: At any point in time through this workflow you should feel free to ask the
 
               const textParts: string[] = []
               const attachments: Omit<MessageV2.FilePart, "id" | "sessionID" | "messageID">[] = []
-              for (const contentItem of result.content) {
+              const content = Array.isArray(result?.content) ? result.content : []
+              for (const contentItem of content) {
                 if (contentItem.type === "text") textParts.push(contentItem.text)
                 else if (contentItem.type === "image") {
                   attachments.push({
@@ -1647,7 +1648,9 @@ NOTE: At any point in time through this workflow you should feel free to ask the
         let structured: unknown
         let step = 0
         let consecutiveCompactions = 0
+        let totalCompactions = 0
         const MAX_CONSECUTIVE_COMPACTIONS = 3
+        const MAX_TOTAL_COMPACTIONS = 10
         const session = yield* sessions.get(sessionID).pipe(Effect.orDie)
 
         while (true) {
@@ -1731,15 +1734,19 @@ NOTE: At any point in time through this workflow you should feel free to ask the
 
           if (task?.type === "compaction") {
             consecutiveCompactions++
-            if (consecutiveCompactions > MAX_CONSECUTIVE_COMPACTIONS) {
-              yield* slog.warn("compaction loop limit reached — forcing stop", { consecutiveCompactions })
+            totalCompactions++
+            if (consecutiveCompactions > MAX_CONSECUTIVE_COMPACTIONS || totalCompactions > MAX_TOTAL_COMPACTIONS) {
+              yield* slog.warn("compaction loop limit reached — forcing stop", {
+                consecutiveCompactions,
+                totalCompactions,
+              })
               yield* bus.publish(Session.Event.Error, {
                 sessionID,
                 error: {
                   name: "UnknownError",
                   data: {
                     message:
-                      `Context compaction ran ${consecutiveCompactions} times without resolving overflow. ` +
+                      `Context compaction ran ${consecutiveCompactions} consecutive (${totalCompactions} total) times without resolving overflow. ` +
                       "This may indicate an unusually large context or insufficient model context window.",
                   },
                 },

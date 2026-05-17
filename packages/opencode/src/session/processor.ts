@@ -381,8 +381,9 @@ export const layer = Layer.effect(
 
           case "tool-result": {
             const toolCall = yield* readToolCall(value.toolCallId)
+            const rawOutput = isRecord(value.output) ? value.output : {}
             const toolAttachments: MessageV2.FilePart[] = (
-              Array.isArray(value.output.attachments) ? value.output.attachments : []
+              Array.isArray(rawOutput.attachments) ? rawOutput.attachments : []
             ).filter(
               (attachment: unknown): attachment is MessageV2.FilePart =>
                 isRecord(attachment) &&
@@ -406,14 +407,13 @@ export const layer = Layer.effect(
             // Defensively clone the tool result to strip any readonly / getter-based
             // properties (e.g. process.env) that would cause Immer's produce() to throw
             // when the result flows into session state.
+            const rawOutputStr = typeof rawOutput.output === "string" ? rawOutput.output : JSON.stringify(rawOutput.output)
             const output = {
-              ...JSON.parse(JSON.stringify(value.output)),
+              ...JSON.parse(JSON.stringify(rawOutput)),
               output:
                 omitted === 0
-                  ? typeof value.output.output === "string"
-                    ? value.output.output
-                    : JSON.stringify(value.output.output)
-                  : `${typeof value.output.output === "string" ? value.output.output : JSON.stringify(value.output.output)}\n\n[${omitted} image${omitted === 1 ? "" : "s"} omitted: could not be resized below the image size limit.]`,
+                  ? rawOutputStr
+                  : `${rawOutputStr}\n\n[${omitted} image${omitted === 1 ? "" : "s"} omitted: could not be resized below the image size limit.]`,
               attachments: attachments?.length ? attachments : undefined,
             }
             // TODO(v2): Temporary dual-write while migrating session messages to v2 events.

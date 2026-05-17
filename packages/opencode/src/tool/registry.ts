@@ -210,6 +210,10 @@ export const layer: Layer.Layer<
         const plugins = yield* plugin.list()
         for (const p of plugins) {
           for (const [id, def] of Object.entries(p.tool ?? {})) {
+            if (def == null) {
+              log.warn("null tool definition from plugin", { toolId: id })
+              continue
+            }
             custom.push(fromPlugin(id, def))
           }
         }

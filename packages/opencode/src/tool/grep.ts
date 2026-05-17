@@ -54,8 +54,9 @@ export const GrepTool = Tool.define(
           })
 
           const ins = yield* InstanceState.context
-          const requested = path.isAbsolute(params.path ?? ins.directory)
-            ? (params.path ?? ins.directory)
+          const defaultDir = ins.worktree !== ins.directory ? ins.worktree : ins.directory
+          const requested = path.isAbsolute(params.path ?? defaultDir)
+            ? (params.path ?? defaultDir)
             : path.join(ins.directory, params.path ?? ".")
           yield* reference.ensure(requested)
           const requestedInfo = yield* fs.stat(requested).pipe(Effect.catch(() => Effect.succeed(undefined)))

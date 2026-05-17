@@ -57,56 +57,61 @@ export function isDefaultTitle(title: string) {
 
 type SessionRow = typeof SessionTable.$inferSelect
 
-export function fromRow(row: SessionRow): Info {
-  const summary =
-    row.summary_additions !== null || row.summary_deletions !== null || row.summary_files !== null
-      ? {
-          additions: row.summary_additions ?? 0,
-          deletions: row.summary_deletions ?? 0,
-          files: row.summary_files ?? 0,
-          diffs: row.summary_diffs ?? undefined,
-        }
-      : undefined
-  const share = row.share_url ? { url: row.share_url } : undefined
-  const revert = row.revert ?? undefined
-  return {
-    id: row.id,
-    slug: row.slug,
-    projectID: row.project_id,
-    workspaceID: row.workspace_id ?? undefined,
-    directory: row.directory,
-    path: row.path ?? undefined,
-    parentID: row.parent_id ?? undefined,
-    title: row.title,
-    agent: row.agent ?? undefined,
-    model: row.model
-      ? {
-          id: ModelID.make(row.model.id),
-          providerID: ProviderID.make(row.model.providerID),
-          variant: row.model.variant,
-        }
-      : undefined,
-    version: row.version,
-    summary,
-    cost: row.cost,
-    tokens: {
-      input: row.tokens_input,
-      output: row.tokens_output,
-      reasoning: row.tokens_reasoning,
-      cache: {
-        read: row.tokens_cache_read,
-        write: row.tokens_cache_write,
+export function fromRow(row: SessionRow): Info | undefined {
+  try {
+    const summary =
+      row.summary_additions !== null || row.summary_deletions !== null || row.summary_files !== null
+        ? {
+            additions: row.summary_additions ?? 0,
+            deletions: row.summary_deletions ?? 0,
+            files: row.summary_files ?? 0,
+            diffs: row.summary_diffs ?? undefined,
+          }
+        : undefined
+    const share = row.share_url ? { url: row.share_url } : undefined
+    const revert = row.revert ?? undefined
+    return {
+      id: row.id,
+      slug: row.slug,
+      projectID: row.project_id,
+      workspaceID: row.workspace_id ?? undefined,
+      directory: row.directory,
+      path: row.path ?? undefined,
+      parentID: row.parent_id ?? undefined,
+      title: row.title,
+      agent: row.agent ?? undefined,
+      model: row.model
+        ? {
+            id: ModelID.make(row.model.id),
+            providerID: ProviderID.make(row.model.providerID),
+            variant: row.model.variant,
+          }
+        : undefined,
+      version: row.version,
+      summary,
+      cost: row.cost ?? 0,
+      tokens: {
+        input: row.tokens_input ?? 0,
+        output: row.tokens_output ?? 0,
+        reasoning: row.tokens_reasoning ?? 0,
+        cache: {
+          read: row.tokens_cache_read ?? 0,
+          write: row.tokens_cache_write ?? 0,
+        },
       },
-    },
-    share,
-    revert,
-    permission: row.permission ?? undefined,
-    time: {
-      created: row.time_created,
-      updated: row.time_updated,
-      compacting: row.time_compacting ?? undefined,
-      archived: row.time_archived ?? undefined,
-    },
+      share,
+      revert,
+      permission: row.permission ?? undefined,
+      time: {
+        created: row.time_created,
+        updated: row.time_updated,
+        compacting: row.time_compacting ?? undefined,
+        archived: row.time_archived ?? undefined,
+      },
+    }
+  } catch (e) {
+    log.error("failed to parse session row, skipping", { id: row.id, error: e })
+    return undefined
   }
 }
 
@@ -570,7 +575,9 @@ export const layer: Layer.Layer<
     const get = Effect.fn("Session.get")(function* (id: SessionID) {
       const row = yield* db((d) => d.select().from(SessionTable).where(eq(SessionTable.id, id)).get())
       if (!row) return yield* Effect.fail(new NotFoundError({ message: `Session not found: ${id}` }))
-      return fromRow(row)
+      const parsed = fromRow(row)
+      if (!parsed) return yield* Effect.fail(new NotFoundError({ message: `Session corrupt: ${id}` }))
+      return parsed
     })
 
     const list = Effect.fn("Session.list")(function* (input?: ListInput) {
@@ -588,7 +595,10 @@ export const layer: Layer.Layer<
           .where(and(eq(SessionTable.parent_id, parentID)))
           .all(),
       )
-      return rows.map(fromRow)
+      return rows.flatMap((row) => {
+        const parsed = fromRow(row)
+        return parsed ? [parsed] : []
+      })
     })
 
     const remove: Interface["remove"] = Effect.fnUntraced(function* (sessionID: SessionID) {
@@ -935,7 +945,8 @@ function* listByProject(
       .all(),
   )
   for (const row of rows) {
-    yield fromRow(row)
+    const parsed = fromRow(row)
+    if (parsed) yield parsed
   }
 }
 
@@ -1004,7 +1015,8 @@ export function* listGlobal(input?: {
 
   for (const row of rows) {
     const project = projects.get(row.project_id) ?? null
-    yield { ...fromRow(row), project }
+    const parsed = fromRow(row)
+    if (parsed) yield { ...parsed, project }
   }
 }
 

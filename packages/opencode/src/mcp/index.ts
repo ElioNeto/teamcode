@@ -104,6 +104,8 @@ type PromptInfo = Awaited<ReturnType<MCPClient["listPrompts"]>>["prompts"][numbe
 type ResourceInfo = Awaited<ReturnType<MCPClient["listResources"]>>["resources"][number]
 type McpEntry = NonNullable<Config.Info["mcp"]>[string]
 
+const PROMPTS_CACHE_TTL = 30_000 // 30 seconds
+
 function isMcpConfigured(entry: McpEntry): entry is ConfigMCP.Info {
   return typeof entry === "object" && entry !== null && "type" in entry
 }
@@ -233,6 +235,9 @@ interface State {
   status: Record<string, Status>
   clients: Record<string, MCPClient>
   defs: Record<string, MCPToolDef[]>
+  processes: Map<string, number>
+  promptsCache: { data: Record<string, PromptInfo & { client: string }> | undefined; time: number }
+  resourcesCache: { data: Record<string, ResourceInfo & { client: string }> | undefined; time: number }
 }
 
 export interface Interface {
@@ -288,7 +293,18 @@ export const layer = Layer.effect(
             },
             catch: (e) => (e instanceof Error ? e : new Error(String(e))),
           }),
-        (t, exit) => (Exit.isFailure(exit) ? Effect.tryPromise(() => t.close()).pipe(Effect.ignore) : Effect.void),
+        (t, exit) =>
+          Exit.isFailure(exit)
+            ? Effect.gen(function* () {
+                const pid = t instanceof StdioClientTransport ? t.pid : undefined
+                yield* Effect.tryPromise(() => t.close()).pipe(Effect.ignore)
+                if (typeof pid === "number") {
+                  try {
+                    process.kill(pid, "SIGKILL")
+                  } catch {}
+                }
+              })
+            : Effect.void,
       )
 
     const DISABLED_RESULT: CreateResult = { status: { status: "disabled" } }
@@ -519,6 +535,9 @@ export const layer = Layer.effect(
           status: {},
           clients: {},
           defs: {},
+          processes: new Map(),
+          promptsCache: { data: undefined, time: 0 },
+          resourcesCache: { data: undefined, time: 0 },
         }
 
         yield* Effect.forEach(
@@ -542,6 +561,11 @@ export const layer = Layer.effect(
               if (result.mcpClient) {
                 s.clients[key] = result.mcpClient
                 s.defs[key] = result.defs!
+                const pid =
+                  result.mcpClient.transport instanceof StdioClientTransport
+                    ? result.mcpClient.transport.pid
+                    : undefined
+                if (typeof pid === "number") s.processes.set(key, pid)
                 watch(s, key, result.mcpClient, bridge, mcp.timeout)
               }
             }),
@@ -567,6 +591,18 @@ export const layer = Layer.effect(
                 }),
               { concurrency: "unbounded" },
             )
+            for (const [key, pid] of s.processes) {
+              if (s.clients[key]) continue
+              const pids = yield* descendants(pid).pipe(Effect.catch(() => Effect.succeed([] as number[])))
+              for (const dpid of pids) {
+                try {
+                  process.kill(dpid, "SIGKILL")
+                } catch {}
+              }
+              try {
+                process.kill(pid, "SIGKILL")
+              } catch {}
+            }
             pendingOAuthTransports.clear()
           }),
         )
@@ -704,12 +740,24 @@ export const layer = Layer.effect(
 
     const prompts = Effect.fn("MCP.prompts")(function* () {
       const s = yield* InstanceState.get(state)
-      return yield* collectFromConnected(s, (c) => c.listPrompts().then((r) => r.prompts), "prompts")
+      const now = Date.now()
+      if (s.promptsCache.data && now - s.promptsCache.time < PROMPTS_CACHE_TTL) {
+        return s.promptsCache.data
+      }
+      const data = yield* collectFromConnected(s, (c) => c.listPrompts().then((r) => r.prompts), "prompts")
+      s.promptsCache = { data, time: now }
+      return data
     })
 
     const resources = Effect.fn("MCP.resources")(function* () {
       const s = yield* InstanceState.get(state)
-      return yield* collectFromConnected(s, (c) => c.listResources().then((r) => r.resources), "resources")
+      const now = Date.now()
+      if (s.resourcesCache.data && now - s.resourcesCache.time < PROMPTS_CACHE_TTL) {
+        return s.resourcesCache.data
+      }
+      const data = yield* collectFromConnected(s, (c) => c.listResources().then((r) => r.resources), "resources")
+      s.resourcesCache = { data, time: now }
+      return data
     })
 
     const withClient = Effect.fnUntraced(function* <A>(
