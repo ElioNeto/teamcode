@@ -22,7 +22,12 @@ export function fromSchema(schema: Schema.Top): JSONSchema7 {
 }
 
 export function fromTool(tool: Tool.Def): JSONSchema7 {
-  return tool.jsonSchema ?? fromSchema(tool.parameters as Schema.Top)
+  if (tool.jsonSchema) return tool.jsonSchema
+  try {
+    return fromSchema(tool.parameters as Schema.Top)
+  } catch {
+    return { type: "object", properties: {}, description: "(custom schema)" } as JSONSchema7
+  }
 }
 
 function normalize(value: unknown, options: { stripNull?: boolean } = {}): unknown {

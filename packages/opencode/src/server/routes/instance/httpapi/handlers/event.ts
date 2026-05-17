@@ -32,6 +32,7 @@ function eventResponse(bus: Bus.Interface) {
     )
 
     log.info("event connected")
+
     return HttpServerResponse.stream(
       Stream.make({ id: Bus.createID(), type: "server.connected", properties: {} }).pipe(
         Stream.concat(events.pipe(Stream.merge(heartbeat, { haltStrategy: "left" }))),

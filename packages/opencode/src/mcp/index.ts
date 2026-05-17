@@ -431,6 +431,7 @@ export const layer = Layer.effect(
     ) {
       const [cmd, ...args] = mcp.command
       const cwd = yield* InstanceState.directory
+      const mcpEnv = { ...mcp.environment, ...mcp.env }
       const transport = new StdioClientTransport({
         stderr: "pipe",
         command: cmd,
@@ -439,7 +440,7 @@ export const layer = Layer.effect(
         env: {
           ...process.env,
           ...(cmd === "teamcode" ? { BUN_BE_BUN: "1" } : {}),
-          ...mcp.environment,
+          ...mcpEnv,
         },
       })
       transport.stderr?.on("data", (chunk: Buffer) => {

@@ -2,10 +2,10 @@ import "./init-projectors"
 
 import { NodeHttpServer } from "@effect/platform-node"
 import * as Log from "@opencode-ai/core/util/log"
-import { ConfigProvider, Context, Effect, Exit, Layer, Scope } from "effect"
+import { ConfigProvider, Context, Duration, Effect, Exit, Layer, Scope } from "effect"
 import { HttpRouter, HttpServer } from "effect/unstable/http"
 import { OpenApi } from "effect/unstable/httpapi"
-import { createServer } from "node:http"
+import { createServer, type Server } from "node:http"
 import { MDNS } from "./mdns"
 import { HttpApiApp } from "./routes/instance/httpapi/server"
 import { disposeMiddleware } from "./routes/instance/httpapi/lifecycle"
@@ -90,6 +90,38 @@ const listenEffect: (opts: ListenOptions) => Effect.Effect<EffectListener, unkno
     url = listenerUrl
 
     const unpublishMdns = yield* setupMdns(opts, address.port, state.scope)
+
+    // Periodic health check to detect epoll fd polling stall (Bun runtime workaround)
+    yield* Effect.forkIn(state.scope)(
+      Effect.gen(function* () {
+        const healthUrl = `${listenerUrl.protocol}//${listenerUrl.host}/global/health`
+        let failCount = 0
+
+        while (true) {
+          yield* Effect.sleep(Duration.seconds(30))
+          const response = yield* Effect.tryPromise({
+            try: () => fetch(healthUrl, { signal: AbortSignal.timeout(5000) }),
+            catch: (e) => e,
+          })
+          if (response instanceof Error || !response.ok) {
+            failCount++
+            log.warn("server health check failed", { failCount, healthUrl, status: response instanceof Error ? response.message : response.status })
+            if (failCount >= 2) {
+              log.error("server unresponsive, restarting listener", { healthUrl })
+              const entry = serverRegistry.get(`${opts.hostname}:${address.port}`)
+              if (entry) {
+                entry.server.closeAllConnections()
+                entry.server.close()
+                serverRegistry.delete(`${opts.hostname}:${address.port}`)
+              }
+              failCount = 0
+            }
+          } else {
+            failCount = 0
+          }
+        }
+      }),
+    )
 
     return {
       hostname: opts.hostname,
@@ -188,6 +220,8 @@ function forceClose(state: ListenerState) {
   return Effect.all([state.http.closeAll, state.websockets.closeAll], { concurrency: "unbounded", discard: true })
 }
 
+const serverRegistry = new Map<string, { server: Server; url: URL }>()
+
 function serverLayer(opts: { port: number; hostname: string }) {
   const server = createServer()
   const serverRef = { closeStarted: false, forceStop: false }
@@ -201,6 +235,15 @@ function serverLayer(opts: { port: number; hostname: string }) {
     if (serverRef.forceStop) server.closeAllConnections()
     return result
   }) as typeof server.close
+
+  const key = `${opts.hostname}:${opts.port}`
+  server.on("listening", () => {
+    const addr = server.address()
+    if (addr && typeof addr === "object") {
+      const u = makeURL(opts.hostname, addr.port)
+      serverRegistry.set(key, { server, url: u })
+    }
+  })
 
   return Layer.mergeAll(
     NodeHttpServer.layer(() => server, { port: opts.port, host: opts.hostname, gracefulShutdownTimeout: "1 second" }),

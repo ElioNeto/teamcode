@@ -1,4 +1,4 @@
-import { Cause, Effect, Layer, Context, Schema } from "effect"
+import { Cause, Duration, Effect, Layer, Context, Schema } from "effect"
 // @ts-ignore
 import { createWrapper } from "@parcel/watcher/wrapper"
 import type ParcelWatcher from "@parcel/watcher"
@@ -105,18 +105,28 @@ export const layer = Layer.effect(
           })
 
           const subscribe = (dir: string, ignore: string[]) => {
-            const pending = w.subscribe(dir, cb, { ignore, backend })
-            return Effect.gen(function* () {
-              const sub = yield* Effect.promise(() => pending)
-              subs.push(sub)
-            }).pipe(
-              Effect.timeout(SUBSCRIBE_TIMEOUT_MS),
-              Effect.catchCause((cause) => {
-                log.error("failed to subscribe", { dir, cause: Cause.pretty(cause) })
-                pending.then((s) => s.unsubscribe()).catch(() => {})
-                return Effect.void
-              }),
-            )
+            const retry = { count: 0, max: 5 }
+            const trySubscribe = (): Effect.Effect<void> => {
+              const pending = w.subscribe(dir, cb, { ignore, backend })
+              return Effect.gen(function* () {
+                const sub = yield* Effect.promise(() => pending)
+                subs.push(sub)
+              }).pipe(
+                Effect.timeout(SUBSCRIBE_TIMEOUT_MS),
+                Effect.catchCause((cause) => {
+                  log.error("failed to subscribe", { dir, cause: Cause.pretty(cause), attempt: retry.count + 1 })
+                  pending.then((s) => s.unsubscribe()).catch(() => {})
+                  if (retry.count < retry.max) {
+                    const base = Math.min(100 * Math.pow(2, retry.count), 10000)
+                    const jitter = Math.random() * base
+                    retry.count++
+                    return Effect.sleep(Duration.millis(base + jitter)).pipe(Effect.andThen(trySubscribe))
+                  }
+                  return Effect.void
+                }),
+              )
+            }
+            return trySubscribe()
           }
 
           const cfg = yield* config.get()
