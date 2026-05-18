@@ -1585,7 +1585,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
           synthetic: [] as string[],
         },
       )
-      // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+      // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
       if (flags.experimentalEventSystem) {
         yield* events.publish(SessionEvent.Prompted, {
           sessionID: input.sessionID,
@@ -1599,7 +1599,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
         })
       }
       for (const text of nextPrompt.synthetic) {
-        // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+        // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
         if (flags.experimentalEventSystem) {
           yield* events.publish(SessionEvent.Synthetic, {
             sessionID: input.sessionID,

@@ -219,7 +219,7 @@ export const layer = Layer.effect(
 
           case "reasoning-start":
             if (value.id in ctx.reasoningMap) return
-            // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+            // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
             if (flags.experimentalEventSystem) {
               yield* events.publish(SessionEvent.Reasoning.Started, {
                 sessionID: ctx.sessionID,
@@ -254,7 +254,7 @@ export const layer = Layer.effect(
 
           case "reasoning-end":
             if (!(value.id in ctx.reasoningMap)) return
-            // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+            // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
             if (flags.experimentalEventSystem) {
               yield* events.publish(SessionEvent.Reasoning.Ended, {
                 sessionID: ctx.sessionID,
@@ -275,7 +275,7 @@ export const layer = Layer.effect(
             if (ctx.assistantMessage.summary) {
               throw new Error(`Tool call not allowed while generating summary: ${value.toolName}`)
             }
-            // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+            // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
             if (flags.experimentalEventSystem) {
               yield* events.publish(SessionEvent.Tool.Input.Started, {
                 sessionID: ctx.sessionID,
@@ -306,7 +306,7 @@ export const layer = Layer.effect(
             return
 
           case "tool-input-end": {
-            // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+            // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
             if (flags.experimentalEventSystem) {
               yield* events.publish(SessionEvent.Tool.Input.Ended, {
                 sessionID: ctx.sessionID,
@@ -323,7 +323,7 @@ export const layer = Layer.effect(
               throw new Error(`Tool call not allowed while generating summary: ${value.toolName}`)
             }
             const toolCall = yield* readToolCall(value.toolCallId)
-            // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+            // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
             if (flags.experimentalEventSystem) {
               yield* events.publish(SessionEvent.Tool.Called, {
                 sessionID: ctx.sessionID,
@@ -416,7 +416,7 @@ export const layer = Layer.effect(
                   : `${rawOutputStr}\n\n[${omitted} image${omitted === 1 ? "" : "s"} omitted: could not be resized below the image size limit.]`,
               attachments: attachments?.length ? attachments : undefined,
             }
-            // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+            // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
             if (flags.experimentalEventSystem) {
               yield* events.publish(SessionEvent.Tool.Success, {
                 sessionID: ctx.sessionID,
@@ -446,7 +446,7 @@ export const layer = Layer.effect(
 
           case "tool-error": {
             const toolCall = yield* readToolCall(value.toolCallId)
-            // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+            // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
             if (flags.experimentalEventSystem) {
               yield* events.publish(SessionEvent.Tool.Failed, {
                 sessionID: ctx.sessionID,
@@ -471,7 +471,7 @@ export const layer = Layer.effect(
           case "start-step":
             if (!ctx.snapshot) ctx.snapshot = yield* snapshot.track()
             if (!ctx.assistantMessage.summary) {
-              // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+              // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
               if (flags.experimentalEventSystem) {
                 yield* events.publish(SessionEvent.Step.Started, {
                   sessionID: ctx.sessionID,
@@ -503,7 +503,7 @@ export const layer = Layer.effect(
               metadata: value.providerMetadata,
             })
             if (!ctx.assistantMessage.summary) {
-              // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+              // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
               if (flags.experimentalEventSystem) {
                 yield* events.publish(SessionEvent.Step.Ended, {
                   sessionID: ctx.sessionID,
@@ -561,7 +561,7 @@ export const layer = Layer.effect(
 
           case "text-start":
             if (!ctx.assistantMessage.summary) {
-              // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+              // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
               if (flags.experimentalEventSystem) {
                 yield* events.publish(SessionEvent.Text.Started, {
                   sessionID: ctx.sessionID,
@@ -608,7 +608,7 @@ export const layer = Layer.effect(
               { text: ctx.currentText.text },
             )).text
             if (!ctx.assistantMessage.summary) {
-              // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+              // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
               if (flags.experimentalEventSystem) {
                 yield* events.publish(SessionEvent.Text.Ended, {
                   sessionID: ctx.sessionID,
@@ -704,7 +704,7 @@ export const layer = Layer.effect(
           return
         }
         if (!ctx.assistantMessage.summary) {
-          // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+          // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
           if (flags.experimentalEventSystem) {
             yield* events.publish(SessionEvent.Step.Failed, {
               sessionID: ctx.sessionID,
@@ -758,7 +758,7 @@ export const layer = Layer.effect(
                 provider: input.model.providerID,
                 parse: parse as unknown as (error: unknown) => { name: string; data: unknown },
                 set: (info) => {
-                  // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
+                  // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
                   const event = flags.experimentalEventSystem
                     ? events.publish(SessionEvent.Retried, {
                         sessionID: ctx.sessionID,
