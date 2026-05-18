@@ -1,13 +1,10 @@
-import { Config } from "@/config/config"
-import { AppRuntime } from "@/effect/app-runtime"
 import { Flag } from "@teamcode-ai/core/flag/flag"
 import { Installation } from "@/installation"
 import { InstallationVersion } from "@teamcode-ai/core/installation/version"
 import { GlobalBus } from "@/bus/global"
 
-export async function upgrade() {
-  const config = await AppRuntime.runPromise(Config.Service.use((cfg) => cfg.getGlobal()))
-  if (config.autoupdate === false || Flag.OPENCODE_DISABLE_AUTOUPDATE) return
+export async function upgrade(autoupdate: boolean | "notify" | undefined) {
+  if (autoupdate === false || Flag.OPENCODE_DISABLE_AUTOUPDATE) return
   const method = await Installation.method()
   const latest = await Installation.latest(method).catch(() => {})
   if (!latest) return
@@ -27,7 +24,7 @@ export async function upgrade() {
 
   const kind = Installation.getReleaseType(InstallationVersion, latest)
 
-  if (config.autoupdate === "notify" || kind !== "patch") {
+  if (autoupdate === "notify" || kind !== "patch") {
     GlobalBus.emit("event", {
       directory: "global",
       payload: {

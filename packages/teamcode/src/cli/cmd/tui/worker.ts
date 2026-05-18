@@ -77,7 +77,13 @@ export const rpc = {
   },
   async checkUpgrade(input: { directory: string }) {
     await InstanceRuntime.load({ directory: input.directory })
-    await upgrade().catch(() => {})
+    const autoupdate = await AppRuntime.runPromise(
+      Effect.gen(function* () {
+        const cfg = yield* Config.Service
+        return (yield* cfg.get()).autoupdate
+      }),
+    ).catch(() => undefined)
+    await upgrade(autoupdate).catch(() => {})
   },
   async reload() {
     await AppRuntime.runPromise(
