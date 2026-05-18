@@ -122,6 +122,12 @@
 |---|-------|------|-----|
 | #27664 | /undo e /redo não funcionam via atalhos | cli/cmd/tui/event.ts + handlers/tui.ts | session.undo/session.redo added to TuiEvent schema |
 
+## Batch 15 (9743676)
+
+| # | Issue | Área | Fix |
+|---|-------|------|-----|
+| #28026 | Tecla 'p' requer double-press após adicionar conteúdo | component/prompt/index.tsx | input.focus() wrapped em queueMicrotask() |
+
 ---
 
 ## Summary
@@ -142,12 +148,13 @@
 | 12 | 1 | 0 | 0 |
 | 13 | 2 | 0 | 0 |
 | 14 | 1 | 0 | 0 |
-| **Total** | **46** | **5** | **2** |
+| 15 | 1 | 0 | 0 |
+| **Total** | **47** | **5** | **2** |
 
-- **Fixes implementados:** 46
+- **Fixes implementados:** 47
 - **Issues verificadas/já corrigidas:** 5 (no change needed)
 - **Skipped:** 2 (não aplicável a este fork)
-- **Total de issues endereçadas:** 51 (de 227 críticas + 586 alta prioridade)
+- **Total de issues endereçadas:** 52 (de 227 críticas + 586 alta prioridade)
 
 ### Arquivos modificados
 ~45 arquivos em packages/opencode/, packages/core/
