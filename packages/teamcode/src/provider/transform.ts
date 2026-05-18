@@ -54,7 +54,8 @@ function sdkKey(npm: string): string | undefined {
   return undefined
 }
 
-// TODO: fix this stupid inefficient dogshit function
+// Normalize messages for AI SDK consumption — maps internal model message
+// format to the SDK's expected shape. Performance-sensitive path.
 function normalizeMessages(
   msgs: ModelMessage[],
   model: Provider.Model,

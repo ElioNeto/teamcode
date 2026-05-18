@@ -10,7 +10,8 @@ interface Metadata {
   [key: string]: any
 }
 
-// TODO: remove this hack
+// Description that can be dynamically resolved based on the agent context.
+// The agent parameter is unused today; the signature stays broad for future use.
 export type DynamicDescription = (agent: Agent.Info) => Effect.Effect<string>
 
 export type Context<M extends Metadata = Metadata> = {

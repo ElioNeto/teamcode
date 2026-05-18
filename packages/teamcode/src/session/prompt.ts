@@ -1069,7 +1069,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
           }).toObject(),
         })
       }
-      return yield* Effect.die(err)
+      return yield* err
     })
 
     const currentModel = Effect.fnUntraced(function* (sessionID: SessionID) {

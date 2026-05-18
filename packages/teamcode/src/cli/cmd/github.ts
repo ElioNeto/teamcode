@@ -206,7 +206,7 @@ export const GithubInstallCommand = effectCmd({
         await installGitHubApp()
 
         const providers = await Effect.runPromise(modelsDev.get()).then((p) => {
-          // TODO: add guide for copilot, for now just hide it
+          // FIXME(docs): add guide for copilot; temporarily hidden
           delete p["github-copilot"]
           return p
         })
