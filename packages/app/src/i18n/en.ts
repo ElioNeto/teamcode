@@ -775,6 +775,8 @@ export const dict = {
   "settings.general.row.showSessionProgressBar.description":
     "Display the animated progress bar at the top of the session when the agent is working",
 
+  "settings.general.row.spellcheck.title": "Spell check",
+  "settings.general.row.spellcheck.description": "Enable spell check in the prompt input",
   "settings.general.row.wayland.title": "Use native Wayland",
   "settings.general.row.wayland.description": "Disable X11 fallback on Wayland. Requires restart.",
   "settings.general.row.wayland.tooltip":

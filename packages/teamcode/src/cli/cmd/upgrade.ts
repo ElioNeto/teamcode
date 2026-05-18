@@ -52,7 +52,7 @@ export const UpgradeCommand = {
     }
 
     prompts.log.info(`From ${InstallationVersion} → ${target}`)
-    const spinner = prompts.spinner()
+    const spinner = prompts.spinner({ frames: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"] })
     spinner.start("Upgrading...")
     const err = await Installation.upgrade(method, target).catch((err) => err)
     if (err) {

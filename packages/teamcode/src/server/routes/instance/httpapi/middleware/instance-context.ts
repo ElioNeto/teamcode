@@ -13,11 +13,17 @@ export class InstanceContextMiddleware extends HttpApiMiddleware.Service<
 >()("@opencode/ExperimentalHttpApiInstanceContext") {}
 
 function decode(input: string): string {
-  try {
-    return decodeURIComponent(input)
-  } catch {
-    return input
+  // Only decode if the string contains percent-encoded sequences.
+  // Raw filesystem paths with literal '%' (e.g., folders named "test%200test")
+  // must not be decoded or '%20' would be incorrectly turned into a space.
+  if (/%[0-9a-fA-F]{2}/.test(input)) {
+    try {
+      return decodeURIComponent(input)
+    } catch {
+      return input
+    }
   }
+  return input
 }
 
 function provideInstanceContext<E>(

@@ -15,6 +15,7 @@ import {
   FileAttachmentPart,
 } from "@/context/prompt"
 import { useLayout } from "@/context/layout"
+import { useSettings } from "@/context/settings"
 import { useSDK } from "@/context/sdk"
 import { useSync } from "@/context/sync"
 import { useComments } from "@/context/comments"
@@ -116,6 +117,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   const command = useCommand()
   const permission = usePermission()
   const language = useLanguage()
+  const settings = useSettings()
   const platform = usePlatform()
   const { params, tabs, view } = useSessionLayout()
   let editorRef!: HTMLDivElement
@@ -1346,7 +1348,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
               contenteditable="true"
               autocapitalize={store.mode === "normal" ? "sentences" : "off"}
               autocorrect={store.mode === "normal" ? "on" : "off"}
-              spellcheck={store.mode === "normal"}
+              spellcheck={store.mode === "normal" && settings.general.spellcheck()}
               inputMode="text"
               // @ts-expect-error
               autocomplete="off"

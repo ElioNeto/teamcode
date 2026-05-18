@@ -32,6 +32,7 @@ export interface Settings {
     shellToolPartsExpanded: boolean
     editToolPartsExpanded: boolean
     showSessionProgressBar: boolean
+    spellcheck: boolean
   }
   updates: {
     startup: boolean
@@ -117,6 +118,7 @@ const defaultSettings: Settings = {
     shellToolPartsExpanded: false,
     editToolPartsExpanded: false,
     showSessionProgressBar: true,
+    spellcheck: true,
   },
   updates: {
     startup: true,
@@ -235,6 +237,10 @@ export const { use: useSettings, provider: SettingsProvider } = createSimpleCont
         ),
         setShowSessionProgressBar(value: boolean) {
           setStore("general", "showSessionProgressBar", value)
+        },
+        spellcheck: withFallback(() => store.general?.spellcheck, defaultSettings.general.spellcheck),
+        setSpellcheck(value: boolean) {
+          setStore("general", "spellcheck", value)
         },
       },
       updates: {

@@ -386,6 +386,18 @@ export const SettingsGeneral: Component = () => {
             />
           </div>
         </SettingsRow>
+
+        <SettingsRow
+          title={language.t("settings.general.row.spellcheck.title")}
+          description={language.t("settings.general.row.spellcheck.description")}
+        >
+          <div data-action="settings-spellcheck">
+            <Switch
+              checked={settings.general.spellcheck()}
+              onChange={(checked) => settings.general.setSpellcheck(checked)}
+            />
+          </div>
+        </SettingsRow>
       </SettingsList>
     </div>
   )

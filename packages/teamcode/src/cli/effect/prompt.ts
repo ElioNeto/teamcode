@@ -28,8 +28,10 @@ export const text = (opts: Parameters<typeof prompts.text>[0]) =>
 export const password = (opts: Parameters<typeof prompts.password>[0]) =>
   Effect.promise(() => prompts.password(opts)).pipe(Effect.map((result) => optional(result)))
 
+const BRAILLE_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+
 export const spinner = () => {
-  const s = prompts.spinner()
+  const s = prompts.spinner({ frames: BRAILLE_FRAMES })
   return {
     start: (msg: string) => Effect.sync(() => s.start(msg)),
     stop: (msg: string, code?: number) => Effect.sync(() => s.stop(msg, code)),
