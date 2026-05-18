@@ -209,7 +209,12 @@ export const ReadTool = Tool.define(
       if (process.platform === "win32") {
         filepath = AppFileSystem.normalizePath(filepath)
       }
-      if (!AppFileSystem.contains(instance.directory, filepath)) {
+      const worktreeOpencodeDir = path.join(instance.worktree, ".opencode")
+      const isInOpencodeDir = AppFileSystem.contains(worktreeOpencodeDir, filepath)
+      if (
+        !AppFileSystem.contains(instance.directory, filepath) &&
+        !isInOpencodeDir
+      ) {
         return yield* Effect.fail(
           new Error(`Permission denied: Cannot read files outside the workspace directory`),
         )
