@@ -5,7 +5,7 @@ server moved to the Effect HttpApi backend.
 
 ## Current State
 
-- The server still lives in `packages/opencode`.
+- The server lives in `packages/teamcode/src/server` (migrated from `packages/opencode`).
 - The runtime and app layer are centralized in `src/effect/app-runtime.ts` and
   `src/effect/run-service.ts`.
 - The route tree lives under `src/server/routes/instance/httpapi` and is hosted
@@ -48,6 +48,13 @@ imports it to host routes.
 4. Extract handler factories after their service dependencies can be supplied by
    a host layer instead of imported directly.
 5. Move server hosting last, after package ownership is clear.
+
+## Progress Note (2026-05-18)
+
+The OpenAPI post-processing layer in `httpapi/public.ts` (507 lines) still needs
+significant shrinking before the server can be extracted cleanly. Progress is
+tracked in [#21](https://github.com/ElioNeto/teamcode/issues/21). No extraction
+PR has been started yet.
 
 ## Non-Goals
 
