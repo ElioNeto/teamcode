@@ -2,7 +2,7 @@ import { Context, Effect, Layer } from "effect"
 import { Database } from "./storage/db"
 import { DataMigrationTable } from "./data-migration.sql"
 import * as Log from "@teamcode-ai/core/util/log"
-import { and, asc, eq, gt, inArray, sql } from "drizzle-orm"
+import { and, asc, eq, gt, inArray, isNull, sql } from "drizzle-orm"
 import { MessageTable, SessionTable } from "./session/session.sql"
 import type { SessionID } from "./session/schema"
 
@@ -115,6 +115,28 @@ export const layer = Layer.effect(
             if (!next) return
             cursor = next
             yield* Effect.sleep("10 millis")
+          }
+        }),
+      },
+      {
+        name: "validate_session_project_ids",
+        run: Effect.gen(function* () {
+          const invalid = yield* Effect.sync(() =>
+            Database.use((db) =>
+              db
+                .select({ id: SessionTable.id, project_id: SessionTable.project_id })
+                .from(SessionTable)
+                .where(isNull(SessionTable.project_id))
+                .all(),
+            ),
+          )
+          if (invalid.length > 0) {
+            yield* Effect.logWarning(`Found ${invalid.length} sessions with null project_id`)
+            for (const session of invalid) {
+              yield* Effect.logWarning(`  Session ${session.id} has null project_id`)
+            }
+          } else {
+            yield* Effect.logInfo("All sessions have valid project IDs")
           }
         }),
       },

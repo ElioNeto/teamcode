@@ -8,15 +8,31 @@ import { HttpApiError } from "effect/unstable/httpapi"
 const log = Log.create({ service: "server" })
 
 const isBadRequest = (u: unknown): u is HttpApiError.BadRequest => u instanceof HttpApiError.BadRequest
+const isCssEscape = (u: unknown): u is { _tag: string } =>
+  typeof u === "object" && u !== null && "_tag" in u
 
 // Keep typed HttpApi failures on their declared error path; this boundary only replaces defect-only empty 500s.
 export const errorLayer = HttpRouter.middleware<{ handles: unknown }>()((effect) =>
   effect.pipe(
     Effect.catchCause((cause) => {
+      // Try to match tagged errors from defects by _tag
+      for (const reason of cause.reasons) {
+        if (!Cause.isDieReason(reason)) continue
+        const defect = reason.defect
+        if (isCssEscape(defect)) {
+          switch (defect._tag) {
+            case "ConfigInvalidError":
+            case "ConfigJsonError":
+            case "ConfigDirectoryTypoError":
+            case "ConfigFrontmatterError":
+              return Effect.succeed(HttpServerResponse.jsonUnsafe(defect, { status: 400 as const }))
+          }
+        }
+      }
+
       const defect = cause.reasons.filter(Cause.isDieReason).find((reason) => {
         if (HttpServerResponse.isHttpServerResponse(reason.defect)) return false
         if (HttpServerError.isHttpServerError(reason.defect)) return false
-        // Give framework BadRequest errors a meaningful body instead of empty 400
         if (isBadRequest(reason.defect)) return true
         if (HttpServerRespondable.isRespondable(reason.defect)) return false
         return true
@@ -24,13 +40,6 @@ export const errorLayer = HttpRouter.middleware<{ handles: unknown }>()((effect)
       if (!defect) return Effect.failCause(cause)
 
       const error: unknown = defect.defect
-      if (
-        error instanceof NamedError &&
-        (error instanceof ConfigError.InvalidError || error instanceof ConfigError.JsonError)
-      ) {
-        return Effect.succeed(HttpServerResponse.jsonUnsafe(error.toObject(), { status: 400 }))
-      }
-
       if (isBadRequest(error)) {
         log.warn("bad request", { error, message: error.message })
         return Effect.gen(function* () {
@@ -40,7 +49,7 @@ export const errorLayer = HttpRouter.middleware<{ handles: unknown }>()((effect)
             new NamedError.Unknown({
               message: `Bad request: ${request.method} ${url.pathname}${url.search ? "?" + url.search : ""}`,
             }).toObject(),
-            { status: 400 },
+            { status: 400 as const },
           )
         })
       }
@@ -52,7 +61,7 @@ export const errorLayer = HttpRouter.middleware<{ handles: unknown }>()((effect)
           new NamedError.Unknown({
             message: "Unexpected server error. Check server logs for details.",
           }).toObject(),
-          { status: 500 },
+          { status: 500 as const },
         ),
       )
     }),
