@@ -351,6 +351,15 @@
 
 ---
 
+### Lote 18 — TUI Input Focus (commit `9743676`)
+
+#### #28026 — 'p' key requires double-press after content added to chat
+**Arquivo:** `packages/opencode/src/cli/cmd/tui/component/prompt/index.tsx`
+**Problema:** Em versões acima de 1.14.41, após adicionar conteúdo ao chat (resposta gerada ou sessão passada carregada), a tecla 'p' precisava ser pressionada duas vezes para registrar. O primeiro keypress era consumido pelo fallback do base layout porque `focus()` era restaurado sincronamente dentro do `createEffect` antes que o evento de teclado fosse processado.
+**Fix:** `input.focus()` agora é wrapped em `queueMicrotask()` para que o foco seja restaurado após o batch de processamento de eventos atual completar, dando à camada textarea a chance de reclamar o próximo keypress na primeira tentativa.
+
+---
+
 ## Legenda
 
 | Prefixo | Significado |
