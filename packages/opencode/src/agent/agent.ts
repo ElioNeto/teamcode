@@ -21,8 +21,6 @@ import { Skill } from "../skill"
 import { Effect, Context, Layer, Schema } from "effect"
 import { InstanceState } from "@/effect/instance-state"
 import { RuntimeFlags } from "@/effect/runtime-flags"
-import * as Option from "effect/Option"
-import * as OtelTracer from "@effect/opentelemetry/Tracer"
 import { type DeepMutable } from "@teamcode-ai/core/schema"
 
 export const Info = Schema.Struct({
@@ -388,9 +386,6 @@ export const layer = Layer.effect(
         const model = input.model ?? (yield* provider.defaultModel())
         const resolved = yield* provider.getModel(model.providerID, model.modelID)
         const language = yield* provider.getLanguage(resolved)
-        const tracer = cfg.experimental?.openTelemetry
-          ? Option.getOrUndefined(yield* Effect.serviceOption(OtelTracer.OtelTracer))
-          : undefined
 
         const system = [PROMPT_GENERATE]
         yield* plugin.trigger("experimental.chat.system.transform", { model: resolved }, { system })
@@ -401,13 +396,6 @@ export const layer = Layer.effect(
         const isOpenaiOauth = model.providerID === "openai" && authInfo?.type === "oauth"
 
         const params = {
-          experimental_telemetry: {
-            isEnabled: cfg.experimental?.openTelemetry,
-            tracer,
-            metadata: {
-              userId: cfg.username ?? "unknown",
-            },
-          },
           temperature: 0.3,
           messages: [
             ...(isOpenaiOauth

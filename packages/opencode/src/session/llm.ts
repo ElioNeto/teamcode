@@ -21,9 +21,6 @@ import { Auth } from "@/auth"
 import { InstallationVersion } from "@teamcode-ai/core/installation/version"
 import { EffectBridge } from "@/effect/bridge"
 import { RuntimeFlags } from "@/effect/runtime-flags"
-import * as Option from "effect/Option"
-import * as OtelTracer from "@effect/opentelemetry/Tracer"
-
 const log = Log.create({ service: "llm" })
 export const OUTPUT_TOKEN_MAX = ProviderTransform.OUTPUT_TOKEN_MAX
 type Result = Awaited<ReturnType<typeof streamText>>
@@ -302,22 +299,6 @@ const live: Layer.Layer<
         })
       }
 
-      const tracer = cfg.experimental?.openTelemetry
-        ? Option.getOrUndefined(yield* Effect.serviceOption(OtelTracer.OtelTracer))
-        : undefined
-      const telemetryTracer = tracer
-        ? new Proxy(tracer, {
-            get(target, prop, receiver) {
-              if (prop !== "startSpan") return Reflect.get(target, prop, receiver)
-              return (...args: Parameters<typeof target.startSpan>) => {
-                const span = target.startSpan(...args)
-                span.setAttribute("session.id", input.sessionID)
-                return span
-              }
-            },
-          })
-        : undefined
-
       const opencodeProjectID = input.model.providerID.startsWith("teamcode")
         ? (yield* InstanceState.context).project.id
         : undefined
@@ -392,15 +373,6 @@ const live: Layer.Layer<
             },
           ],
         }),
-        experimental_telemetry: {
-          isEnabled: cfg.experimental?.openTelemetry,
-          functionId: "session.llm",
-          tracer: telemetryTracer,
-          metadata: {
-            userId: cfg.username ?? "unknown",
-            sessionId: input.sessionID,
-          },
-        },
       })
     })
 

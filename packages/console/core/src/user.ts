@@ -138,20 +138,7 @@ export namespace User {
             .then((rows) => rows[0]),
         )
 
-        const { InviteEmail } = await import("@teamcode-ai/console-mail/InviteEmail.jsx")
-        await AWS.sendEmail({
-          to: email,
-          subject: `You've been invited to join the ${emailInfo.workspaceName} workspace on OpenCode`,
-          body: render(
-            // @ts-ignore
-            InviteEmail({
-              inviter: emailInfo.inviterEmail,
-              assetsUrl: `https://opencode.ai/email`,
-              workspaceID: workspaceID,
-              workspaceName: emailInfo.workspaceName,
-            }),
-          ),
-        })
+        console.log(`Invite email would be sent to ${email} for workspace ${emailInfo.workspaceName}`)
       } catch (e) {
         console.error(e)
       }

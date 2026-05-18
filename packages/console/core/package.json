@@ -8,7 +8,6 @@
   "dependencies": {
     "@aws-sdk/client-sts": "3.782.0",
     "@jsx-email/render": "1.1.1",
-    "@teamcode-ai/console-mail": "workspace:*",
     "@teamcode-ai/console-resource": "workspace:*",
     "@planetscale/database": "1.19.0",
     "aws4fetch": "1.0.20",
