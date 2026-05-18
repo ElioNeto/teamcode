@@ -1,6 +1,6 @@
 # 🚀 Issues Organizadas — anomalyco/opencode
 
-> **Total:** 2.254 issues abertas | Extraído em 2026-05-17 | Fonte: [github.com/anomalyco/opencode/issues](https://github.com/anomalyco/opencode/issues)
+> **Total:** 2.200 issues abertas | Extraído em 2026-05-18 | Fonte: [github.com/anomalyco/opencode/issues](https://github.com/anomalyco/opencode/issues)
 
 ---
 
@@ -8,14 +8,14 @@
 
 ```
 .opencode/data/
-├── 01-critical/       🔴   227 issues
+├── 01-critical/       🔴   178 issues
 │   └── bugs.md            Crashes, data loss, security
-├── 02-high/           🟠   586 issues
+├── 02-high/           🟠   582 issues
 │   └── bugs.md            Regressões, core broken
 ├── 03-medium/         🟡   1234 issues
 │   ├── bugs.md            Bugs moderados
 │   └── features.md        Pedidos de funcionalidade
-├── 04-low/            🟢   207 issues
+├── 04-low/            🟢   206 issues
 │   ├── bugs.md            Bugs de baixa prioridade
 │   ├── questions.md       Perguntas da comunidade
 │   ├── docs.md            Issues de documentação
@@ -28,10 +28,10 @@
 
 | Severidade | Total | % | Descrição |
 |------------|-------|---|-----------|
-| 🔴 Critical | 227 | 10.0% | Crashes, perda de dados, segurança |
-| 🟠 High | 586 | 25.0% | Regressões, funcionalidades core quebradas |
-| 🟡 Medium | 1234 | 54.0% | Bugs moderados + features |
-| 🟢 Low | 207 | 9.0% | Questões, docs, débito técnico |
+| 🔴 Critical | 178 | 8.1% | Crashes, perda de dados, segurança |
+| 🟠 High | 582 | 26.4% | Regressões, funcionalidades core quebradas |
+| 🟡 Medium | 1234 | 56.1% | Bugs moderados + features |
+| 🟢 Low | 206 | 9.4% | Questões, docs, débito técnico |
 
 > ℹ️ Classificação automática por análise de título e descrição. Verifique `duplicates.md` para clusters de issues duplicadas.
 

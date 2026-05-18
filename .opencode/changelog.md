@@ -1,7 +1,8 @@
 # TeamCode — Changelog de Implementação
 
 > **Período:** Maio 2026 (atualizado em 2026-05-18)
-> **Total de issues corrigidas:** 46 bugs + 10 features/issues de arquitetura
+> **Total de issues corrigidas:** 51 bugs + 10 features/issues de arquitetura
+> **Issues removidas do tracker:** 52 (49 críticas + 2 altas + 1 baixa)
 
 ---
 
@@ -376,6 +377,14 @@
 **Arquivo:** `packages/opencode/src/file/watcher.ts`
 **Problema:** A linha `// if (err) return` estava comentada no callback do `@parcel/watcher`, fazendo com que erros de subscribe fossem ignorados e eventos potencialmente incompletos fossem processados.
 **Fix:** Reativada a verificação de erro com `log.warn()` antes do early return.
+
+### Cleanup — Issues do tracker removidas (2026-05-18)
+
+- **52 issues** já corrigidas foram removidas dos arquivos de tracking em `.opencode/issues/`
+- **49** do `01-critical/bugs.md` (de 227 → 178)
+- **2** do `02-high/bugs.md` (de 584 → 582)
+- **1** do `04-low/uncategorized.md` (#25564 — enterprise package deleted)
+- Sumário atualizado com novos totais e percentuais
 
 ---
 

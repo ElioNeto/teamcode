@@ -1,6 +1,6 @@
 # 📋 Não Categorizados
 
-> **Total:** 156 | Extraído em 2026-05-17
+> **Total:** 155 | Extraído em 2026-05-18
 
 ---
 
@@ -1781,44 +1781,7 @@ So far, I just downloaded it and started using it, and it has been working very 
 2. 确保按钮区域始终固定在底部可见
 3. 根据选项数量动态调整对话框高度
 
----
 
-## #25564 — Windows: custom-elements.d.ts symlinks materialize as text on default core.symlinks=false, breaking enterprise typecheck
-
-📅 `2026-05-03` | ✏️ **zoulukuang** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/25564](https://github.com/anomalyco/opencode/issues/25564)
-
-
-### Bug
-
-After cloning on Windows with the default `core.symlinks=false` setting, `bun turbo typecheck` fails on `@opencode-ai/enterprise` (and `@opencode-ai/app`) because the `<diffs-container>` JSX type augmentation is missing.
-
-The `<diffs-container>` ambient declaration is defined in `packages/ui/src/custom-elements.d.ts`. Two consumer packages reference it via symlinks:
-
-- `packages/app/src/custom-elements.d.ts` → symlink (mode 120000) → `../../ui/src/custom-elements.d.ts`
-- `packages/enterprise/src/custom-elements.d.ts` → symlink (mode 120000) → `../../ui/src/custom-elements.d.ts`
-
-### Why
-
-On Windows with `core.symlinks=false` (the default — Windows does not enable symlinks unless Developer Mode is on, or git is configured with `core.symlinks=true` at clone time), git materializes a symlink as a **plain text file** containing the link target string:
-
-```
-$ cat packages/enterprise/src/custom-elements.d.ts
-../../ui/src/custom-elements.d.ts
-```
-
-TypeScript treats this as a non-TS file (or worse, parses it as TS and fails immediately). The `<diffs-container>` augmentation is silently dropped, and downstream `.tsx` files using the custom element get `JSX element type 'diffs-container' is not defined` errors.
-
-### Reproduction
-
-1. On Windows, with `core.symlinks=false` (the default), without Developer Mode
-2. `git clone https://github.com/anomalyco/opencode`
-3. `bun install && bun turbo typecheck`
-
-→ `@opencode-ai/enterprise` fails typecheck because `<diffs-container>` is un
-
-> *[Truncado — 2213 chars totais]*
-
----
 
 ## #25506 — 本地使用，页面会话没有显示。
 
