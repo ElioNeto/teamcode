@@ -15,7 +15,6 @@ import { Config } from "@/config/config"
 import { ConfigMCP } from "../config/mcp"
 import { ConfigVariable } from "@/config/variable"
 import * as Log from "@teamcode-ai/core/util/log"
-import { NamedError } from "@teamcode-ai/core/util/error"
 import { Installation } from "../installation"
 import { InstallationVersion } from "@teamcode-ai/core/installation/version"
 import { withTimeout } from "@/util/timeout"
@@ -64,9 +63,9 @@ export const BrowserOpenFailed = BusEvent.define(
   }),
 )
 
-export const Failed = NamedError.create("MCPFailed", {
+export class Failed extends Schema.TaggedErrorClass<Failed>()("MCPFailed", {
   name: Schema.String,
-})
+}) {}
 
 type MCPClient = Client
 

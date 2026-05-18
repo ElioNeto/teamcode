@@ -1,6 +1,5 @@
 import { BusEvent } from "@/bus/bus-event"
 import { Schema } from "effect"
-import { NamedError } from "@teamcode-ai/core/util/error"
 import * as Log from "@teamcode-ai/core/util/log"
 import { Process } from "@/util/process"
 
@@ -23,11 +22,11 @@ export const Event = {
   ),
 }
 
-export const AlreadyInstalledError = NamedError.create("AlreadyInstalledError", {})
+export class AlreadyInstalledError extends Schema.TaggedErrorClass<AlreadyInstalledError>()("AlreadyInstalledError", {}) {}
 
-export const InstallFailedError = NamedError.create("InstallFailedError", {
+export class InstallFailedError extends Schema.TaggedErrorClass<InstallFailedError>()("InstallFailedError", {
   stderr: Schema.String,
-})
+}) {}
 
 export function ide() {
   if (process.env["TERM_PROGRAM"] === "vscode") {

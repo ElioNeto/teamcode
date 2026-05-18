@@ -3,7 +3,7 @@
   "default_agent": "god",
   "instructions": ["AGENTS.md"],
   "tools": {
-    "github-triage": false,
-    "github-pr-search": false
+    "github-triage": true,
+    "github-pr-search": true
   }
 }

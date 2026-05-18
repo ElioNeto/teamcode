@@ -5,7 +5,6 @@ import os from "os"
 import { mergeDeep } from "remeda"
 import { Global } from "@teamcode-ai/core/global"
 import fsNode from "fs/promises"
-import { NamedError } from "@teamcode-ai/core/util/error"
 import { Flag } from "@teamcode-ai/core/flag/flag"
 import { Auth } from "../auth"
 import { Env } from "../env"
@@ -355,11 +354,11 @@ function writableGlobal(info: Info) {
   return next
 }
 
-export const ConfigDirectoryTypoError = NamedError.create("ConfigDirectoryTypoError", {
+export class ConfigDirectoryTypoError extends Schema.TaggedErrorClass<ConfigDirectoryTypoError>()("ConfigDirectoryTypoError", {
   path: Schema.String,
   dir: Schema.String,
   suggestion: Schema.String,
-})
+}) {}
 
 export const layer = Layer.effect(
   Service,

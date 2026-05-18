@@ -6,7 +6,6 @@ import { RuntimeFlags } from "@/effect/runtime-flags"
 import { LocalContext } from "@/util/local-context"
 import { Global } from "@teamcode-ai/core/global"
 import * as Log from "@teamcode-ai/core/util/log"
-import { NamedError } from "@teamcode-ai/core/util/error"
 import path from "path"
 import { readFileSync, readdirSync, existsSync } from "fs"
 import { Flag } from "@teamcode-ai/core/flag/flag"
@@ -17,9 +16,9 @@ import { Effect, Schema } from "effect"
 
 declare const OPENCODE_MIGRATIONS: { sql: string; timestamp: number; name: string }[] | undefined
 
-export const NotFoundError = NamedError.create("NotFoundError", {
+export class NotFoundError extends Schema.TaggedErrorClass<NotFoundError>()("NotFoundError", {
   message: Schema.String,
-})
+}) {}
 
 const log = Log.create({ service: "db" })
 

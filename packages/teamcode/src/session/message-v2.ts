@@ -38,24 +38,24 @@ interface FetchDecompressionError extends Error {
 export const SYNTHETIC_ATTACHMENT_PROMPT = "Attached media from tool result:"
 export { isMedia }
 
-export const AbortedError = NamedError.create("MessageAbortedError", { message: Schema.String })
-export const StructuredOutputError = NamedError.create("StructuredOutputError", {
+export class AbortedError extends Schema.TaggedErrorClass<AbortedError>()("MessageAbortedError", { message: Schema.String }) {}
+export class StructuredOutputError extends Schema.TaggedErrorClass<StructuredOutputError>()("StructuredOutputError", {
   message: Schema.String,
   retries: NonNegativeInt,
-})
-export const APIError = NamedError.create("APIError", {
+}) {}
+export class APIError extends Schema.TaggedErrorClass<APIError>()("APIError", {
   message: Schema.String,
   statusCode: Schema.optional(NonNegativeInt),
   isRetryable: Schema.Boolean,
   responseHeaders: Schema.optional(Schema.Record(Schema.String, Schema.String)),
   responseBody: Schema.optional(Schema.String),
   metadata: Schema.optional(Schema.Record(Schema.String, Schema.String)),
-})
-export type APIError = Schema.Schema.Type<typeof APIError.Schema>
-export const ContextOverflowError = NamedError.create("ContextOverflowError", {
+}) {}
+export type APIError = Schema.Schema.Type<typeof APIError>
+export class ContextOverflowError extends Schema.TaggedErrorClass<ContextOverflowError>()("ContextOverflowError", {
   message: Schema.String,
   responseBody: Schema.optional(Schema.String),
-})
+}) {}
 
 export class OutputFormatText extends Schema.Class<OutputFormatText>("OutputFormatText")({
   type: Schema.Literal("text"),

@@ -1,7 +1,6 @@
 import path from "path"
 import { pathToFileURL } from "url"
 import { Effect, Layer, Context, Schema } from "effect"
-import { NamedError } from "@teamcode-ai/core/util/error"
 import type { Agent } from "@/agent/agent"
 import { Bus } from "@/bus"
 import { InstanceState } from "@/effect/instance-state"
@@ -57,17 +56,17 @@ function isSkillFrontmatter(data: unknown): data is { name: string; description?
   )
 }
 
-export const InvalidError = NamedError.create("SkillInvalidError", {
+export class InvalidError extends Schema.TaggedErrorClass<InvalidError>()("SkillInvalidError", {
   path: Schema.String,
   message: Schema.optional(Schema.String),
   issues: Schema.optional(Schema.Array(Issue)),
-})
+}) {}
 
-export const NameMismatchError = NamedError.create("SkillNameMismatchError", {
+export class NameMismatchError extends Schema.TaggedErrorClass<NameMismatchError>()("SkillNameMismatchError", {
   path: Schema.String,
   expected: Schema.String,
   actual: Schema.String,
-})
+}) {}
 
 type State = {
   skills: Record<string, Info>

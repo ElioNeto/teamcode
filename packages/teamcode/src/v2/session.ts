@@ -1,5 +1,5 @@
-import { SessionMessageTable, SessionTable } from "@/session/session.sql"
-import { SessionID } from "@/session/schema"
+import { SessionMessageTable, SessionTable, MessageTable, PartTable } from "@/session/session.sql"
+import { SessionID, MessageID, PartID } from "@/session/schema"
 import { WorkspaceID } from "@/control-plane/schema"
 import { and, asc, desc, eq, gt, gte, isNull, like, lt, or, type SQL } from "@/storage/db"
 import * as Database from "@/storage/db"
@@ -14,6 +14,8 @@ import { EventV2 } from "@teamcode-ai/core/event"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { ModelV2 } from "@teamcode-ai/core/model"
 import { ProviderV2 } from "@teamcode-ai/core/provider"
+import { Slug } from "@teamcode-ai/core/util/slug"
+import { InstallationVersion } from "@teamcode-ai/core/installation/version"
 
 export const Delivery = Schema.Literals(["immediate", "deferred"]).annotate({
   identifier: "Session.Delivery",
@@ -166,8 +168,53 @@ export const layer = Layer.effect(
     }
 
     const result = Service.of({
-      create: Effect.fn("V2Session.create")(function* (_input) {
-        return {} as any
+      create: Effect.fn("V2Session.create")(function* (input) {
+        const id = SessionID.descending()
+        const projectID = ProjectID.global
+        const now = Date.now()
+        const title = input?.agent || "Session"
+        const slug = Slug.create()
+        const model = input?.model
+          ? { id: input.model.id, providerID: input.model.providerID, variant: input.model.variant ?? "default" }
+          : undefined
+
+        Database.use((db) =>
+          db
+            .insert(SessionTable)
+            .values({
+              id,
+              project_id: projectID,
+              workspace_id: input?.workspaceID,
+              parent_id: input?.parentID,
+              slug,
+              directory: "",
+              path: "",
+              title,
+              version: InstallationVersion,
+              agent: input?.agent,
+              model,
+              time_created: now,
+              time_updated: now,
+            })
+            .run(),
+        )
+
+        return new Info({
+          id,
+          projectID,
+          workspaceID: input?.workspaceID,
+          parentID: input?.parentID,
+          path: "",
+          agent: input?.agent,
+          model: input?.model,
+          cost: 0,
+          tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+          time: {
+            created: DateTime.makeUnsafe(now),
+            updated: DateTime.makeUnsafe(now),
+          },
+          title,
+        })
       }),
       get: Effect.fn("V2Session.get")(function* (sessionID) {
         const row = Database.use((db) => db.select().from(SessionTable).where(eq(SessionTable.id, sessionID)).get())
@@ -286,11 +333,80 @@ export const layer = Layer.effect(
         })
         return rows.map((row) => decode(row))
       }),
-      prompt: Effect.fn("V2Session.prompt")(function* (_input) {
-        return {} as any
+      prompt: Effect.fn("V2Session.prompt")(function* (input) {
+        const id = input.id ?? EventV2.ID.make()
+        const now = Date.now()
+
+        Database.use((db) =>
+          db
+            .insert(SessionMessageTable)
+            .values({
+              id,
+              session_id: input.sessionID,
+              type: "user" as const,
+              time_created: now,
+              data: {
+                text: input.prompt.text,
+                files: input.prompt.files,
+                agents: input.prompt.agents,
+                references: input.prompt.references,
+                time: { created: now },
+              },
+            })
+            .run(),
+        )
+
+        return new SessionMessage.User({
+          id,
+          type: "user",
+          text: input.prompt.text,
+          files: input.prompt.files,
+          agents: input.prompt.agents,
+          references: input.prompt.references,
+          time: { created: DateTime.makeUnsafe(now) },
+        })
       }),
-      shell: Effect.fn("V2Session.shell")(function* (_input) {}),
-      skill: Effect.fn("V2Session.skill")(function* (_input) {}),
+      shell: Effect.fn("V2Session.shell")(function* (input) {
+        const id = input.id ?? EventV2.ID.make()
+        const now = Date.now()
+
+        Database.use((db) =>
+          db
+            .insert(SessionMessageTable)
+            .values({
+              id,
+              session_id: input.sessionID,
+              type: "shell" as const,
+              time_created: now,
+              data: {
+                command: input.command,
+                output: "",
+                time: { created: now },
+              },
+            })
+            .run(),
+        )
+      }),
+      skill: Effect.fn("V2Session.skill")(function* (input) {
+        const id = input.id ?? EventV2.ID.make()
+        const now = Date.now()
+
+        Database.use((db) =>
+          db
+            .insert(SessionMessageTable)
+            .values({
+              id,
+              session_id: input.sessionID,
+              type: "synthetic" as const,
+              time_created: now,
+              data: {
+                text: input.skill,
+                time: { created: now },
+              },
+            })
+            .run(),
+        )
+      }),
       switchAgent: Effect.fn("V2Session.switchAgent")(function* (input) {
         yield* events.publish(SessionEvent.AgentSwitched, {
           sessionID: input.sessionID,
@@ -326,8 +442,49 @@ export const layer = Layer.effect(
           if (!text) return
         }).pipe(Effect.forkChild())
       }),
-      compact: Effect.fn("V2Session.compact")(function* (_sessionID) {}),
-      wait: Effect.fn("V2Session.wait")(function* (_sessionID) {}),
+      compact: Effect.fn("V2Session.compact")(function* (sessionID) {
+        const now = Date.now()
+
+        Database.use((db) =>
+          db
+            .insert(SessionMessageTable)
+            .values({
+              id: EventV2.ID.make(),
+              session_id: sessionID,
+              type: "compaction" as const,
+              time_created: now,
+              data: {
+                text: "",
+                time: { created: now },
+              },
+            })
+            .run(),
+        )
+      }),
+      wait: Effect.fn("V2Session.wait")(function* (sessionID) {
+        const poll = Effect.fnUntraced(function* () {
+          const row = Database.use((db) =>
+            db
+              .select({ type: SessionMessageTable.type })
+              .from(SessionMessageTable)
+              .where(
+                and(
+                  eq(SessionMessageTable.session_id, sessionID),
+                  or(eq(SessionMessageTable.type, "assistant"), eq(SessionMessageTable.type, "error")),
+                ),
+              )
+              .orderBy(desc(SessionMessageTable.time_created))
+              .limit(1)
+              .get(),
+          )
+          return row !== undefined
+        })
+
+        yield* Effect.whileLoop({
+          while: () => poll().pipe(Effect.map((done) => !done)),
+          body: () => Effect.sleep("200 millis"),
+        })
+      }),
     })
 
     return result

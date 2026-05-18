@@ -1,6 +1,5 @@
-import { NamedError } from "@teamcode-ai/core/util/error"
-import matter from "gray-matter"
 import { Schema } from "effect"
+import matter from "gray-matter"
 import { Filesystem } from "@/util/filesystem"
 
 export const FILE_REGEX = /(?<![\w`])@(\.?[^\s`,.]*(?:\.[^\s`,.]+)*)/g
@@ -88,9 +87,9 @@ export async function parse(filePath: string) {
   }
 }
 
-export const FrontmatterError = NamedError.create("ConfigFrontmatterError", {
+export class FrontmatterError extends Schema.TaggedErrorClass<FrontmatterError>()("ConfigFrontmatterError", {
   path: Schema.String,
   message: Schema.String,
-})
+}) {}
 
 export * as ConfigMarkdown from "./markdown"
