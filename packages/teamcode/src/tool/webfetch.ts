@@ -1,5 +1,9 @@
 import { Effect, Schema } from "effect"
 import { HttpClient, HttpClientRequest } from "effect/unstable/http"
+
+class TimeoutError extends Schema.TaggedErrorClass<TimeoutError>()("WebFetchTimeoutError", {
+  url: Schema.String,
+}) {}
 import { Parser } from "htmlparser2"
 import * as Tool from "./tool"
 import TurndownService from "turndown"
@@ -89,7 +93,7 @@ export const WebFetchTool = Tool.define(
                   ),
                 ),
             ),
-            Effect.timeoutOrElse({ duration: timeout, orElse: () => Effect.die(new Error("Request timed out")) }),
+            Effect.timeoutOrElse({ duration: timeout, orElse: () => Effect.fail(new TimeoutError({ url: params.url })) }),
           )
 
           // Check content length

@@ -1,6 +1,10 @@
 import { Duration, Effect, Schema } from "effect"
 import { HttpClient, HttpClientRequest } from "effect/unstable/http"
 
+class TimeoutError extends Schema.TaggedErrorClass<TimeoutError>()("McpWebSearchTimeoutError", {
+  tool: Schema.String,
+}) {}
+
 export const EXA_URL = process.env.EXA_API_KEY
   ? `https://mcp.exa.ai/mcp?exaApiKey=${encodeURIComponent(process.env.EXA_API_KEY)}`
   : "https://mcp.exa.ai/mcp"
@@ -103,7 +107,7 @@ export const call = <F extends Schema.Struct.Fields>(
     const response = yield* HttpClient.filterStatusOk(http)
       .execute(request)
       .pipe(
-        Effect.timeoutOrElse({ duration: timeout, orElse: () => Effect.die(new Error(`${tool} request timed out`)) }),
+        Effect.timeoutOrElse({ duration: timeout, orElse: () => Effect.fail(new TimeoutError({ tool })) }),
       )
     const body = yield* response.text
     return yield* parseResponse(body)
