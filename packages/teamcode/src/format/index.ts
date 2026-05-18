@@ -141,9 +141,9 @@ export const layer = Layer.effect(
           for (const [name, item] of Object.entries(cfg.formatter)) {
             const builtIn = Formatter[name as keyof typeof Formatter]
 
-            // Ruff and uv are both the same formatter, so disabling either should disable both.
+            // Ruff and uv share the same backend (Ruff), so disabling either should disable both.
+            // Ideally they would share a single config entry instead of duplicating this check.
             if (["ruff", "uv"].includes(name) && (cfg.formatter.ruff?.disabled || cfg.formatter.uv?.disabled)) {
-              // FIXME(refactor): combine formatters so shared backends (Ruff/uv) don't need linked disable handling here
               delete formatters.ruff
               delete formatters.uv
               continue

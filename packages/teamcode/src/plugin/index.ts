@@ -221,12 +221,6 @@ export const layer = Layer.effect(
             },
           }).pipe(
             Effect.catch(() => {
-              // FIXME(refactor): use proper typed events instead of string-based dispatching
-              // bus.publish(Session.Event.Error, {
-              //   error: new NamedError.Unknown({
-              //     message: `Failed to load plugin ${load.spec}: ${message}`,
-              //   }).toObject(),
-              // })
               return Effect.void
             }),
           )

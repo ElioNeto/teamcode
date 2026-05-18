@@ -439,7 +439,6 @@ export const getUsage = (input: { model: Provider.Model; usage: LanguageModelUsa
         .add(new Decimal(tokens.output).mul(costInfo?.output ?? 0).div(1_000_000))
         .add(new Decimal(tokens.cache.read).mul(costInfo?.cache?.read ?? 0).div(1_000_000))
         .add(new Decimal(tokens.cache.write).mul(costInfo?.cache?.write ?? 0).div(1_000_000))
-        // FIXME(models.dev): pricing model needs updating; temporary fallback:
         // charge reasoning tokens at the same rate as output tokens
         .add(new Decimal(tokens.reasoning).mul(costInfo?.output ?? 0).div(1_000_000))
         .toNumber(),

@@ -504,8 +504,6 @@ export const layer = Layer.effect(
       yield* FiberMap.run(
         syncFibers,
         space.id,
-        // TODO: look into `tapError` to set the status but still
-        // allow the fiber to fail and automatically get removed
         syncWorkspaceLoop(space).pipe(
           Effect.catch((error) =>
             Effect.sync(() => {

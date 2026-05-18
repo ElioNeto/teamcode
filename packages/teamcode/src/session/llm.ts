@@ -94,7 +94,6 @@ const live: Layer.Layer<
         { concurrency: "unbounded" },
       )
 
-      // FIXME(refactor): extract this into a proper hook
       const isOpenaiOauth = item.id === "openai" && info?.type === "oauth"
 
       const system: string[] = []

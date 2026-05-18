@@ -206,7 +206,8 @@ export const GithubInstallCommand = effectCmd({
         await installGitHubApp()
 
         const providers = await Effect.runPromise(modelsDev.get()).then((p) => {
-          // FIXME(docs): add guide for copilot; temporarily hidden
+          // GitHub Copilot auth flow differs from other providers; temporarily hidden
+          // from the interactive guide until docs are written.
           delete p["github-copilot"]
           return p
         })
