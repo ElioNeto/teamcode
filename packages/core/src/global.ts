@@ -15,7 +15,7 @@ const tmp = path.join(os.tmpdir(), app)
 
 const home = process.env.TEAMCODE_TEST_HOME ?? process.env.OPENCODE_TEST_HOME ?? os.homedir()
 
-const paths = Object.freeze({
+export const Path = {
   home,
   data,
   bin: path.join(cache, "bin"),
@@ -25,9 +25,7 @@ const paths = Object.freeze({
   config,
   state,
   tmp,
-})
-
-export const Path = paths
+}
 
 Flock.setGlobal({ state })
 
