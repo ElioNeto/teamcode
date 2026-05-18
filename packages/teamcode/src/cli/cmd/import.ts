@@ -7,6 +7,7 @@ import { SessionTable, MessageTable, PartTable } from "../../session/session.sql
 import { InstanceRef } from "@/effect/instance-ref"
 import { ShareNext } from "@/share/share-next"
 import { EOL } from "os"
+import path from "path"
 import { AppFileSystem } from "@teamcode-ai/core/filesystem"
 import { Effect, Schema } from "effect"
 
@@ -150,14 +151,26 @@ const runImport = Effect.fn("Cli.import.body")(function* (file: string, projectI
 
     exportData = transformed
   } else {
-    exportData = (yield* fs.readJson(file).pipe(Effect.orElseSucceed(() => undefined))) as
-      | NonNullable<typeof exportData>
-      | undefined
-    if (!exportData) {
-      process.stdout.write(`File not found: ${file}`)
-      process.stdout.write(EOL)
-      return
-    }
+    // Resolve relative paths against the instance directory for consistency
+    const resolvedFile = path.isAbsolute(file) ? file : path.resolve(ctx.directory, file)
+    yield* fs.exists(resolvedFile).pipe(
+      Effect.orDie,
+      Effect.map((exists) => {
+        if (!exists) {
+          process.stdout.write(`File not found: ${file}`)
+          process.stdout.write(EOL)
+          return
+        }
+      }),
+    )
+    exportData = (yield* fs.readJson(resolvedFile).pipe(Effect.catchAll((err) =>
+      Effect.sync(() => {
+        process.stdout.write(`Failed to read session data from ${file}: ${err.message}`)
+        process.stdout.write(EOL)
+        return undefined
+      }),
+    ))) as NonNullable<typeof exportData> | undefined
+    if (!exportData) return
   }
 
   if (!exportData) {
