@@ -479,7 +479,7 @@ export const layer = Layer.effect(
     })
 
     const loadInstanceState = Effect.fn("Config.loadInstanceState")(
-      function* (ctx: InstanceContext) {
+      function* (ctx: InstanceContext, flags: RuntimeFlags.Info) {
         const auth = yield* authSvc.all().pipe(Effect.orDie)
 
         let result: Info = {}
@@ -569,7 +569,7 @@ export const layer = Layer.effect(
           log.debug("loaded custom config", { path: Flag.OPENCODE_CONFIG })
         }
 
-        if (!Flag.OPENCODE_DISABLE_PROJECT_CONFIG) {
+        if (!flags.disableProjectConfig) {
           for (const file of yield* ConfigPaths.files("teamcode", ctx.directory, ctx.worktree).pipe(Effect.orDie)) {
             yield* merge(file, yield* loadFile(file), "local")
           }
@@ -735,10 +735,10 @@ export const layer = Layer.effect(
           result.share = "auto"
         }
 
-        if (Flag.OPENCODE_DISABLE_AUTOCOMPACT) {
+        if (flags.disableAutocompact) {
           result.compaction = { ...result.compaction, auto: false }
         }
-        if (Flag.OPENCODE_DISABLE_PRUNE) {
+        if (flags.disablePrune) {
           result.compaction = { ...result.compaction, prune: false }
         }
 
@@ -766,9 +766,10 @@ export const layer = Layer.effect(
 
     // Instance-scoped config is cached with a 30s TTL so edits to project-level
     // teamcode.json / opencode.json are picked up without restarting the process.
+    const runtimeFlags = yield* RuntimeFlags.Service
     const state = yield* InstanceState.make<State>(
       Effect.fn("Config.state")(function* (ctx) {
-        return yield* loadInstanceState(ctx).pipe(Effect.orDie)
+        return yield* loadInstanceState(ctx, runtimeFlags).pipe(Effect.orDie)
       }),
       { timeToLive: Duration.seconds(30) },
     )

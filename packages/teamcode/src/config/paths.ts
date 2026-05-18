@@ -6,6 +6,7 @@ import { Global } from "@teamcode-ai/core/global"
 import { unique } from "remeda"
 import { Effect, Context, Layer } from "effect"
 import { AppFileSystem } from "@teamcode-ai/core/filesystem"
+import { RuntimeFlags } from "@/effect/runtime-flags"
 
 // --- Pure helpers ---
 
@@ -26,6 +27,7 @@ export const layer = Layer.effect(
   Service,
   Effect.gen(function* () {
     const afs = yield* AppFileSystem.Service
+    const flags = yield* RuntimeFlags.Service
 
     const projectFiles = Effect.fn("ConfigPaths.Service.projectFiles")(function* (
       name: string,
@@ -42,7 +44,7 @@ export const layer = Layer.effect(
     const directories = Effect.fn("ConfigPaths.Service.directories")(function* (directory: string, worktree?: string) {
       return unique([
         Global.Path.config,
-        ...(!Flag.OPENCODE_DISABLE_PROJECT_CONFIG
+        ...(!flags.disableProjectConfig
           ? yield* afs.up({
               targets: [".opencode"],
               start: directory,

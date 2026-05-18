@@ -3,6 +3,7 @@ import { Effect, Layer, Option } from "effect"
 import { NodeFileSystem, NodePath } from "@effect/platform-node"
 import { Config } from "@/config/config"
 import { ConfigManaged } from "@/config/managed"
+import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ConfigParse } from "../../src/config/parse"
 import { EffectFlock } from "@teamcode-ai/core/util/effect-flock"
 
@@ -52,6 +53,7 @@ const noopNpm = Layer.mock(Npm.Service)({
 const layer = Config.layer.pipe(
   Layer.provide(testFlock),
   Layer.provide(AppFileSystem.defaultLayer),
+  Layer.provide(RuntimeFlags.defaultLayer),
   Layer.provide(Env.defaultLayer),
   Layer.provide(emptyAuth),
   Layer.provide(emptyAccount),
@@ -564,6 +566,7 @@ test("resolves env templates in account config with account token", async () => 
   const layer = Config.layer.pipe(
     Layer.provide(testFlock),
     Layer.provide(AppFileSystem.defaultLayer),
+    Layer.provide(RuntimeFlags.defaultLayer),
     Layer.provide(Env.defaultLayer),
     Layer.provide(emptyAuth),
     Layer.provide(fakeAccount),
@@ -1075,6 +1078,7 @@ test("installs dependencies in writable OPENCODE_CONFIG_DIR", async () => {
   const testLayer = Config.layer.pipe(
     Layer.provide(testFlock),
     Layer.provide(AppFileSystem.defaultLayer),
+    Layer.provide(RuntimeFlags.defaultLayer),
     Layer.provide(Env.defaultLayer),
     Layer.provide(emptyAuth),
     Layer.provide(emptyAccount),
@@ -1968,6 +1972,7 @@ test("project config overrides remote well-known config", async () => {
   const layer = Config.layer.pipe(
     Layer.provide(testFlock),
     Layer.provide(AppFileSystem.defaultLayer),
+    Layer.provide(RuntimeFlags.defaultLayer),
     Layer.provide(Env.defaultLayer),
     Layer.provide(fakeAuth),
     Layer.provide(emptyAccount),
@@ -2026,6 +2031,7 @@ test("wellknown URL with trailing slash is normalized", async () => {
   const layer = Config.layer.pipe(
     Layer.provide(testFlock),
     Layer.provide(AppFileSystem.defaultLayer),
+    Layer.provide(RuntimeFlags.defaultLayer),
     Layer.provide(Env.defaultLayer),
     Layer.provide(fakeAuth),
     Layer.provide(emptyAccount),
@@ -2098,6 +2104,7 @@ test("wellknown remote_config supports templated env vars in headers", async () 
   const layer = Config.layer.pipe(
     Layer.provide(testFlock),
     Layer.provide(AppFileSystem.defaultLayer),
+    Layer.provide(RuntimeFlags.defaultLayer),
     Layer.provide(Env.defaultLayer),
     Layer.provide(fakeAuth),
     Layer.provide(emptyAccount),
