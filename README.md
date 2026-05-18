@@ -80,17 +80,77 @@ bun run test:e2e:visual:ci
 
 ---
 
-### Issue Resolver Agent
+### Delivery Loop Agent
 
-TeamCode includes an autonomous issue resolver that continuously picks open GitHub issues and works through them. For each issue it runs a **Plan → Implement → Validate → Review → Commit/Close** pipeline. If validation or review finds problems, the agent retries the implementation. If the issue is too complex, it returns to the planning phase.
+TeamCode includes a **Delivery Loop** agent — an autonomous pipeline that continuously resolves open GitHub issues. It fetches issues in batches of 10 and runs each through a **Plan → Implement → Validate → Review → (next)** cycle. If validation or review fails, it retries the implementation. If the issue is too complex, it returns to planning. It never stops until no eligible issues remain or the user presses Ctrl+C.
 
-**Run:**
+**Architecture:**
+
+The Delivery Loop is configured as a primary agent (`.opencode/agent/delivery-loop.md`) with the same unrestricted permissions as the **god** agent. It orchestrates the following subagents:
+
+| Agent | File | Role |
+|-------|------|------|
+| **planner** | `.opencode/agents/planner.md` | Decomposes tasks into structured steps, identifies dependencies |
+| **researcher** | `.opencode/agents/researcher.md` | Explores codebase, traces dependencies, gathers evidence |
+| **executor** | `.opencode/agents/executor.md` | Implements code changes following the plan |
+| **reviewer** | `.opencode/agents/reviewer.md` | Reviews quality, correctness, consistency post-implementation |
+
+**Pipeline:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Fetch 10 open issues from GitHub                           │
+│       │                                                     │
+│       ▼                                                     │
+│  For each issue (sequentially):                             │
+│       │                                                     │
+│       ▼                                                     │
+│  ┌───────┐     ┌──────────┐     ┌──────────┐     ┌──────┐  │
+│  │ Plan  │────→│Implement │────→│ Validate │────→│Review│  │
+│  └───┬───┘     └────┬─────┘     └────┬─────┘     └──┬───┘  │
+│      │              │                │              │      │
+│      │              │    ┌───────────┘              │      │
+│      │              │    │  (validation failed)     │      │
+│      │              └────┼──────────────────────────┘      │
+│      │                   │  (review failed — simple)       │
+│      └───────────────────┼─────────────────────────────────┘
+│                          │  (review failed — complex)       │
+│                          ▼                                  │
+│                     ┌─────────┐                             │
+│                     │  Commit │────→ Close Issue ───→ Next  │
+│                     └─────────┘                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Error recovery:**
+
+| Situation | Action |
+|-----------|--------|
+| Validate fails | Return to **Implement** with error context |
+| Review fails (simple issue) | Return to **Implement** |
+| Review fails (complex issue, score ≥5) | Return to **Plan** |
+| 3 consecutive failures on same issue | Skip issue with explanatory comment |
+| Issue too complex at planning | Skip with comment "needs manual triage" |
+
+**Switch to the Delivery Loop agent:**
+Use the `Tab` key to switch between agents in the TeamCode TUI, or set it as the default in `opencode.jsonc`.
+
+**Standalone script (alternative):**
 
 ```bash
 bun run scripts/issue-resolver/resolver.ts
 ```
 
-The resolver uses the `$GH_TOKEN` environment variable for GitHub API access and requires a clean working tree to start. It fetches open issues in batches of 10, processes them sequentially through the pipeline, and only stops when no open issues remain or when interrupted manually.
+The standalone script uses `$GH_TOKEN` for GitHub API access and requires a clean working tree. It follows the same pipeline and supports these flags:
+
+| Flag | Description |
+|------|-------------|
+| `--bugs-only` | Only process issues labeled as bugs |
+| `--labels=X,Y` | Only process issues with these labels |
+| `--batch=N` | Issues per batch (default: 10) |
+| `--max-attempts=N` | Max attempts per issue (default: 3) |
+| `--once` | Process one batch and exit |
+| `--dry-run` | Fetch and list issues without processing |
 
 ---
 
