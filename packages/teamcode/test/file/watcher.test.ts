@@ -1,6 +1,7 @@
 import { describe, expect } from "bun:test"
 import path from "path"
 import { AppFileSystem } from "@teamcode-ai/core/filesystem"
+import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ConfigProvider, Deferred, Effect, Layer, Option } from "effect"
 import { TestInstance, provideInstance } from "../fixture/fixture"
 import { testEffect } from "../lib/effect"
@@ -26,6 +27,7 @@ const watcherConfigLayer = ConfigProvider.layer(
 const watcherLayer = FileWatcher.layer.pipe(
   Layer.provide(Config.defaultLayer),
   Layer.provide(Git.defaultLayer),
+  Layer.provide(RuntimeFlags.defaultLayer),
   Layer.provide(watcherConfigLayer),
 )
 

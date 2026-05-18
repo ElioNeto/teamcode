@@ -6,6 +6,7 @@ import { mergeDeep } from "remeda"
 import { Global } from "@teamcode-ai/core/global"
 import fsNode from "fs/promises"
 import { Flag } from "@teamcode-ai/core/flag/flag"
+import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Auth } from "../auth"
 import { Env } from "../env"
 import { applyEdits, modify } from "jsonc-parser"
@@ -848,6 +849,7 @@ export const defaultLayer = layer.pipe(
   Layer.provide(Auth.defaultLayer),
   Layer.provide(Account.defaultLayer),
   Layer.provide(Npm.defaultLayer),
+  Layer.provide(RuntimeFlags.defaultLayer),
 )
 
 export * as Config from "./config"

@@ -68,6 +68,13 @@ export class Service extends ConfigService.Service<Service>()("@teamcode/Runtime
     Config.orElse(() => Config.string("OPENCODE_CLIENT")),
     Config.withDefault("cli"),
   ),
+  // Legacy Flag.* wrappers — migrate consumers to RuntimeFlags.Service
+  disableAutoupdate: bool("TEAMCODE_DISABLE_AUTOUPDATE", "OPENCODE_DISABLE_AUTOUPDATE"),
+  disableAutocompact: bool("TEAMCODE_DISABLE_AUTOCOMPACT", "OPENCODE_DISABLE_AUTOCOMPACT"),
+  disablePrune: bool("TEAMCODE_DISABLE_PRUNE", "OPENCODE_DISABLE_PRUNE"),
+  disableProjectConfig: bool("TEAMCODE_DISABLE_PROJECT_CONFIG", "OPENCODE_DISABLE_PROJECT_CONFIG"),
+  disableFilewatcher: bool("TEAMCODE_EXPERIMENTAL_DISABLE_FILEWATCHER", "OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER"),
+  experimentalFilewatcher: bool("TEAMCODE_EXPERIMENTAL_FILEWATCHER", "OPENCODE_EXPERIMENTAL_FILEWATCHER"),
 }) {}
 
 export type Info = Context.Service.Shape<typeof Service>
