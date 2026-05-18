@@ -155,6 +155,7 @@ export class Agent implements ACPAgent {
     { optionId: "reject", kind: "reject_once", name: "Reject" },
   ]
   private deltaChain = new Map<string, Promise<void>>()
+  private cancelledSessions = new Set<string>()
   private authMethods: AuthMethod[] = [
     {
       description: "Run `opencode auth login` in the terminal",
@@ -1475,7 +1476,16 @@ export class Agent implements ACPAgent {
         parts,
         agent,
         directory,
-      }, { throwOnError: true })
+      }, { throwOnError: true }).catch((error) => {
+        // If the session was cancelled, return cancelled stop reason
+        if (this.cancelledSessions.has(sessionID)) return null as any
+        throw error
+      })
+
+      if (this.cancelledSessions.has(sessionID)) {
+        return { stopReason: "cancelled" as const, usage: undefined, _meta: {} }
+      }
+
       const msg = response.data?.info
 
       await sendUsageUpdate(this.connection, this.sdk, sessionID, directory)
@@ -1499,7 +1509,15 @@ export class Agent implements ACPAgent {
         model: model.providerID + "/" + model.modelID,
         agent,
         directory,
+      }).catch((error) => {
+        if (this.cancelledSessions.has(sessionID)) return null as any
+        throw error
       })
+
+      if (this.cancelledSessions.has(sessionID)) {
+        return { stopReason: "cancelled" as const, usage: undefined, _meta: {} }
+      }
+
       const msg = response.data?.info
 
       await sendUsageUpdate(this.connection, this.sdk, sessionID, directory)
@@ -1522,8 +1540,15 @@ export class Agent implements ACPAgent {
             modelID: model.modelID,
           },
           { throwOnError: true },
-        )
+        ).catch((error) => {
+          if (this.cancelledSessions.has(sessionID)) return
+          throw error
+        })
         break
+    }
+
+    if (this.cancelledSessions.has(sessionID)) {
+      return { stopReason: "cancelled" as const, _meta: {} }
     }
 
     await sendUsageUpdate(this.connection, this.sdk, sessionID, directory)
@@ -1545,6 +1570,7 @@ export class Agent implements ACPAgent {
   }
 
   async cancel(params: CancelNotification) {
+    this.cancelledSessions.add(params.sessionId)
     const session = this.sessionManager.get(params.sessionId)
     await this.config.sdk.session.abort(
       {
