@@ -68,7 +68,7 @@ jobs:
 
       - name: Run HttpApi exerciser gates
         if: runner.os == 'Linux'
-        working-directory: packages/opencode
+        working-directory: packages/teamcode
         run: bun run test:httpapi
 
       - name: Publish unit reports

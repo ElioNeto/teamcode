@@ -10,7 +10,7 @@ import { SyncProvider, useSync } from "../../../../src/cli/cmd/tui/context/sync"
 import type { GlobalEvent } from "@teamcode-ai/sdk/v2"
 
 export const worktree = "/tmp/opencode"
-export const directory = `${worktree}/packages/opencode`
+export const directory = `${worktree}/packages/teamcode`
 
 export async function wait(fn: () => boolean, timeout = 2000) {
   const start = Date.now()
