@@ -22,8 +22,15 @@ const decode = Schema.decodeUnknownEffect(Schema.fromJsonString(McpResult))
 const parsePayload = (payload: string) =>
   Effect.gen(function* () {
     const trimmed = payload.trim()
-    if (!trimmed.startsWith("{")) return undefined
-    const data = yield* decode(trimmed)
+    if (!trimmed.startsWith("{")) {
+      // Non-JSON response likely indicates an error page or proxy issue
+      const snippet = trimmed.slice(0, 200).replace(/\s+/g, " ").trim()
+      return `[Web search API returned non-JSON response: ${snippet}]`
+    }
+    const data = yield* decode(trimmed).pipe(
+      Effect.catchAll((e) => Effect.succeed(undefined as never)),
+    )
+    if (!data) return `[Web search API returned unexpected response format]`
     return data.result.content.find((item) => item.text)?.text
   })
 
@@ -37,7 +44,13 @@ export const parseResponse = Effect.fn("McpWebSearch.parseResponse")(function* (
     const data = yield* parsePayload(line.substring(6))
     if (data) return data
   }
-  return undefined
+
+  // If body is empty, return generic message instead of undefined
+  if (!trimmed) return "[Web search API returned empty response]"
+
+  // Last resort: return the response as-is so the user sees something
+  const snippet = trimmed.slice(0, 500).replace(/\s+/g, " ").trim()
+  return `[Web search API returned unparseable response: ${snippet}]`
 })
 
 export const SearchArgs = Schema.Struct({

@@ -62,6 +62,7 @@ import { type WorkspaceStatus } from "../workspace-label"
 import { useCommandPalette } from "../../context/command-palette"
 import { useBindings, useCommandShortcut, useLeaderActive, useOpencodeKeymap } from "../../keymap"
 import { useTuiConfig } from "../../context/tui-config"
+import { Caveman, type CavemanSessionInfo } from "@/caveman"
 
 export type PromptProps = {
   sessionID?: string
@@ -1033,6 +1034,16 @@ export function Prompt(props: PromptProps) {
       void exit()
       return true
     }
+    // "normal mode" disables caveman
+    if (trimmed.toLowerCase() === "normal mode") {
+      const cavemanKey = Caveman.CAVEMAN_KV_KEY
+      const current = kv.get(cavemanKey) as CavemanSessionInfo | undefined
+      if (current?.enabled) {
+        kv.set(cavemanKey, { ...current, enabled: false })
+        toast.show({ message: "Caveman off — agent talk normal again", variant: "info" })
+      }
+      return true
+    }
     const selectedModel = local.model.current()
     if (!selectedModel) {
       void promptModelWarning()
@@ -1102,16 +1113,21 @@ export function Prompt(props: PromptProps) {
     let inputText = store.prompt.input
 
     // Expand pasted text inline before submitting
+    // NOTE: extmark offsets from @opentui/core are byte offsets, but inputText
+    // is a JS string (character-indexed). Convert once before the loop.
     const allExtmarks = input.extmarks.getAllForTypeId(promptPartTypeId)
     const sortedExtmarks = allExtmarks.sort((a: { start: number }, b: { start: number }) => b.start - a.start)
+    const encoder = new TextEncoder()
+    const inputBytes = encoder.encode(inputText)
+    const toCharOffset = (byteOffset: number) => new TextDecoder().decode(inputBytes.slice(0, byteOffset)).length
 
     for (const extmark of sortedExtmarks) {
       const partIndex = store.extmarkToPartIndex.get(extmark.id)
       if (partIndex !== undefined) {
         const part = store.prompt.parts[partIndex]
         if (part?.type === "text" && part.text) {
-          const before = inputText.slice(0, extmark.start)
-          const after = inputText.slice(extmark.end)
+          const before = inputText.slice(0, toCharOffset(extmark.start))
+          const after = inputText.slice(toCharOffset(extmark.end))
           inputText = before + part.text + after
         }
       }
@@ -1232,8 +1248,14 @@ export function Prompt(props: PromptProps) {
   const exit = useExit()
 
   function pasteText(text: string, virtualText: string) {
-    const currentOffset = input.visualCursor.offset
-    const extmarkStart = currentOffset
+    // visualCursor.offset is a byte offset from the native text buffer, but
+    // extmark positions are used as JavaScript character indices at submit time
+    // (inputText.slice). Convert to char offset for correct multi-byte UTF-8 handling.
+    const byteOffset = input.visualCursor.offset
+    const plainText = input.plainText
+    const encoder = new TextEncoder()
+    const charOffset = new TextDecoder().decode(encoder.encode(plainText).slice(0, byteOffset)).length
+    const extmarkStart = charOffset
     const extmarkEnd = extmarkStart + virtualText.length
 
     input.insertText(virtualText + " ")
@@ -1326,8 +1348,11 @@ export function Prompt(props: PromptProps) {
   }
 
   async function pasteAttachment(file: { filename?: string; filepath?: string; content: string; mime: string }) {
-    const currentOffset = input.visualCursor.offset
-    const extmarkStart = currentOffset
+    const byteOffset = input.visualCursor.offset
+    const plainText = input.plainText
+    const encoder = new TextEncoder()
+    const charOffset = new TextDecoder().decode(encoder.encode(plainText).slice(0, byteOffset)).length
+    const extmarkStart = charOffset
     const pdf = file.mime === "application/pdf"
     const count = store.prompt.parts.filter((x) => {
       if (x.type !== "file") return false

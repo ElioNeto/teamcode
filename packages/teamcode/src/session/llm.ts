@@ -321,6 +321,22 @@ const live: Layer.Layer<
               toolName: lower,
             }
           }
+
+          // Attempt to repair malformed JSON arguments before giving up.
+          // Common LLM issues: single quotes, trailing commas, unquoted keys.
+          const repaired = repairJson(failed.toolCall.input)
+          if (repaired !== failed.toolCall.input) {
+            l.info("repairing tool call JSON", {
+              tool: failed.toolCall.toolName,
+              before: failed.toolCall.input,
+              after: repaired,
+            })
+            return {
+              ...failed.toolCall,
+              input: repaired,
+            }
+          }
+
           return {
             ...failed.toolCall,
             input: JSON.stringify({
@@ -426,6 +442,38 @@ export function hasToolCalls(messages: ModelMessage[]): boolean {
     }
   }
   return false
+}
+
+/**
+ * Attempt to repair a JSON string that failed to parse.
+ * Handles common LLM JSON issues: single quotes, trailing commas, unquoted keys.
+ */
+function repairJson(input: string): string {
+  // If it already parses, return as-is
+  try {
+    JSON.parse(input)
+    return input
+  } catch {}
+  const r = input.trim()
+  // Wrap unquoted top-level keys: { foo: "bar" } → { "foo": "bar" }
+  const withQuotedKeys = r.replace(/(\{|,)\s*([a-zA-Z_$][\w$]*)\s*:/g, '$1 "$2":')
+  try {
+    JSON.parse(withQuotedKeys)
+    return withQuotedKeys
+  } catch {}
+  // Replace single quotes with double quotes for property names and values
+  const singleToDouble = withQuotedKeys.replace(/'/g, '"')
+  try {
+    JSON.parse(singleToDouble)
+    return singleToDouble
+  } catch {}
+  // Remove trailing commas before } and ]
+  const noTrailingCommas = singleToDouble.replace(/,(\s*[}\]])/g, "$1")
+  try {
+    JSON.parse(noTrailingCommas)
+    return noTrailingCommas
+  } catch {}
+  return input
 }
 
 export * as LLM from "./llm"

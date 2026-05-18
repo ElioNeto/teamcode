@@ -132,6 +132,16 @@ export const WebSearchTool = Tool.define(
 
           const result = yield* callProvider(http, provider, params, ctx)
 
+          // If the result starts with "[Web search API", it's an error message
+          // from the MCP layer — pass it through so the agent sees the actual issue.
+          if (result && result.startsWith("[Web search API")) {
+            return {
+              output: `${result} Try a different query or check network connectivity.`,
+              title: `${title}: ${params.query}`,
+              metadata: { provider },
+            }
+          }
+
           return {
             output: result ?? "No search results found. Please try a different query.",
             title: `${title}: ${params.query}`,

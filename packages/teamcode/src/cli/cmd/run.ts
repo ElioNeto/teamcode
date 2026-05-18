@@ -233,13 +233,32 @@ export const RunCommand = effectCmd({
         type: "boolean",
         default: false,
         describe: "enable direct interactive demo slash commands; pass one as the message to run it immediately",
+      })
+      .option("caveman", {
+        describe: "enable caveman mode — agent speak with few token",
+        type: "string",
+        coerce: (val: string | boolean | undefined) => {
+          if (val === false || val === undefined) return undefined
+          if (val === true || val === "" || val === "full") return "full"
+          if (val === "lite" || val === "ultra") return val
+          return "full"
+        },
+      })
+      .option("msg", {
+        alias: ["M"],
+        type: "string",
+        describe: "message to send (alternative to positional arguments)",
       }),
   handler: Effect.fn("Cli.run")(function* (args) {
     const agentSvc = yield* Agent.Service
     const flags = yield* RuntimeFlags.Service
     const localInstance = yield* InstanceRef
     yield* Effect.promise(async () => {
-      const rawMessage = [...args.message, ...(args["--"] || [])].join(" ")
+      const rawMessage = args.msg ?? [...args.message, ...(args["--"] || [])].join(" ")
+      if (args.caveman) {
+        process.env.TEAMCODE_CAVEMAN = args.caveman as string
+        process.env.OPENCODE_CAVEMAN = args.caveman as string
+      }
       const thinking = args.interactive ? (args.thinking ?? true) : (args.thinking ?? false)
       const die = (message: string): never => {
         UI.error(message)
@@ -253,7 +272,7 @@ export const RunCommand = effectCmd({
         throw error
       }
 
-      let message = [...args.message, ...(args["--"] || [])]
+      let message = args.msg ?? [...args.message, ...(args["--"] || [])]
         .map((arg) => (arg.includes(" ") ? `"${arg.replace(/"/g, '\\"')}"` : arg))
         .join(" ")
 

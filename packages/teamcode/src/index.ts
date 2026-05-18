@@ -36,6 +36,7 @@ import { JsonMigration } from "@/storage/json-migration"
 import { Database } from "@/storage/db"
 import { errorMessage } from "./util/error"
 import { PluginCommand } from "./cli/cmd/plug"
+import { CavemanCompressCommand } from "./cli/cmd/caveman-compress"
 import { Heap } from "./cli/heap"
 import { drizzle } from "drizzle-orm/bun-sqlite"
 import { ensureProcessMetadata } from "@teamcode-ai/core/util/opencode-process"
@@ -54,6 +55,10 @@ process.on("uncaughtException", (e) => {
     e: errorMessage(e),
   })
 })
+
+// Ignore SIGPIPE — writing to a broken pipe (e.g. stdout closed by pager)
+// should not crash the process. Node's default SIGPIPE disposition kills it.
+process.on("SIGPIPE", () => {})
 
 const args = hideBin(process.argv)
 
@@ -88,10 +93,25 @@ const cli = yargs(args)
     describe: "run without external plugins",
     type: "boolean",
   })
+  .option("caveman", {
+    describe: "enable caveman mode — agent speak with few token",
+    type: "string",
+    coerce: (val: string | boolean | undefined) => {
+      if (val === false || val === undefined) return undefined
+      if (val === true || val === "" || val === "full") return "full"
+      if (val === "lite" || val === "ultra") return val
+      return "full"
+    },
+  })
   .middleware(async (opts) => {
     if (opts.pure) {
       process.env.TEAMCODE_PURE = "1"
       process.env.OPENCODE_PURE = "1"
+    }
+
+    if (opts.caveman) {
+      process.env.TEAMCODE_CAVEMAN = opts.caveman as string
+      process.env.OPENCODE_CAVEMAN = opts.caveman as string
     }
 
     await Log.init({
@@ -180,6 +200,7 @@ const cli = yargs(args)
   .command(PrCommand)
   .command(SessionCommand)
   .command(PluginCommand)
+  .command(CavemanCompressCommand)
   .command(DbCommand)
   .fail((msg, err) => {
     if (
@@ -200,7 +221,8 @@ try {
     await cli.parse(args, (err: Error | undefined, _argv: unknown, out: string) => {
       if (err) throw err
       if (!out) return
-      show(out)
+      // Ensure trailing newline so the shell prompt starts on a fresh line
+      show(out.endsWith(EOL) ? out : out + EOL)
     })
   } else {
     await cli.parse()

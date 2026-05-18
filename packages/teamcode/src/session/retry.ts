@@ -141,8 +141,13 @@ export function retryable(error: Err, provider: string) {
   if (json.type === "error" && json.error?.type === "too_many_requests") {
     return { message: "Too Many Requests" }
   }
-  if (code.includes("exhausted") || code.includes("unavailable")) {
+  if (code.includes("exhausted") || code.includes("unavailable") || code.includes("server_is_overloaded") || code.includes("server_error")) {
     return { message: "Provider is overloaded" }
+  }
+  if (typeof json.error?.code === "string") {
+    const errCode = json.error.code
+    if (errCode.includes("rate_limit")) return { message: "Rate Limited" }
+    if (errCode.includes("server_is_overloaded") || errCode.includes("server_error")) return { message: "Provider is overloaded" }
   }
   if (json.type === "error" && typeof json.error?.code === "string" && json.error.code.includes("rate_limit")) {
     return { message: "Rate Limited" }

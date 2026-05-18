@@ -1,4 +1,4 @@
-import { Effect, ScopedCache, Scope } from "effect"
+import { Duration, Effect, ScopedCache, Scope } from "effect"
 import * as EffectLogger from "@teamcode-ai/core/effect/logger"
 import type { InstanceContext } from "@/project/instance-context"
 import { InstanceRef, WorkspaceRef } from "./instance-ref"
@@ -26,10 +26,12 @@ export const directory = Effect.map(context, (ctx) => ctx.directory)
 
 export const make = <A, E = never, R = never>(
   init: (ctx: InstanceContext) => Effect.Effect<A, E, R | Scope.Scope>,
+  options?: { timeToLive?: Duration.DurationInput },
 ): Effect.Effect<InstanceState<A, E, Exclude<R, Scope.Scope>>, never, R | Scope.Scope> =>
   Effect.gen(function* () {
     const cache = yield* ScopedCache.make<string, A, E, R>({
       capacity: Number.POSITIVE_INFINITY,
+      timeToLive: options?.timeToLive,
       lookup: () =>
         Effect.gen(function* () {
           return yield* init(yield* context)

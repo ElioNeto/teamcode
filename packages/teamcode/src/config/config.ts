@@ -15,6 +15,7 @@ import { Account } from "@/account/account"
 import { isRecord } from "@/util/record"
 import type { ConsoleState } from "./console-state"
 import { AppFileSystem } from "@teamcode-ai/core/filesystem"
+import { ConfigCaveman } from "./caveman"
 import { InstanceState } from "@/effect/instance-state"
 import { Context, Duration, Effect, Exit, Fiber, Layer, Option, Schema } from "effect"
 import { EffectFlock } from "@teamcode-ai/core/util/effect-flock"
@@ -249,6 +250,12 @@ export const Info = Schema.Struct({
     description:
       "Thresholds for truncating tool output. When output exceeds either limit, the full text is written to the truncation directory and a preview is returned.",
   }),
+  caveman: Schema.optional(ConfigCaveman.Info).annotate({
+    description:
+      "Caveman mode configuration — compresses agent output tokens. " +
+      "When enabled, agents respond with telegraphic language, discarding unnecessary words. " +
+      "See https://github.com/ElioNeto/teamcode/issues/28",
+  }),
   compaction: Schema.optional(
     Schema.Struct({
       auto: Schema.optional(Schema.Boolean).annotate({
@@ -436,6 +443,8 @@ export const layer = Layer.effect(
       return result
     })
 
+    // Cache global config with a 30s TTL so edits to ~/.config/opencode/*.json
+    // are picked up without requiring a full restart.
     const [cachedGlobal, invalidateGlobal] = yield* Effect.cachedInvalidateWithTTL(
       loadGlobal().pipe(
         Effect.tapError((error) =>
@@ -443,7 +452,7 @@ export const layer = Layer.effect(
         ),
         Effect.orElseSucceed((): Info => ({})),
       ),
-      Duration.infinity,
+      Duration.seconds(30),
     )
 
     const getGlobal = Effect.fn("Config.getGlobal")(function* () {
@@ -732,6 +741,14 @@ export const layer = Layer.effect(
           result.compaction = { ...result.compaction, prune: false }
         }
 
+        if (process.env.TEAMCODE_CAVEMAN || process.env.OPENCODE_CAVEMAN) {
+          const level = (process.env.TEAMCODE_CAVEMAN || process.env.OPENCODE_CAVEMAN) as string
+          result.caveman = {
+            enabled: true,
+            level: level === "lite" || level === "ultra" ? level : "full",
+          }
+        }
+
         return {
           config: result,
           directories,
@@ -746,10 +763,13 @@ export const layer = Layer.effect(
       Effect.provideService(AppFileSystem.Service, fs),
     )
 
+    // Instance-scoped config is cached with a 30s TTL so edits to project-level
+    // teamcode.json / opencode.json are picked up without restarting the process.
     const state = yield* InstanceState.make<State>(
       Effect.fn("Config.state")(function* (ctx) {
         return yield* loadInstanceState(ctx).pipe(Effect.orDie)
       }),
+      { timeToLive: Duration.seconds(30) },
     )
 
     const get = Effect.fn("Config.get")(function* () {

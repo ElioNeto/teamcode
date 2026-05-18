@@ -125,9 +125,14 @@ export function parseStreamError(input: unknown): ParsedStreamError | undefined 
   if (!body) return
 
   const responseBody = JSON.stringify(body)
-  if (body.type !== "error") return
 
-  switch (body?.error?.code) {
+  // Some providers (e.g. OpenAI via @ai-sdk/openai) emit stream error chunks
+  // as { code: "server_is_overloaded", message: "..." } without a `type` field.
+  // Accept objects that carry a known error code directly or via .error.code.
+  const errorCode = body?.error?.code ?? body?.code
+  if (body.type !== "error" && !errorCode) return
+
+  switch (errorCode) {
     case "context_length_exceeded":
       return {
         type: "context_overflow",

@@ -422,11 +422,14 @@ export const layer = Layer.effect(
           return yield* Effect.promise(async () => {
             const result = streamObject({
               ...params,
+              maxRetries: 3,
               providerOptions: ProviderTransform.providerOptions(resolved, {
                 instructions: system.join("\n"),
                 store: false,
               }),
-              onError: () => {},
+              onError: ({ error }) => {
+                l.warning("agent generation stream error (will retry)", { error: error.message })
+              },
             })
             for await (const part of result.fullStream) {
               if (part.type === "error") throw part.error
@@ -435,7 +438,7 @@ export const layer = Layer.effect(
           })
         }
 
-        return yield* Effect.promise(() => generateObject(params).then((r) => r.object))
+        return yield* Effect.promise(() => generateObject({ ...params, maxRetries: 3 }).then((r) => r.object))
       }),
     })
   }),
