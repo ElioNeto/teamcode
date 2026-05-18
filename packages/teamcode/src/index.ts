@@ -246,9 +246,15 @@ try {
   }
   process.exitCode = 1
 } finally {
-  // Some subprocesses don't react properly to SIGTERM and similar signals.
-  // Most notably, some docker-container-based MCP servers don't handle such signals unless
-  // run using `docker run --init`.
-  // Explicitly exit to avoid any hanging subprocesses.
-  process.exit()
+  // Use exitCode + natural drain instead of process.exit() so pending I/O
+  // (e.g. process.stdout.write to a pipe) has a chance to flush before the
+  // process terminates. This fixes a regression where `opencode run` spawned
+  // via execvp (no shell) produced 0 bytes on stdout because process.exit()
+  // killed the process before buffered writes reached the pipe.
+  //
+  // The setTimeout fallback ensures the process still exits even if MCP or
+  // other subprocesses keep the event loop alive past the timeout.
+  const code = process.exitCode || 0
+  setTimeout(() => process.exit(code), 2000).unref()
+  process.exitCode = code
 }

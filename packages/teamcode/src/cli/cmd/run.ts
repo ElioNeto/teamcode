@@ -741,7 +741,7 @@ export const RunCommand = effectCmd({
 
         if (!args.interactive) {
           const events = await client.event.subscribe()
-          loop(client, events).catch((e) => {
+          const loopPromise = loop(client, events).catch((e) => {
             console.error(e)
             process.exit(1)
           })
@@ -759,6 +759,12 @@ export const RunCommand = effectCmd({
               if (!emit("error", { error: result.error })) UI.error(formatRunError(result.error))
               process.exitCode = 1
             }
+            // Wait for the event loop to drain before returning so all
+            // response output reaches stdout/stderr. Without this,
+            // process.exit() in the top-level finally block may terminate
+            // before buffered writes are flushed when stdout is a pipe
+            // (e.g. spawned via execvp without a shell).
+            await loopPromise.catch(() => {})
             return
           }
 
@@ -774,6 +780,7 @@ export const RunCommand = effectCmd({
             if (!emit("error", { error: result.error })) UI.error(formatRunError(result.error))
             process.exitCode = 1
           }
+          await loopPromise.catch(() => {})
           return
         }
 
