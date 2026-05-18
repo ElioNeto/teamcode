@@ -67,6 +67,13 @@ export const ApplyPatchTool = Tool.define(
         bom: boolean
       }> = []
 
+      const MAX_HUNKS = 100
+      if (hunks.length > MAX_HUNKS) {
+        return yield* Effect.fail(
+          new Error(`Too many files to patch: ${hunks.length} (max ${MAX_HUNKS}). Split the operation into smaller batches.`),
+        )
+      }
+
       let totalDiff = ""
 
       for (const hunk of hunks) {

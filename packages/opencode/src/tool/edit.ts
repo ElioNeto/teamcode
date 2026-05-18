@@ -635,7 +635,13 @@ export const ContextAwareReplacer: Replacer = function* (content, find) {
   }
 }
 
+const MAX_DIFF_SIZE = 10_000_000 // 10MB — prevents OOM from enormous diffs
+
 export function trimDiff(diff: string): string {
+  if (diff.length > MAX_DIFF_SIZE) {
+    return `[Diff too large: ${(diff.length / 1024 / 1024).toFixed(1)}MB — truncated]`
+  }
+
   const lines = diff.split("\n")
   const contentLines = lines.filter(
     (line) =>

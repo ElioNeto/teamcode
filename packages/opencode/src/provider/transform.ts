@@ -409,7 +409,23 @@ function unsupportedParts(msgs: ModelMessage[], model: Provider.Model): ModelMes
         }
       }
 
-      const mime = part.type === "image" ? String(part.image).split(";")[0].replace("data:", "") : (part.mediaType ?? "")
+      const mime =
+        part.type === "image"
+          ? (() => {
+              const img = String(part.image)
+              if (img.startsWith("data:")) return img.split(";")[0].replace("data:", "")
+              if (img.startsWith("http")) {
+                const ext = img.split(".").pop()?.split("?")[0]?.toLowerCase()
+                if (ext === "jpg" || ext === "jpeg") return "image/jpeg"
+                if (ext === "png") return "image/png"
+                if (ext === "gif") return "image/gif"
+                if (ext === "webp") return "image/webp"
+                if (ext === "svg") return "image/svg+xml"
+                return "image/png"
+              }
+              return ""
+            })()
+          : (part.mediaType ?? "")
       const filename = part.type === "file" ? part.filename : undefined
       const modality = mimeToModality(mime)
       if (!modality) return part

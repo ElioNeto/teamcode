@@ -377,7 +377,7 @@ export const RunCommand = effectCmd({
 
           if (!current?.data) {
             UI.error("Session not found")
-            process.exit(1)
+            throw new Error("Session not found")
           }
 
           if (args.fork) {
@@ -585,7 +585,7 @@ export const RunCommand = effectCmd({
         const sess = await session(sdk)
         if (!sess?.id) {
           UI.error("Session not found")
-          process.exit(1)
+          throw new Error("Session not found")
         }
         const sessionID = sess.id
 
