@@ -128,8 +128,13 @@ export function registerOpencodeKeymap(
   const offCommaBindings = addons.registerCommaBindings(keymap)
   const offAliasExpander = registerKeyAliases(keymap)
   const offBaseLayout = addons.registerBaseLayoutFallback(keymap)
+  const leaderBinding = config.keybinds.get(LEADER_TOKEN)
+  // "none" is a valid key name meaning "disable the leader key" — pass an empty
+  // array to registerTimedLeader so it does not throw on an invalid key literal.
+  const leaderTrigger =
+    leaderBinding?.length === 1 && leaderBinding[0]?.key === "none" ? [] : leaderBinding
   const offLeader = addons.registerTimedLeader(keymap, {
-    trigger: config.keybinds.get(LEADER_TOKEN),
+    trigger: leaderTrigger,
     name: LEADER_TOKEN,
     timeoutMs: config.leader_timeout,
   })

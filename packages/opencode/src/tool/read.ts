@@ -186,6 +186,22 @@ export const ReadTool = Tool.define(
 
       if (bytes.length === 0) return false
 
+      // Magic bytes for common binary formats (checked before byte sampling).
+      // Covers formats that may not have null bytes in their first 4096 bytes.
+      if (
+        (bytes[0] === 0x7f && bytes[1] === 0x45 && bytes[2] === 0x4c && bytes[3] === 0x46) || // ELF
+        (bytes[0] === 0x4d && bytes[1] === 0x5a) || // MZ (PE/COFF executable)
+        (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) || // PNG
+        (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) || // GIF
+        (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) || // JPEG
+        (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) || // PDF
+        (bytes[0] === 0x50 && bytes[1] === 0x4b) || // ZIP-based (OOXML, JAR, DOCX...)
+        (bytes[0] === 0x1f && bytes[1] === 0x8b) || // Gzip
+        (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) // RIFF (AVI/WAV)
+      ) {
+        return true
+      }
+
       let nonPrintableCount = 0
       for (let i = 0; i < bytes.length; i++) {
         if (bytes[i] === 0) return true

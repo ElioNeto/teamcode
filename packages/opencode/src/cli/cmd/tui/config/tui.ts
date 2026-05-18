@@ -73,6 +73,11 @@ function normalize(raw: Record<string, unknown>) {
 
   const tui = data.tui
   delete data.tui
+  // Alias "keymap" to "keybinds" for backward compatibility.
+  if ("keymap" in tui) {
+    (tui as Record<string, unknown>).keybinds = tui.keymap
+    delete (tui as Record<string, unknown>).keymap
+  }
   return {
     ...tui,
     ...data,
