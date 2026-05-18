@@ -2585,6 +2585,16 @@ export type SessionMessagesResponses = {
 
 export type SessionMessagesResponse = SessionMessagesResponses[keyof SessionMessagesResponses]
 
+export type OutputFormatText = { type: "text" }
+
+export type OutputFormatJsonSchema = {
+  type: "json_schema"
+  schema: Record<string, unknown>
+  retryCount?: number
+}
+
+export type OutputFormat = OutputFormatText | OutputFormatJsonSchema
+
 export type SessionPromptData = {
   body?: {
     messageID?: string
@@ -2598,6 +2608,7 @@ export type SessionPromptData = {
     tools?: {
       [key: string]: boolean
     }
+    format?: OutputFormat
     parts: Array<TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput>
   }
   path: {
@@ -2693,6 +2704,7 @@ export type SessionPromptAsyncData = {
     tools?: {
       [key: string]: boolean
     }
+    format?: OutputFormat
     parts: Array<TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput>
   }
   path: {

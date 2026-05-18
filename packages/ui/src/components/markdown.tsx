@@ -276,7 +276,10 @@ export function Markdown(
           }
 
           const next = await Promise.resolve(marked.parse(block.src))
-          const safe = sanitize(next)
+          // Escape bare ampersands not followed by a valid HTML entity reference
+          // to prevent browser entity parsing from converting `&parameter` to `¶meter`.
+          const escaped = next.replace(/&(?!(#\d+|#[Xx][0-9a-fA-F]+|\w+);)/g, "&amp;")
+          const safe = sanitize(escaped)
           if (key && hash) touch(key, { hash, html: safe })
           return safe
         }),
