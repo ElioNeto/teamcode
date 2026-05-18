@@ -207,10 +207,33 @@ export namespace AppFileSystem {
   export function normalizePathPattern(p: string): string {
     if (process.platform !== "win32") return p
     if (p === "*") return p
-    const match = p.match(/^(.*)[\\/]\*$/)
-    if (!match) return normalizePath(p)
-    const dir = /^[A-Za-z]:$/.test(match[1]) ? match[1] + "\\" : match[1]
-    return join(normalizePath(dir), "*")
+
+    // Pattern like **/path/to/dir/** – split into segments, preserve glob
+    // wildcards ("**", "*", "?") as tokens so that path-resolution logic
+    // does not treat them as real directory components.
+    const segs = p.split(/[\\/]/)
+    // Find contiguous groups of non-glob segments and normalize each group
+    // as a unit so pathResolve can resolve it correctly.
+    const out: string[] = []
+    let i = 0
+    while (i < segs.length) {
+      const s = segs[i]
+      if (s === "**" || s === "*" || s === "?") {
+        out.push(s)
+        i++
+      } else {
+        // Collect consecutive non-glob segments into a sub-path
+        const parts: string[] = []
+        while (i < segs.length && !(segs[i] === "**" || segs[i] === "*" || segs[i] === "?")) {
+          parts.push(segs[i])
+          i++
+        }
+        const sub = parts.join("\\")
+        // Normalize only non-empty sub-paths that are themselves paths
+        if (sub) out.push(normalizePath(sub))
+      }
+    }
+    return out.join("\\")
   }
 
   export function resolve(p: string): string {
@@ -239,7 +262,11 @@ export namespace AppFileSystem {
   }
 
   export function contains(parent: string, child: string) {
-    const rel = relative(parent, child)
+    // Resolve both paths first so that relative segments and symlinks are
+    // resolved, and both operands are absolute.  This avoids edge cases
+    // where path.relative produces misleading results when one of the
+    // paths is not fully resolved (e.g. after partial normalization).
+    const rel = relative(pathResolve(parent), pathResolve(child))
     if (rel.startsWith("..")) return false
     // Cross-drive paths on Windows: path.relative("C:\\a", "D:\\b") returns
     // "D:\\b" which is absolute and does not start with "..".  Detect this

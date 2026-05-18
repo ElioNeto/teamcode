@@ -94,8 +94,36 @@ export const layer = Layer.effect(
       log.info("unreverting", input)
       yield* state.assertNotBusy(input.sessionID)
       const session = yield* sessions.get(input.sessionID).pipe(Effect.orDie)
-      if (!session.revert) return session
-      if (session.revert.snapshot) yield* snap.restore(session.revert.snapshot)
+      const rev = session.revert
+      if (!rev) return session
+      // Collect patches after the revert point so we know exactly which files
+      // were undone. Re-apply them from the snapshot instead of doing a full
+      // checkout-index -a -f, which would overwrite unrelated unstaged changes.
+      if (rev.snapshot) {
+        const all = yield* sessions.messages({ sessionID: input.sessionID }).pipe(Effect.orDie)
+        const patches: Snapshot.Patch[] = []
+        let collecting = false
+        for (const msg of all) {
+          for (const part of msg.parts) {
+            if (!collecting) {
+              if (
+                (!rev.partID && msg.info.id === rev.messageID) ||
+                part.id === rev.partID
+              ) {
+                collecting = true
+              }
+            }
+            if (collecting && part.type === "patch") {
+              patches.push(part)
+            }
+          }
+        }
+        if (patches.length > 0) {
+          yield* snap.revert(patches.map((p) => ({ hash: rev.snapshot!, files: p.files })))
+        } else {
+          yield* snap.restore(rev.snapshot)
+        }
+      }
       yield* sessions.clearRevert(input.sessionID)
       return yield* sessions.get(input.sessionID).pipe(Effect.orDie)
     })

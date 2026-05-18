@@ -319,6 +319,29 @@
 
 ---
 
+### Lote 11 — TUI & Export (commit `b6b5595`)
+
+#### #23376 — TUI corrompe labels com Unicode invisível
+**Arquivo:** `packages/opencode/src/util/locale.ts`
+**Problema:** Caracteres Unicode invisíveis (U+200B zero-width space, U+FEFF BOM, etc.) em nomes de agentes faziam o algoritmo de width calculation do TUI subestimar o comprimento real, cortando caracteres visíveis. "Sisyphus: Ultraworker" aparecia como "Sisyphus: ltraworker".
+**Fix:** Adicionada função `stripInvisible()` que remove zero-width spaces, soft hyphens, bidi controls, e outros codepoints não-impressíveis. Aplicada nas funções `truncate`, `truncateLeft` e `truncateMiddle` antes do cálculo de largura.
+
+#### #22072 — Export crasha com sessões >1GB
+**Arquivo:** `packages/opencode/src/cli/cmd/export.ts`
+**Problema:** `JSON.stringify()` em sessões com partes >1GB estourava heap e o erro era capturado como "Session not found" (catch genérico).
+**Fix:** Adicionado `totalStringSize()` que estima o tamanho dos dados antes da serialização. Se >50MB, oferece truncamento interativo ou `--force`. Adicionadas opções CLI `--force` e `--truncate`. Error handler corrigido para distinguir NotFoundError de falha de serialização.
+
+---
+
+### Lote 12 — Permissions & Paths (commit `a022292`)
+
+#### #25097 — Glob de permissão não funciona com paths absolutos profundos
+**Arquivos:** `packages/core/src/filesystem.ts`, `packages/opencode/src/util/filesystem.ts`
+**Problema:** Padrões como `**/private/tmp/agent-out/**` não matcheavam paths absolutos porque a normalização resolvia `**` como segmento literal de diretório via `path.resolve()`, quebrando o glob. A função `contains()` também não resolvia completamente ambos os paths antes do `path.relative()`.
+**Fix:** `normalizePathPattern()` reescrita para preservar tokens de glob (`**`, `*`, `?`) e normalizar apenas segmentos contíguos não-glob. `contains()` agora chama `pathResolve()` em parent e child antes do `relative()`, e a verificação cross-drive Windows foi adicionada também à versão do package opencode.
+
+---
+
 ## Legenda
 
 | Prefixo | Significado |

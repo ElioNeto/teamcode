@@ -346,23 +346,15 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
               Effect.gen(function* () {
                 log.info("restore", { commit: snapshot })
                 const result = yield* git([...core, ...args(["read-tree", snapshot])], { cwd: state.worktree })
-                if (result.code === 0) {
-                  const checkout = yield* git([...core, ...args(["checkout-index", "-a", "-f"])], {
-                    cwd: state.worktree,
-                  })
-                  if (checkout.code === 0) return
-                  log.error("failed to restore snapshot", {
-                    snapshot,
-                    exitCode: checkout.code,
-                    stderr: checkout.stderr,
-                  })
-                  return
+                if (result.code !== 0) {
+                  yield* Effect.die(new Error(`failed to read-tree snapshot: ${result.stderr}`))
                 }
-                log.error("failed to restore snapshot", {
-                  snapshot,
-                  exitCode: result.code,
-                  stderr: result.stderr,
+                const checkout = yield* git([...core, ...args(["checkout-index", "-a", "-f"])], {
+                  cwd: state.worktree,
                 })
+                if (checkout.code !== 0) {
+                  yield* Effect.die(new Error(`failed to checkout-index snapshot: ${checkout.stderr}`))
+                }
               }),
             )
           })
@@ -394,7 +386,8 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
                     cwd: state.worktree,
                   })
                   if (tree.code === 0 && tree.text.trim()) {
-                    log.info("file existed in snapshot but checkout failed, keeping", { file: op.file, hash: op.hash })
+                    log.error("file existed in snapshot but checkout failed, aborting", { file: op.file, hash: op.hash, stderr: result.stderr })
+                    yield* Effect.die(new Error(`git checkout failed for ${op.file}: ${result.stderr}`))
                     return
                   }
                   log.info("file did not exist in snapshot, deleting", { file: op.file, hash: op.hash })
