@@ -13,10 +13,10 @@ const config = path.join(xdgConfig!, app)
 const state = path.join(xdgState!, app)
 const tmp = path.join(os.tmpdir(), app)
 
-const paths = {
-  get home() {
-    return process.env.TEAMCODE_TEST_HOME ?? process.env.OPENCODE_TEST_HOME ?? os.homedir()
-  },
+const home = process.env.TEAMCODE_TEST_HOME ?? process.env.OPENCODE_TEST_HOME ?? os.homedir()
+
+const paths = Object.freeze({
+  home,
   data,
   bin: path.join(cache, "bin"),
   log: path.join(data, "log"),
@@ -25,7 +25,7 @@ const paths = {
   config,
   state,
   tmp,
-}
+})
 
 export const Path = paths
 
