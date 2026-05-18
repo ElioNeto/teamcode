@@ -1,13 +1,12 @@
 export * as ConfigAgent from "./agent"
 
-import { Exit, Schema, SchemaGetter } from "effect"
+import { Option, Schema, SchemaGetter } from "effect"
 import { PositiveInt } from "@opencode-ai/core/schema"
 import * as Log from "@opencode-ai/core/util/log"
 import { Glob } from "@opencode-ai/core/util/glob"
 import { configEntryNameFromPath } from "./entry-name"
 import * as ConfigMarkdown from "./markdown"
 import { ConfigModelID } from "./model-id"
-import { ConfigParse } from "./parse"
 import { ConfigPermission } from "./permission"
 
 const log = Log.create({ service: "config" })
@@ -124,7 +123,12 @@ export async function load(dir: string) {
       ...md.data,
       prompt: md.content.trim(),
     }
-    result[config.name] = ConfigParse.schema(Info, config, item)
+    const parsed = Schema.decodeUnknownOption(Info)(config, { errors: "all", propertyOrder: "original" })
+    if (Option.isSome(parsed)) {
+      result[config.name] = parsed.value
+    } else {
+      log.warn("failed to parse agent", { agent: item })
+    }
   }
   return result
 }
@@ -148,12 +152,14 @@ export async function loadMode(dir: string) {
       ...md.data,
       prompt: md.content.trim(),
     }
-    const parsed = Schema.decodeUnknownExit(Info)(config, { errors: "all", propertyOrder: "original" })
-    if (Exit.isSuccess(parsed)) {
+    const parsed = Schema.decodeUnknownOption(Info)(config, { errors: "all", propertyOrder: "original" })
+    if (Option.isSome(parsed)) {
       result[config.name] = {
         ...parsed.value,
         mode: "primary" as const,
       }
+    } else {
+      log.warn("failed to parse mode", { mode: item })
     }
   }
   return result

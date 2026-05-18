@@ -20,7 +20,7 @@ import { lt } from "drizzle-orm"
 import { or } from "drizzle-orm"
 import { SyncEvent } from "../sync"
 import type { SQL } from "drizzle-orm"
-import { PartTable, SessionTable } from "./session.sql"
+import { PartTable, SessionTable, MessageTable } from "./session.sql"
 import { ProjectTable } from "../project/project.sql"
 import { Storage } from "@/storage/storage"
 import * as Log from "@opencode-ai/core/util/log"
@@ -626,6 +626,19 @@ export const layer: Layer.Layer<
 
     const updateMessage = <T extends MessageV2.Info>(msg: T): Effect.Effect<T> =>
       Effect.gen(function* () {
+        const now = Date.now()
+        const maxExisting = yield* db((d) =>
+          d
+            .select({ maxTime: MessageTable.time_created })
+            .from(MessageTable)
+            .where(eq(MessageTable.session_id, msg.sessionID))
+            .orderBy(desc(MessageTable.time_created))
+            .limit(1)
+            .get(),
+        )
+        if (maxExisting?.maxTime != null && maxExisting.maxTime > now + 5000) {
+          msg = { ...msg, time: { ...msg.time, created: maxExisting.maxTime + 1 } }
+        }
         yield* sync.run(MessageV2.Event.Updated, { sessionID: msg.sessionID, info: msg })
         return msg
       }).pipe(Effect.withSpan("Session.updateMessage"))

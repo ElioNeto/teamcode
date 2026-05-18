@@ -213,11 +213,13 @@ function fetchFromClient<T extends { name: string }>(
   client: Client,
   listFn: (c: Client) => Promise<T[]>,
   label: string,
+  noSupportSet?: Set<string>,
 ) {
   return Effect.tryPromise({
     try: () => listFn(client),
     catch: (e: any) => {
       log.error(`failed to get ${label}`, { clientName, error: e.message })
+      if (noSupportSet && e?.code === -32601) noSupportSet.add(clientName)
       return e
     },
   }).pipe(
@@ -254,6 +256,8 @@ interface State {
   processes: Map<string, number>
   promptsCache: { data: Record<string, PromptInfo & { client: string }> | undefined; time: number }
   resourcesCache: { data: Record<string, ResourceInfo & { client: string }> | undefined; time: number }
+  noResources: Set<string>
+  noPrompts: Set<string>
 }
 
 export interface Interface {
@@ -566,6 +570,8 @@ export const layer = Layer.effect(
           processes: new Map(),
           promptsCache: { data: undefined, time: 0 },
           resourcesCache: { data: undefined, time: 0 },
+          noResources: new Set(),
+          noPrompts: new Set(),
         }
 
         yield* Effect.forEach(
@@ -762,11 +768,12 @@ export const layer = Layer.effect(
       s: State,
       listFn: (c: Client) => Promise<T[]>,
       label: string,
+      skipSet?: Set<string>,
     ) {
       return Effect.forEach(
-        Object.entries(s.clients).filter(([name]) => s.status[name]?.status === "connected"),
+        Object.entries(s.clients).filter(([name]) => s.status[name]?.status === "connected" && !skipSet?.has(name)),
         ([clientName, client]) =>
-          fetchFromClient(clientName, client, listFn, label).pipe(Effect.map((items) => Object.entries(items ?? {}))),
+          fetchFromClient(clientName, client, listFn, label, skipSet).pipe(Effect.map((items) => Object.entries(items ?? {}))),
         { concurrency: "unbounded" },
       ).pipe(Effect.map((results) => Object.fromEntries<T & { client: string }>(results.flat())))
     }
@@ -777,7 +784,7 @@ export const layer = Layer.effect(
       if (s.promptsCache.data && now - s.promptsCache.time < PROMPTS_CACHE_TTL) {
         return s.promptsCache.data
       }
-      const data = yield* collectFromConnected(s, (c) => c.listPrompts().then((r) => r.prompts), "prompts")
+      const data = yield* collectFromConnected(s, (c) => c.listPrompts().then((r) => r.prompts), "prompts", s.noPrompts)
       s.promptsCache = { data, time: now }
       return data
     })
@@ -788,7 +795,7 @@ export const layer = Layer.effect(
       if (s.resourcesCache.data && now - s.resourcesCache.time < PROMPTS_CACHE_TTL) {
         return s.resourcesCache.data
       }
-      const data = yield* collectFromConnected(s, (c) => c.listResources().then((r) => r.resources), "resources")
+      const data = yield* collectFromConnected(s, (c) => c.listResources().then((r) => r.resources), "resources", s.noResources)
       s.resourcesCache = { data, time: now }
       return data
     })

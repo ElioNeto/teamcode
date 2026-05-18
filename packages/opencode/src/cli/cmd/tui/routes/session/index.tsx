@@ -2037,10 +2037,11 @@ function WebSearch(props: ToolProps<typeof WebSearchTool>) {
 function Task(props: ToolProps<typeof TaskTool>) {
   const { navigate } = useRoute()
   const sync = useSync()
+  const [sessionExists, setSessionExists] = createSignal(true)
 
   onMount(() => {
     if (props.metadata.sessionId && !sync.data.message[props.metadata.sessionId]?.length)
-      void sync.session.sync(props.metadata.sessionId)
+      sync.session.sync(props.metadata.sessionId).catch(() => setSessionExists(false))
   })
 
   const messages = createMemo(() => sync.data.message[props.metadata.sessionId ?? ""] ?? [])
@@ -2100,7 +2101,7 @@ function Task(props: ToolProps<typeof TaskTool>) {
       pending="Delegating..."
       part={props.part}
       onClick={() => {
-        if (props.metadata.sessionId) {
+        if (props.metadata.sessionId && sessionExists()) {
           navigate({ type: "session", sessionID: props.metadata.sessionId })
         }
       }}

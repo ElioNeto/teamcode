@@ -48,6 +48,9 @@ function isOverflow(message: string) {
 
 function message(providerID: ProviderID, e: APICallError) {
   return iife(() => {
+    if (e.statusCode === 507) {
+      return "The model provider returned HTTP 507 (Insufficient Storage). The backend is temporarily unable to store the request."
+    }
     const msg = e.message
     if (msg === "") {
       if (e.responseBody) return e.responseBody
