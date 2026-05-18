@@ -176,7 +176,15 @@ export const ApplyPatchTool = Tool.define(
               ),
             )
             const contentToDelete = source.text
-            const deleteDiff = trimDiff(createTwoFilesPatch(filePath, filePath, contentToDelete, ""))
+            // For large files, skip diff generation to avoid OOM/crash from
+            // creating a multi-hundred-MB diff string that V8's sqlite module
+            // cannot read back (SIGTRAP on strings >~512 MB). A placeholder
+            // diff is sufficient to record the deletion without the full text.
+            const MAX_DIFF_SIZE = 50 * 1024 * 1024
+            const deleteDiff =
+              contentToDelete.length > MAX_DIFF_SIZE
+                ? `--- a/${filePath}\n+++ /dev/null\n@@ -1 +0,0 @@\n-deleted binary file (${(contentToDelete.length / 1024 / 1024).toFixed(0)} MB)\n`
+                : trimDiff(createTwoFilesPatch(filePath, filePath, contentToDelete, ""))
 
             const deletions = contentToDelete.split("\n").length
 
