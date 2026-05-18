@@ -87,7 +87,11 @@ const normalize = (agent: Schema.Schema.Type<typeof AgentSchema>): Schema.Schema
     }
     permission[tool] = action
   }
-  globalThis.Object.assign(permission, agent.permission)
+  if (typeof agent.permission === "string") {
+    permission["*"] = agent.permission
+  } else if (typeof agent.permission === "object" && agent.permission !== null) {
+    globalThis.Object.assign(permission, agent.permission)
+  }
 
   const steps = agent.steps ?? agent.maxSteps
   return { ...agent, options, permission, ...(steps !== undefined ? { steps } : {}) }
