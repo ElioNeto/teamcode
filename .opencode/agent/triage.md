@@ -1,7 +1,6 @@
 ---
 mode: primary
 hidden: true
-model: opencode/gpt-5.4-nano
 color: "#44BA81"
 tools:
   "*": false

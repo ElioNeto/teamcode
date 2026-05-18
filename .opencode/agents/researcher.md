@@ -2,7 +2,6 @@
 name: researcher
 description: Use when the codebase needs to be explored, investigated, or audited before changes are made. The Researcher searches for patterns, reads files, traces dependencies, and gathers evidence. Do NOT use for making edits.
 mode: subagent
-model: anthropic/claude-sonnet-4-6
 permission:
   edit: deny
   glob: allow

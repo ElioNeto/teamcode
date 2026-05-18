@@ -2,7 +2,6 @@
 name: executor
 description: Use for implementing code changes after a plan has been made and research has been conducted. The Executor writes code, creates files, and applies changes. Use ONLY when the task is well-defined with clear acceptance criteria.
 mode: subagent
-model: anthropic/claude-sonnet-4-6
 permission:
   edit: allow
   write: allow

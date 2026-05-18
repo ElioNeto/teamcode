@@ -2,7 +2,6 @@
 name: reviewer
 description: Use after code changes have been made to review quality, correctness, and consistency. The Reviewer checks for bugs, style issues, missing tests, and adherence to the original plan. Do NOT use for making edits.
 mode: subagent
-model: anthropic/claude-sonnet-4-6
 permission:
   edit: deny
   glob: allow
