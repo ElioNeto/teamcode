@@ -33,7 +33,7 @@ Todas as 17 issues internas foram cadastradas no GitHub.
 
 ---
 
-**Total: 17/17 internas + 354/1710 upstream** 🚧 (2 🔴 + 277 🟠)
+**Total: 17/17 internas + 490/1710 upstream** 🚧 (2 🔴 + 277 🟠)
 ### 🟠 Alta (Bugs)
 
 | ID | Título | GitHub | Prioridade | Estado |
