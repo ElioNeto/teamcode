@@ -1901,10 +1901,13 @@ NOTE: At any point in time through this workflow you should feel free to ask the
             const finished = handle.message.finish && !["tool-calls", "unknown"].includes(handle.message.finish)
             if (finished && !handle.message.error) {
               if (format.type === "json_schema") {
-                handle.message.error = new MessageV2.StructuredOutputError({
-                  message: "Model did not produce structured output",
-                  retries: 0,
-                }).toObject()
+                handle.message.error = {
+                  name: "StructuredOutputError",
+                  data: {
+                    message: "Model did not produce structured output",
+                    retries: 0,
+                  },
+                } as unknown as MessageV2.Assistant["error"]
                 yield* sessions.updateMessage(handle.message)
                 return "break" as const
               }

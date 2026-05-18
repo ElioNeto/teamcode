@@ -428,7 +428,7 @@ export const layer = Layer.effect(
                 store: false,
               }),
               onError: ({ error }) => {
-                l.warning("agent generation stream error (will retry)", { error: error.message })
+                console.warn("agent generation stream error (will retry)", { error: error instanceof Error ? error.message : String(error) })
               },
             })
             for await (const part of result.fullStream) {

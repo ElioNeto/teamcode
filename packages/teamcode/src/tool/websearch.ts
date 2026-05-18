@@ -103,9 +103,7 @@ export const WebSearchTool = Tool.define(
     const flags = yield* RuntimeFlags.Service
 
     return {
-      get description() {
-        return DESCRIPTION.replace("{{year}}", new Date().getFullYear().toString())
-      },
+      description: DESCRIPTION.replace("{{year}}", new Date().getFullYear().toString()),
       parameters: Parameters,
       execute: (params: Schema.Schema.Type<typeof Parameters>, ctx: Tool.Context) =>
         Effect.gen(function* () {

@@ -996,7 +996,7 @@ export const GithubRunCommand = effectCmd({
               const err = result.info.error
               console.error("Agent error:", err)
               if (err.name === "ContextOverflowError") throw new Error(formatPromptTooLargeError(files))
-              const message = "message" in err.data ? err.data.message : ""
+              const message = "message" in (err as { data: { message?: string } }).data ? (err as { data: { message?: string } }).data.message : ""
               throw new Error(`${err.name}: ${message}`)
             }
 
@@ -1026,7 +1026,7 @@ export const GithubRunCommand = effectCmd({
               const err = summary.info.error
               console.error("Summary agent error:", err)
               if (err.name === "ContextOverflowError") throw new Error(formatPromptTooLargeError(files))
-              const message = "message" in err.data ? err.data.message : ""
+              const message = "message" in (err as { data: { message?: string } }).data ? (err as { data: { message?: string } }).data.message : ""
               throw new Error(`${err.name}: ${message}`)
             }
 

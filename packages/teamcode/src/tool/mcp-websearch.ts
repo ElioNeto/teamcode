@@ -27,9 +27,10 @@ const parsePayload = (payload: string) =>
       const snippet = trimmed.slice(0, 200).replace(/\s+/g, " ").trim()
       return `[Web search API returned non-JSON response: ${snippet}]`
     }
-    const data = yield* decode(trimmed).pipe(
-      Effect.catchAll((e) => Effect.succeed(undefined as never)),
-    )
+    const data = yield* Effect.match(decode(trimmed), {
+      onSuccess: (data) => data,
+      onFailure: () => undefined,
+    })
     if (!data) return `[Web search API returned unexpected response format]`
     return data.result.content.find((item) => item.text)?.text
   })

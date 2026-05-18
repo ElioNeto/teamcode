@@ -31,9 +31,9 @@ function cap(ms: number) {
   return Math.min(ms, RETRY_MAX_DELAY)
 }
 
-export function delay(attempt: number, error?: MessageV2.APIError) {
+export function delay(attempt: number, error?: Err) {
   if (error) {
-    const headers = error.data.responseHeaders
+    const headers = (error.data as { responseHeaders?: Record<string, string> }).responseHeaders
     if (headers) {
       const retryAfterMs = headers["retry-after-ms"]
       if (retryAfterMs) {
@@ -66,13 +66,13 @@ export function delay(attempt: number, error?: MessageV2.APIError) {
 
 export function retryable(error: Err, provider: string) {
   // context overflow errors should not be retried
-  if (MessageV2.ContextOverflowError.isInstance(error)) return undefined
-  if (MessageV2.APIError.isInstance(error)) {
-    const status = error.data.statusCode
+  if (error.name === "ContextOverflowError") return undefined
+  if (error.name === "APIError") {
+    const status = (error.data as { statusCode?: number }).statusCode
     // 5xx errors are transient server failures and should always be retried,
     // even when the provider SDK doesn't explicitly mark them as retryable.
-    if (!error.data.isRetryable && !(status !== undefined && status >= 500)) return undefined
-    if (error.data.responseBody?.includes("FreeUsageLimitError")) {
+    if (!(error.data as { isRetryable: boolean }).isRetryable && !(status !== undefined && status >= 500)) return undefined
+    if ((error.data as { responseBody?: string }).responseBody?.includes("FreeUsageLimitError")) {
       return {
         message: GO_UPSELL_MESSAGE,
         action: {
@@ -85,11 +85,11 @@ export function retryable(error: Err, provider: string) {
         },
       }
     }
-    if (error.data.responseBody?.includes("GoUsageLimitError")) {
-      const body = parseJSON(error.data.responseBody)
+    if ((error.data as { responseBody?: string }).responseBody?.includes("GoUsageLimitError")) {
+      const body = parseJSON((error.data as { responseBody?: string }).responseBody)
       const workspace = str(body?.metadata?.workspace)
       const limitName = str(body?.metadata?.limitName)
-      const retryAfter = num(error.data.responseHeaders?.["retry-after"])
+      const retryAfter = num((error.data as { responseHeaders?: Record<string, string> }).responseHeaders?.["retry-after"])
       const resetIn = iife(() => {
         if (retryAfter === undefined) return ""
         const seconds = Math.max(0, Math.ceil(retryAfter))
@@ -118,11 +118,11 @@ export function retryable(error: Err, provider: string) {
         },
       }
     }
-    return { message: error.data.message.includes("Overloaded") ? "Provider is overloaded" : error.data.message }
+    return { message: (error.data as { message: string }).message.includes("Overloaded") ? "Provider is overloaded" : (error.data as { message: string }).message }
   }
 
   // Check for rate limit patterns in plain text error messages
-  const msg = isRecord(error.data) ? error.data.message : undefined
+  const msg = (error.data as Record<string, unknown>).message
   if (typeof msg === "string") {
     const lower = msg.toLowerCase()
     if (
@@ -188,7 +188,7 @@ export function policy(opts: {
       const retry = retryable(error, opts.provider)
       if (!retry) return Cause.done(meta.attempt)
       return Effect.gen(function* () {
-        const wait = delay(meta.attempt, MessageV2.APIError.isInstance(error) ? error : undefined)
+        const wait = delay(meta.attempt, error.name === "APIError" ? error : undefined)
         const now = yield* Clock.currentTimeMillis
         yield* opts.set({
           attempt: meta.attempt,

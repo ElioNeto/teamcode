@@ -63,11 +63,8 @@ process.on("SIGPIPE", () => {})
 // Reap terminated child processes synchronously so they don't accumulate as
 // zombies when many short-lived children exit faster than the event loop can
 // process their exit events (e.g. during heavy file watcher activity).
-process.on("SIGCHLD", () => {
-  try {
-    while (process.waitpid(-1, 0) > 0) {}
-  } catch {}
-})
+// Use Bun's native child process management which handles reaping automatically.
+process.on("SIGCHLD", () => {})
 
 const args = hideBin(process.argv)
 

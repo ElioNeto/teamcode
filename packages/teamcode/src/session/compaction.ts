@@ -457,11 +457,14 @@ export const layer = Layer.effect(
       })
 
       if (result === "compact") {
-        processor.message.error = new MessageV2.ContextOverflowError({
-          message: replay
-            ? "Conversation history too large to compact - exceeds model context limit"
-            : "Session too large to compact - context exceeds model limit even after stripping media",
-        }).toObject()
+        processor.message.error = {
+          name: "ContextOverflowError",
+          data: {
+            message: replay
+              ? "Conversation history too large to compact - exceeds model context limit"
+              : "Session too large to compact - context exceeds model limit even after stripping media",
+          },
+        } as unknown as MessageV2.Assistant["error"]
         processor.message.finish = "error"
         yield* session.updateMessage(processor.message)
         return "stop"

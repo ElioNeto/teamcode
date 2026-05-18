@@ -26,7 +26,7 @@ export const errorLayer = HttpRouter.middleware<{ handles: unknown }>()((effect)
       const error: unknown = defect.defect
       if (
         error instanceof NamedError &&
-        (ConfigError.InvalidError.isInstance(error) || ConfigError.JsonError.isInstance(error))
+        (error instanceof ConfigError.InvalidError || error instanceof ConfigError.JsonError)
       ) {
         return Effect.succeed(HttpServerResponse.jsonUnsafe(error.toObject(), { status: 400 }))
       }
