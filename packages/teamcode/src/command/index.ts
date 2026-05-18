@@ -102,10 +102,10 @@ export const layer = Layer.effect(
           description: command.description,
           source: "command",
           get template() {
-            return command.template
+            return command.template ?? ""
           },
           subtask: command.subtask,
-          hints: hints(command.template),
+          hints: hints(command.template ?? ""),
         }
       }
 

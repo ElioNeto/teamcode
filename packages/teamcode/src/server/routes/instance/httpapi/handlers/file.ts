@@ -1,9 +1,13 @@
 import * as InstanceState from "@/effect/instance-state"
 import { File } from "@/file"
 import { Ripgrep } from "@/file/ripgrep"
+import { LSP } from "@/lsp/lsp"
 import { Effect } from "effect"
+import * as Log from "@teamcode-ai/core/util/log"
 import { HttpApiBuilder } from "effect/unstable/httpapi"
 import { InstanceHttpApi } from "../api"
+
+const log = Log.create({ service: "file.http" })
 
 export const fileHandlers = HttpApiBuilder.group(InstanceHttpApi, "file", (handlers) =>
   Effect.gen(function* () {
@@ -27,8 +31,17 @@ export const fileHandlers = HttpApiBuilder.group(InstanceHttpApi, "file", (handl
       })
     })
 
-    const findSymbol = Effect.fn("FileHttpApi.findSymbol")(function* () {
-      return []
+    const findSymbol = Effect.fn("FileHttpApi.findSymbol")(function* (ctx: {
+      query: { query: string }
+    }) {
+      log.debug("findSymbol requested", { query: ctx.query.query })
+      try {
+        const lsp = yield* LSP.Service
+        return yield* lsp.workspaceSymbol(ctx.query.query)
+      } catch {
+        log.warn("LSP not available for symbol search")
+        return []
+      }
     })
 
     const list = Effect.fn("FileHttpApi.list")(function* (ctx: { query: { path: string } }) {

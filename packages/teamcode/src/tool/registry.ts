@@ -308,7 +308,7 @@ export const layer: Layer.Layer<
       const description = list
         .map(
           (item) =>
-            `- ${item.name}: ${item.description ?? "This subagent should only be called manually by the user."}`,
+            `- ${item.name}: ${item.description || "This subagent should only be called manually by the user."}`,
         )
         .join("\n")
       return ["Available agent types and the tools they have access to:", description].join("\n")

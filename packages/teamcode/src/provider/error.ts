@@ -19,6 +19,7 @@ const OVERFLOW_PATTERNS = [
   /context window exceeds limit/i, // MiniMax
   /exceeded model token limit/i, // Kimi For Coding, Moonshot
   /context[_ ]length[_ ]exceeded/i, // Generic fallback
+  /tokens in request more than max tokens allowed/i, // OpenAI-compatible providers
   /request entity too large/i, // HTTP 413
   /context length is only \d+ tokens/i, // vLLM
   /input length.*exceeds.*context length/i, // vLLM
