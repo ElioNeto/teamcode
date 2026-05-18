@@ -385,6 +385,19 @@ export const ShellTool = Tool.define(
       }
       const shellKind = ShellID.toKind(Shell.name(shell))
 
+      const vars = new Map<string, string>()
+      for (const cmd of commands(root)) {
+        const parts_ = parts(cmd)
+        const tokens = parts_.map((item) => item.text)
+        if (tokens.length > 0) {
+          const eq = tokens[0].indexOf("=")
+          const name = tokens[0].slice(0, eq)
+          if (eq > 0 && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+            vars.set(name, unquote(tokens[0].slice(eq + 1)))
+          }
+        }
+      }
+
       for (const node of commands(root)) {
         const command = parts(node)
         const tokens = command.map((item) => item.text)
@@ -401,7 +414,19 @@ export const ShellTool = Tool.define(
         }
 
         if (tokens.length && (!cmd || !CWD.has(cmd))) {
-          scan.patterns.add(source(node))
+          const raw = source(node)
+          scan.patterns.add(raw)
+          if (vars.size > 0) {
+            let resolved = raw
+            const sorted = [...vars].sort((a, b) => b[0].length - a[0].length)
+            for (const [name, value] of sorted) {
+              resolved = resolved.replaceAll(`"${"$"}{${name}}"`, `"${value}"`)
+              resolved = resolved.replaceAll(`"${"$"}${name}"`, `"${value}"`)
+              resolved = resolved.replaceAll(`${"$"}{${name}}`, value)
+              resolved = resolved.replaceAll(`${"$"}${name}`, value)
+            }
+            if (resolved !== raw) scan.patterns.add(resolved)
+          }
           scan.always.add(BashArity.prefix(tokens).join(" ") + " *")
         }
       }
