@@ -6,6 +6,13 @@ import { UI } from "../ui"
 import * as prompts from "@clack/prompts"
 import { EOL } from "os"
 import { Effect } from "effect"
+import { NotFoundError } from "@/storage/storage"
+
+/** Threshold: warn if total string content exceeds 50MB (rough proxy for ~100MB+ JSON). */
+const SIZE_WARN_THRESHOLD = 50 * 1024 * 1024
+
+/** Default max characters per string field when truncating large exports. */
+const MAX_CHARS_PER_FIELD = 100_000
 
 function redact(kind: string, id: string, value: string) {
   return value.trim() ? `[redacted:${kind}:${id}]` : value
@@ -218,6 +225,119 @@ function sanitize(data: { info: Session.Info; messages: MessageV2.WithParts[] })
   }
 }
 
+function totalStringSize(data: { info: Session.Info; messages: MessageV2.WithParts[] }): number {
+  let size = 0
+  for (const msg of data.messages) {
+    for (const part of msg.parts) {
+      switch (part.type) {
+        case "text":
+        case "reasoning": {
+          size += (part as MessageV2.TextPart | MessageV2.ReasoningPart).text.length
+          break
+        }
+        case "tool": {
+          const t = part as MessageV2.ToolPart
+          if (t.state.status === "completed") size += (t.state as MessageV2.ToolStateCompleted).output.length
+          else if (t.state.status === "pending") size += (t.state as MessageV2.ToolStatePending).raw.length
+          break
+        }
+        case "patch": {
+          const p = part as MessageV2.PatchPart
+          size += p.hash.length + p.files.reduce((s, f) => s + f.length, 0)
+          break
+        }
+        case "snapshot":
+        case "step-start":
+        case "step-finish": {
+          const s = part as MessageV2.SnapshotPart | MessageV2.StepStartPart | MessageV2.StepFinishPart
+          if (s.snapshot) size += s.snapshot.length
+          break
+        }
+        case "subtask": {
+          const sb = part as MessageV2.SubtaskPart
+          size += sb.prompt.length + sb.description.length
+          if (sb.command) size += sb.command.length
+          break
+        }
+        case "file": {
+          const f = part as MessageV2.FilePart
+          size += f.url.length
+          if (f.filename) size += f.filename.length
+          if (f.source) size += f.source.text.value.length
+          break
+        }
+        case "agent": {
+          const a = part as MessageV2.AgentPart
+          if (a.source) size += a.source.value.length
+          break
+        }
+      }
+    }
+  }
+  return size
+}
+
+function truncateValue(value: string, maxLen: number): string {
+  if (value.length <= maxLen) return value
+  const omitted = value.length - maxLen
+  return `${value.slice(0, maxLen)}\n\n[... truncated: omitted ${omitted} characters ...]`
+}
+
+function truncateParts(messages: MessageV2.WithParts[], maxLen: number): MessageV2.WithParts[] {
+  return messages.map((msg) => ({
+    ...msg,
+    parts: msg.parts.map((part) => {
+      switch (part.type) {
+        case "text":
+        case "reasoning":
+          return { ...part, text: truncateValue((part as MessageV2.TextPart).text, maxLen) }
+        case "tool": {
+          const t = part as MessageV2.ToolPart
+          if (t.state.status === "completed") {
+            const completed = t.state as MessageV2.ToolStateCompleted
+            return { ...t, state: { ...completed, output: truncateValue(completed.output, maxLen) } }
+          }
+          if (t.state.status === "pending") {
+            const pending = t.state as MessageV2.ToolStatePending
+            return { ...t, state: { ...pending, raw: truncateValue(pending.raw, maxLen) } }
+          }
+          return t
+        }
+        case "snapshot":
+        case "step-start":
+        case "step-finish": {
+          const s = part as MessageV2.SnapshotPart | MessageV2.StepStartPart | MessageV2.StepFinishPart
+          if (s.snapshot) return { ...s, snapshot: truncateValue(s.snapshot, maxLen) }
+          return s
+        }
+        case "subtask": {
+          const sb = part as MessageV2.SubtaskPart
+          return {
+            ...sb,
+            prompt: truncateValue(sb.prompt, maxLen),
+            description: truncateValue(sb.description, maxLen),
+            command: sb.command ? truncateValue(sb.command, maxLen) : undefined,
+          }
+        }
+        case "file": {
+          const f = part as MessageV2.FilePart
+          if (f.source) {
+            return { ...f, source: { ...f.source, text: { ...f.source.text, value: truncateValue(f.source.text.value, maxLen) } } }
+          }
+          return f
+        }
+        case "agent": {
+          const a = part as MessageV2.AgentPart
+          if (a.source) return { ...a, source: { ...a.source, value: truncateValue(a.source.value, maxLen) } }
+          return a
+        }
+        default:
+          return part
+      }
+    }),
+  }))
+}
+
 export const ExportCommand = effectCmd({
   command: "export [sessionID]",
   describe: "export session data as JSON",
@@ -230,13 +350,26 @@ export const ExportCommand = effectCmd({
       .option("sanitize", {
         describe: "redact sensitive transcript and file data",
         type: "boolean",
+      })
+      .option("force", {
+        describe: "export without truncation even if data is large",
+        type: "boolean",
+      })
+      .option("truncate", {
+        describe: "truncate large text fields to 100K chars each",
+        type: "boolean",
       }),
   handler: Effect.fn("Cli.export")(function* (args) {
     return yield* run(args)
   }),
 })
 
-const run = Effect.fn("Cli.export.body")(function* (args: { sessionID?: string; sanitize?: boolean }) {
+const run = Effect.fn("Cli.export.body")(function* (args: {
+  sessionID?: string
+  sanitize?: boolean
+  force?: boolean
+  truncate?: boolean
+}) {
   const svc = yield* Session.Service
   let sessionID = args.sessionID ? SessionID.make(args.sessionID) : undefined
   process.stderr.write(`Exporting session: ${sessionID ?? "latest"}\n`)
@@ -277,15 +410,47 @@ const run = Effect.fn("Cli.export.body")(function* (args: { sessionID?: string; 
     prompts.outro("Exporting session...", { output: process.stderr })
   }
 
-  // Match legacy try/catch — catches both typed failures and defects
-  // (Session.Service.get throws NotFoundError as a defect, not a typed E).
   return yield* Effect.gen(function* () {
     const sessionInfo = yield* svc.get(sessionID!)
     const messages = yield* svc.messages({ sessionID: sessionInfo.id })
 
-    const exportData = { info: sessionInfo, messages }
+    let exportData: { info: Session.Info; messages: MessageV2.WithParts[] } = { info: sessionInfo, messages }
+
+    const totalSize = totalStringSize(exportData)
+
+    if (totalSize > SIZE_WARN_THRESHOLD && !args.force && !args.truncate) {
+      const sizeMB = Math.round(totalSize / (1024 * 1024))
+      process.stderr.write(`Session data is approximately ${sizeMB}MB of text content (may exceed Node.js memory limits).\n`)
+
+      const action = yield* Effect.promise(() =>
+        prompts.select({
+          message: "How would you like to proceed?",
+          options: [
+            { value: "truncate", label: "Truncate large parts (cap each field at 100K chars)" },
+            { value: "force", label: "Export anyway (may crash)" },
+            { value: "cancel", label: "Cancel export" },
+          ],
+          output: process.stderr,
+        }),
+      )
+
+      if (prompts.isCancel(action) || action === "cancel") {
+        return yield* Effect.die(new UI.CancelledError())
+      }
+
+      if (action === "truncate") {
+        exportData = { info: exportData.info, messages: truncateParts(exportData.messages, MAX_CHARS_PER_FIELD) }
+      }
+    }
+
+    if (args.truncate) {
+      exportData = { info: exportData.info, messages: truncateParts(exportData.messages, MAX_CHARS_PER_FIELD) }
+    }
 
     process.stdout.write(JSON.stringify(args.sanitize ? sanitize(exportData) : exportData, null, 2))
     process.stdout.write(EOL)
-  }).pipe(Effect.catchCause(() => fail(`Session not found: ${sessionID!}`)))
+  }).pipe(
+    Effect.catchIf(NotFoundError.isInstance, () => fail(`Session not found: ${sessionID!}`)),
+    Effect.catchDefect(() => fail(`Export failed: session data is too large to serialize. Use --truncate on the CLI or respond to the prompt to truncate large parts.`)),
+  )
 })

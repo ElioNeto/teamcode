@@ -58,24 +58,31 @@ export function duration(input: number) {
   return `${days}d ${hours}h`
 }
 
+function stripInvisible(str: string): string {
+  return str.replace(/[\u200B-\u200D\u200E\u200F\uFEFF\u00AD\u2060\u2061\u2062\u2063\u2064\u2066-\u2069\u202A-\u202E]/g, "")
+}
+
 export function truncate(str: string, len: number): string {
-  if (str.length <= len) return str
-  return str.slice(0, len - 1) + "…"
+  const clean = stripInvisible(str)
+  if (clean.length <= len) return str
+  return clean.slice(0, len - 1) + "…"
 }
 
 export function truncateLeft(str: string, len: number): string {
-  if (str.length <= len) return str
-  return "…" + str.slice(-(len - 1))
+  const clean = stripInvisible(str)
+  if (clean.length <= len) return str
+  return "…" + clean.slice(-(len - 1))
 }
 
 export function truncateMiddle(str: string, maxLength: number = 35): string {
-  if (str.length <= maxLength) return str
+  const clean = stripInvisible(str)
+  if (clean.length <= maxLength) return str
 
   const ellipsis = "…"
   const keepStart = Math.ceil((maxLength - ellipsis.length) / 2)
   const keepEnd = Math.floor((maxLength - ellipsis.length) / 2)
 
-  return str.slice(0, keepStart) + ellipsis + str.slice(-keepEnd)
+  return clean.slice(0, keepStart) + ellipsis + clean.slice(-keepEnd)
 }
 
 export function pluralize(count: number, singular: string, plural: string): string {

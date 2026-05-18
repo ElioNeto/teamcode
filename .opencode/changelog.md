@@ -285,6 +285,40 @@
 
 ---
 
+### Lote 10 — MCP, Performance & Stability (commit `a5c23bd`)
+
+#### #25078 — MCP EventEmitter overflow (resources/list polling)
+**Arquivo:** `packages/opencode/src/mcp/index.ts`
+**Problema:** Quando um MCP server não suporta `resources/list` (retorna `-32601`), o SDK registra listeners no EventEmitter do transport a cada polling, acumulando até `MaxListenersExceededWarning` e vazamento de memória.
+**Fix:** Adicionados sets `noResources` e `noPrompts` ao estado MCP. Quando um servidor retorna erro `-32601`, ele é adicionado ao set e todas as chamadas subsequentes o pulam.
+
+#### #24049 — /vcs/diff OOM em umbrella workspaces
+**Arquivo:** `packages/opencode/src/project/vcs.ts`
+**Problema:** `structuredPatch()` era chamado com `context: Number.MAX_SAFE_INTEGER` (=2.147.483.647 linhas de contexto), fazendo o git diff emitir arquivos completos como contexto. Em workspaces com muitos sub-repos, isso consumia toda a memória.
+**Fix:** Constante `PATCH_CONTEXT_LINES` alterada de `2_147_483_647` para `3` (3 linhas de contexto, padrão do git diff).
+
+#### #26871 — TUI crash ao referenciar sessão filha inexistente
+**Arquivo:** `packages/opencode/src/cli/cmd/tui/routes/session/index.tsx`
+**Problema:** Quando um task tool part referenciava uma sessão filha (`metadata.sessionId`) que não mais existia, o sync disparava `sync.session.sync()` sem tratamento de erro. A promise rejeitada se tornava unhandled rejection e crashava o processo.
+**Fix:** Adicionado sinal `sessionExists` com `createSignal(true)`. `sync.session.sync()` agora tem `.catch(() => setSessionExists(false))`. Navegação para a sessão filha é bloqueada quando `sessionExists()` é falso.
+
+#### #27133 — Error handling inconsistente em config de agentes/modes
+**Arquivo:** `packages/opencode/src/config/agent.ts`
+**Problema:** `load()` crashava startup com `ConfigInvalidError` ao encontrar um arquivo de agente inválido. `loadMode()` silenciava erros completamente sem log.
+**Fix:** Ambos agora usam `Schema.decodeUnknownOption` consistentemente. Em caso de falha de parse, registram `log.warn` com o path do arquivo e continuam carregando os demais arquivos.
+
+#### #22220 — HTTP 507 entrava no pipeline de tools com erro confuso
+**Arquivo:** `packages/opencode/src/provider/error.ts`
+**Problema:** Quando o backend retornava HTTP 507 (Insufficient Storage), a resposta malformada entrava no pipeline de tool dispatch e falhava com `Invalid input: expected string, received undefined` na validação de schema.
+**Fix:** Adicionado early return na função `message()`: se `e.statusCode === 507`, retorna mensagem clara "The model provider returned HTTP 507 (Insufficient Storage)."
+
+#### #26159 — Timestamp futuro travava sessão permanentemente
+**Arquivo:** `packages/opencode/src/session/session.ts`
+**Problema:** Mensagens com timestamp ~7h à frente do relógio real quebravam `session_read` (cursor-based pagination baseada em timestamp). Fork não resolvia; só correção manual no SQLite.
+**Fix:** No `updateMessage()`, antes de persistir a mensagem, verifica-se se o timestamp mais recente no DB está >5s à frente de `Date.now()`. Se sim, o novo timestamp é clamped para `maxExisting + 1`, mantendo sequência monotônica.
+
+---
+
 ## Legenda
 
 | Prefixo | Significado |
