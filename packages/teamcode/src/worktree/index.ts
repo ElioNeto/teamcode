@@ -219,7 +219,18 @@ export const layer: Layer.Layer<
       const root = pathSvc.join(Global.Path.data, "worktree", ctx.project.id)
       yield* fs.makeDirectory(root, { recursive: true }).pipe(Effect.orDie)
 
-      return yield* candidate({ root, name: input?.name ? slugify(input.name) : "", detached: input?.detached })
+      // Preserve the relative subdirectory path when the project was opened
+      // from inside a git repository (e.g., /repo/apps/web → /repo is worktree).
+      const relPath = pathSvc.relative(ctx.worktree, ctx.directory)
+      const subdir = relPath !== "." && !relPath.startsWith("..") ? relPath : ""
+      const workspaceRoot = subdir ? pathSvc.join(root, subdir) : root
+      yield* fs.makeDirectory(workspaceRoot, { recursive: true }).pipe(Effect.orDie)
+
+      return yield* candidate({
+        root: workspaceRoot,
+        name: input?.name ? slugify(input.name) : "",
+        detached: input?.detached,
+      })
     })
 
     const setup = Effect.fnUntraced(function* (info: Info) {
