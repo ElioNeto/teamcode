@@ -516,6 +516,7 @@ export const layer = Layer.effect(
               }
             }
             ctx.assistantMessage.finish = value.finishReason
+            if (value.response?.headers) ctx.assistantMessage.responseHeaders = value.response.headers
             ctx.assistantMessage.cost += usage.cost
             ctx.assistantMessage.tokens = usage.tokens
             yield* session.updatePart({
