@@ -1,6 +1,6 @@
 # 🐛 Bugs Prioritários
 
-> **Total:** 586 | Extraído em 2026-05-17
+> **Total:** 584 | Extraído em 2026-05-18
 
 ---
 
@@ -97,72 +97,6 @@ Ubuntu 24.04
 ### Terminal
 
 gnome terminal
-
----
-
-## #28058 — Tool transcript headers render root workdir as in .
-
-📅 `2026-05-17` | ✏️ **samiralibabic** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/28058](https://github.com/anomalyco/opencode/issues/28058)
-
-
-### Description
-
-Tool transcript headers can render the current session/repo root as `in .`.
-
-Example:
-
-```text
-# Final whitespace check before commit in .
-$ git diff --check
-
-# List changed files before commit in .
-$ git status --short
-```
-
-This looks like a truncated or malformed sentence. The location suffix is useful for meaningful non-root directories, but `.` adds no information when it only means “current session root”.
-
-Expected behavior:
-
-```text
-# Final whitespace check before commit
-$ git diff --check
-```
-
-For commands run in a meaningful subdirectory, the suffix should remain:
-
-```text
-# Run API tests in apps/api
-$ bun test
-```
-
-Likely cause:
-
-In `packages/opencode/src/cli/cmd/run/tool.ts`, `toolPath()` returns `"."` when the formatted path equals `process.cwd()`.
-
-`scrollBashStart()` checks the raw workdir before formatting:
-
-```ts
-const wd = p.input.workdir ?? ""
-const dir = wd && wd !== "." ? toolPath(wd) : ""
-const title = dir && !desc.includes(dir) ? `${desc} in ${dir}` : desc
-```
-
-So an absolute root workdir passes `wd !== "."`, then `toolPath(wd)` returns `"."`, and the rendered title becomes `${desc} in .`.
-
-Similar direct `in ${toolPath(...)}` patterns appear to exist for glob/grep display output and should use the same suppression rule.
-
-Suggested fix:
-
-Suppress root/current-directory display after formatting, not before formatting.
-
-Rule:
-
-- no suffix for missing workdir
-- no suffix for `.`
-- no suffix for absolute paths that normalize to `.`
-- keep suf
-
-> *[Truncado — 2355 chars totais]*
 
 ---
 
@@ -641,27 +575,6 @@ OpenCode sends tool definitions with `[MaxDepth]` placeholder strings in JSON Sc
       "i
 
 > *[Truncado — 4715 chars totais]*
-
----
-
-## #27942 — fix(acp): model and mode commands not registered in available_commands_update
-
-📅 `2026-05-16` | ✏️ **niklongstone** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/27942](https://github.com/anomalyco/opencode/issues/27942)
-
-
-## Bug
-
-When OpenCode runs in ACP mode, it sends available_commands_update to notify the ACP client (e.g. OpenACP) of available commands. model and mode are missing from this list — only compact is hardcoded as a fallback.
-
-ACP clients that gate command dispatch on the registry silently drop /model and /mode. This manifests as the /model Telegram command producing no response when using OpenACP.
-
-## Root cause
-
-In packages/opencode/src/acp/agent.ts, the available_commands_update payload only includes compact as a hardcoded fallback. model and mode are not included, so ACP clients never learn they exist.
-
-## Fix
-
-Add model and mode alongside compact in the fallback block.
 
 ---
 

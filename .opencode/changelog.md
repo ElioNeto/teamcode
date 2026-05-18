@@ -1,7 +1,7 @@
 # TeamCode — Changelog de Implementação
 
-> **Período:** Maio 2026
-> **Total de issues corrigidas:** 43 bugs + 10 features/issues de arquitetura
+> **Período:** Maio 2026 (atualizado em 2026-05-18)
+> **Total de issues corrigidas:** 46 bugs + 10 features/issues de arquitetura
 
 ---
 
@@ -357,6 +357,25 @@
 **Arquivo:** `packages/opencode/src/cli/cmd/tui/component/prompt/index.tsx`
 **Problema:** Em versões acima de 1.14.41, após adicionar conteúdo ao chat (resposta gerada ou sessão passada carregada), a tecla 'p' precisava ser pressionada duas vezes para registrar. O primeiro keypress era consumido pelo fallback do base layout porque `focus()` era restaurado sincronamente dentro do `createEffect` antes que o evento de teclado fosse processado.
 **Fix:** `input.focus()` agora é wrapped em `queueMicrotask()` para que o foco seja restaurado após o batch de processamento de eventos atual completar, dando à camada textarea a chance de reclamar o próximo keypress na primeira tentativa.
+
+---
+
+### Lote 19 — High-priority bug fixes (commit `HEAD`)
+
+#### #28058 — Tool transcript headers mostram "in ." para diretório raiz
+**Arquivo:** `packages/opencode/src/cli/cmd/run/tool.ts`
+**Problema:** `toolPath()` retornava `"."` para o diretório de trabalho atual, fazendo `scrollBashStart()` exibir títulos como `# Final whitespace check before commit in .`. O mesmo padrão ocorria em `runGlob`, `runGrep`, `scrollGlobStart` e `scrollGrepStart`.
+**Fix:** Adicionada função `toolDir()` que retorna `""` quando `toolPath()` normaliza para `"."`. A verificação agora ocorre *após* a formatação (não antes), seguindo a regra: sem sufixo para workdir ausente, sem sufixo para `.`, sem sufixo para paths absolutos que normalizam para `.`.
+
+#### #27942 — Comandos ACP /model e /mode não registrados no available_commands_update
+**Arquivo:** `packages/opencode/src/acp/agent.ts`
+**Problema:** O payload `available_commands_update` do ACP só incluía `compact` como fallback. Clientes ACP que fazem gate de dispatch no registry silenciosamente ignoravam os comandos `/model` e `/mode`.
+**Fix:** Adicionados `model` ("change the active model") e `mode` ("change the active mode/agent") no mesmo fallback block do `compact`.
+
+#### File watcher — Erro de watcher comentado silenciava falhas
+**Arquivo:** `packages/opencode/src/file/watcher.ts`
+**Problema:** A linha `// if (err) return` estava comentada no callback do `@parcel/watcher`, fazendo com que erros de subscribe fossem ignorados e eventos potencialmente incompletos fossem processados.
+**Fix:** Reativada a verificação de erro com `log.warn()` antes do early return.
 
 ---
 

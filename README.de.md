@@ -39,7 +39,7 @@
   <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
-[![TeamCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://teamcode.ai)
+[TeamCode](https://teamcode.ai)
 
 ---
 
