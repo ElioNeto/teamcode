@@ -17,6 +17,8 @@ export const TuiEvent = {
           "session.share",
           "session.interrupt",
           "session.compact",
+          "session.undo",
+          "session.redo",
           "session.page.up",
           "session.page.down",
           "session.line.up",

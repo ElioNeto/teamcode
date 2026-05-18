@@ -13,6 +13,8 @@ const commandAliases = {
   session_share: "session.share",
   session_interrupt: "session.interrupt",
   session_compact: "session.compact",
+  messages_undo: "session.undo",
+  messages_redo: "session.redo",
   messages_page_up: "session.page.up",
   messages_page_down: "session.page.down",
   messages_line_up: "session.line.up",
