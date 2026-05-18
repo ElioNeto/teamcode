@@ -1,6 +1,5 @@
 import type { ColorInput } from "@opentui/core"
 import { RGBA } from "@opentui/core"
-import type { ColorGenerator } from "opentui-spinner"
 
 interface AdvancedGradientOptions {
   colors: ColorInput[]
@@ -137,6 +136,8 @@ function calculateColorIndex(
 
   return -1
 }
+
+type ColorGenerator = (frameIndex: number, charIndex: number, totalFrames: number, totalChars: number) => ColorInput
 
 function createKnightRiderTrail(options: AdvancedGradientOptions): ColorGenerator {
   const { colors, defaultColor, enableFading = true, minAlpha = 0 } = options
