@@ -155,6 +155,13 @@ export class Agent implements ACPAgent {
     { optionId: "reject", kind: "reject_once", name: "Reject" },
   ]
   private deltaChain = new Map<string, Promise<void>>()
+  private authMethods: AuthMethod[] = [
+    {
+      description: "Run `opencode auth login` in the terminal",
+      name: "Login with opencode",
+      id: "opencode-login",
+    },
+  ]
 
   constructor(connection: AgentSideConnection, config: ACPConfig) {
     this.connection = connection
@@ -514,22 +521,22 @@ export class Agent implements ACPAgent {
   async initialize(params: InitializeRequest): Promise<InitializeResponse> {
     log.info("initialize", { protocolVersion: params.protocolVersion })
 
-    const authMethod: AuthMethod = {
-      description: "Run `opencode auth login` in the terminal",
-      name: "Login with opencode",
-      id: "opencode-login",
-    }
-
-    // If client supports terminal-auth capability, use that instead.
-    if (params.clientCapabilities?._meta?.["terminal-auth"] === true) {
-      authMethod._meta = {
-        "terminal-auth": {
-          command: "teamcode",
-          args: ["auth", "login"],
-          label: "TeamCode Login",
-        },
+    const methods = this.authMethods.map((m) => {
+      // If client supports terminal-auth capability, enhance the method with terminal metadata.
+      if (params.clientCapabilities?._meta?.["terminal-auth"] === true && m.id === "opencode-login") {
+        return {
+          ...m,
+          _meta: {
+            "terminal-auth": {
+              command: "teamcode",
+              args: ["auth", "login"],
+              label: "TeamCode Login",
+            },
+          },
+        }
       }
-    }
+      return m
+    })
 
     return {
       protocolVersion: 1,
@@ -550,7 +557,7 @@ export class Agent implements ACPAgent {
           resume: {},
         },
       },
-      authMethods: [authMethod],
+      authMethods: methods,
       agentInfo: {
         name: "TeamCode",
         version: InstallationVersion,
@@ -558,8 +565,24 @@ export class Agent implements ACPAgent {
     }
   }
 
-  async authenticate(_params: AuthenticateRequest) {
-    throw new Error("Authentication not implemented")
+  async authenticate(params: AuthenticateRequest): Promise<void> {
+    const method = params.methodId
+
+    const supported = this.authMethods.some((m) => m.id === method)
+    if (!supported) {
+      throw RequestError.invalidParams(`Unknown authentication method: ${method}`)
+    }
+
+    log.info("authenticating", { method })
+
+    // For terminal-auth, authentication is implicit — the user is already
+    // authenticated by having access to the local machine. No remote token
+    // exchange is needed.
+    if (method === "opencode-login") {
+      return
+    }
+
+    throw RequestError.authRequired(`Authentication method not supported: ${method}`)
   }
 
   async newSession(params: NewSessionRequest) {

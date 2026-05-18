@@ -334,27 +334,25 @@ export const layer = Layer.effect(
         return rows.map((row) => decode(row))
       }),
       prompt: Effect.fn("V2Session.prompt")(function* (input) {
-        const id = input.id ?? EventV2.ID.make()
+        const id = input.id ?? EventV2.ID.create()
         const now = Date.now()
 
-        Database.use((db) =>
-          db
-            .insert(SessionMessageTable)
-            .values({
-              id,
-              session_id: input.sessionID,
-              type: "user" as const,
-              time_created: now,
-              data: {
-                text: input.prompt.text,
-                files: input.prompt.files,
-                agents: input.prompt.agents,
-                references: input.prompt.references,
-                time: { created: now },
-              },
-            })
-            .run(),
-        )
+        Database.use((db) => {
+          const values: Record<string, unknown> = {
+            id,
+            session_id: input.sessionID,
+            type: "user",
+            time_created: now,
+            data: {
+              text: input.prompt.text,
+              files: input.prompt.files,
+              agents: input.prompt.agents,
+              references: input.prompt.references,
+              time: { created: now },
+            },
+          }
+          db.insert(SessionMessageTable).values(values as any).run()
+        })
 
         return new SessionMessage.User({
           id,
@@ -367,45 +365,34 @@ export const layer = Layer.effect(
         })
       }),
       shell: Effect.fn("V2Session.shell")(function* (input) {
-        const id = input.id ?? EventV2.ID.make()
+        const id = input.id ?? EventV2.ID.create()
         const now = Date.now()
 
-        Database.use((db) =>
-          db
-            .insert(SessionMessageTable)
-            .values({
-              id,
-              session_id: input.sessionID,
-              type: "shell" as const,
-              time_created: now,
-              data: {
-                command: input.command,
-                output: "",
-                time: { created: now },
-              },
-            })
-            .run(),
-        )
+        Database.use((db) => {
+          const values: Record<string, unknown> = {
+            id,
+            session_id: input.sessionID,
+            type: "shell",
+            time_created: now,
+            data: { command: input.command, output: "", time: { created: now } },
+          }
+          db.insert(SessionMessageTable).values(values as any).run()
+        })
       }),
       skill: Effect.fn("V2Session.skill")(function* (input) {
-        const id = input.id ?? EventV2.ID.make()
+        const id = input.id ?? EventV2.ID.create()
         const now = Date.now()
 
-        Database.use((db) =>
-          db
-            .insert(SessionMessageTable)
-            .values({
-              id,
-              session_id: input.sessionID,
-              type: "synthetic" as const,
-              time_created: now,
-              data: {
-                text: input.skill,
-                time: { created: now },
-              },
-            })
-            .run(),
-        )
+        Database.use((db) => {
+          const values: Record<string, unknown> = {
+            id,
+            session_id: input.sessionID,
+            type: "synthetic",
+            time_created: now,
+            data: { text: input.skill, time: { created: now } },
+          }
+          db.insert(SessionMessageTable).values(values as any).run()
+        })
       }),
       switchAgent: Effect.fn("V2Session.switchAgent")(function* (input) {
         yield* events.publish(SessionEvent.AgentSwitched, {
@@ -445,45 +432,37 @@ export const layer = Layer.effect(
       compact: Effect.fn("V2Session.compact")(function* (sessionID) {
         const now = Date.now()
 
-        Database.use((db) =>
-          db
-            .insert(SessionMessageTable)
-            .values({
-              id: EventV2.ID.make(),
-              session_id: sessionID,
-              type: "compaction" as const,
-              time_created: now,
-              data: {
-                text: "",
-                time: { created: now },
-              },
-            })
-            .run(),
-        )
+        Database.use((db) => {
+          const values: Record<string, unknown> = {
+            id: EventV2.ID.create(),
+            session_id: sessionID,
+            type: "compaction",
+            time_created: now,
+            data: { text: "", time: { created: now } },
+          }
+          db.insert(SessionMessageTable).values(values as any).run()
+        })
       }),
       wait: Effect.fn("V2Session.wait")(function* (sessionID) {
-        const poll = Effect.fnUntraced(function* () {
-          const row = Database.use((db) =>
+        const poll = () =>
+          Database.use((db) =>
             db
               .select({ type: SessionMessageTable.type })
               .from(SessionMessageTable)
               .where(
-                and(
-                  eq(SessionMessageTable.session_id, sessionID),
-                  or(eq(SessionMessageTable.type, "assistant"), eq(SessionMessageTable.type, "error")),
-                ),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                and(eq(SessionMessageTable.session_id, sessionID as any), or(eq(SessionMessageTable.type, "assistant" as any), eq(SessionMessageTable.type, "error" as any)) as any),
               )
               .orderBy(desc(SessionMessageTable.time_created))
               .limit(1)
               .get(),
           )
-          return row !== undefined
-        })
 
-        yield* Effect.whileLoop({
-          while: () => poll().pipe(Effect.map((done) => !done)),
-          body: () => Effect.sleep("200 millis"),
-        })
+        const done = () => poll() !== undefined
+
+        while (!done()) {
+          yield* Effect.sleep("200 millis")
+        }
       }),
     })
 

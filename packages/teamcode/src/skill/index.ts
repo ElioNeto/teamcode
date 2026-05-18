@@ -1,6 +1,7 @@
 import path from "path"
 import { pathToFileURL } from "url"
 import { Effect, Layer, Context, Schema } from "effect"
+import { NamedError } from "@teamcode-ai/core/util/error"
 import type { Agent } from "@/agent/agent"
 import { Bus } from "@/bus"
 import { InstanceState } from "@/effect/instance-state"
@@ -97,8 +98,8 @@ const add = Effect.fnUntraced(function* (state: State, match: string, bus: Bus.I
   }).pipe(
     Effect.catch(
       Effect.fnUntraced(function* (err) {
-        const message = ConfigMarkdown.FrontmatterError.isInstance(err)
-          ? err.data.message
+        const message = err instanceof ConfigMarkdown.FrontmatterError
+          ? err.message
           : `Failed to parse skill ${match}`
         const { Session } = yield* Effect.promise(() => import("@/session/session"))
         yield* bus.publish(Session.Event.Error, { error: new NamedError.Unknown({ message }).toObject() })

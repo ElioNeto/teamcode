@@ -68,7 +68,7 @@ describe("HttpApi error middleware", () => {
       const body = yield* response.json
 
       expect(response.status).toBe(400)
-      expect(JSON.stringify(body)).toBe(JSON.stringify(configError.toObject()))
+      expect(JSON.stringify(body)).toBe(JSON.stringify(configError))
     }),
   )
 

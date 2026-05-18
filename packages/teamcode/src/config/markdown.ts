@@ -76,13 +76,12 @@ export async function parse(filePath: string) {
     try {
       return matter(fallbackSanitization(template))
     } catch (err) {
-      throw new FrontmatterError(
-        {
-          path: filePath,
-          message: `${filePath}: Failed to parse YAML frontmatter: ${err instanceof Error ? err.message : String(err)}`,
-        },
-        { cause: err },
-      )
+      const error = new FrontmatterError({
+        path: filePath,
+        message: `${filePath}: Failed to parse YAML frontmatter: ${err instanceof Error ? err.message : String(err)}`,
+      })
+      if (err instanceof Error) Error.captureStackTrace(error, FrontmatterError)
+      throw error
     }
   }
 }

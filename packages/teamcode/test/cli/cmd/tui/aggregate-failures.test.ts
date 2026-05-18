@@ -54,7 +54,7 @@ describe("aggregateFailures", () => {
           status: "rejected",
           reason: new Error("ConfigInvalidError", {
             cause: {
-              body: configError.toObject(),
+              body: configError,
             },
           }),
         },

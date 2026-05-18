@@ -51,7 +51,6 @@ export class APIError extends Schema.TaggedErrorClass<APIError>()("APIError", {
   responseBody: Schema.optional(Schema.String),
   metadata: Schema.optional(Schema.Record(Schema.String, Schema.String)),
 }) {}
-export type APIError = Schema.Schema.Type<typeof APIError>
 export class ContextOverflowError extends Schema.TaggedErrorClass<ContextOverflowError>()("ContextOverflowError", {
   message: Schema.String,
   responseBody: Schema.optional(Schema.String),
@@ -210,7 +209,7 @@ export const RetryPart = Schema.Struct({
   ...partBase,
   type: Schema.Literal("retry"),
   attempt: NonNegativeInt,
-  error: APIError.EffectSchema,
+  error: APIError,
   time: Schema.Struct({
     created: NonNegativeInt,
   }),
@@ -380,10 +379,10 @@ export type Part =
 
 const AssistantErrorSchema = Schema.Union([
   ...MessageError.Shared,
-  AbortedError.EffectSchema,
-  StructuredOutputError.EffectSchema,
-  ContextOverflowError.EffectSchema,
-  APIError.EffectSchema,
+  AbortedError,
+  StructuredOutputError,
+  ContextOverflowError,
+  APIError,
 ]).annotate({ discriminator: "name" })
 type AssistantError = Schema.Schema.Type<typeof AssistantErrorSchema>
 
@@ -756,7 +755,7 @@ export const toModelMessagesEffect = Effect.fnUntraced(function* (
       if (
         msg.info.error &&
         !(
-          AbortedError.isInstance(msg.info.error) &&
+          msg.info.error instanceof AbortedError &&
           msg.parts.some((part) => part.type !== "step-start" && part.type !== "reasoning")
         )
       ) {
@@ -1110,106 +1109,84 @@ export function fromError(
   e: unknown,
   ctx: { providerID: ProviderID; aborted?: boolean },
 ): NonNullable<Assistant["error"]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const toObj = (err: any) => {
+    const { _tag: name, ...data } = err
+    return { name, data }
+  }
+
   switch (true) {
     case e instanceof DOMException && e.name === "AbortError":
-      return new AbortedError(
-        { message: e.message },
-        {
-          cause: e,
-        },
-      ).toObject()
-    case OutputLengthError.isInstance(e):
-      return e
+      return toObj(new AbortedError({ message: e.message }))
+    case e instanceof OutputLengthError:
+      return toObj(e)
     case LoadAPIKeyError.isInstance(e):
-      return new AuthError(
-        {
-          providerID: ctx.providerID,
-          message: e.message,
-        },
-        { cause: e },
-      ).toObject()
+      return toObj(new AuthError({
+        providerID: ctx.providerID,
+        message: e.message,
+      }))
     case (e as SystemError)?.code === "ECONNRESET":
-      return new APIError(
-        {
-          message: "Connection reset by server",
-          isRetryable: true,
-          metadata: {
-            code: (e as SystemError).code ?? "",
-            syscall: (e as SystemError).syscall ?? "",
-            message: (e as SystemError).message ?? "",
-          },
+      return toObj(new APIError({
+        message: "Connection reset by server",
+        isRetryable: true,
+        metadata: {
+          code: (e as SystemError).code ?? "",
+          syscall: (e as SystemError).syscall ?? "",
+          message: (e as SystemError).message ?? "",
         },
-        { cause: e },
-      ).toObject()
+      }))
     case e instanceof Error && (e as FetchDecompressionError).code === "ZlibError":
       if (ctx.aborted) {
-        return new AbortedError({ message: e.message }, { cause: e }).toObject()
+        return toObj(new AbortedError({ message: e.message }))
       }
-      return new APIError(
-        {
-          message: "Response decompression failed",
-          isRetryable: true,
-          metadata: {
-            code: (e as FetchDecompressionError).code,
-            message: e.message,
-          },
+      return toObj(new APIError({
+        message: "Response decompression failed",
+        isRetryable: true,
+        metadata: {
+          code: (e as FetchDecompressionError).code,
+          message: e.message,
         },
-        { cause: e },
-      ).toObject()
+      }))
     case APICallError.isInstance(e):
       const parsed = ProviderError.parseAPICallError({
         providerID: ctx.providerID,
         error: e,
       })
       if (parsed.type === "context_overflow") {
-        return new ContextOverflowError(
-          {
-            message: parsed.message,
-            responseBody: parsed.responseBody,
-          },
-          { cause: e },
-        ).toObject()
+        return toObj(new ContextOverflowError({
+          message: parsed.message,
+          responseBody: parsed.responseBody,
+        }))
       }
 
-      return new APIError(
-        {
-          message: parsed.message,
-          statusCode: parsed.statusCode,
-          isRetryable: parsed.isRetryable,
-          responseHeaders: parsed.responseHeaders,
-          responseBody: parsed.responseBody,
-          metadata: parsed.metadata,
-        },
-        { cause: e },
-      ).toObject()
+      return toObj(new APIError({
+        message: parsed.message,
+        statusCode: parsed.statusCode,
+        isRetryable: parsed.isRetryable,
+        responseHeaders: parsed.responseHeaders,
+        responseBody: parsed.responseBody,
+        metadata: parsed.metadata,
+      }))
     case e instanceof Error:
-      return new NamedError.Unknown({ message: errorMessage(e) }, { cause: e }).toObject()
+      return toObj(new NamedError.Unknown({ message: errorMessage(e) }))
     default:
       try {
         const parsed = ProviderError.parseStreamError(e)
         if (parsed) {
           if (parsed.type === "context_overflow") {
-            return new ContextOverflowError(
-              {
-                message: parsed.message,
-                responseBody: parsed.responseBody,
-              },
-              { cause: e },
-            ).toObject()
-          }
-          return new APIError(
-            {
+            return toObj(new ContextOverflowError({
               message: parsed.message,
-              isRetryable: parsed.isRetryable,
               responseBody: parsed.responseBody,
-            },
-            {
-              cause: e,
-            },
-          ).toObject()
+            }))
+          }
+          return toObj(new APIError({
+            message: parsed.message,
+            isRetryable: parsed.isRetryable,
+            responseBody: parsed.responseBody,
+          }))
         }
       } catch {}
-      return new NamedError.Unknown({ message: JSON.stringify(e) }, { cause: e }).toObject()
+      return toObj(new NamedError.Unknown({ message: JSON.stringify(e) }))
   }
 }
 

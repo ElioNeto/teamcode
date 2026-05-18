@@ -970,7 +970,7 @@ describe("session.message-v2.toModelMessage", () => {
         info: assistantInfo(
           assistantID,
           "m-parent",
-          new MessageV2.APIError({ message: "boom", isRetryable: true }).toObject() as MessageV2.APIError,
+          new MessageV2.APIError({ message: "boom", isRetryable: true }) as MessageV2.APIError,
         ),
         parts: [
           {
@@ -989,7 +989,7 @@ describe("session.message-v2.toModelMessage", () => {
     const assistantID1 = "m-assistant-1"
     const assistantID2 = "m-assistant-2"
 
-    const aborted = new MessageV2.AbortedError({ message: "aborted" }).toObject() as MessageV2.Assistant["error"]
+    const aborted = new MessageV2.AbortedError({ message: "aborted" }) as MessageV2.Assistant["error"]
 
     const input: MessageV2.WithParts[] = [
       {
@@ -1368,7 +1368,7 @@ describe("session.message-v2.fromError", () => {
     }
     const result = MessageV2.fromError(input, { providerID })
 
-    expect(result).toStrictEqual({
+    expect(result as any).toStrictEqual({
       name: "ContextOverflowError",
       data: {
         message: "Input exceeds context window of this model",
@@ -1403,7 +1403,7 @@ describe("session.message-v2.fromError", () => {
       }
       const result = MessageV2.fromError(input, { providerID })
 
-      expect(result).toStrictEqual({
+      expect(result as any).toStrictEqual({
         name: "APIError",
         data: {
           message: item.message,
@@ -1428,7 +1428,7 @@ describe("session.message-v2.fromError", () => {
     }
     const result = MessageV2.fromError({ message: JSON.stringify(body) }, { providerID })
 
-    expect(result).toStrictEqual({
+    expect(result as any).toStrictEqual({
       name: "APIError",
       data: {
         message: body.error.message,
@@ -1458,7 +1458,7 @@ describe("session.message-v2.fromError", () => {
         isRetryable: false,
       })
       const result = MessageV2.fromError(error, { providerID })
-      expect(MessageV2.ContextOverflowError.isInstance(result)).toBe(true)
+      expect(result.name).toBe("ContextOverflowError")
     })
   })
 
@@ -1479,7 +1479,7 @@ describe("session.message-v2.fromError", () => {
       isRetryable: false,
     })
     const result = MessageV2.fromError(error, { providerID })
-    expect(MessageV2.ContextOverflowError.isInstance(result)).toBe(true)
+    expect(result.name).toBe("ContextOverflowError")
   })
 
   test("does not classify 429 no body as context overflow", () => {
@@ -1494,8 +1494,8 @@ describe("session.message-v2.fromError", () => {
       }),
       { providerID },
     )
-    expect(MessageV2.ContextOverflowError.isInstance(result)).toBe(false)
-    expect(MessageV2.APIError.isInstance(result)).toBe(true)
+    expect(result.name).not.toBe("ContextOverflowError")
+    expect(result.name).toBe("APIError")
   })
 
   test("serializes unknown inputs", () => {
@@ -1530,9 +1530,9 @@ describe("session.message-v2.fromError", () => {
 
     const result = MessageV2.fromError(zlibError, { providerID })
 
-    expect(MessageV2.APIError.isInstance(result)).toBe(true)
-    expect((result as MessageV2.APIError).data.isRetryable).toBe(true)
-    expect((result as MessageV2.APIError).data.message).toInclude("decompression")
+    expect(result.name).toBe("APIError")
+    expect((result as any).data.isRetryable).toBe(true)
+    expect((result as any).data.message).toInclude("decompression")
   })
 
   test("classifies ZlibError as AbortedError when abort context is provided", () => {

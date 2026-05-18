@@ -675,7 +675,7 @@ describe("MessageV2.filterCompacted", () => {
         const error = new MessageV2.APIError({
           message: "boom",
           isRetryable: true,
-        }).toObject() as MessageV2.Assistant["error"]
+        }) as MessageV2.Assistant["error"]
         yield* addAssistant(sessionID, u1, { summary: true, finish: "end_turn", error })
         yield* addUser(sessionID, "retry")
 
