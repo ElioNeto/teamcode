@@ -9,7 +9,7 @@
 | I-03 | 16 `NamedError.create()` legados | ✅ Completo | Todos migrados para `Schema.TaggedErrorClass` |
 | I-04 | 6+ `Effect.die()` usados para erros esperados | ✅ Completo | `b19b613` — 2 substituídos por tagged errors (webfetch/mcp-websearch), 3 por log+return (snapshot) |
 | I-05 | 15 blocos TODO(v2) de dual-write | ✅ Completo | `395e252` — Atualizados para `FIXME(v2-migration)` |
-| I-06 | 66+ referências `Flag.*` precisam migrar | 🟡 Parcial | `5a2a458` — 6 flags adicionadas ao RuntimeFlags; FileWatcher migrado; ~40 refs restantes em config/CLI |
+| I-06 | 66+ referências `Flag.*` precisam migrar | 🟡 Parcial | `5a2a458` + `048c3a6` — 6 flags adicionadas ao RuntimeFlags; FileWatcher/config/instruction/paths migrados; 39 refs restantes em CLI/filesystem |
 | I-07 | Bun Shell Migration | ✅ N/A | Plano existe mas refere-se a `packages/opencode` upstream; 0 usos de `$` do bun neste repo |
 | I-08 | 2 facades `makeRuntime` restantes | ✅ Completo | Npm facade removida anteriormente; `makeRuntime` é o padrão recomendado (AGENTS.md) |
 | I-09 | ConfigPaths.Service não criado | ✅ Completo | `228d84c` — Criado com layer Effect |
@@ -36,5 +36,4 @@
 | `5a2a458` | I-06 | Adiciona 6 flags ao RuntimeFlags; migra FileWatcher |
 | `5030191` | I-14, I-17 | Atualiza planos de server-package e v2-provider |
 | `2d74142` | I-11 | Extrai 507-lines OpenAPI post-processing em 5 módulos |
-
-> **Nota:** Push para origin/main não concluído nesta sessão devido a falha temporária de DNS (github.com irresolvível). Commits estão no branch local `main` e devem ser enviados quando a conectividade for restabelecida.
+| `048c3a6` | I-06 | Migra Flag.* refs em config.ts, paths.ts, instruction.ts |
