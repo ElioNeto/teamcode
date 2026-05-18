@@ -43,4 +43,55 @@ If you're interested in contributing to TeamCode, please read our [contributing 
 
 **Join our community** [Discord](https://discord.gg/teamcode) | [X.com](https://x.com/teamcode)
 
+### Visual Validation Agent
+
+TeamCode includes an automated visual validation system for the web UI (`packages/app`). It uses Playwright to navigate routes, capture screenshots, compare against baselines, and generate detailed reports.
+
+**Routes validated:** Home, Session, Dashboard, Error, Directory layout — each tested at desktop (1280×800), tablet (768×1024), and mobile (375×667) viewports.
+
+**Run locally:**
+
+```bash
+# Validate against a running dev server (http://localhost:3000)
+bun run visual-validation
+
+# Capture new baselines after intentional UI changes
+bun run visual-validation:capture
+
+# Via Playwright (produces HTML report)
+bun run test:e2e:visual
+
+# CI mode with JUnit output and 1% diff threshold
+bun run test:e2e:visual:ci
+```
+
+**CI:** The `visual-validation.yml` workflow runs automatically on pushes/PRs touching UI files. It uploads screenshots, diff images, and a self-contained HTML report as artifacts, publishes JUnit results, and comments on PRs with a summary.
+
+**Architecture:**
+
+| File | Purpose |
+|------|---------|
+| `packages/app/visual-validation/routes.ts` | Route definitions with viewports, interactions, baseline names |
+| `packages/app/visual-validation/validator.ts` | Playwright-based navigation, capture, pixelmatch comparison |
+| `packages/app/visual-validation/reporter.ts` | JSON, self-contained HTML, and Markdown summary reports |
+| `packages/app/visual-validation/cli.ts` | Standalone CLI entry point |
+| `packages/app/e2e/visual-validation.spec.ts` | Playwright test suite with per-route diff thresholds |
+| `.github/workflows/visual-validation.yml` | CI workflow triggered on UI changes |
+
+---
+
+### Issue Resolver Agent
+
+TeamCode includes an autonomous issue resolver that continuously picks open GitHub issues and works through them. For each issue it runs a **Plan → Implement → Validate → Review → Commit/Close** pipeline. If validation or review finds problems, the agent retries the implementation. If the issue is too complex, it returns to the planning phase.
+
+**Run:**
+
+```bash
+bun run scripts/issue-resolver/resolver.ts
+```
+
+The resolver uses the `$GH_TOKEN` environment variable for GitHub API access and requires a clean working tree to start. It fetches open issues in batches of 10, processes them sequentially through the pipeline, and only stops when no open issues remain or when interrupted manually.
+
+---
+
 _Based on [opencode](https://github.com/sst/opencode) (MIT)_

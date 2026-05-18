@@ -15,8 +15,10 @@
     "upgrade-opentui": "bun run script/upgrade-opentui.ts",
     "postinstall": "bun run --cwd packages/teamcode fix-node-pty",
     "prepare": "husky",
-    "random": "echo 'Random script'",
-    "hello": "echo 'Hello World!'",
+    "issues:resolver": "bun run scripts/issue-resolver/resolver.ts",
+    "issues:resolver:once": "bun run scripts/issue-resolver/resolver.ts --once",
+    "issues:resolver:bugs": "bun run scripts/issue-resolver/resolver.ts --bugs-only",
+    "issues:resolver:dry-run": "bun run scripts/issue-resolver/resolver.ts --dry-run",
     "test": "echo 'do not run tests from root' && exit 1"
   },
   "workspaces": {
