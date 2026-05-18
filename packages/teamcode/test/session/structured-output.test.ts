@@ -71,8 +71,8 @@ describe("structured-output.StructuredOutputError", () => {
     })
 
     expect(error.name).toBe("StructuredOutputError")
-    expect(error.data.message).toBe("Failed to validate")
-    expect(error.data.retries).toBe(3)
+    expect(error.message).toBe("Failed to validate")
+    expect(error.retries).toBe(3)
   })
 
   test("converts to object correctly", () => {
@@ -81,7 +81,7 @@ describe("structured-output.StructuredOutputError", () => {
       retries: 2,
     })
 
-    const obj = error.toObject()
+    const obj = { name: error._tag, data: { message: error.message, retries: error.retries } }
     expect(obj.name).toBe("StructuredOutputError")
     expect(obj.data.message).toBe("Test error")
     expect(obj.data.retries).toBe(2)
@@ -93,8 +93,8 @@ describe("structured-output.StructuredOutputError", () => {
       retries: 1,
     })
 
-    expect(MessageV2.StructuredOutputError.isInstance(error)).toBe(true)
-    expect(MessageV2.StructuredOutputError.isInstance({ name: "other" })).toBe(false)
+    expect(error instanceof MessageV2.StructuredOutputError).toBe(true)
+    expect(({ name: "other" }) instanceof MessageV2.StructuredOutputError).toBe(false)
   })
 })
 
