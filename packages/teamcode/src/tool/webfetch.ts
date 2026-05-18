@@ -89,7 +89,7 @@ export const WebFetchTool = Tool.define(
                   ),
                 ),
             ),
-            Effect.timeoutOrElse({ duration: timeout, orElse: () => Effect.fail(new Error("Request timed out")) }),
+            Effect.timeoutOrElse({ duration: timeout, orElse: () => Effect.die(new Error("Request timed out")) }),
           )
 
           // Check content length

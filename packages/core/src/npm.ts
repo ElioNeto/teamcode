@@ -7,6 +7,7 @@ import { NodeFileSystem } from "@effect/platform-node"
 import { AppFileSystem } from "./filesystem"
 import { Global } from "./global"
 import { EffectFlock } from "./util/effect-flock"
+import { makeRuntime } from "./effect/runtime"
 import { NpmConfig } from "./npm-config"
 
 export class InstallFailedError extends Schema.TaggedErrorClass<InstallFailedError>()("NpmInstallFailedError", {
@@ -249,5 +250,24 @@ export const defaultLayer = layer.pipe(
   Layer.provide(Global.layer),
   Layer.provide(NodeFileSystem.layer),
 )
+
+const { runPromise } = makeRuntime(Service, defaultLayer)
+
+export async function install(...args: Parameters<Interface["install"]>) {
+  return runPromise((svc) => svc.install(...args))
+}
+
+export async function add(...args: Parameters<Interface["add"]>) {
+  const entry = await runPromise((svc) => svc.add(...args))
+  return {
+    directory: entry.directory,
+    entrypoint: Option.getOrUndefined(entry.entrypoint),
+  }
+}
+
+export async function which(...args: Parameters<Interface["which"]>) {
+  const resolved = await runPromise((svc) => svc.which(...args))
+  return Option.getOrUndefined(resolved)
+}
 
 

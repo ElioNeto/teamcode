@@ -347,13 +347,13 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
                 log.info("restore", { commit: snapshot })
                 const result = yield* git([...core, ...args(["read-tree", snapshot])], { cwd: state.worktree })
                 if (result.code !== 0) {
-                  return yield* Effect.fail(new Error(`failed to read-tree snapshot: ${result.stderr}`))
+                  yield* Effect.die(new Error(`failed to read-tree snapshot: ${result.stderr}`))
                 }
                 const checkout = yield* git([...core, ...args(["checkout-index", "-a", "-f"])], {
                   cwd: state.worktree,
                 })
                 if (checkout.code !== 0) {
-                  return yield* Effect.fail(new Error(`failed to checkout-index snapshot: ${checkout.stderr}`))
+                  yield* Effect.die(new Error(`failed to checkout-index snapshot: ${checkout.stderr}`))
                 }
               }),
             )
@@ -387,7 +387,7 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
                   })
                   if (tree.code === 0 && tree.text.trim()) {
                     log.error("file existed in snapshot but checkout failed, aborting", { file: op.file, hash: op.hash, stderr: result.stderr })
-                    return yield* Effect.fail(new Error(`git checkout failed for ${op.file}: ${result.stderr}`))
+                    yield* Effect.die(new Error(`git checkout failed for ${op.file}: ${result.stderr}`))
                     return
                   }
                   log.info("file did not exist in snapshot, deleting", { file: op.file, hash: op.hash })
