@@ -342,6 +342,15 @@
 
 ---
 
+### Lote 17 — TUI Event Schema (commit `5b53ec6`)
+
+#### #27664 — /undo e /redo não funcionam via atalhos de teclado
+**Arquivos:** `packages/opencode/src/cli/cmd/tui/event.ts`, `packages/opencode/src/server/routes/instance/httpapi/handlers/tui.ts`
+**Problema:** `/undo` e `/redo` estavam definidos como comandos do command palette e tinham lógica completa via SDK (`sdk.client.session.revert`/`unrevert`), mas não podiam ser disparados por atalhos de teclado porque `session.undo` e `session.redo` não estavam na union de literais do schema `TuiEvent.CommandExecute`. O HTTP handler de publish também não conhecia os aliases.
+**Fix:** Adicionados `"session.undo"` e `"session.redo"` à union `Schema.Literals` em `event.ts`, e `messages_undo`/`messages_redo` ao `commandAliases` em `handlers/tui.ts`.
+
+---
+
 ## Legenda
 
 | Prefixo | Significado |
