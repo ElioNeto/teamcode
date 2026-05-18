@@ -36,9 +36,10 @@ export function wrapClientError(
   }
 
   // Empty body / network failure / undefined / null / empty object.
-  const reason = response ? "(empty response body)" : "network error (no response)"
-  return new Error(`opencode server ${describe(request, response)}: ${reason}`, {
-    cause: { body: error, status: response?.status },
+  const status = response?.status
+  const locator = response ? `the server returned a ${status} response with no body` : "network error (no response)"
+  return new Error(`opencode server ${describe(request, response)}: ${locator}`, {
+    cause: { body: error, status },
   })
 }
 
