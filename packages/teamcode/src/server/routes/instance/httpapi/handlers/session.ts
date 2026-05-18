@@ -15,6 +15,7 @@ import { SessionSummary } from "@/session/summary"
 import { Todo } from "@/session/todo"
 import { MessageID, PartID, SessionID } from "@/session/schema"
 import { NamedError } from "@teamcode-ai/core/util/error"
+import { InstanceRef, WorkspaceRef } from "@/effect/instance-ref"
 import { Cause, Effect, Option, Schema, Scope } from "effect"
 import * as Stream from "effect/Stream"
 import { HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
@@ -297,6 +298,8 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
       payload: typeof PromptPayload.Type
     }) {
       yield* requireSession(ctx.params.sessionID)
+      const instanceRef = yield* InstanceRef
+      const workspaceRef = yield* WorkspaceRef
       yield* promptSvc.prompt({ ...ctx.payload, sessionID: ctx.params.sessionID }).pipe(
         Effect.catchCause((cause) =>
           Effect.gen(function* () {
@@ -309,6 +312,8 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
             })
           }),
         ),
+        Effect.provideService(InstanceRef, instanceRef),
+        Effect.provideService(WorkspaceRef, workspaceRef),
         Effect.forkIn(scope, { startImmediately: true }),
       )
       return HttpApiSchema.NoContent.make()
