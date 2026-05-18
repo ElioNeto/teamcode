@@ -1,6 +1,6 @@
 # 🚀 Issues Organizadas — anomalyco/opencode
 
-> **Total:** 2.200 issues abertas | Extraído em 2026-05-18 | Fonte: [github.com/anomalyco/opencode/issues](https://github.com/anomalyco/opencode/issues)
+> **Total:** 2.200 issues abertas | Extraído em 2026-05-18 | Fonte: [github.com/anomalyco/opencode/issues](https://github.com/anomalyco/opencode/issues) | Issues internas: [ElioNeto/teamcode/issues](https://github.com/ElioNeto/teamcode/issues)
 
 ---
 

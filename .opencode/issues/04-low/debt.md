@@ -1,17 +1,19 @@
 # 🔧 Dívida Técnica
 
-> **Total:** 9 do GitHub + 9 internas | Extraído em 2026-05-17
+> **Total:** 9 do GitHub + 17 issues internas | Extraído em 2026-05-18
 
 ---
 
 ## ⚙️ Dívida Técnica Interna (Código-Fonte)
 
 Issues encontradas diretamente no código que representam débito técnico a ser pago.
+> Issues cadastradas em [github.com/ElioNeto/teamcode/issues](https://github.com/ElioNeto/teamcode/issues)
 
 ### 🔴 Críticas
 
 #### I-01 — v2 Session: 6 métodos são stubs vazios
 
+**GitHub:** [#11](https://github.com/ElioNeto/teamcode/issues/11)
 **Arquivo:** `packages/teamcode/src/v2/session.ts` (linhas 170, 290, 292, 293, 329, 330)
 
 `create()` retorna `{} as any`, `prompt()` retorna `{} as any`, `shell()` corpo vazio, `skill()` corpo vazio, `compact()` corpo vazio, `wait()` corpo vazio.
@@ -22,6 +24,7 @@ Issues encontradas diretamente no código que representam débito técnico a ser
 
 #### I-02 — ACP `authenticate()` lança "Authentication not implemented"
 
+**GitHub:** [#12](https://github.com/ElioNeto/teamcode/issues/12)
 **Arquivo:** `packages/teamcode/src/acp/agent.ts:562`
 
 O método `authenticate` do protocolo ACP simplesmente lança `throw new Error("Authentication not implemented")`.
@@ -32,6 +35,7 @@ O método `authenticate` do protocolo ACP simplesmente lança `throw new Error("
 
 #### I-03 — 16 `NamedError.create()` legados
 
+**GitHub:** [#13](https://github.com/ElioNeto/teamcode/issues/13)
 **Arquivos:** 8 arquivos no pacote `teamcode`
 
 Erros que usam `NamedError.create()` em vez de `Schema.TaggedErrorClass`:
@@ -61,6 +65,7 @@ Erros que usam `NamedError.create()` em vez de `Schema.TaggedErrorClass`:
 
 #### I-04 — 6+ `Effect.die()` usado para erros esperados
 
+**GitHub:** [#14](https://github.com/ElioNeto/teamcode/issues/14)
 **Arquivos:** `src/snapshot/index.ts` (3x), `src/tool/webfetch.ts:92`, `src/tool/mcp-websearch.ts:92`, `src/session/prompt.ts:1072`
 
 `Effect.die()` deve ser reservado para defects, mas está sendo usado para timeouts de rede, falhas de git, etc.
@@ -71,6 +76,7 @@ Erros que usam `NamedError.create()` em vez de `Schema.TaggedErrorClass`:
 
 #### I-05 — 15 blocos TODO(v2) de dual-write temporário
 
+**GitHub:** [#15](https://github.com/ElioNeto/teamcode/issues/15)
 **Arquivos:** `src/session/prompt.ts`, `src/session/processor.ts`
 
 Todo o sistema de dual-write entre sessão legada e v2 é temporário, controlado por `flags.experimentalEventSystem`. Precisa ser removido quando a migração v2 for concluída.
@@ -79,6 +85,7 @@ Todo o sistema de dual-write entre sessão legada e v2 é temporário, controlad
 
 #### I-06 — 66+ referências `Flag.*` precisam migrar
 
+**GitHub:** [#16](https://github.com/ElioNeto/teamcode/issues/16)
 **Arquivos:** 21+ arquivos em `packages/teamcode/src/`
 
 O módulo `Flag` legado deve ser substituído por `RuntimeFlags.Service`. ~66 referências ainda existem em CLI/TUI/config/observability.
@@ -89,6 +96,7 @@ O módulo `Flag` legado deve ser substituído por `RuntimeFlags.Service`. ~66 re
 
 #### I-07 — Bun Shell Migration (plano existe, 0% implementado)
 
+**GitHub:** [#17](https://github.com/ElioNeto/teamcode/issues/17)
 **Arquivo:** `BUN_SHELL_MIGRATION_PLAN.md`
 
 143 comandos `$` do Bun em 17 arquivos devem ser substituídos por uma API `Process`. Nenhuma das 5 fases foi iniciada.
@@ -97,6 +105,7 @@ O módulo `Flag` legado deve ser substituído por `RuntimeFlags.Service`. ~66 re
 
 #### I-08 — 2 facades `makeRuntime` restantes
 
+**GitHub:** [#18](https://github.com/ElioNeto/teamcode/issues/18)
 **Arquivos:** `src/cli/cmd/tui/config/tui.ts:305` (TuiConfig), `src/npm/index.ts` (Npm)
 
 Esses serviços ainda exportam `makeRuntime(...)` com facades async que deveriam ser substituídas por layers Effect.
@@ -109,6 +118,7 @@ Esses serviços ainda exportam `makeRuntime(...)` com facades async que deveriam
 
 #### I-09 — ConfigPaths.Service não criado
 
+**GitHub:** [#19](https://github.com/ElioNeto/teamcode/issues/19)
 **Arquivo:** `src/config/paths.ts`
 
 `src/config/config.ts` usa `Effect.promise(() => ConfigPaths.*(...))` em vez de `yield* paths.*(...)`.
@@ -119,6 +129,7 @@ Esses serviços ainda exportam `makeRuntime(...)` com facades async que deveriam
 
 #### I-10 — HTTP middleware adivinha status codes
 
+**GitHub:** [#20](https://github.com/ElioNeto/teamcode/issues/20)
 **Arquivo:** `src/server/routes/instance/httpapi/middleware/error.ts`
 
 O middleware usa heurística de nome de erro para determinar status HTTP. Deve encolher conforme mais erros de domínio viram `Schema.TaggedErrorClass`.
@@ -129,6 +140,7 @@ O middleware usa heurística de nome de erro para determinar status HTTP. Deve e
 
 #### I-11 — 507 linhas de pós-processamento OpenAPI
 
+**GitHub:** [#21](https://github.com/ElioNeto/teamcode/issues/21)
 **Arquivo:** `src/server/routes/instance/httpapi/public.ts`
 
 Shims de compatibilidade que deveriam ser eliminados conforme schemas de fonte melhoram. Inclui `QueryParameterSchemas`, `PathParameterSchemas`, `normalizeLegacyErrorResponses`, `collapseDuplicateComponents`, etc.
@@ -139,6 +151,7 @@ Shims de compatibilidade que deveriam ser eliminados conforme schemas de fonte m
 
 #### I-12 — 13 TODO/HACK comentários
 
+**GitHub:** [#22](https://github.com/ElioNeto/teamcode/issues/22)
 **Arquivos:** Múltiplos
 
 | Arquivo | Linha | Comentário |
@@ -161,6 +174,7 @@ Shims de compatibilidade que deveriam ser eliminados conforme schemas de fonte m
 
 #### I-13 — Testes com patterns antigos
 
+**GitHub:** [#23](https://github.com/ElioNeto/teamcode/issues/23)
 **Arquivo:** `test/` (múltiplos)
 
 Muitos testes ainda usam `Effect.runPromise`, `ManagedRuntime`, `Promise.withResolvers`, `Bun.sleep` em vez dos patterns modernos (`testEffect`, `it.live`, `it.instance`).
@@ -173,6 +187,7 @@ Muitos testes ainda usam `Effect.runPromise`, `ManagedRuntime`, `Promise.withRes
 
 #### I-14 — Server package extraction (plano existe, 0% feito)
 
+**GitHub:** [#24](https://github.com/ElioNeto/teamcode/issues/24)
 **Spec:** `specs/effect/server-package.md`
 
 Extrair `packages/server` com schemas de domínio puros e contratos HttpApi. Nenhum PR da sequência foi iniciado.
@@ -181,6 +196,7 @@ Extrair `packages/server` com schemas de domínio puros e contratos HttpApi. Nen
 
 #### I-15 — Global paths mutáveis
 
+**GitHub:** [#25](https://github.com/ElioNeto/teamcode/issues/25)
 **Arquivo:** `core/src/global.ts`
 
 `Global.Path` usa estado mutável. Testes sobrescrevem exports. `Global.make()` ainda lê `Flag.OPENCODE_CONFIG_DIR`.
@@ -191,6 +207,7 @@ Extrair `packages/server` com schemas de domínio puros e contratos HttpApi. Nen
 
 #### I-16 — Apenas 1 data migration registrada
 
+**GitHub:** [#26](https://github.com/ElioNeto/teamcode/issues/26)
 **Arquivo:** `src/data-migration.ts`
 
 O sistema de data migration é novo. Só 1 migração existe (`session_usage_from_messages`). Precisa ser mantido para mudanças futuras de schema.
@@ -199,6 +216,7 @@ O sistema de data migration é novo. Só 1 migração existe (`session_usage_fro
 
 #### I-17 — v2 provider parity: 17 itens não portados
 
+**GitHub:** [#27](https://github.com/ElioNeto/teamcode/issues/27)
 **Arquivo:** `src/v2/provider-parity-checklist.md`
 
 Dynamic models, model filtering (6 items), auth (6 items), config/plugin parity (5 items) — nenhum portado para o sistema v2.
