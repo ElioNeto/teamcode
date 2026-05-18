@@ -8,7 +8,6 @@
 <p align="center">The open source AI coding agent.</p>
 <p align="center">
   <a href="https://discord.gg/teamcode"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/teamcode-ai"><img alt="npm" src="https://img.shields.io/npm/v/teamcode-ai?style=flat-square" /></a>
   <a href="https://github.com/teamcode/teamcode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/teamcode/teamcode/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
@@ -16,50 +15,16 @@ TeamCode is an open source AI-powered coding agent that runs in your terminal. I
 
 ---
 
-### Installation
+### Getting Started
 
 ```bash
-# Package managers
-npm i -g teamcode-ai        # or bun/pnpm/yarn
-scoop install teamcode             # Windows
-choco install teamcode             # Windows
-brew install teamcode/tap/teamcode # macOS and Linux (recommended, always up to date)
-brew install teamcode              # macOS and Linux (official brew formula, updated less)
-sudo pacman -S teamcode            # Arch Linux (Stable)
-paru -S teamcode-bin               # Arch Linux (Latest from AUR)
-mise use -g teamcode               # Any OS
-nix run nixpkgs#teamcode           # or github:teamcode/teamcode for latest dev branch
+git clone https://github.com/teamcode/teamcode.git
+cd teamcode
+bun install
+bun run --cwd packages/teamcode --conditions=browser src/index.ts
 ```
 
-> [!TIP]
-> Remove versions older than 0.1.x before installing.
-
-### Desktop App (BETA)
-
-TeamCode is also available as a desktop application. Download directly from the [releases page](https://github.com/teamcode/teamcode/releases).
-
-| Platform              | Download                           |
-| --------------------- | ---------------------------------- |
-| macOS (Apple Silicon) | `teamcode-desktop-mac-arm64.dmg`   |
-| macOS (Intel)         | `teamcode-desktop-mac-x64.dmg`     |
-| Windows               | `teamcode-desktop-windows-x64.exe` |
-| Linux                 | `.deb`, `.rpm`, or `.AppImage`     |
-
-```bash
-# macOS (Homebrew)
-brew install --cask teamcode-desktop
-# Windows (Scoop)
-scoop bucket add extras; scoop install extras/teamcode-desktop
-```
-
-#### Installation Directory
-
-The install script respects the following priority order for the installation path:
-
-1. `$TEAMCODE_INSTALL_DIR` - Custom installation directory
-2. `$XDG_BIN_DIR` - XDG Base Directory Specification compliant path
-3. `$HOME/bin` - Standard user binary directory (if it exists or can be created)
-4. `$HOME/.teamcode/bin` - Default fallback
+> TeamCode is in active development. Pre-built packages will be available once the project reaches a stable release.
 
 ### Agents
 
