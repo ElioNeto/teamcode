@@ -60,6 +60,15 @@ process.on("uncaughtException", (e) => {
 // should not crash the process. Node's default SIGPIPE disposition kills it.
 process.on("SIGPIPE", () => {})
 
+// Reap terminated child processes synchronously so they don't accumulate as
+// zombies when many short-lived children exit faster than the event loop can
+// process their exit events (e.g. during heavy file watcher activity).
+process.on("SIGCHLD", () => {
+  try {
+    while (process.waitpid(-1, 0) > 0) {}
+  } catch {}
+})
+
 const args = hideBin(process.argv)
 
 function show(out: string) {

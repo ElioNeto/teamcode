@@ -275,8 +275,8 @@ export const make = Effect.gen(function* () {
       proc.on("error", (err) => {
         resume(Effect.fail(toPlatformError("spawn", err, command)))
       })
-      proc.on("exit", (...args) => {
-        exit = args
+      proc.on("exit", (code, signal) => {
+        exit = [code, signal]
       })
       proc.on("close", (...args) => {
         if (end) return
