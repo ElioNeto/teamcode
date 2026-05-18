@@ -83,7 +83,10 @@ describe("Npm.install", () => {
     await writePackage(path.join(tmp.path, "prod-pkg"), { name: "prod-pkg" })
     await writePackage(path.join(tmp.path, "dev-pkg"), { name: "dev-pkg" })
 
-    await Npm.install(tmp.path)
+    await Effect.gen(function* () {
+      const npm = yield* Npm.Service
+      return yield* npm.install(tmp.path)
+    }).pipe(Effect.scoped, Effect.provide(npmLayer(path.join(tmp.path, "cache"))), Effect.runPromise)
 
     await expect(fs.stat(path.join(tmp.path, "node_modules", "prod-pkg"))).resolves.toBeDefined()
     await expect(fs.stat(path.join(tmp.path, "node_modules", "dev-pkg"))).rejects.toThrow()
