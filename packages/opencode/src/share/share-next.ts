@@ -1,4 +1,4 @@
-import type * as SDK from "@opencode-ai/sdk/v2"
+import type * as SDK from "@teamcode-ai/sdk/v2"
 import { Effect, Exit, Layer, Option, Schema, Scope, Context, Stream } from "effect"
 import { FetchHttpClient, HttpClient, HttpClientRequest, HttpClientResponse } from "effect/unstable/http"
 import { Account } from "@/account/account"
@@ -12,7 +12,7 @@ import type { SessionID } from "@/session/schema"
 import { Database } from "@/storage/db"
 import { eq } from "drizzle-orm"
 import { Config } from "@/config/config"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@teamcode-ai/core/util/log"
 import { SessionShareTable } from "./share.sql"
 
 const log = Log.create({ service: "share-next" })

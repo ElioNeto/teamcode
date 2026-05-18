@@ -1,5 +1,5 @@
-import { NamedError } from "@opencode-ai/core/util/error"
-import * as Log from "@opencode-ai/core/util/log"
+import { NamedError } from "@teamcode-ai/core/util/error"
+import * as Log from "@teamcode-ai/core/util/log"
 import { ConfigError } from "@/config/error"
 import { Cause, Effect } from "effect"
 import { HttpRouter, HttpServerError, HttpServerRespondable, HttpServerResponse } from "effect/unstable/http"

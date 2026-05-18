@@ -1,8 +1,8 @@
 import { EOL } from "os"
 import { Effect, Layer, Option } from "effect"
-import { Catalog } from "@opencode-ai/core/catalog"
-import { LocationServiceMap } from "@opencode-ai/core/location-layer"
-import { PluginBoot } from "@opencode-ai/core/plugin/boot"
+import { Catalog } from "@teamcode-ai/core/catalog"
+import { LocationServiceMap } from "@teamcode-ai/core/location-layer"
+import { PluginBoot } from "@teamcode-ai/core/plugin/boot"
 import { effectCmd } from "../../effect-cmd"
 
 const Runtime = Layer.mergeAll(LocationServiceMap.layer)

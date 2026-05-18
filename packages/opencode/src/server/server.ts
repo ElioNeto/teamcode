@@ -1,7 +1,7 @@
 import "./init-projectors"
 
 import { NodeHttpServer } from "@effect/platform-node"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@teamcode-ai/core/util/log"
 import { ConfigProvider, Context, Duration, Effect, Exit, Layer, Scope } from "effect"
 import { HttpRouter, HttpServer } from "effect/unstable/http"
 import { OpenApi } from "effect/unstable/httpapi"

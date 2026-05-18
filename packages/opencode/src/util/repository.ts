@@ -1,6 +1,6 @@
 import path from "path"
 import { fileURLToPath } from "url"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@teamcode-ai/core/global"
 
 export type Reference = {
   host: string

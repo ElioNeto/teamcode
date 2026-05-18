@@ -1,9 +1,9 @@
 export * as ConfigAgent from "./agent"
 
 import { Option, Schema, SchemaGetter } from "effect"
-import { PositiveInt } from "@opencode-ai/core/schema"
-import * as Log from "@opencode-ai/core/util/log"
-import { Glob } from "@opencode-ai/core/util/glob"
+import { PositiveInt } from "@teamcode-ai/core/schema"
+import * as Log from "@teamcode-ai/core/util/log"
+import { Glob } from "@teamcode-ai/core/util/glob"
 import { configEntryNameFromPath } from "./entry-name"
 import * as ConfigMarkdown from "./markdown"
 import { ConfigModelID } from "./model-id"

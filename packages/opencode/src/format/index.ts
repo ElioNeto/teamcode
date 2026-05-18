@@ -1,13 +1,13 @@
 import { Effect, Layer, Context, Schema } from "effect"
 import { ChildProcess } from "effect/unstable/process"
-import { AppProcess } from "@opencode-ai/core/process"
+import { AppProcess } from "@teamcode-ai/core/process"
 import { InstanceState } from "@/effect/instance-state"
 import path from "path"
 import { mergeDeep } from "remeda"
 import { Config } from "@/config/config"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { errorMessage } from "@/util/error"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@teamcode-ai/core/util/log"
 import * as Formatter from "./formatter"
 
 const log = Log.create({ service: "format" })

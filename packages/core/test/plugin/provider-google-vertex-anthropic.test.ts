@@ -1,7 +1,7 @@
 import { describe, expect } from "bun:test"
 import { Effect } from "effect"
-import { PluginV2 } from "@opencode-ai/core/plugin"
-import { GoogleVertexAnthropicPlugin } from "@opencode-ai/core/plugin/provider/google-vertex"
+import { PluginV2 } from "@teamcode-ai/core/plugin"
+import { GoogleVertexAnthropicPlugin } from "@teamcode-ai/core/plugin/provider/google-vertex"
 import { fakeSelectorSdk, it, model, provider, withEnv } from "./provider-helper"
 
 describe("GoogleVertexAnthropicPlugin", () => {

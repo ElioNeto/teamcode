@@ -3,10 +3,10 @@ import { mkdir, unlink } from "fs/promises"
 import path from "path"
 
 import { disposeAllInstances, tmpdir, withTestInstance } from "../fixture/fixture"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@teamcode-ai/core/global"
 import type { InstanceContext } from "../../src/project/instance-context"
 import { Plugin } from "../../src/plugin/index"
-import { ModelsDev } from "@opencode-ai/core/models"
+import { ModelsDev } from "@teamcode-ai/core/models"
 import { Provider } from "@/provider/provider"
 import { ProviderID, ModelID } from "../../src/provider/schema"
 import { Filesystem } from "@/util/filesystem"
@@ -16,7 +16,7 @@ import { AppRuntime } from "../../src/effect/app-runtime"
 import { InstanceRef } from "../../src/effect/instance-ref"
 import { makeRuntime } from "../../src/effect/run-service"
 import { testEffect } from "../lib/effect"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@teamcode-ai/core/filesystem"
 import { Config } from "@/config/config"
 import { Auth } from "@/auth"
 import { RuntimeFlags } from "@/effect/runtime-flags"
@@ -100,7 +100,7 @@ async function markPluginDependenciesReady(dir: string) {
   await mkdir(path.join(dir, "node_modules"), { recursive: true })
   await Bun.write(
     path.join(dir, "package-lock.json"),
-    JSON.stringify({ packages: { "": { dependencies: { "@opencode-ai/plugin": "0.0.0" } } } }),
+    JSON.stringify({ packages: { "": { dependencies: { "@teamcode-ai/plugin": "0.0.0" } } } }),
   )
 }
 

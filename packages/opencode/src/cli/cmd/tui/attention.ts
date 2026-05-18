@@ -8,18 +8,18 @@ import type {
   TuiAttentionSoundName,
   TuiAttentionSoundPack,
   TuiAttentionSoundPackInfo,
-} from "@opencode-ai/plugin/tui"
+} from "@teamcode-ai/plugin/tui"
 import stripAnsi from "strip-ansi"
 import type { TuiConfig } from "./config/tui"
 import { isAttentionSoundName } from "./config/tui-schema"
 import * as TuiAudio from "@tui/util/audio"
-import defaultSoundPath from "@opencode-ai/ui/audio/bip-bop-01.mp3" with { type: "file" }
-import questionSoundPath from "@opencode-ai/ui/audio/bip-bop-03.mp3" with { type: "file" }
-import permissionSoundPath from "@opencode-ai/ui/audio/staplebops-06.mp3" with { type: "file" }
-import errorSoundPath from "@opencode-ai/ui/audio/nope-03.mp3" with { type: "file" }
-import doneSoundPath from "@opencode-ai/ui/audio/bip-bop-01.mp3" with { type: "file" }
-import subagentDoneSoundPath from "@opencode-ai/ui/audio/yup-01.mp3" with { type: "file" }
-import * as Log from "@opencode-ai/core/util/log"
+import defaultSoundPath from "@teamcode-ai/ui/audio/bip-bop-01.mp3" with { type: "file" }
+import questionSoundPath from "@teamcode-ai/ui/audio/bip-bop-03.mp3" with { type: "file" }
+import permissionSoundPath from "@teamcode-ai/ui/audio/staplebops-06.mp3" with { type: "file" }
+import errorSoundPath from "@teamcode-ai/ui/audio/nope-03.mp3" with { type: "file" }
+import doneSoundPath from "@teamcode-ai/ui/audio/bip-bop-01.mp3" with { type: "file" }
+import subagentDoneSoundPath from "@teamcode-ai/ui/audio/yup-01.mp3" with { type: "file" }
+import * as Log from "@teamcode-ai/core/util/log"
 
 type FocusState = "unknown" | "focused" | "blurred"
 

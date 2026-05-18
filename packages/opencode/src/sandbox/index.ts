@@ -15,7 +15,7 @@
 // ```
 //   teamcode run --sandbox "implement login page"
 // ```
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@teamcode-ai/core/global"
 import { errorMessage } from "../util/error"
 import { BusEvent } from "@/bus/bus-event"
 import { GlobalBus } from "@/bus/global"
@@ -24,10 +24,10 @@ import { Git } from "@/git"
 import { Permission } from "@/permission"
 import { Effect, Layer, Path, Schema, Context, Scope } from "effect"
 import { NodePath } from "@effect/platform-node"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
-import { AppProcess } from "@opencode-ai/core/process"
+import { AppFileSystem } from "@teamcode-ai/core/filesystem"
+import { AppProcess } from "@teamcode-ai/core/process"
 import { ChildProcess } from "effect/unstable/process"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@teamcode-ai/core/util/log"
 import { InstanceState } from "@/effect/instance-state"
 import { Project } from "@/project/project"
 

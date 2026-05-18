@@ -1,8 +1,8 @@
 export * as ConfigCommand from "./command"
 
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@teamcode-ai/core/util/log"
 import { Cause, Exit, Schema } from "effect"
-import { Glob } from "@opencode-ai/core/util/glob"
+import { Glob } from "@teamcode-ai/core/util/glob"
 import { configEntryNameFromPath } from "./entry-name"
 import { InvalidError } from "./error"
 import * as ConfigMarkdown from "./markdown"

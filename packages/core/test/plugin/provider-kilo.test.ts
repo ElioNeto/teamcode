@@ -1,8 +1,8 @@
 import { describe, expect } from "bun:test"
 import { Effect } from "effect"
-import { PluginV2 } from "@opencode-ai/core/plugin"
-import { ProviderPlugins } from "@opencode-ai/core/plugin/provider"
-import { KiloPlugin } from "@opencode-ai/core/plugin/provider/kilo"
+import { PluginV2 } from "@teamcode-ai/core/plugin"
+import { ProviderPlugins } from "@teamcode-ai/core/plugin/provider"
+import { KiloPlugin } from "@teamcode-ai/core/plugin/provider/kilo"
 import { expectPluginRegistered, it, provider } from "./provider-helper"
 
 describe("KiloPlugin", () => {

@@ -7,7 +7,7 @@ import { SwarmEvents } from "@/swarm/events"
 import { Sandbox } from "@/sandbox"
 import { Session } from "@/session/session"
 import { Effect, Layer, Schema, Context } from "effect"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@teamcode-ai/core/util/log"
 
 const log = Log.create({ service: "observability" })
 

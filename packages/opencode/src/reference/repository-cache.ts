@@ -1,7 +1,7 @@
 import path from "path"
 import { Effect } from "effect"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
-import { Flock } from "@opencode-ai/core/util/flock"
+import { AppFileSystem } from "@teamcode-ai/core/filesystem"
+import { Flock } from "@teamcode-ai/core/util/flock"
 import { Git } from "@/git"
 import {
   repositoryCachePath,

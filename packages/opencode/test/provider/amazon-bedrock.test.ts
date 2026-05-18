@@ -7,7 +7,7 @@ import { disposeAllInstances, tmpdir, withTestInstance } from "../fixture/fixtur
 import type { InstanceContext } from "../../src/project/instance-context"
 import { Provider } from "@/provider/provider"
 import { Env } from "../../src/env"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@teamcode-ai/core/global"
 import { Filesystem } from "@/util/filesystem"
 import { Effect } from "effect"
 import { AppRuntime } from "../../src/effect/app-runtime"

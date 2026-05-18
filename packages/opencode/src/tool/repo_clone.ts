@@ -1,5 +1,5 @@
 import { Effect, Schema } from "effect"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@teamcode-ai/core/filesystem"
 import { Git } from "@/git"
 import DESCRIPTION from "./repo_clone.txt"
 import * as Tool from "./tool"

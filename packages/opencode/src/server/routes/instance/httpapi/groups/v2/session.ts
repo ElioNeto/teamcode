@@ -1,6 +1,6 @@
 import { SessionID } from "@/session/schema"
-import { SessionMessage } from "@opencode-ai/core/session-message"
-import { Prompt } from "@opencode-ai/core/session-prompt"
+import { SessionMessage } from "@teamcode-ai/core/session-message"
+import { Prompt } from "@teamcode-ai/core/session-prompt"
 import { SessionV2 } from "@/v2/session"
 import { Schema } from "effect"
 import { HttpApiEndpoint, HttpApiError, HttpApiGroup, HttpApiSchema, OpenApi } from "effect/unstable/httpapi"

@@ -1,4 +1,4 @@
-import type { Session as SDKSession, Message, Part } from "@opencode-ai/sdk/v2"
+import type { Session as SDKSession, Message, Part } from "@teamcode-ai/sdk/v2"
 import { Session } from "@/session/session"
 import { MessageV2 } from "../../session/message-v2"
 import { CliError, effectCmd } from "../effect-cmd"
@@ -7,7 +7,7 @@ import { SessionTable, MessageTable, PartTable } from "../../session/session.sql
 import { InstanceRef } from "@/effect/instance-ref"
 import { ShareNext } from "@/share/share-next"
 import { EOL } from "os"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@teamcode-ai/core/filesystem"
 import { Effect, Schema } from "effect"
 
 const decodeMessageInfo = Schema.decodeUnknownSync(MessageV2.Info)

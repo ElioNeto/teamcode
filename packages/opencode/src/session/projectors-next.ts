@@ -1,15 +1,15 @@
 import { and, desc, eq } from "@/storage/db"
 import type { Database } from "@/storage/db"
-import { SessionMessage } from "@opencode-ai/core/session-message"
-import { SessionMessageUpdater } from "@opencode-ai/core/session-message-updater"
-import { SessionEvent } from "@opencode-ai/core/session-event"
+import { SessionMessage } from "@teamcode-ai/core/session-message"
+import { SessionMessageUpdater } from "@teamcode-ai/core/session-message-updater"
+import { SessionEvent } from "@teamcode-ai/core/session-event"
 import * as DateTime from "effect/DateTime"
 import { SyncEvent } from "@/sync"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { SessionMessageTable, SessionTable } from "./session.sql"
 import type { SessionID } from "./schema"
 import { Schema } from "effect"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@teamcode-ai/core/util/log"
 
 const log = Log.create({ service: "session.projectors-next" })
 

@@ -1,8 +1,8 @@
 import path from "path"
 import { Effect, Layer, Record, Result, Schema, Context } from "effect"
-import { NonNegativeInt } from "@opencode-ai/core/schema"
-import { Global } from "@opencode-ai/core/global"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { NonNegativeInt } from "@teamcode-ai/core/schema"
+import { Global } from "@teamcode-ai/core/global"
+import { AppFileSystem } from "@teamcode-ai/core/filesystem"
 
 export const OAUTH_DUMMY_KEY = "opencode-oauth-dummy-key"
 

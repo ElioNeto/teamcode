@@ -8,7 +8,7 @@ import { SessionID } from "@/session/schema"
 import { Agent } from "@/agent/agent"
 import { Permission } from "@/permission"
 import { InstanceState } from "@/effect/instance-state"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@teamcode-ai/core/util/log"
 
 const log = Log.create({ service: "swarm.orchestrator" })
 

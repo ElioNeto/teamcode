@@ -1,4 +1,4 @@
-import { AppProcess } from "@opencode-ai/core/process"
+import { AppProcess } from "@teamcode-ai/core/process"
 import { Effect, Layer, Context, Stream } from "effect"
 import { ChildProcess } from "effect/unstable/process"
 

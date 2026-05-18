@@ -11,7 +11,7 @@
 import { Bus } from "@/bus"
 import { BusEvent } from "@/bus/bus-event"
 import { Effect, Layer, Schema, Context, Deferred } from "effect"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@teamcode-ai/core/util/log"
 
 const log = Log.create({ service: "swarm.approval" })
 

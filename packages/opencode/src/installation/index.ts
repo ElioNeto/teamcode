@@ -3,14 +3,14 @@ import { FetchHttpClient, HttpClient, HttpClientRequest, HttpClientResponse } fr
 import { withTransientReadRetry } from "@/util/effect-http-client"
 import { errorMessage } from "@/util/error"
 import { ChildProcess } from "effect/unstable/process"
-import { AppProcess } from "@opencode-ai/core/process"
+import { AppProcess } from "@teamcode-ai/core/process"
 import path from "path"
 import { BusEvent } from "@/bus/bus-event"
-import * as Log from "@opencode-ai/core/util/log"
-import { makeRuntime } from "@opencode-ai/core/effect/runtime"
+import * as Log from "@teamcode-ai/core/util/log"
+import { makeRuntime } from "@teamcode-ai/core/effect/runtime"
 import semver from "semver"
-import { InstallationChannel, InstallationVersion } from "@opencode-ai/core/installation/version"
-import { NpmConfig } from "@opencode-ai/core/npm-config"
+import { InstallationChannel, InstallationVersion } from "@teamcode-ai/core/installation/version"
+import { NpmConfig } from "@teamcode-ai/core/npm-config"
 
 const log = Log.create({ service: "installation" })
 
