@@ -2,7 +2,7 @@ import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { app, utilityProcess } from "electron"
 import type { Details } from "electron"
-import { DEFAULT_SERVER_URL_KEY, WSL_ENABLED_KEY } from "./constants"
+import { DEFAULT_SERVER_URL_KEY, DISPLAY_BACKEND_KEY, WSL_ENABLED_KEY } from "./constants"
 import { getUserShell, loadShellEnv } from "./shell-env"
 import { getStore } from "./store"
 import type { SqliteMigrationProgress } from "../preload/types"
@@ -53,6 +53,21 @@ export function getWslConfig(): WslConfig {
 
 export function setWslConfig(config: WslConfig) {
   getStore().set(WSL_ENABLED_KEY, config.enabled)
+}
+
+export type DisplayBackend = "auto" | "wayland"
+
+export function getDisplayBackend(): DisplayBackend | null {
+  const value = getStore().get(DISPLAY_BACKEND_KEY)
+  return value === "auto" || value === "wayland" ? value : null
+}
+
+export function setDisplayBackend(backend: DisplayBackend | null) {
+  if (backend === "auto" || backend === "wayland") {
+    getStore().set(DISPLAY_BACKEND_KEY, backend)
+  } else {
+    getStore().delete(DISPLAY_BACKEND_KEY)
+  }
 }
 
 export function preferAppEnv(userDataPath: string) {

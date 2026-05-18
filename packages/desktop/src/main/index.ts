@@ -20,9 +20,11 @@ import { parseMarkdown } from "./markdown"
 import { createMenu } from "./menu"
 import {
   getDefaultServerUrl,
+  getDisplayBackend,
   getWslConfig,
   preferAppEnv,
   setDefaultServerUrl,
+  setDisplayBackend,
   setWslConfig,
   spawnLocalServer,
   type SidecarListener,
@@ -159,6 +161,14 @@ const main = Effect.gen(function* () {
   app.commandLine.appendSwitch("proxy-bypass-list", "<-loopback>")
   if (!app.isPackaged) app.commandLine.appendSwitch("remote-debugging-port", "9222")
 
+  // Apply stored display backend preference (e.g., native Wayland)
+  if (process.platform === "linux") {
+    const backend = getDisplayBackend()
+    if (backend === "wayland") {
+      app.commandLine.appendSwitch("ozone-platform", "wayland")
+    }
+  }
+
   if (!app.requestSingleInstanceLock()) {
     app.quit()
     return
@@ -225,8 +235,8 @@ const main = Effect.gen(function* () {
     setDefaultServerUrl: (url) => setDefaultServerUrl(url),
     getWslConfig: () => Promise.resolve(getWslConfig()),
     setWslConfig: (config: WslConfig) => setWslConfig(config),
-    getDisplayBackend: async () => null,
-    setDisplayBackend: async () => undefined,
+    getDisplayBackend: async () => getDisplayBackend(),
+    setDisplayBackend: async (backend) => { setDisplayBackend(backend as any); },
     parseMarkdown: async (markdown) => parseMarkdown(markdown),
     checkAppExists: (appName) => checkAppExists(appName),
     wslPath: async (path, mode) => wslPath(path, mode),
