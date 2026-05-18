@@ -704,7 +704,12 @@ export function Prompt(props: PromptProps) {
 
     // Slot/plugin updates can remount the background prompt while a dialog is open.
     // Keep focus with the dialog and let the prompt reclaim it after the dialog closes.
-    if (!input.focused) input.focus()
+    if (!input.focused) {
+      // Defer focus to the next microtask to avoid race with keyboard event processing.
+      // Without this deferral, the first keypress after a blur can be consumed by
+      // another keybinding layer before focus is restored, requiring a double-press.
+      queueMicrotask(() => input.focus())
+    }
   })
 
   createEffect(() => {

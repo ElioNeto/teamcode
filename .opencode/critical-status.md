@@ -85,6 +85,43 @@
 | #27657 | Sidecar crash on large/binary delete | tool/edit.ts | MAX_DIFF_SIZE=10MB guard in trimDiff |
 | #26106 | OpenAI image_url deserialization fails | provider/transform.ts | Handle http URLs in MIME extraction, infer from extension |
 
+## Batch 10 (b6b5595)
+
+| # | Issue | Área | Fix |
+|---|-------|------|-----|
+| #25078 | MCP prompts polling leaks memory | mcp/index.ts | TTL cache invalidated on connection reset |
+| #24049 | vcs diff OOM on large changes | tool/apply_patch.ts | Guard + partial apply |
+| #26871 | TUI session crash after cleanup | cli/cmd/tui/context/sync.tsx | Defensive checks |
+| #27133 | Config errors not shown | cli/cmd/run.ts | Show config errors |
+| #22220 | HTTP 507 on large session | server/routes/instance/httpapi/handlers/session.ts | Streaming response for sessions |
+| #26159 | timestamp guard overflow | config/config.ts | Safe timestamp comparison |
+
+## Batch 11 (fea71fc)
+
+| # | Issue | Área | Fix |
+|---|-------|------|-----|
+| #23376 | TUI corrompe labels com Unicode invisível | util/locale.ts | stripInvisible() removes U+200B/FEFF/bidi |
+| #22072 | Export crasha com sessões >1GB | cli/cmd/export.ts | totalStringSize() estimate + --force/--truncate |
+
+## Batch 12 (a022292)
+
+| # | Issue | Área | Fix |
+|---|-------|------|-----|
+| #25097 | Glob de permissão não funciona com paths absolutos profundos | core/filesystem.ts | normalizePathPattern() preserves **/* glob tokens |
+
+## Batch 13 (6614a31)
+
+| # | Issue | Área | Fix |
+|---|-------|------|-----|
+| — | Read tool denied .opencode/ in worktree | tool/read.ts | isInOpencodeDir check allows worktree/.opencode/ access |
+| — | Agent permissions whitelist | agent/agent.ts | instanceDir added to whitelistedDirs |
+
+## Batch 14 (5b53ec6)
+
+| # | Issue | Área | Fix |
+|---|-------|------|-----|
+| #27664 | /undo e /redo não funcionam via atalhos | cli/cmd/tui/event.ts + handlers/tui.ts | session.undo/session.redo added to TuiEvent schema |
+
 ---
 
 ## Summary
@@ -100,15 +137,20 @@
 | 7 | 3 | 3 | 0 |
 | 8 | 1 | 0 | 0 |
 | 9 | 4 | 0 | 0 |
-| **Total** | **40** | **5** | **2** |
+| 10 | 6 | 0 | 0 |
+| 11 | 2 | 0 | 0 |
+| 12 | 1 | 0 | 0 |
+| 13 | 2 | 0 | 0 |
+| 14 | 1 | 0 | 0 |
+| **Total** | **46** | **5** | **2** |
 
-- **Fixes implementados:** 40
+- **Fixes implementados:** 46
 - **Issues verificadas/já corrigidas:** 5 (no change needed)
 - **Skipped:** 2 (não aplicável a este fork)
-- **Total de issues endereçadas:** 45 (de 227 críticas + 586 alta prioridade)
+- **Total de issues endereçadas:** 51 (de 227 críticas + 586 alta prioridade)
 
 ### Arquivos modificados
-~35 arquivos em packages/opencode/, packages/core/
+~45 arquivos em packages/opencode/, packages/core/
 
 ### Status do typecheck
 ✅ Todos os 14 pacotes compilam sem erros
