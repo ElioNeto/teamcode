@@ -1,4 +1,9 @@
-export const logo = [
+export type LogoShape = {
+  left: string[]
+  right: string[]
+}
+
+const wordmarkLeft = [
   ` ________                                   ______                   __           `,
   `|        \\                                 /      \\                 |  \\          `,
   ` \\$$$$$$$$______    ______   ______ ____  |  $$$$$$\\  ______    ____| $$  ______  `,
@@ -10,12 +15,22 @@ export const logo = [
   `    \\$$   \\$$$$$$$  \\$$$$$$$ \\$$  \\$$  \\$$  \\$$$$$$   \\$$$$$$   \\$$$$$$$  \\$$$$$$$`,
 ]
 
-export const go = [
-  `  ____  `,
-  ` / ___| `,
-  `| |  _  `,
-  `| |_| | `,
-  ` \\____| `,
-]
+const empty = wordmarkLeft.map(() => ``)
+
+export const logo: LogoShape = {
+  left: wordmarkLeft,
+  right: empty,
+}
+
+export const go: LogoShape = {
+  left: [
+    `  ____  `,
+    ` / ___| `,
+    `| |  _  `,
+    `| |_| | `,
+    ` \\____| `,
+  ],
+  right: [``, ``, ``, ``, ``],
+}
 
 export const marks = "_^~,"
