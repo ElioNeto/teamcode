@@ -21,7 +21,11 @@
     "test:e2e": "playwright test",
     "test:e2e:local": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:report": "playwright show-report e2e/playwright-report"
+    "test:e2e:report": "playwright show-report e2e/playwright-report",
+    "visual-validation": "bun run ./visual-validation/cli.ts",
+    "visual-validation:capture": "VISUAL_CAPTURE_ONLY=1 bun run ./visual-validation/cli.ts",
+    "test:e2e:visual": "playwright test e2e/visual-validation.spec.ts",
+    "test:e2e:visual:ci": "VISUAL_FAIL_THRESHOLD=1 CI=1 playwright test e2e/visual-validation.spec.ts --reporter=junit --reporter-outfile=.artifacts/unit/visual-validation-junit.xml"
   },
   "license": "MIT",
   "devDependencies": {
@@ -36,6 +40,10 @@
     "@typescript/native-preview": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
+    "pixelmatch": "7.1.0",
+    "pngjs": "7.0.0",
+    "@types/pixelmatch": "5.2.6",
+    "@types/pngjs": "6.0.5",
     "vite-plugin-icons-spritesheet": "3.0.1",
     "vite-plugin-solid": "catalog:"
   },

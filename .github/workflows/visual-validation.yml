@@ -1,0 +1,135 @@
+name: visual-validation
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "packages/app/src/**"
+      - "packages/ui/src/**"
+      - "packages/app/package.json"
+      - "packages/app/visual-validation/**"
+  pull_request:
+    paths:
+      - "packages/app/src/**"
+      - "packages/ui/src/**"
+      - "packages/app/package.json"
+      - "packages/app/visual-validation/**"
+  workflow_dispatch:
+    inputs:
+      capture:
+        description: "Capture new baselines"
+        required: false
+        default: false
+        type: boolean
+      tags:
+        description: "Route tags to filter (comma-separated)"
+        required: false
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  visual:
+    name: visual validation
+    runs-on: blacksmith-16vcpu-ubuntu-2404
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@f4d1e96c6e4c8bcb8c0e560b5ba4b1bdd59bdb8 # v2.0.1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: bunx playwright install chromium --with-deps
+        working-directory: packages/app
+
+      - name: Build packages
+        run: bun run build
+        env:
+          NODE_ENV: production
+
+      - name: Run visual validation
+        id: validation
+        working-directory: packages/app
+        run: |
+          if [ "${{ github.event.inputs.capture }}" = "true" ]; then
+            VISUAL_CAPTURE_ONLY=1 bun run visual-validation
+          else
+            mkdir -p .artifacts/unit
+            bun run test:e2e:visual:ci 2>&1 | tee .artifacts/unit/visual-validation.log
+          fi
+        env:
+          PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3000"
+          VISUAL_TAGS: "${{ github.event.inputs.tags }}"
+          CI: "true"
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        with:
+          name: visual-validation-screenshots
+          path: packages/app/visual-validation-output/
+          if-no-files-found: warn
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        with:
+          name: playwright-report
+          path: packages/app/e2e/playwright-report/
+          if-no-files-found: warn
+
+      - name: Upload JUnit results
+        if: always()
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        with:
+          name: visual-validation-junit
+          path: packages/app/.artifacts/unit/visual-validation-junit.xml
+          if-no-files-found: warn
+
+      - name: Publish JUnit report
+        if: always()
+        uses: dorny/test-reporter@6e6a1b3d6f53b12d9b2128bf4f2a45fbb30b983 # v2.1.0
+        with:
+          name: Visual Validation Results
+          path: packages/app/.artifacts/unit/visual-validation-junit.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Comment PR with summary
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            const summaryPath = 'packages/app/visual-validation-output/visual-validation-summary.md';
+            if (fs.existsSync(summaryPath)) {
+              const body = fs.readFileSync(summaryPath, 'utf-8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body
+              });
+            }
