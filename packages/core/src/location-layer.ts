@@ -17,11 +17,13 @@ export const extraPluginRegistrations: Effect.Effect<void, never, never>[] = []
 export class LocationServiceMap extends LayerMap.Service<LocationServiceMap>()("@opencode/example/LocationServiceMap", {
   lookup: (ref: Location.Ref) => {
     const location = Layer.succeed(Location.Service, Location.Service.of(ref))
-    const layers: Layer.Layer<never, never, never>[] = [Catalog.defaultLayer, PluginBoot.defaultLayer]
+    const base = Layer.mergeAll(Catalog.defaultLayer, PluginBoot.defaultLayer)
     if (extraPluginRegistrations.length > 0) {
-      layers.push(Layer.succeed(PluginBoot.ExtraPlugins, extraPluginRegistrations))
+      return Layer.mergeAll(base, Layer.succeed(PluginBoot.ExtraPlugins, extraPluginRegistrations)).pipe(
+        Layer.provide(location),
+      )
     }
-    return Layer.mergeAll(...layers).pipe(Layer.provide(location))
+    return base.pipe(Layer.provide(location))
   },
   idleTimeToLive: "5 minutes",
 }) {}
