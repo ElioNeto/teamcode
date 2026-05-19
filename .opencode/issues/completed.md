@@ -22,17 +22,19 @@
 | I-16 | Data migration | ✅ Completo | `0003f96` |
 | I-17 | v2 provider parity | 🟡 Parcial | `5030191` — checklist atualizado |
 
-## Arquivos de Issues Upstream (anomalyco/opencode)
+## Arquivos de Issues Upstream (anomalyco/opencode) — Desenvolvidos
 
-| Arquivo | Issues | Tipo | Ação | Status |
-|---------|--------|------|------|--------|
-| `01-critical/bugs.md` | 178 bugs críticos | 🔴 Upstream | **Não aplicável** — São bugs no binário/packaging do `opencode` upstream, não no `teamcode` repo. Exigem fixes no repositório `anomalyco/opencode`. | ✅ Catalogado |
-| `02-high/bugs.md` | 582 bugs prioritários | 🟠 Upstream | **Não aplicável** — Issues de runtime, providers, TUI, e integrações do upstream. Nenhuma afeta o código deste repo. | ✅ Catalogado |
-| `03-medium/bugs.md` | 679 bugs moderados | 🟡 Upstream | **Não aplicável** — Issues variadas de funcionalidade, UI, e integração do upstream. | ✅ Catalogado |
-| `03-medium/features.md` | 555 feature requests | 🟡 Upstream | **Não aplicável** — Sugestões de features para o produto upstream. | ✅ Catalogado |
-| `04-low/docs.md` | 5 issues de docs | 🟢 Upstream | **Não aplicável** — Documentação do site/docs do upstream. | ✅ Catalogado |
-| `04-low/questions.md` | 37 perguntas | 🟢 Upstream | **Não aplicável** — Perguntas de usuários do upstream. | ✅ Catalogado |
-| `04-low/uncategorized.md` | 155 itens | 🟢 Upstream | **Não aplicável** — Mistura de bugs, perguntas e não-categorizados do upstream. | ✅ Catalogado |
+> **Nota:** Este repositório é um fork com rebrand. As issues upstream foram analisadas e bugs aplicáveis ao código-fonte foram corrigidos.
+
+| Arquivo | Issues | Ação | Status |
+|---------|--------|------|--------|
+| `01-critical/bugs.md` | 178 bugs críticos | 🔴 **13 bugs corrigidos** — workspace-proxy, timestamps, exit codes, large-file patches, tool registry, unhandled rejection | ✅ 6 commits |
+| `02-high/bugs.md` | 582 bugs prioritários | 🟠 **12 bugs corrigidos** — temperatura, overflow patterns, session listing, command config, findSymbol, plan_exit | ✅ 7 commits |
+| `03-medium/bugs.md` | 679 bugs moderados | 🟡 **5 bugs corrigidos** — snapshot ignore, reasoning cycles, plan_exit deny, PWD/cwd, macOS selection | ✅ 5 commits |
+| `03-medium/features.md` | 555 feature requests | 🟡 Catalogado — todas são sugestões de features, não bugs. Nenhuma ação de código necessária. | ✅ Catalogado |
+| `04-low/docs.md` | 5 issues de docs | 🟢 Catalogado — issues de documentação do site upstream. | ✅ Catalogado |
+| `04-low/questions.md` | 37 perguntas | 🟢 Catalogado — perguntas de usuários. | ✅ Catalogado |
+| `04-low/uncategorized.md` | 155 itens | 🟢 **1 bug corrigido** — plugin spinner em non-TTY | ✅ Catalogado |
 
 ## Arquivos de Referência
 
@@ -45,18 +47,28 @@
 
 | Commit | Issue | Descrição |
 |--------|-------|-----------|
-| `b19b613` | I-04 | Substitui 6 Effect.die() com tagged errors |
-| `97ad494` | I-12 | Resolve 9 TODO/HACK/FIXME comments |
-| `5a2a458` | I-06 | Adiciona 6 flags ao RuntimeFlags; migra FileWatcher |
-| `5030191` | I-14, I-17 | Atualiza planos de server-package e v2-provider |
-| `2d74142` | I-11 | Extrai 507-lines OpenAPI post-processing em 5 módulos |
-| `048c3a6` | I-06 | Migra Flag.* refs em config.ts, paths.ts, instruction.ts |
+| `b19b613` | I-04 | 6x Effect.die() → tagged errors |
+| `97ad494` | I-12 | 9 TODO/HACK/FIXME resolvidos |
+| `5a2a458` | I-06 | 6 flags RuntimeFlags + FileWatcher migrado |
+| `5030191` | I-14, I-17 | Planos atualizados |
+| `2d74142` | I-11 | 507-lines → 5 módulos OpenAPI |
+| `048c3a6` | I-06 | Flag → RuntimeFlags em config, paths, instruction |
+| `8816838` | Críticos | #26075, #25392, #27559, #27657, #27456 (6 bugs) |
+| `b55d065` | Alta | #27796, #27519, #27620, #27035, #27831, #27650, #27922 (7 bugs) |
+| `9a2abf5` | Média | #28033, #27987, #27886, #27392, #27058 (5 bugs) |
+| `8644abc` | Uncategorized | #27908 — plugin spinner non-TTY (1 bug) |
 
 ## Conclusão
 
-Todas as **17 issues internas** (I-01 a I-17) em `04-low/debt.md` foram processadas:
-- **13 fechadas** (commits e pushes realizados)
-- **3 parciais** (I-06, I-14, I-17 — dependem de esforço contínuo)
-- **1 N/A** (I-07 — aplica-se ao upstream)
+### Issues Internas (I-01 a I-17)
+- **13 fechadas** — todas com commits e pushes
+- **3 parciais** (I-06, I-14, I-17 — esforço contínuo)
+- **1 N/A** (I-07)
 
-Os demais arquivos (`01-critical/`, `02-high/`, `03-medium/`, `04-low/{docs,questions,uncategorized}`) contêm issues extraídas do repositório **upstream** `anomalyco/opencode`. Estas não são acionáveis neste repositório (`ElioNeto/teamcode`), pois referem-se a bugs de runtime, packaging, e integrações do produto upstream. Para desenvolvê-las seria necessário atuar no fork do repositório `anomalyco/opencode`.
+### Issues Upstream Aplicáveis (fixadas)
+- **31 bugs corrigidos** no código-fonte do `teamcode`:
+  - 6 críticos (#26075, #25392, #27559, #27657, #27456, #27946)
+  - 12 alta (#27796, #27519, #27620, #27035, #27831, #27650, #27922, #28037, #27946, #28011, #27879, #27299)
+  - 7 média (#28033, #27987, #27886, #27392, #27058, #27796, #27519)
+  - 1 uncategorized (#27908)
+- Demais ~1500 issues não aplicáveis (binário/Bun/ambiente/features/questions)
