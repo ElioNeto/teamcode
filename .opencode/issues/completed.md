@@ -9,7 +9,7 @@
 | I-03 | 16 `NamedError.create()` legados | ✅ Completo | Todos migrados para `Schema.TaggedErrorClass` |
 | I-04 | 6+ `Effect.die()` usados para erros esperados | ✅ Completo | `b19b613` — tagged errors + log |
 | I-05 | 15 blocos TODO(v2) de dual-write | ✅ Completo | `395e252` — FIXME(v2-migration) |
-| I-06 | 66+ referências `Flag.*` precisam migrar | 🟡 Parcial (~39 restam) | `5a2a458` + `048c3a6` — 6 flags adicionadas; FileWatcher/config/paths/instruction migrados |
+| I-06 | 66+ referências `Flag.*` precisam migrar | ✅ Completo | `5a2a458` + `048c3a6` + `03efac3` — todas as ~66 referências migradas para `RuntimeFlags.Service` |
 | I-07 | Bun Shell Migration | ✅ N/A | Aplica-se ao upstream |
 | I-08 | 2 facades `makeRuntime` | ✅ Completo | `makeRuntime` é o padrão recomendado |
 | I-09 | ConfigPaths.Service | ✅ Completo | `228d84c` |
@@ -58,12 +58,13 @@
 | `9a2abf5` | Média | #28033, #27987, #27886, #27392, #27058 (5 bugs) |
 | `8644abc` | Uncategorized | #27908 — plugin spinner non-TTY (1 bug) |
 | `8318a98` | Rebrand | opencode → teamcode (138 arquivos, 208 alterações) |
+| `03efac3` | I-06 | Migração completa de Flag.* → RuntimeFlags (21 arquivos, 160 inserts) |
 
 ## Conclusão
 
 ### Issues Internas (I-01 a I-17)
-- **13 fechadas** — todas com commits e pushes
-- **3 parciais** (I-06, I-14, I-17 — esforço contínuo)
+- **14 fechadas** — todas com commits e pushes
+- **2 parciais** (I-14, I-17 — esforço contínuo)
 - **1 N/A** (I-07)
 
 ### Issues Upstream Aplicáveis (fixadas)
