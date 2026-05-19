@@ -59,7 +59,7 @@ export function define<const Type extends string, Fields extends Schema.Struct.F
 }
 
 export function definitions() {
-  return registry.values().toArray()
+  return Array.from(registry.values())
 }
 
 export interface PublishOptions {

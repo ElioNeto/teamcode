@@ -128,7 +128,7 @@ export const Info = Schema.Struct({
     description: "Server configuration for opencode serve and web commands",
   }),
   command: Schema.optional(Schema.Record(Schema.String, ConfigCommand.Info)).annotate({
-    description: "Command configuration, see https://teamcode.ai/docs/commands",
+    description: "Command configuration, see https://opencode.ai/docs/commands",
   }),
   skills: Schema.optional(ConfigSkills.Info).annotate({ description: "Additional skill folder paths" }),
   reference: Schema.optional(ConfigReference.Info).annotate({
@@ -201,7 +201,7 @@ export const Info = Schema.Struct({
       }),
       [Schema.Record(Schema.String, ConfigAgent.Info)],
     ),
-  ).annotate({ description: "Agent configuration, see https://teamcode.ai/docs/agents" }),
+  ).annotate({ description: "Agent configuration, see https://opencode.ai/docs/agents" }),
   provider: Schema.optional(Schema.Record(Schema.String, ConfigProvider.Info)).annotate({
     description: "Custom provider configurations and model overrides",
   }),
@@ -394,8 +394,8 @@ export const layer = Layer.effect(
 
       yield* Effect.promise(() => resolveLoadedPlugins(data, options.path))
       if (!data.$schema) {
-        data.$schema = "https://teamcode.ai/config.json"
-        const updated = text.replace(/^\s*\{/, '{\n  "$schema": "https://teamcode.ai/config.json",')
+        data.$schema = "https://opencode.ai/config.json"
+        const updated = text.replace(/^\s*\{/, '{\n  "$schema": "https://opencode.ai/config.json",')
         yield* fs.writeFileString(options.path, updated).pipe(Effect.catch(() => Effect.void))
       }
       return data
@@ -417,7 +417,7 @@ export const layer = Layer.effect(
         const file = globalConfigFile()
         if (!existsSync(file)) {
           yield* fs
-            .writeWithDirs(file, JSON.stringify({ $schema: "https://teamcode.ai/config.json" }, null, 2))
+            .writeWithDirs(file, JSON.stringify({ $schema: "https://opencode.ai/config.json" }, null, 2))
             .pipe(Effect.catch(() => Effect.void))
         }
       }
@@ -432,7 +432,7 @@ export const layer = Layer.effect(
             .then(async (mod) => {
               const { provider, model, ...rest } = mod.default
               if (provider && model) result.model = `${provider}/${model}`
-              result["$schema"] = "https://teamcode.ai/config.json"
+              result["$schema"] = "https://opencode.ai/config.json"
               result = mergeConfig(result, rest)
               await fsNode.writeFile(path.join(Global.Path.config, "config.json"), JSON.stringify(result, null, 2))
               await fsNode.unlink(legacy)
@@ -552,7 +552,7 @@ export const layer = Layer.effect(
               })) as Record<string, unknown>)
               : {}
             const remoteConfig = mergeConfig(wellknown.config ?? {}, fetchedConfig as Info)
-            if (!remoteConfig.$schema) remoteConfig.$schema = "https://teamcode.ai/config.json"
+            if (!remoteConfig.$schema) remoteConfig.$schema = "https://opencode.ai/config.json"
             const source = `${url}/.well-known/opencode`
             const next = yield* loadConfig(JSON.stringify(remoteConfig), {
               dir: path.dirname(source),

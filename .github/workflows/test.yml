@@ -49,7 +49,7 @@ jobs:
 
       - name: Configure git identity
         run: |
-          git config --global user.email "bot@teamcode.ai"
+          git config --global user.email "bot@opencode.ai"
           git config --global user.name "teamcode"
 
       - name: Cache Turbo

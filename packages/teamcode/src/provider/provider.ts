@@ -411,7 +411,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://teamcode.ai/",
+            "HTTP-Referer": "https://opencode.ai/",
             "X-Title": "teamcode",
             "X-Source": "teamcode",
           },
@@ -422,7 +422,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://teamcode.ai/",
+            "HTTP-Referer": "https://opencode.ai/",
             "X-Title": "teamcode",
           },
         },
@@ -432,7 +432,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: provider.source === "config",
         options: {
           headers: {
-            "HTTP-Referer": "https://teamcode.ai/",
+            "HTTP-Referer": "https://opencode.ai/",
             "X-Title": "teamcode",
             "X-BILLING-INVOKE-ORIGIN": "TeamCode",
           },
@@ -443,7 +443,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "http-referer": "https://teamcode.ai/",
+            "http-referer": "https://opencode.ai/",
             "x-title": "teamcode",
           },
         },
@@ -461,10 +461,10 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
 
       const location = String(
         provider.options?.location ??
-          env["GOOGLE_VERTEX_LOCATION"] ??
-          env["GOOGLE_CLOUD_LOCATION"] ??
-          env["VERTEX_LOCATION"] ??
-          "us-central1",
+        env["GOOGLE_VERTEX_LOCATION"] ??
+        env["GOOGLE_CLOUD_LOCATION"] ??
+        env["VERTEX_LOCATION"] ??
+        "us-central1",
       )
 
       const autoload = Boolean(project)
@@ -547,7 +547,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://teamcode.ai/",
+            "HTTP-Referer": "https://opencode.ai/",
             "X-Title": "teamcode",
           },
         },
@@ -631,9 +631,9 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
               log.info("gitlab model discovery skipped: no models found", {
                 project: result.project
                   ? {
-                      id: result.project.id,
-                      path: result.project.pathWithNamespace,
-                    }
+                    id: result.project.id,
+                    path: result.project.pathWithNamespace,
+                  }
                   : null,
               })
               return {}
@@ -775,7 +775,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
       if (!apiToken) {
         throw new Error(
           "CLOUDFLARE_API_TOKEN (or CF_AIG_TOKEN) is required for Cloudflare AI Gateway. " +
-            "Set it via environment variable or run `opencode auth cloudflare-ai-gateway`.",
+          "Set it via environment variable or run `opencode auth cloudflare-ai-gateway`.",
         )
       }
 
@@ -833,7 +833,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://teamcode.ai/",
+            "HTTP-Referer": "https://opencode.ai/",
             "X-Title": "teamcode",
           },
         },
@@ -1008,7 +1008,7 @@ interface State {
   varsLoaders: Record<string, CustomVarsLoader>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@teamcode/Provider") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/Provider") { }
 
 function cost(c: ModelsDev.Model["cost"]): Model["cost"] {
   const result: Model["cost"] = {
@@ -1108,11 +1108,11 @@ export function fromModelsDevProvider(provider: ModelsDev.Provider): Info {
         cost: opts.cost ? mergeDeep(base.cost, cost(opts.cost)) : base.cost,
         options: opts.provider?.body
           ? Object.fromEntries(
-              Object.entries(opts.provider.body).map(([k, v]) => [
-                k.replace(/_([a-z])/g, (_, c) => c.toUpperCase()),
-                v,
-              ]),
-            )
+            Object.entries(opts.provider.body).map(([k, v]) => [
+              k.replace(/_([a-z])/g, (_, c) => c.toUpperCase()),
+              v,
+            ]),
+          )
           : base.options,
         headers: opts.provider?.headers ?? base.headers,
       }
@@ -1660,8 +1660,8 @@ export const layer = Layer.effect(
         const suggestions = catalogProvider
           ? modelSuggestions(catalogProvider, modelID, runtimeFlags.enableExperimentalModels)
           : fuzzysort
-              .go(providerID, Object.keys({ ...s.catalog, ...s.providers }), { limit: 3, threshold: -10000 })
-              .map((m) => m.target)
+            .go(providerID, Object.keys({ ...s.catalog, ...s.providers }), { limit: 3, threshold: -10000 })
+            .map((m) => m.target)
         return yield* new ModelNotFoundError({ providerID, modelID, suggestions })
       }
 
@@ -1688,9 +1688,9 @@ export const layer = Layer.effect(
           const sdk = await resolveSDK(model, s, envs)
           const language = s.modelLoaders[model.providerID]
             ? await s.modelLoaders[model.providerID](sdk, model.api.id, {
-                ...provider.options,
-                ...model.options,
-              })
+              ...provider.options,
+              ...model.options,
+            })
             : sdk.languageModel(model.api.id)
           s.models.set(key, language)
           return language

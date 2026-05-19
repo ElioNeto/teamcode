@@ -52,7 +52,15 @@ type Journal = { sql: string; timestamp: number; name: string }[]
 const migrateFromJournal = migrate as unknown as (db: SQLiteBunDatabase, entries: Journal) => void
 
 function applyMigrations(db: SQLiteBunDatabase, entries: Journal) {
-  migrateFromJournal(db, entries)
+  // Normalize SQL so each statement is separated by ;--> statement-breakpoint
+  // Required by better-sqlite3 which rejects multi-statement SQL per prepare() call
+  const normalized = entries.map((entry) => {
+    if (entry.sql.includes("--> statement-breakpoint")) return entry
+    const parts = entry.sql.split(";").map((s) => s.trim()).filter(Boolean)
+    if (parts.length <= 1) return entry
+    return { ...entry, sql: parts.join(";--> statement-breakpoint") }
+  })
+  migrateFromJournal(db, normalized)
 }
 
 function time(tag: string) {

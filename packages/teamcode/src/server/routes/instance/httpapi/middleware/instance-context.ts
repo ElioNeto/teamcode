@@ -43,14 +43,21 @@ function provideInstanceContext<E>(
 export const instanceContextLayer = Layer.effect(
   InstanceContextMiddleware,
   Effect.gen(function* () {
-    const store = yield* InstanceStore.Service
-    return InstanceContextMiddleware.of((effect) => provideInstanceContext(effect, store))
+    return InstanceContextMiddleware.of((effect) =>
+      Effect.gen(function* () {
+        const store = yield* InstanceStore.Service
+        return yield* provideInstanceContext(effect, store)
+      }),
+    )
   }),
 )
 
 export const instanceRouterMiddleware = HttpRouter.middleware()(
   Effect.gen(function* () {
-    const store = yield* InstanceStore.Service
-    return (effect) => provideInstanceContext(effect, store)
+    return (effect) =>
+      Effect.gen(function* () {
+        const store = yield* InstanceStore.Service
+        return yield* provideInstanceContext(effect, store)
+      })
   }),
 )

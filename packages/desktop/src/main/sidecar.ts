@@ -1,4 +1,4 @@
-import { drizzle } from "drizzle-orm/node-sqlite/driver"
+import { drizzle } from "drizzle-orm/better-sqlite3"
 import * as http from "node:http"
 import * as tls from "node:tls"
 

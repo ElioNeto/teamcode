@@ -49,11 +49,14 @@ const VERSION = await (async () => {
 
 const bot = ["actions-user", "teamcode", "teamcode-agent[bot]"]
 const teamPath = path.resolve(import.meta.dir, "../../../.github/TEAM_MEMBERS")
+const teamFileExists = await Bun.file(teamPath).exists()
 const team = [
-  ...(await Bun.file(teamPath)
-    .text()
-    .then((x) => x.split(/\r?\n/).map((x) => x.trim()))
-    .then((x) => x.filter((x) => x && !x.startsWith("#")))),
+  ...(teamFileExists
+    ? await Bun.file(teamPath)
+        .text()
+        .then((x) => x.split(/\r?\n/).map((x) => x.trim()))
+        .then((x) => x.filter((x) => x && !x.startsWith("#")))
+    : []),
   ...bot,
 ]
 

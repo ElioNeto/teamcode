@@ -186,7 +186,7 @@ export const GithubCommand = cmd({
   command: "github",
   describe: "manage GitHub agent",
   builder: (yargs) => yargs.command(GithubInstallCommand).command(GithubRunCommand).demandCommand(),
-  async handler() {},
+  async handler() { },
 })
 
 export const GithubInstallCommand = effectCmd({
@@ -241,7 +241,7 @@ export const GithubInstallCommand = effectCmd({
               "",
               "    3. Go to a GitHub issue and comment `/oc summarize` to see the agent in action",
               "",
-              "   Learn more about the GitHub agent - https://teamcode.ai/docs/github/#usage-examples",
+              "   Learn more about the GitHub agent - https://opencode.ai/docs/github/#usage-examples",
             ].join("\n"),
           )
         }
@@ -263,8 +263,8 @@ export const GithubInstallCommand = effectCmd({
           }
           const remoteName =
             remotes.includes("origin") ? "origin" :
-            remotes.includes("upstream") ? "upstream" :
-            remotes[0]
+              remotes.includes("upstream") ? "upstream" :
+                remotes[0]
 
           const info = await Effect.runPromise(
             gitSvc.run(["remote", "get-url", remoteName], { cwd: ctx.worktree }),
@@ -374,7 +374,7 @@ export const GithubInstallCommand = effectCmd({
 
           async function getInstallation() {
             return await fetch(
-              `https://api.teamcode.ai/get_github_app_installation?owner=${app.owner}&repo=${app.repo}`,
+              `https://api.opencode.ai/get_github_app_installation?owner=${app.owner}&repo=${app.repo}`,
             )
               .then((res) => res.json())
               .then((data) => data.installation)
@@ -494,7 +494,7 @@ export const GithubRunCommand = effectCmd({
           ? (payload as IssueCommentEvent | IssuesEvent).issue.number
           : (payload as PullRequestEvent | PullRequestReviewCommentEvent).pull_request.number
       const runUrl = `/${owner}/${repo}/actions/runs/${runId}`
-      const shareBaseUrl = isMock ? "https://dev.teamcode.ai" : "https://teamcode.ai"
+      const shareBaseUrl = isMock ? "https://dev.opencode.ai" : "https://opencode.ai"
 
       let appToken: string
       let octoRest: Octokit
@@ -755,7 +755,7 @@ export const GithubRunCommand = effectCmd({
 
       function normalizeOidcBaseUrl(): string {
         const value = process.env["OIDC_BASE_URL"]
-        if (!value) return "https://api.teamcode.ai"
+        if (!value) return "https://api.opencode.ai"
         return value.replace(/\/+$/, "")
       }
 
@@ -1053,18 +1053,18 @@ export const GithubRunCommand = effectCmd({
       async function exchangeForAppToken(token: string) {
         const response = token.startsWith("github_pat_")
           ? await fetch(`${oidcBaseUrl}/exchange_github_app_token_with_pat`, {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({ owner, repo }),
-            })
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ owner, repo }),
+          })
           : await fetch(`${oidcBaseUrl}/exchange_github_app_token`, {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            })
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
 
         if (!response.ok) {
           const responseJson = (await response.json()) as { error?: string }

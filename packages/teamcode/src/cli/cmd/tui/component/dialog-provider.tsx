@@ -37,12 +37,12 @@ type ProviderOptionBase = {
 
 type ProviderOption =
   | (ProviderOptionBase & {
-      type: "provider"
-      providerID: string
-    })
+    type: "provider"
+    providerID: string
+  })
   | (ProviderOptionBase & {
-      type: "custom"
-    })
+    type: "custom"
+  })
 
 export function providerOptions(list: { id: string; name: string }[]): ProviderOption[] {
   return [
@@ -362,7 +362,7 @@ function ApiMethod(props: ApiMethodProps) {
                 key.
               </text>
               <text fg={theme.text}>
-                Go to <span style={{ fg: theme.primary }}>https://teamcode.ai/zen</span> to get a key
+                Go to <span style={{ fg: theme.primary }}>https://opencode.ai/zen</span> to get a key
               </text>
             </box>
           ),
@@ -373,7 +373,7 @@ function ApiMethod(props: ApiMethodProps) {
                 with generous usage limits.
               </text>
               <text fg={theme.text}>
-                Go to <span style={{ fg: theme.primary }}>https://teamcode.ai/zen</span> and enable TeamCode Go
+                Go to <span style={{ fg: theme.primary }}>https://opencode.ai/zen</span> and enable TeamCode Go
               </text>
             </box>
           ),

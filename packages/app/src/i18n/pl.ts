@@ -125,7 +125,7 @@ export const dict = {
   "provider.connect.teamcodeZen.line2":
     "Z jednym kluczem API uzyskasz dostęp do modeli takich jak Claude, GPT, Gemini, GLM i więcej.",
   "provider.connect.teamcodeZen.visit.prefix": "Odwiedź ",
-  "provider.connect.teamcodeZen.visit.link": "teamcode.ai/zen",
+  "provider.connect.teamcodeZen.visit.link": "opencode.ai/zen",
   "provider.connect.teamcodeZen.visit.suffix": ", aby odebrać swój klucz API.",
   "provider.connect.oauth.code.visit.prefix": "Odwiedź ",
   "provider.connect.oauth.code.visit.link": "ten link",

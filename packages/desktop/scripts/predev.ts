@@ -17,4 +17,4 @@ if (!existsSync(resolve(electronDir, "dist", binName))) {
 
 await $`bun ./scripts/copy-icons.ts ${process.env.OPENCODE_CHANNEL ?? "dev"}`
 
-await $`cd ../opencode && bun script/build-node.ts`
+await $`cd ../teamcode && bun script/build-node.ts`

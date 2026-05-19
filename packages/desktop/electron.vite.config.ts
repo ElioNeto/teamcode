@@ -9,7 +9,7 @@ const channel = (() => {
   return "dev"
 })()
 
-const OPENCODE_SERVER_DIST = "../opencode/dist/node"
+const OPENCODE_SERVER_DIST = "../teamcode/dist/node"
 
 const nodePtyPkg = `@lydell/node-pty-${process.platform}-${process.arch}`
 

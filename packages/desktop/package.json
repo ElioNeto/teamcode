@@ -4,15 +4,15 @@
   "version": "1.15.4",
   "type": "module",
   "license": "MIT",
-  "homepage": "https://teamcode.ai",
+  "homepage": "https://opencode.ai",
   "author": {
     "name": "TeamCode",
-    "email": "hello@teamcode.ai"
+    "email": "hello@opencode.ai"
   },
   "scripts": {
     "typecheck": "tsgo -b",
     "predev": "bun ./scripts/predev.ts",
-    "dev": "electron-vite dev",
+    "dev": "bun ./scripts/dev.ts",
     "prebuild": "bun ./scripts/prebuild.ts",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
@@ -30,6 +30,7 @@
     "electron-store": "^10",
     "electron-updater": "^6",
     "electron-window-state": "^5.0.3",
+    "better-sqlite3": "12.10.0",
     "drizzle-orm": "catalog:",
     "marked": "^15"
   },

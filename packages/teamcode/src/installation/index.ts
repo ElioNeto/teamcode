@@ -66,7 +66,7 @@ export function isLocal() {
 
 export class UpgradeFailedError extends Schema.TaggedErrorClass<UpgradeFailedError>()("UpgradeFailedError", {
   stderr: Schema.String,
-}) {}
+}) { }
 
 // Response schemas for external version APIs
 const GitHubRelease = Schema.Struct({ tag_name: Schema.String })
@@ -87,7 +87,7 @@ export interface Interface {
   readonly upgrade: (method: Method, target: string) => Effect.Effect<void, UpgradeFailedError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@teamcode/Installation") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/Installation") { }
 
 export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Service> = Layer.effect(
   Service,
@@ -137,7 +137,7 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
     })
 
     const upgradeCurl = Effect.fnUntraced(function* (target: string) {
-      const response = yield* httpOk.execute(HttpClientRequest.get("https://teamcode.ai/install"))
+      const response = yield* httpOk.execute(HttpClientRequest.get("https://opencode.ai/install"))
       const body = yield* response.text
       const bodyBytes = new TextEncoder().encode(body)
       const result = yield* appProcess.run(

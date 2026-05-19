@@ -124,7 +124,7 @@ export const dict = {
     "TeamCode Zenは、コーディングエージェント向けに最適化された信頼性の高いモデルへのアクセスを提供します。",
   "provider.connect.teamcodeZen.line2": "1つのAPIキーで、Claude、GPT、Gemini、GLMなどのモデルにアクセスできます。",
   "provider.connect.teamcodeZen.visit.prefix": " ",
-  "provider.connect.teamcodeZen.visit.link": "teamcode.ai/zen",
+  "provider.connect.teamcodeZen.visit.link": "opencode.ai/zen",
   "provider.connect.teamcodeZen.visit.suffix": " にアクセスしてAPIキーを取得してください。",
   "provider.connect.oauth.code.visit.prefix": " ",
   "provider.connect.oauth.code.visit.link": "このリンク",

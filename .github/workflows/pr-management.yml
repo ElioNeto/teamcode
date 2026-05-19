@@ -37,7 +37,7 @@ jobs:
 
       - name: Install teamcode
         if: steps.team-check.outputs.is_team != 'true'
-        run: curl -fsSL https://teamcode.ai/install | bash
+        run: curl -fsSL https://opencode.ai/install | bash
 
       - name: Build prompt
         if: steps.team-check.outputs.is_team != 'true'

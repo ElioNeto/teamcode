@@ -389,21 +389,17 @@ function process<Def extends Definition>(
 
 export function effectPayloads() {
   return [
-    ...registry
-      .entries()
-      .map(([type, def]) =>
-        EffectSchema.Struct({
-          type: EffectSchema.Literal("sync"),
-          name: EffectSchema.Literal(type),
-          id: EffectSchema.String,
-          seq: EffectSchema.Finite,
-          aggregateID: EffectSchema.Literal(def.aggregate),
-          data: def.schema,
-        }).annotate({ identifier: `SyncEvent.${type}` }),
-      )
-      .toArray(),
-    ...EventV2.registry
-      .values()
+    ...Array.from(registry.entries()).map(([type, def]) =>
+      EffectSchema.Struct({
+        type: EffectSchema.Literal("sync"),
+        name: EffectSchema.Literal(type),
+        id: EffectSchema.String,
+        seq: EffectSchema.Finite,
+        aggregateID: EffectSchema.Literal(def.aggregate),
+        data: def.schema,
+      }).annotate({ identifier: `SyncEvent.${type}` }),
+    ),
+    ...Array.from(EventV2.registry.values())
       .filter(
         (definition) =>
           definition.version !== undefined && !registry.has(versionedType(definition.type, definition.version)),
@@ -417,8 +413,7 @@ export function effectPayloads() {
           aggregateID: EffectSchema.Literal(definition.aggregate!),
           data: definition.data,
         }).annotate({ identifier: `SyncEvent.${definition.type}` }),
-      )
-      .toArray(),
+      ),
   ]
 }
 

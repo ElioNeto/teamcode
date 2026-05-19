@@ -32,7 +32,7 @@ jobs:
       - uses: ./.github/actions/setup-bun
 
       - name: Install teamcode
-        run: curl -fsSL https://teamcode.ai/install | bash
+        run: curl -fsSL https://opencode.ai/install | bash
 
       - name: Get PR details
         id: pr-details

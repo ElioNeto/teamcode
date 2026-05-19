@@ -137,7 +137,7 @@ export const dict = {
   "provider.connect.teamcodeZen.line2":
     "Med en enkelt API-nøgle får du adgang til modeller som Claude, GPT, Gemini, GLM og flere.",
   "provider.connect.teamcodeZen.visit.prefix": "Besøg ",
-  "provider.connect.teamcodeZen.visit.link": "teamcode.ai/zen",
+  "provider.connect.teamcodeZen.visit.link": "opencode.ai/zen",
   "provider.connect.teamcodeZen.visit.suffix": " for at hente din API-nøgle.",
   "provider.connect.oauth.code.visit.prefix": "Besøg ",
   "provider.connect.oauth.code.visit.link": "dette link",

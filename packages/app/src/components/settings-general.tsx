@@ -140,23 +140,23 @@ export const SettingsGeneral: Component = () => {
 
         const actions = platform.updateAndRestart
           ? [
-              {
-                label: language.t("toast.update.action.installRestart"),
-                onClick: async () => {
-                  await platform.updateAndRestart!()
-                },
+            {
+              label: language.t("toast.update.action.installRestart"),
+              onClick: async () => {
+                await platform.updateAndRestart!()
               },
-              {
-                label: language.t("toast.update.action.notYet"),
-                onClick: "dismiss" as const,
-              },
-            ]
+            },
+            {
+              label: language.t("toast.update.action.notYet"),
+              onClick: "dismiss" as const,
+            },
+          ]
           : [
-              {
-                label: language.t("toast.update.action.notYet"),
-                onClick: "dismiss" as const,
-              },
-            ]
+            {
+              label: language.t("toast.update.action.notYet"),
+              onClick: "dismiss" as const,
+            },
+          ]
 
         showToast({
           persistent: true,
@@ -503,7 +503,7 @@ export const SettingsGeneral: Component = () => {
           description={
             <>
               {language.t("settings.general.row.theme.description")}{" "}
-              <Link href="https://teamcode.ai/docs/themes/">{language.t("common.learnMore")}</Link>
+              <Link href="https://opencode.ai/docs/themes/">{language.t("common.learnMore")}</Link>
             </>
           }
         >

@@ -216,9 +216,9 @@ If the problem persists, use --no-tui or run in headless mode: opencode run`)
                       initialRoute={
                         input.args.continue
                           ? {
-                              type: "session",
-                              sessionID: "dummy",
-                            }
+                            type: "session",
+                            sessionID: "dummy",
+                          }
                           : undefined
                       }
                     >
@@ -610,18 +610,18 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
       },
       ...(sync.data.console_state.switchableOrgCount > 1
         ? [
-            {
-              name: "console.org.switch",
-              title: "Switch org",
-              suggested: Boolean(sync.data.console_state.activeOrgName),
-              slashName: "org",
-              slashAliases: ["orgs", "switch-org"],
-              run: () => {
-                dialog.replace(() => <DialogConsoleOrg />)
-              },
-              category: "Provider",
+          {
+            name: "console.org.switch",
+            title: "Switch org",
+            suggested: Boolean(sync.data.console_state.activeOrgName),
+            slashName: "org",
+            slashAliases: ["orgs", "switch-org"],
+            run: () => {
+              dialog.replace(() => <DialogConsoleOrg />)
             },
-          ]
+            category: "Provider",
+          },
+        ]
         : []),
       {
         name: "opencode.status",
@@ -673,7 +673,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
         name: "docs.open",
         title: "Open docs",
         run: () => {
-          open("https://teamcode.ai/docs").catch(() => {})
+          open("https://opencode.ai/docs").catch(() => { })
           dialog.clear()
         },
         category: "System",

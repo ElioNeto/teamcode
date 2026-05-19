@@ -11,7 +11,7 @@ import * as ConfigPaths from "@/config/paths"
 
 const log = Log.create({ service: "tui.migrate" })
 
-const TUI_SCHEMA_URL = "https://teamcode.ai/tui.json"
+const TUI_SCHEMA_URL = "https://opencode.ai/tui.json"
 
 const decodeTheme = Schema.decodeUnknownOption(Schema.String)
 const decodeRecord = Schema.decodeUnknownOption(Schema.Record(Schema.String, Schema.Unknown))
@@ -82,10 +82,10 @@ export async function migrateTuiConfig(input: MigrateInput) {
 
 function normalizeTui(data: Record<string, unknown>):
   | {
-      scroll_speed: number | undefined
-      scroll_acceleration: { enabled: boolean } | undefined
-      diff_style: "auto" | "stacked" | undefined
-    }
+    scroll_speed: number | undefined
+    scroll_acceleration: { enabled: boolean } | undefined
+    diff_style: "auto" | "stacked" | undefined
+  }
   | undefined {
   const parsed = {
     scroll_speed: Option.getOrUndefined(decodeScrollSpeed(data.scroll_speed)),
@@ -105,11 +105,11 @@ async function backupAndStripLegacy(file: string, source: string) {
   const backed = hasBackup
     ? true
     : await Filesystem.write(backup, source)
-        .then(() => true)
-        .catch((error) => {
-          log.warn("failed to backup source config during tui migration", { path: file, backup, error })
-          return false
-        })
+      .then(() => true)
+      .catch((error) => {
+        log.warn("failed to backup source config during tui migration", { path: file, backup, error })
+        return false
+      })
   if (!backed) return false
 
   const text = ["theme", "keybinds", "tui"].reduce((acc, key) => {

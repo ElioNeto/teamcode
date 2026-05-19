@@ -19,26 +19,20 @@ export function define<Type extends string, Properties extends Schema.Top>(
 
 export function effectPayloads() {
   return [
-    ...registry
-      .entries()
-      .map(([type, def]) =>
-        Schema.Struct({
-          id: Schema.String,
-          type: Schema.Literal(type),
-          properties: def.properties,
-        }).annotate({ identifier: `Event.${type}` }),
-      )
-      .toArray(),
-    ...EventV2.registry
-      .values()
-      .map((definition) =>
-        Schema.Struct({
-          id: Schema.String,
-          type: Schema.Literal(definition.type),
-          properties: definition.data,
-        }).annotate({ identifier: `Event.${definition.type}` }),
-      )
-      .toArray(),
+    ...Array.from(registry.entries()).map(([type, def]) =>
+      Schema.Struct({
+        id: Schema.String,
+        type: Schema.Literal(type),
+        properties: def.properties,
+      }).annotate({ identifier: `Event.${type}` }),
+    ),
+    ...Array.from(EventV2.registry.values()).map((definition) =>
+      Schema.Struct({
+        id: Schema.String,
+        type: Schema.Literal(definition.type),
+        properties: definition.data,
+      }).annotate({ identifier: `Event.${definition.type}` }),
+    ),
   ]
 }
 

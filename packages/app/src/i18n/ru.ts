@@ -137,7 +137,7 @@ export const dict = {
   "provider.connect.teamcodeZen.line2":
     "С одним API ключом вы получите доступ к таким моделям как Claude, GPT, Gemini, GLM и другим.",
   "provider.connect.teamcodeZen.visit.prefix": "Посетите ",
-  "provider.connect.teamcodeZen.visit.link": "teamcode.ai/zen",
+  "provider.connect.teamcodeZen.visit.link": "opencode.ai/zen",
   "provider.connect.teamcodeZen.visit.suffix": " чтобы получить ваш API ключ.",
   "provider.connect.oauth.code.visit.prefix": "Посетите ",
   "provider.connect.oauth.code.visit.link": "эту ссылку",

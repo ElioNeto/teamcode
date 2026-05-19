@@ -1,10 +1,10 @@
 # teamcode VS Code Extension
 
-A Visual Studio Code extension that integrates [teamcode](https://teamcode.ai) directly into your development workflow.
+A Visual Studio Code extension that integrates [teamcode](https://opencode.ai) directly into your development workflow.
 
 ## Prerequisites
 
-This extension requires the [teamcode CLI](https://teamcode.ai) to be installed on your system. Visit [teamcode.ai](https://teamcode.ai) for installation instructions.
+This extension requires the [teamcode CLI](https://opencode.ai) to be installed on your system. Visit [opencode.ai](https://opencode.ai) for installation instructions.
 
 ## Features
 
