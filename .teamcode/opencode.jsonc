@@ -1,7 +1,9 @@
 {
-  "$schema": "https://teamcode.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "default_agent": "god",
-  "instructions": ["AGENTS.md"],
+  "instructions": [
+    "AGENTS.md"
+  ],
   "tools": {
     "github-triage": true,
     "github-pr-search": true
