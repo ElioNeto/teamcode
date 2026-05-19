@@ -626,10 +626,8 @@ export class Agent implements ACPAgent {
     const sessionId = params.sessionId
 
     try {
-      const model = await defaultModel(this.config, directory)
-
-      // Store ACP session state
-      await this.sessionManager.load(sessionId, params.cwd, params.mcpServers, model)
+      // Don't pass a model — let load() resolve it from the stored session
+      await this.sessionManager.load(sessionId, params.cwd, params.mcpServers, undefined)
 
       const messages = await this.loadSessionMessages(directory, sessionId)
       this.restoreSessionStateFromMessages(sessionId, messages)
@@ -670,7 +668,6 @@ export class Agent implements ACPAgent {
         .list(
           {
             directory: params.cwd ?? undefined,
-            roots: true,
           },
           { throwOnError: true },
         )
@@ -1545,6 +1542,38 @@ export class Agent implements ACPAgent {
           throw error
         })
         break
+      default: {
+        // Unrecognized /command — treat as a normal text prompt
+        const response = await this.sdk.session.prompt({
+          sessionID,
+          model: {
+            providerID: model.providerID,
+            modelID: model.modelID,
+          },
+          variant: this.sessionManager.getVariant(sessionID),
+          parts,
+          agent,
+          directory,
+        }, { throwOnError: true }).catch((error) => {
+          if (this.cancelledSessions.has(sessionID)) return null as any
+          throw error
+        })
+
+        if (this.cancelledSessions.has(sessionID)) {
+          return { stopReason: "cancelled" as const, usage: undefined, _meta: {} }
+        }
+
+        const msg = response.data?.info
+
+        await sendUsageUpdate(this.connection, this.sdk, sessionID, directory)
+        await this.waitForSessionDeltas(sessionID)
+
+        return {
+          stopReason: "end_turn" as const,
+          usage: msg ? buildUsage(msg) : undefined,
+          _meta: {},
+        }
+      }
     }
 
     if (this.cancelledSessions.has(sessionID)) {

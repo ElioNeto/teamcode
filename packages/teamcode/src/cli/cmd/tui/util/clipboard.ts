@@ -6,6 +6,7 @@ import fs from "fs/promises"
 import { Effect } from "effect"
 import { ChildProcess } from "effect/unstable/process"
 import { AppProcess } from "@teamcode-ai/core/process"
+import * as Log from "@teamcode-ai/core/util/log"
 import * as Filesystem from "../../../../util/filesystem"
 import * as Process from "../../../../util/process"
 
@@ -13,10 +14,14 @@ const writeWithStdin = (cmd: string[], text: string): Promise<void> =>
   Effect.runPromise(
     AppProcess.Service.use((svc) => svc.run(ChildProcess.make(cmd[0]!, cmd.slice(1)), { stdin: text })).pipe(
       Effect.provide(AppProcess.defaultLayer),
-      Effect.catch(() => Effect.void),
+      Effect.catch((error) =>
+        Effect.sync(() => Log.Default.error("clipboard writeWithStdin failed", { cmd: cmd[0], error: String(error) })),
+      ),
       Effect.asVoid,
     ),
-  ).catch(() => undefined)
+  ).catch(() => {
+    // Already logged above via Effect.catch
+  })
 
 // Lazy load which and clipboardy to avoid expensive execa/which/isexe chain at startup
 const getWhich = lazy(async () => {

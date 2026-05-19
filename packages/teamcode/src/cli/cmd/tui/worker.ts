@@ -82,8 +82,13 @@ export const rpc = {
         const cfg = yield* Config.Service
         return (yield* cfg.get()).autoupdate
       }),
-    ).catch(() => undefined)
-    await upgrade(autoupdate).catch(() => {})
+    ).catch((error) => {
+      Log.Default.error("checkUpgrade: failed to read autoupdate config", { error: String(error) })
+      return undefined
+    })
+    await upgrade(autoupdate).catch((error) => {
+      Log.Default.error("checkUpgrade: upgrade failed", { error: String(error) })
+    })
   },
   async reload() {
     await AppRuntime.runPromise(

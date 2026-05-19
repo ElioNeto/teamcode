@@ -2,6 +2,7 @@ import { RequestError, type McpServer } from "@agentclientprotocol/sdk"
 import type { ACPSessionState } from "./types"
 import * as Log from "@teamcode-ai/core/util/log"
 import type { OpencodeClient } from "@teamcode-ai/sdk/v2"
+import { ModelID, ProviderID } from "../provider/schema"
 
 const log = Log.create({ service: "acp-session-manager" })
 
@@ -59,7 +60,9 @@ export class ACPSessionManager {
       )
       .then((x) => x.data!)
 
-    const resolvedModel = model
+    const resolvedModel = session.model
+      ? { providerID: ProviderID.make(session.model.providerID), modelID: ModelID.make(session.model.id) }
+      : model
 
     const state: ACPSessionState = {
       id: sessionId,

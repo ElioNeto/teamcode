@@ -107,7 +107,14 @@ function proxyRemote(
   url: URL,
 ): Effect.Effect<HttpServerResponse.HttpServerResponse, never, Socket.WebSocketConstructor | Workspace.Service> {
   return Effect.gen(function* () {
-    const syncing = yield* Workspace.Service.use((svc) => svc.isSyncing(workspace.id))
+    // Retry isSyncing() up to 5 times with 1s delay to give the workspace
+    // time to establish its sync connection (e.g. on session resume).
+    let syncing = false
+    for (let attempt = 0; attempt < 5; attempt++) {
+      syncing = yield* Workspace.Service.use((svc) => svc.isSyncing(workspace.id))
+      if (syncing) break
+      if (attempt < 4) yield* Effect.sleep("1 seconds")
+    }
     if (!syncing) {
       return HttpServerResponse.text(`broken sync connection for workspace: ${workspace.id}`, {
         status: 503,

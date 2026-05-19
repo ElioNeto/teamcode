@@ -128,6 +128,10 @@ function buildPrompt(input: { previousSummary?: string; context: string[] }) {
         "<previous-summary>",
         input.previousSummary,
         "</previous-summary>",
+        "",
+        "Additionally, review the 'Next Steps' section in the summary above. " +
+        "If any of those steps have already been completed in the conversation history, " +
+        "remove or update them to reflect the current state.",
       ].join("\n")
     : "Create a new anchored summary from the conversation history above."
   return [anchor, SUMMARY_TEMPLATE, ...input.context].join("\n\n")

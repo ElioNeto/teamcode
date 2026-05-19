@@ -450,7 +450,7 @@ export class OpenAIResponsesLanguageModel implements LanguageModelV3 {
                           type: z.literal("container_file_citation"),
                         }),
                       ]),
-                    ),
+                    ).default([]),
                   }),
                 ),
               }),

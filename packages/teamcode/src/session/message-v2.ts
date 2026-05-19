@@ -180,6 +180,15 @@ export const AgentPart = Schema.Struct({
 }).annotate({ identifier: "AgentPart" })
 export type AgentPart = Types.DeepMutable<Schema.Schema.Type<typeof AgentPart>>
 
+export const ImageUrlPart = Schema.Struct({
+  ...partBase,
+  type: Schema.Literal("image_url"),
+  image_url: Schema.Struct({
+    url: Schema.String,
+  }),
+}).annotate({ identifier: "ImageUrlPart" })
+export type ImageUrlPart = Types.DeepMutable<Schema.Schema.Type<typeof ImageUrlPart>>
+
 export const CompactionPart = Schema.Struct({
   ...partBase,
   type: Schema.Literal("compaction"),
@@ -362,6 +371,7 @@ export const Part = Schema.Union([
   AgentPart,
   RetryPart,
   CompactionPart,
+  ImageUrlPart,
 ]).annotate({ discriminator: "type", identifier: "Part" })
 export type Part =
   | TextPart
@@ -376,6 +386,7 @@ export type Part =
   | AgentPart
   | RetryPart
   | CompactionPart
+  | ImageUrlPart
 
 const AssistantErrorSchema = Schema.Union([
   ...MessageError.Shared,

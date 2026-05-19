@@ -46,6 +46,10 @@ export function DialogSessionList() {
   const currentSessionID = createMemo(() => (route.data.type === "session" ? route.data.sessionID : undefined))
   const sessions = createMemo(() => searchResults() ?? sync.data.session)
 
+  const directoryFilterActive = createMemo(
+    () => "path" in sync.session.query() || "directory" in sync.session.query(),
+  )
+
   function recover(session: NonNullable<ReturnType<typeof sessions>[number]>) {
     const workspace = project.workspace.get(session.workspaceID!)
     const list = () => dialog.replace(() => <DialogSessionList />)
@@ -216,9 +220,14 @@ export function DialogSessionList() {
     dialog.setSize("large")
   })
 
+  const title = createMemo(() => {
+    if (directoryFilterActive()) return "Sessions (filtered to workspace)"
+    return "Sessions"
+  })
+
   return (
     <DialogSelect
-      title="Sessions"
+      title={title()}
       options={options()}
       skipFilter={true}
       current={currentSessionID()}

@@ -1052,6 +1052,33 @@ function cost(c: ModelsDev.Model["cost"]): Model["cost"] {
   return result
 }
 
+function inferImageCapability(modelID: string) {
+  const id = modelID.toLowerCase()
+  // Common vision model name patterns for multimodal models (Ollama, OpenAI-compatible, etc.)
+  // Users often configure these as custom models without explicit modalities, so we
+  // infer image support from well-known naming conventions.
+  return (
+    id.includes("vision") ||
+    id.includes("llava") ||
+    id.includes("bakllava") ||
+    id.includes("moondream") ||
+    id.includes("cogvlm") ||
+    id.includes("minicpm") ||
+    id.includes("qwenvl") ||
+    id.includes("qwen2-vl") ||
+    id.includes("qwen2.5-vl") ||
+    id.includes("internvl") ||
+    id.includes("deepseek-vl") ||
+    id.includes("deepseekvl") ||
+    id.includes("yi-vision") ||
+    id.includes("florence") ||
+    id.includes("paligemma") ||
+    id.includes("fuyu") ||
+    id.includes("kosmos") ||
+    id.includes("xcomposer")
+  )
+}
+
 function fromModelsDevModel(provider: ModelsDev.Provider, model: ModelsDev.Model): Model {
   const base: Model = {
     id: ModelID.make(model.id),
@@ -1080,7 +1107,7 @@ function fromModelsDevModel(provider: ModelsDev.Provider, model: ModelsDev.Model
       input: {
         text: model.modalities?.input?.includes("text") ?? false,
         audio: model.modalities?.input?.includes("audio") ?? false,
-        image: model.modalities?.input?.includes("image") ?? false,
+        image: model.modalities?.input?.includes("image") ?? inferImageCapability(model.id) ?? false,
         video: model.modalities?.input?.includes("video") ?? false,
         pdf: model.modalities?.input?.includes("pdf") ?? false,
       },
@@ -1308,7 +1335,7 @@ export const layer = Layer.effect(
                 input: {
                   text: model.modalities?.input?.includes("text") ?? existingModel?.capabilities.input.text ?? true,
                   audio: model.modalities?.input?.includes("audio") ?? existingModel?.capabilities.input.audio ?? false,
-                  image: model.modalities?.input?.includes("image") ?? existingModel?.capabilities.input.image ?? false,
+                  image: model.modalities?.input?.includes("image") ?? existingModel?.capabilities.input.image ?? inferImageCapability(apiID) ?? false,
                   video: model.modalities?.input?.includes("video") ?? existingModel?.capabilities.input.video ?? false,
                   pdf: model.modalities?.input?.includes("pdf") ?? existingModel?.capabilities.input.pdf ?? false,
                 },

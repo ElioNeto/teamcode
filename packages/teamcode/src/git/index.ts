@@ -87,6 +87,38 @@ export interface Interface {
   readonly patchUntracked: (cwd: string, file: string, options?: PatchOptions) => Effect.Effect<Patch>
   readonly statUntracked: (cwd: string, file: string) => Effect.Effect<Stat | undefined>
   readonly applyPatch: (cwd: string, patch: string) => Effect.Effect<Result>
+  // Panel operations
+  readonly add: (cwd: string, files: string[]) => Effect.Effect<void>
+  readonly unstage: (cwd: string, files: string[]) => Effect.Effect<void>
+  readonly restore: (cwd: string, files: string[]) => Effect.Effect<void>
+  readonly commit: (cwd: string, message: string) => Effect.Effect<string | undefined>
+  readonly log: (cwd: string, count?: number) => Effect.Effect<CommitInfo[]>
+  readonly branchList: (cwd: string) => Effect.Effect<string[]>
+  readonly branchCreate: (cwd: string, name: string) => Effect.Effect<void>
+  readonly branchDelete: (cwd: string, name: string) => Effect.Effect<void>
+  readonly branchRename: (cwd: string, oldName: string, newName: string) => Effect.Effect<void>
+  readonly checkout: (cwd: string, branch: string) => Effect.Effect<void>
+  readonly stashList: (cwd: string) => Effect.Effect<StashInfo[]>
+  readonly stashPop: (cwd: string, index?: number) => Effect.Effect<void>
+  readonly stashApply: (cwd: string, index?: number) => Effect.Effect<void>
+  readonly stashDrop: (cwd: string, index?: number) => Effect.Effect<void>
+  readonly stashPush: (cwd: string, message?: string) => Effect.Effect<void>
+  readonly diffUnstaged: (cwd: string, file: string) => Effect.Effect<string>
+  readonly diffStaged: (cwd: string, file: string) => Effect.Effect<string>
+}
+
+export type CommitInfo = {
+  readonly hash: string
+  readonly shortHash: string
+  readonly subject: string
+  readonly author: string
+  readonly date: string
+  readonly body: string
+}
+
+export type StashInfo = {
+  readonly index: number
+  readonly message: string
 }
 
 const kind = (code: string): Kind => {
@@ -322,6 +354,120 @@ export const layer = Layer.effect(
       return yield* run(["apply", "-"], { cwd, stdin: stdin(patch) })
     })
 
+    // --- Panel operations ---
+
+    const add = Effect.fn("Git.add")(function* (cwd: string, files: string[]) {
+      yield* run(["add", "--", ...files], { cwd })
+    })
+
+    const unstage = Effect.fn("Git.unstage")(function* (cwd: string, files: string[]) {
+      yield* run(["reset", "HEAD", "--", ...files], { cwd })
+    })
+
+    const restore = Effect.fn("Git.restore")(function* (cwd: string, files: string[]) {
+      yield* run(["checkout", "--", ...files], { cwd })
+    })
+
+    const commit = Effect.fn("Git.commit")(function* (cwd: string, message: string) {
+      const result = yield* run(["commit", "-m", message], { cwd })
+      if (result.exitCode !== 0) return
+      return out(result)
+    })
+
+    const log = Effect.fn("Git.log")(function* (cwd: string, count = 10) {
+      const output = yield* text(
+        ["log", `--max-count=${count}`, "--format=%H%n%h%n%s%n%an%n%ad%n%b%n---", "--date=short", "--", "."],
+        { cwd },
+      )
+      return output.split("\n---\n").filter(Boolean).flatMap((entry) => {
+        const lines = entry.trim().split("\n")
+        if (lines.length < 5) return []
+        const info: CommitInfo = {
+          hash: lines[0] ?? "",
+          shortHash: lines[1] ?? "",
+          subject: lines[2] ?? "",
+          author: lines[3] ?? "",
+          date: lines[4] ?? "",
+          body: lines.slice(5).join("\n").trim(),
+        }
+        if (!info.hash) return []
+        return [info]
+      })
+    })
+
+    const branchList = Effect.fn("Git.branchList")(function* (cwd: string) {
+      return yield* lines(["branch", "--format=%(refname:short)"], { cwd })
+    })
+
+    const branchCreate = Effect.fn("Git.branchCreate")(function* (cwd: string, name: string) {
+      yield* run(["branch", name], { cwd })
+    })
+
+    const branchDelete = Effect.fn("Git.branchDelete")(function* (cwd: string, name: string) {
+      yield* run(["branch", "-D", name], { cwd })
+    })
+
+    const branchRename = Effect.fn("Git.branchRename")(function* (cwd: string, oldName: string, newName: string) {
+      yield* run(["branch", "-m", oldName, newName], { cwd })
+    })
+
+    const checkout = Effect.fn("Git.checkout")(function* (cwd: string, branch: string) {
+      yield* run(["checkout", branch], { cwd })
+    })
+
+    const stashList = Effect.fn("Git.stashList")(function* (cwd: string) {
+      const lines = yield* text(["stash", "list", "--format=%gd%n%s%n---"], { cwd })
+      return lines.split("\n---\n").filter(Boolean).flatMap((entry) => {
+        const [ref, ...msgLines] = entry.trim().split("\n")
+        if (!ref) return []
+        const match = ref.match(/^stash@{(\d+)/)
+        if (!match) return []
+        return [{ index: Number(match[1]), message: msgLines.join("\n").trim() } satisfies StashInfo]
+      })
+    })
+
+    const stashPop = Effect.fn("Git.stashPop")(function* (cwd: string, index?: number) {
+      if (index !== undefined) {
+        yield* run(["stash", "pop", `stash@{${index}}`], { cwd })
+      } else {
+        yield* run(["stash", "pop"], { cwd })
+      }
+    })
+
+    const stashApply = Effect.fn("Git.stashApply")(function* (cwd: string, index?: number) {
+      if (index !== undefined) {
+        yield* run(["stash", "apply", `stash@{${index}}`], { cwd })
+      } else {
+        yield* run(["stash", "apply"], { cwd })
+      }
+    })
+
+    const stashDrop = Effect.fn("Git.stashDrop")(function* (cwd: string, index?: number) {
+      if (index !== undefined) {
+        yield* run(["stash", "drop", `stash@{${index}}`], { cwd })
+      } else {
+        yield* run(["stash", "drop"], { cwd })
+      }
+    })
+
+    const stashPush = Effect.fn("Git.stashPush")(function* (cwd: string, message?: string) {
+      if (message) {
+        yield* run(["stash", "push", "-m", message], { cwd })
+      } else {
+        yield* run(["stash", "push"], { cwd })
+      }
+    })
+
+    const diffUnstaged = Effect.fn("Git.diffUnstaged")(function* (cwd: string, file: string) {
+      const result = yield* run(["diff", "--no-ext-diff", "--", file], { cwd, maxOutputBytes: 51200 })
+      return result.text()
+    })
+
+    const diffStaged = Effect.fn("Git.diffStaged")(function* (cwd: string, file: string) {
+      const result = yield* run(["diff", "--staged", "--no-ext-diff", "--", file], { cwd, maxOutputBytes: 51200 })
+      return result.text()
+    })
+
     return Service.of({
       run,
       branch,
@@ -338,6 +484,23 @@ export const layer = Layer.effect(
       patchUntracked,
       statUntracked,
       applyPatch,
+      add,
+      unstage,
+      restore,
+      commit,
+      log,
+      branchList,
+      branchCreate,
+      branchDelete,
+      branchRename,
+      checkout,
+      stashList,
+      stashPop,
+      stashApply,
+      stashDrop,
+      stashPush,
+      diffUnstaged,
+      diffStaged,
     })
   }),
 )

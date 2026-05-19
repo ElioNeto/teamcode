@@ -64,6 +64,8 @@ import { DialogForkFromTimeline } from "./dialog-fork-from-timeline"
 import { DialogSessionRename } from "../../component/dialog-session-rename"
 import { Sidebar } from "./sidebar"
 import { SubagentFooter } from "./subagent-footer.tsx"
+import { GitPanel } from "../../component/git-panel"
+import { DiffView } from "../../component/git-panel/diff-view"
 import { LANGUAGE_EXTENSIONS } from "@/lsp/language"
 import parsers from "../../../../../../parsers-config.ts"
 import * as Clipboard from "../../util/clipboard"
@@ -128,6 +130,7 @@ const sessionBindingCommands = [
   "session.undo",
   "session.redo",
   "session.sidebar.toggle",
+  "session.git.toggle",
   "session.toggle.conceal",
   "session.toggle.timestamps",
   "session.toggle.thinking",
@@ -215,6 +218,9 @@ export function Session() {
   const dimensions = useTerminalDimensions()
   const [sidebar, setSidebar] = kv.signal<"auto" | "hide">("sidebar", "auto")
   const [sidebarOpen, setSidebarOpen] = createSignal(false)
+  const [gitPanelOpen, setGitPanelOpen] = createSignal(false)
+  const [gitPanelWidth, setGitPanelWidth] = createSignal(36)
+  const [selectedDiff, setSelectedDiff] = createSignal<{ diff: string; filename: string } | undefined>()
   const [conceal, setConceal] = createSignal(true)
   const thinking = useThinkingMode()
   const thinkingMode = thinking.mode
@@ -235,7 +241,12 @@ export function Session() {
     return false
   })
   const showTimestamps = createMemo(() => timestamps() === "show")
-  const contentWidth = createMemo(() => dimensions().width - (sidebarVisible() ? 42 : 0) - 4)
+  const contentWidth = createMemo(() => {
+    let w = dimensions().width
+    if (sidebarVisible()) w -= 42
+    if (gitPanelOpen()) w -= gitPanelWidth()
+    return w - 4
+  })
   const providers = createMemo(() => Model.index(sync.data.provider))
 
   const scrollAcceleration = createMemo(() => getScrollAcceleration(tuiConfig))
@@ -652,6 +663,15 @@ export function Session() {
       },
     },
     {
+      title: gitPanelOpen() ? "Hide git panel" : "Show git panel",
+      value: "session.git.toggle",
+      category: "Git",
+      run: () => {
+        setGitPanelOpen((prev) => !prev)
+        dialog.clear()
+      },
+    },
+    {
       title: sidebarVisible() ? "Hide sidebar" : "Show sidebar",
       value: "session.sidebar.toggle",
       category: "Session",
@@ -1059,6 +1079,25 @@ export function Session() {
     bindings: tuiConfig.keybinds.gather("session", sessionBindingCommands),
   }))
 
+  // Git panel keybindings
+  useBindings(() => ({
+    enabled: gitPanelOpen() && dialog.stack.length === 0 && !renderer.getSelection()?.getSelectedText(),
+    bindings: [
+      {
+        key: "escape",
+        desc: "Close Git panel / close diff",
+        group: "Git",
+        cmd: () => {
+          if (selectedDiff()) {
+            setSelectedDiff(undefined)
+          } else {
+            setGitPanelOpen(false)
+          }
+        },
+      },
+    ],
+  }))
+
   const revertInfo = createMemo(() => session()?.revert)
   const revertMessageID = createMemo(() => revertInfo()?.messageID)
 
@@ -1106,6 +1145,20 @@ export function Session() {
         }}
       >
         <box flexDirection="row" flexGrow={1} minHeight={0}>
+          <Show when={gitPanelOpen()}>
+            <box flexShrink={0}>
+              <GitPanel
+                width={gitPanelWidth()}
+                directory={session()?.directory ?? project.instance.directory()}
+                onSelectDiff={(diff, filename) => {
+                  batch(() => {
+                    setSelectedDiff({ diff, filename })
+                    setSidebarOpen(true)
+                  })
+                }}
+              />
+            </box>
+          </Show>
           <box flexGrow={1} minHeight={0} paddingBottom={1} paddingLeft={2} paddingRight={2} gap={1}>
             <Show when={session()}>
               <scrollbox
@@ -1261,10 +1314,19 @@ export function Session() {
           </box>
           <Show when={sidebarVisible()}>
             <Switch>
-              <Match when={wide()}>
+              <Match when={selectedDiff()}>
+                <box width={42} backgroundColor={theme.backgroundPanel}>
+                  <DiffView
+                    diff={selectedDiff()!.diff}
+                    filename={selectedDiff()!.filename}
+                    onClose={() => setSelectedDiff(undefined)}
+                  />
+                </box>
+              </Match>
+              <Match when={!selectedDiff() && wide()}>
                 <Sidebar sessionID={route.sessionID} />
               </Match>
-              <Match when={!wide()}>
+              <Match when={!selectedDiff() && !wide()}>
                 <box
                   position="absolute"
                   top={0}
