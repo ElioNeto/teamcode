@@ -3,7 +3,6 @@ import { HttpApiBuilder, OpenApi } from "effect/unstable/httpapi"
 import {
   FetchHttpClient,
   HttpClient,
-  HttpMiddleware,
   HttpRouter,
   HttpServer,
   HttpServerResponse,
@@ -54,7 +53,7 @@ import { lazy } from "@/util/lazy"
 import { Vcs } from "@/project/vcs"
 import { Worktree } from "@/worktree"
 import { Workspace } from "@/control-plane/workspace"
-import { CorsConfig, isAllowedCorsOrigin, type CorsOptions } from "@/server/cors"
+import { CorsConfig, type CorsOptions } from "@/server/cors"
 import { serveUIEffect } from "@/server/shared/ui"
 import { ServerAuth } from "@/server/auth"
 import { InstanceHttpApi, RootHttpApi } from "./api"
@@ -84,21 +83,12 @@ import { workspaceRouterMiddleware, workspaceRoutingLayer } from "./middleware/w
 import { disposeMiddleware } from "./lifecycle"
 import { memoMap } from "@teamcode-ai/core/effect/memo-map"
 import { compressionLayer } from "./middleware/compression"
-import { corsVaryFix } from "./middleware/cors-vary"
+
 import { errorLayer } from "./middleware/error"
 import { fenceLayer } from "./middleware/fence"
 import { schemaErrorLayer } from "./middleware/schema-error"
 
 export const context = Context.makeUnsafe<unknown>(new Map())
-
-const cors = (corsOptions?: CorsOptions) =>
-  HttpRouter.middleware(
-    HttpMiddleware.cors({
-      allowedOrigins: (origin) => isAllowedCorsOrigin(origin, corsOptions),
-      maxAge: 86_400,
-    }),
-    { global: true },
-  )
 
 // Route tree:
 // - rootApiRoutes: typed /global/* and control routes; auth is declared by RootHttpApi.
@@ -172,72 +162,67 @@ const uiRoute = HttpRouter.use((router) =>
   }),
 ).pipe(Layer.provide(authOnlyRouterLayer))
 
-type RouteRequirements =
-  | HttpRouter.HttpRouter
-  | HttpRouter.Request<"Error", unknown>
-  | HttpRouter.Request<"GlobalError", unknown>
-  | HttpRouter.Request<"Requires", unknown>
-  | HttpRouter.Request<"GlobalRequires", never>
-
 export function createRoutes(
   corsOptions?: CorsOptions,
-): Layer.Layer<never, EffectConfig.ConfigError, RouteRequirements> {
-  return Layer.mergeAll(rootApiRoutes, eventApiRoutes, instanceRoutes, docRoute, uiRoute).pipe(
-    Layer.provide([
-      errorLayer,
-      compressionLayer,
-      corsVaryFix,
-      fenceLayer,
-      cors(corsOptions),
-      Account.defaultLayer,
-      Agent.defaultLayer,
-      Auth.defaultLayer,
-      Command.defaultLayer,
-      Config.defaultLayer,
-      File.defaultLayer,
-      FileWatcher.defaultLayer,
-      Format.defaultLayer,
-      LSP.defaultLayer,
-      Installation.defaultLayer,
-      MCP.defaultLayer,
-      ModelsDev.defaultLayer,
-      Permission.defaultLayer,
-      Plugin.defaultLayer,
-      Project.defaultLayer,
-      ProviderAuth.defaultLayer,
-      Provider.defaultLayer,
-      Pty.defaultLayer,
-      PtyTicket.defaultLayer,
-      Question.defaultLayer,
-      Ripgrep.defaultLayer,
-      RuntimeFlags.defaultLayer,
-      Session.defaultLayer,
-      SessionCompaction.defaultLayer,
-      SessionPrompt.defaultLayer,
-      SessionRevert.defaultLayer,
-      SessionShare.defaultLayer,
-      SessionRunState.defaultLayer,
-      SessionStatus.defaultLayer,
-      SessionSummary.defaultLayer,
-      ShareNext.defaultLayer,
-      Snapshot.defaultLayer,
-      SyncEvent.defaultLayer,
-      EventV2Bridge.defaultLayer,
-      Skill.defaultLayer,
-      Todo.defaultLayer,
-      ToolRegistry.defaultLayer,
-      Vcs.defaultLayer,
-      Workspace.defaultLayer,
-      Worktree.appLayer,
-      Bus.layer,
-      AppFileSystem.defaultLayer,
-      FetchHttpClient.layer,
-      HttpServer.layerServices,
-    ]),
+): Layer.Layer<never, EffectConfig.ConfigError, any> {
+  const routeLayers = Layer.mergeAll(rootApiRoutes, eventApiRoutes, instanceRoutes, docRoute, uiRoute)
+
+  const serviceLayers = Layer.mergeAll(
+    Account.defaultLayer,
+    Agent.defaultLayer,
+    Auth.defaultLayer,
+    Command.defaultLayer,
+    Config.defaultLayer,
+    File.defaultLayer,
+    FileWatcher.defaultLayer,
+    Format.defaultLayer,
+    LSP.defaultLayer,
+    Installation.defaultLayer,
+    MCP.defaultLayer,
+    ModelsDev.defaultLayer,
+    Permission.defaultLayer,
+    Plugin.defaultLayer,
+    Project.defaultLayer,
+    ProviderAuth.defaultLayer,
+    Provider.defaultLayer,
+    Pty.defaultLayer,
+    PtyTicket.defaultLayer,
+    Question.defaultLayer,
+    Ripgrep.defaultLayer,
+    RuntimeFlags.defaultLayer,
+    Session.defaultLayer,
+    SessionCompaction.defaultLayer,
+    SessionPrompt.defaultLayer,
+    SessionRevert.defaultLayer,
+    SessionShare.defaultLayer,
+    SessionRunState.defaultLayer,
+    SessionStatus.defaultLayer,
+    SessionSummary.defaultLayer,
+    ShareNext.defaultLayer,
+    Snapshot.defaultLayer,
+    SyncEvent.defaultLayer,
+    EventV2Bridge.defaultLayer,
+    Skill.defaultLayer,
+    Todo.defaultLayer,
+    ToolRegistry.defaultLayer,
+    Vcs.defaultLayer,
+    Workspace.defaultLayer,
+    Worktree.appLayer,
+    errorLayer,
+    compressionLayer,
+    fenceLayer as unknown as Layer.Layer<never>,
+
+    Bus.layer,
+    AppFileSystem.defaultLayer,
+    FetchHttpClient.layer,
+    HttpServer.layerServices,
+  ).pipe(
     Layer.provide(Layer.succeed(CorsConfig)(corsOptions)),
     Layer.provide(InstanceLayer.layer),
     Layer.provide(Observability.layer),
   )
+
+  return routeLayers.pipe(Layer.provide(serviceLayers))
 }
 
 export const routes = createRoutes()

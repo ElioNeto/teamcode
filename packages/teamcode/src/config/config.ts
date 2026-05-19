@@ -446,8 +446,9 @@ export const layer = Layer.effect(
 
     // Cache global config with a 30s TTL so edits to ~/.config/opencode/*.json
     // are picked up without requiring a full restart.
+    const runtimeFlags = yield* RuntimeFlags.Service
     const [cachedGlobal, invalidateGlobal] = yield* Effect.cachedInvalidateWithTTL(
-      loadGlobal().pipe(
+      Effect.provideService(loadGlobal(), RuntimeFlags.Service, runtimeFlags).pipe(
         Effect.tapError((error) =>
           Effect.sync(() => log.error("failed to load global config, using defaults", { error: String(error) })),
         ),
@@ -479,7 +480,8 @@ export const layer = Layer.effect(
     })
 
     const loadInstanceState = Effect.fn("Config.loadInstanceState")(
-      function* (ctx: InstanceContext, flags: RuntimeFlags.Info) {
+      function* (ctx: InstanceContext) {
+        const flags = yield* RuntimeFlags.Service
         const auth = yield* authSvc.all().pipe(Effect.orDie)
 
         let result: Info = {}
@@ -766,10 +768,12 @@ export const layer = Layer.effect(
 
     // Instance-scoped config is cached with a 30s TTL so edits to project-level
     // teamcode.json / opencode.json are picked up without restarting the process.
-    const runtimeFlags = yield* RuntimeFlags.Service
     const state = yield* InstanceState.make<State>(
       Effect.fn("Config.state")(function* (ctx) {
-        return yield* loadInstanceState(ctx, runtimeFlags).pipe(Effect.orDie)
+        return yield* loadInstanceState(ctx).pipe(
+          Effect.provide(RuntimeFlags.defaultLayer),
+          Effect.orDie,
+        )
       }),
       { timeToLive: Duration.seconds(30) },
     )
