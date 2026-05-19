@@ -131,7 +131,7 @@ const cli = yargs(args)
       })(),
     })
 
-    Heap.start()
+    await Heap.start()
 
     process.env.AGENT = "1"
     process.env.TEAMCODE = "1"

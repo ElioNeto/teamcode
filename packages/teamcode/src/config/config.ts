@@ -5,7 +5,6 @@ import os from "os"
 import { mergeDeep } from "remeda"
 import { Global } from "@teamcode-ai/core/global"
 import fsNode from "fs/promises"
-import { Flag } from "@teamcode-ai/core/flag/flag"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Auth } from "../auth"
 import { Env } from "../env"
@@ -81,20 +80,20 @@ async function substituteWellKnownRemoteConfig(input: { value: unknown; dir: str
   })
   const headers = isRecord(input.value.headers)
     ? Object.fromEntries(
-        await Promise.all(
-          Object.entries(input.value.headers)
-            .filter((entry): entry is [string, string] => typeof entry[1] === "string")
-            .map(async ([key, value]) => [
-              key,
-              await ConfigVariable.substitute({
-                text: value,
-                type: "virtual",
-                dir: input.dir,
-                source: input.source,
-              }),
-            ]),
-        ),
-      )
+      await Promise.all(
+        Object.entries(input.value.headers)
+          .filter((entry): entry is [string, string] => typeof entry[1] === "string")
+          .map(async ([key, value]) => [
+            key,
+            await ConfigVariable.substitute({
+              text: value,
+              type: "virtual",
+              dir: input.dir,
+              source: input.source,
+            }),
+          ]),
+      ),
+    )
     : undefined
 
   return { url, headers }
@@ -324,7 +323,7 @@ export interface Interface {
   readonly waitForDependencies: () => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@teamcode/Config") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/Config") { }
 
 function globalConfigFile() {
   const candidates = ["teamcode.jsonc", "teamcode.json", "config.json"].map((file) =>
@@ -366,7 +365,7 @@ export class ConfigDirectoryTypoError extends Schema.TaggedErrorClass<ConfigDire
   path: Schema.String,
   dir: Schema.String,
   suggestion: Schema.String,
-}) {}
+}) { }
 
 export const layer = Layer.effect(
   Service,
@@ -410,10 +409,11 @@ export const layer = Layer.effect(
     })
 
     const loadGlobal = Effect.fnUntraced(function* () {
+      const flags = yield* RuntimeFlags.Service
       let result: Info = {}
       // Seed the default global config with the schema for editor completion, but avoid writing when the user
       // explicitly routes config through env-provided paths or content.
-      if (!Flag.OPENCODE_CONFIG && !Flag.OPENCODE_CONFIG_DIR && !Flag.OPENCODE_CONFIG_CONTENT) {
+      if (!flags.config && !flags.configDir && !flags.configContent) {
         const file = globalConfigFile()
         if (!existsSync(file)) {
           yield* fs
@@ -437,7 +437,7 @@ export const layer = Layer.effect(
               await fsNode.writeFile(path.join(Global.Path.config, "config.json"), JSON.stringify(result, null, 2))
               await fsNode.unlink(legacy)
             })
-            .catch(() => {}),
+            .catch(() => { }),
         )
       }
 
@@ -541,13 +541,13 @@ export const layer = Layer.effect(
             )
             const fetchedConfig = remote
               ? ((yield* Effect.promise(async () => {
-                  log.debug("fetching remote config", { url: remote.url })
-                  const response = await fetch(remote.url, { headers: remote.headers })
-                  if (!response.ok)
-                    throw new Error(`failed to fetch remote config from ${remote.url}: ${response.status}`)
-                  const data = await response.json()
-                  return isRecord(data) && isRecord(data.config) ? data.config : data
-                })) as Record<string, unknown>)
+                log.debug("fetching remote config", { url: remote.url })
+                const response = await fetch(remote.url, { headers: remote.headers })
+                if (!response.ok)
+                  throw new Error(`failed to fetch remote config from ${remote.url}: ${response.status}`)
+                const data = await response.json()
+                return isRecord(data) && isRecord(data.config) ? data.config : data
+              })) as Record<string, unknown>)
               : {}
             const remoteConfig = mergeConfig(wellknown.config ?? {}, fetchedConfig as Info)
             if (!remoteConfig.$schema) remoteConfig.$schema = "https://teamcode.ai/config.json"
@@ -564,9 +564,9 @@ export const layer = Layer.effect(
         const global = yield* getGlobal()
         yield* merge(Global.Path.config, global, "global")
 
-        if (Flag.OPENCODE_CONFIG) {
-          yield* merge(Flag.OPENCODE_CONFIG, yield* loadFile(Flag.OPENCODE_CONFIG))
-          log.debug("loaded custom config", { path: Flag.OPENCODE_CONFIG })
+        if (flags.config) {
+          yield* merge(flags.config, yield* loadFile(flags.config))
+          log.debug("loaded custom config", { path: flags.config })
         }
 
         if (!flags.disableProjectConfig) {
@@ -581,14 +581,14 @@ export const layer = Layer.effect(
 
         const directories = yield* ConfigPaths.directories(ctx.directory, ctx.worktree)
 
-        if (Flag.OPENCODE_CONFIG_DIR) {
-          log.debug("loading config from OPENCODE_CONFIG_DIR", { path: Flag.OPENCODE_CONFIG_DIR })
+        if (flags.configDir) {
+          log.debug("loading config from OPENCODE_CONFIG_DIR", { path: flags.configDir })
         }
 
         const deps: Fiber.Fiber<void, never>[] = []
 
         for (const dir of directories) {
-          if (dir.endsWith(".teamcode") || dir === Flag.OPENCODE_CONFIG_DIR) {
+          if (dir.endsWith(".teamcode") || dir === flags.configDir) {
             for (const file of ["teamcode.json", "teamcode.jsonc"]) {
               const source = path.join(dir, file)
               log.debug(`loading config from ${source}`)
@@ -615,8 +615,8 @@ export const layer = Layer.effect(
               Effect.tap((exit) =>
                 Exit.isFailure(exit)
                   ? Effect.sync(() => {
-                      log.warn("background dependency install failed", { dir, error: String(exit.cause) })
-                    })
+                    log.warn("background dependency install failed", { dir, error: String(exit.cause) })
+                  })
                   : Effect.void,
               ),
               Effect.asVoid,
@@ -712,8 +712,8 @@ export const layer = Layer.effect(
           })
         }
 
-        if (Flag.OPENCODE_PERMISSION) {
-          result.permission = mergeDeep(result.permission ?? {}, JSON.parse(Flag.OPENCODE_PERMISSION))
+        if (flags.permission) {
+          result.permission = mergeDeep(result.permission ?? {}, JSON.parse(flags.permission))
         }
 
         if (result.tools) {

@@ -13,8 +13,9 @@
 //      local sessions,
 //   4. runs the prompt queue until the footer closes.
 import { createOpencodeClient } from "@teamcode-ai/sdk/v2"
-import { Flag } from "@teamcode-ai/core/flag/flag"
+import { Effect } from "effect"
 import { createRunDemo } from "./demo"
+import { RuntimeFlags } from "@/effect/runtime-flags"
 import { resolveDiffStyle, resolveFooterKeybinds, resolveModelInfo, resolveSessionInfo } from "./runtime.boot"
 import { createRuntimeLifecycle } from "./runtime.lifecycle"
 import { recordRunSpanError, setRunSpanAttributes, withRunSpan } from "./otel"
@@ -414,7 +415,8 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
         .then(loadCatalog)
         .catch(() => {})
 
-      if (Flag.OPENCODE_SHOW_TTFD) {
+      const flags = Effect.runSync(RuntimeFlags.Service.useSync((flags) => flags).pipe(Effect.provide(RuntimeFlags.defaultLayer)))
+      if (flags.showTtfd) {
         footer.append({
           kind: "system",
           text: `startup ${Math.max(0, Math.round(performance.now() - start))}ms`,

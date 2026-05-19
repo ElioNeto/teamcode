@@ -1,7 +1,8 @@
 export * as ServerAuth from "./auth"
 
 import { ConfigService } from "@/effect/config-service"
-import { Flag } from "@teamcode-ai/core/flag/flag"
+import { Effect } from "effect"
+import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Config as EffectConfig, Context, Option, Redacted } from "effect"
 
 export type Credentials = {
@@ -39,11 +40,15 @@ export function authorized(credentials: DecodedCredentials, config: Info) {
   )
 }
 
+const readRuntimeFlags = () =>
+  Effect.runSync(RuntimeFlags.Service.useSync((flags) => flags).pipe(Effect.provide(RuntimeFlags.defaultLayer)))
+
 export function header(credentials?: Credentials) {
-  const password = credentials?.password ?? Flag.OPENCODE_SERVER_PASSWORD
+  const flags = readRuntimeFlags()
+  const password = credentials?.password ?? flags.serverPassword
   if (!password) return undefined
 
-  const username = credentials?.username ?? Flag.OPENCODE_SERVER_USERNAME ?? "teamcode"
+  const username = credentials?.username ?? flags.serverUsername ?? "teamcode"
   return `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`
 }
 

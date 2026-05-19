@@ -8,7 +8,6 @@ import { Global } from "@teamcode-ai/core/global"
 import * as Log from "@teamcode-ai/core/util/log"
 import path from "path"
 import { readFileSync, readdirSync, existsSync } from "fs"
-import { Flag } from "@teamcode-ai/core/flag/flag"
 import { InstallationChannel } from "@teamcode-ai/core/installation/version"
 import { EffectBridge } from "@/effect/bridge"
 import { init } from "#db"
@@ -22,7 +21,7 @@ export class NotFoundError extends Schema.TaggedErrorClass<NotFoundError>()("Not
 
 const log = Log.create({ service: "db" })
 
-type DatabaseFlags = Pick<RuntimeFlags.Info, "disableChannelDb" | "skipMigrations">
+type DatabaseFlags = Pick<RuntimeFlags.Info, "disableChannelDb" | "skipMigrations" | "db">
 
 const readRuntimeFlags = () =>
   Effect.runSync(RuntimeFlags.Service.useSync((flags) => flags).pipe(Effect.provide(RuntimeFlags.defaultLayer)))
@@ -35,11 +34,12 @@ export function getChannelPath(flags: Pick<DatabaseFlags, "disableChannelDb"> = 
 }
 
 export const getPath = (flags?: Pick<DatabaseFlags, "disableChannelDb">) => {
-  if (Flag.OPENCODE_DB) {
-    if (Flag.OPENCODE_DB === ":memory:" || path.isAbsolute(Flag.OPENCODE_DB)) return Flag.OPENCODE_DB
-    return path.join(Global.Path.data, Flag.OPENCODE_DB)
+  const runtimeFlags = readRuntimeFlags()
+  if (runtimeFlags.db) {
+    if (runtimeFlags.db === ":memory:" || path.isAbsolute(runtimeFlags.db)) return runtimeFlags.db
+    return path.join(Global.Path.data, runtimeFlags.db)
   }
-  return getChannelPath(flags)
+  return getChannelPath(flags ?? runtimeFlags)
 }
 
 export type Transaction = SQLiteTransaction<"sync", void>

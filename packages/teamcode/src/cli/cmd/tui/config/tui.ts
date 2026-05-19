@@ -4,11 +4,11 @@ import path from "path"
 import { createBindingLookup } from "@opentui/keymap/extras"
 import { mergeDeep, unique } from "remeda"
 import { Cause, Context, Effect, Fiber, Layer, Schema } from "effect"
+import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ConfigParse } from "@/config/parse"
 import * as ConfigPaths from "@/config/paths"
 import { migrateTuiConfig } from "./tui-migrate"
 import { KeymapLeaderTimeoutDefault, resolveAttentionSoundPaths, TuiInfo } from "./tui-schema"
-import { Flag } from "@teamcode-ai/core/flag/flag"
 import { isRecord } from "@/util/record"
 import { Global } from "@teamcode-ai/core/global"
 import { AppFileSystem } from "@teamcode-ai/core/filesystem"
@@ -103,6 +103,7 @@ function dropUnknownKeybinds(input: Record<string, unknown>, configFilepath: str
 
 const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: string }) {
   const afs = yield* AppFileSystem.Service
+  const flags = yield* RuntimeFlags.Service
   let appliedOrder = 0
 
   const resolvePlugins = (config: Info, configFilepath: string): Effect.Effect<Info> =>
@@ -199,7 +200,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
   const directories = yield* ConfigPaths.directories(ctx.directory)
   yield* Effect.promise(() => migrateTuiConfig({ directories, cwd: ctx.directory }))
 
-  const projectFiles = Flag.OPENCODE_DISABLE_PROJECT_CONFIG ? [] : yield* ConfigPaths.files("tui", ctx.directory)
+  const projectFiles = flags.disableProjectConfig ? [] : yield* ConfigPaths.files("tui", ctx.directory)
 
   const acc: Acc = {
     result: {},
@@ -212,8 +213,8 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
   }
 
   // 2. Explicit OPENCODE_TUI_CONFIG override, if set.
-  if (Flag.OPENCODE_TUI_CONFIG) {
-    const configFile = Flag.OPENCODE_TUI_CONFIG
+  if (flags.tuiConfig) {
+    const configFile = flags.tuiConfig
     yield* mergeFile(acc, configFile)
     log.debug("loaded custom tui config", { path: configFile })
   }
@@ -226,10 +227,10 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
   // 4. `.opencode` directories (and OPENCODE_CONFIG_DIR) discovered while
   // walking up the tree. Also returned below so callers can install plugin
   // dependencies from each location.
-  const dirs = unique(directories).filter((dir) => dir.endsWith(".teamcode") || dir === Flag.OPENCODE_CONFIG_DIR)
+  const dirs = unique(directories).filter((dir) => dir.endsWith(".teamcode") || dir === flags.configDir)
 
   for (const dir of dirs) {
-    if (!dir.endsWith(".teamcode") && dir !== Flag.OPENCODE_CONFIG_DIR) continue
+    if (!dir.endsWith(".teamcode") && dir !== flags.configDir) continue
     for (const file of ConfigPaths.fileInDirectory(dir, "tui")) {
       yield* mergeFile(acc, file)
     }
@@ -300,7 +301,11 @@ export const layer = Layer.effect(
   }).pipe(Effect.withSpan("TuiConfig.layer")),
 )
 
-export const defaultLayer = layer.pipe(Layer.provide(Npm.defaultLayer), Layer.provide(AppFileSystem.defaultLayer))
+export const defaultLayer = layer.pipe(
+  Layer.provide(RuntimeFlags.layer()),
+  Layer.provide(Npm.defaultLayer),
+  Layer.provide(AppFileSystem.defaultLayer),
+)
 
 const { runPromise } = makeRuntime(Service, defaultLayer)
 

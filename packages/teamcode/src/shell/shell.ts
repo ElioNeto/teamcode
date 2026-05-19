@@ -1,4 +1,5 @@
-import { Flag } from "@teamcode-ai/core/flag/flag"
+import { Effect } from "effect"
+import { RuntimeFlags } from "@/effect/runtime-flags"
 import { lazy } from "@/util/lazy"
 import { Filesystem } from "@/util/filesystem"
 import { which } from "@/util/which"
@@ -113,9 +114,13 @@ function select(file: string | undefined, opts?: { acceptable?: boolean }) {
   return fallback()
 }
 
+const readRuntimeFlags = () =>
+  Effect.runSync(RuntimeFlags.Service.useSync((flags) => flags).pipe(Effect.provide(RuntimeFlags.defaultLayer)))
+
 export function gitbash() {
   if (process.platform !== "win32") return
-  if (Flag.OPENCODE_GIT_BASH_PATH) return Flag.OPENCODE_GIT_BASH_PATH
+  const flags = readRuntimeFlags()
+  if (flags.gitBashPath) return flags.gitBashPath
   const git = which("git")
   if (!git) return
   const file = path.join(git, "..", "..", "bin", "bash.exe")

@@ -1,7 +1,6 @@
 export * as ConfigPaths from "./paths"
 
 import path from "path"
-import { Flag } from "@teamcode-ai/core/flag/flag"
 import { Global } from "@teamcode-ai/core/global"
 import { unique } from "remeda"
 import { Effect, Context, Layer } from "effect"
@@ -56,7 +55,7 @@ export const layer = Layer.effect(
           start: Global.Path.home,
           stop: Global.Path.home,
         }).pipe(Effect.orDie)),
-        ...(Flag.OPENCODE_CONFIG_DIR ? [Flag.OPENCODE_CONFIG_DIR] : []),
+        ...(flags.configDir ? [flags.configDir] : []),
       ])
     })
 
@@ -83,9 +82,10 @@ export const files = Effect.fn("ConfigPaths.projectFiles")(function* (
 
 export const directories = Effect.fn("ConfigPaths.directories")(function* (directory: string, worktree?: string) {
   const afs = yield* AppFileSystem.Service
+  const flags = yield* RuntimeFlags.Service
   return unique([
     Global.Path.config,
-    ...(!Flag.OPENCODE_DISABLE_PROJECT_CONFIG
+    ...(!flags.disableProjectConfig
       ? yield* afs.up({
           targets: [".teamcode"],
           start: directory,
@@ -97,6 +97,6 @@ export const directories = Effect.fn("ConfigPaths.directories")(function* (direc
       start: Global.Path.home,
       stop: Global.Path.home,
     })),
-    ...(Flag.OPENCODE_CONFIG_DIR ? [Flag.OPENCODE_CONFIG_DIR] : []),
+    ...(flags.configDir ? [flags.configDir] : []),
   ])
 })

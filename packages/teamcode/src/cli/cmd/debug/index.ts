@@ -1,9 +1,9 @@
 import { Global } from "@teamcode-ai/core/global"
 import { InstallationVersion } from "@teamcode-ai/core/installation/version"
-import { Flag } from "@teamcode-ai/core/flag/flag"
 import os from "os"
 import { Duration, Effect } from "effect"
 import { Config } from "@/config/config"
+import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ConfigPlugin } from "@/config/plugin"
 import { effectCmd } from "../../effect-cmd"
 import { cmd } from "../cmd"
@@ -62,7 +62,7 @@ const InfoCommand = effectCmd({
     console.log(`os: ${os.type()} ${os.release()} ${os.arch()}`)
     console.log(`terminal: ${terminal || "unknown"}`)
     console.log("plugins:")
-    if (Flag.OPENCODE_PURE) {
+    if ((yield* RuntimeFlags.Service).pure) {
       console.log("external plugins disabled (--pure)")
       return
     }

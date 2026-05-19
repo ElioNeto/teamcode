@@ -1,14 +1,15 @@
-import { Flag } from "@teamcode-ai/core/flag/flag"
 import { Effect } from "effect"
 import { HttpRouter, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
 import * as Fence from "@/server/shared/fence"
+import { RuntimeFlags } from "@/effect/runtime-flags"
 
 const ignoredMethods = new Set(["GET", "HEAD", "OPTIONS"])
 
 export const fenceLayer = HttpRouter.middleware<{ handles: unknown }>()((effect) =>
   Effect.gen(function* () {
     const request = yield* HttpServerRequest.HttpServerRequest
-    if (!Flag.OPENCODE_WORKSPACE_ID || ignoredMethods.has(request.method)) return yield* effect
+    const flags = yield* RuntimeFlags.Service
+    if (!flags.workspaceId || ignoredMethods.has(request.method)) return yield* effect
 
     const previous = Fence.load()
     const response = yield* effect

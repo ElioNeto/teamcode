@@ -1,7 +1,8 @@
 import path from "path"
 import { fileURLToPath } from "url"
 
-import { Flag } from "@teamcode-ai/core/flag/flag"
+import { Effect } from "effect"
+import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Global } from "@teamcode-ai/core/global"
 import { Filesystem } from "@/util/filesystem"
 import { Flock } from "@teamcode-ai/core/util/flock"
@@ -45,8 +46,12 @@ type Store = Record<string, Entry>
 type Core = Omit<Entry, "first_time" | "last_time" | "time_changed" | "load_count" | "fingerprint" | "themes">
 type Row = Touch & { core: Core }
 
+const readRuntimeFlags = () =>
+  Effect.runSync(RuntimeFlags.Service.useSync((flags) => flags).pipe(Effect.provide(RuntimeFlags.defaultLayer)))
+
 function storePath() {
-  return Flag.OPENCODE_PLUGIN_META_FILE ?? path.join(Global.Path.state, "plugin-meta.json")
+  const flags = readRuntimeFlags()
+  return flags.pluginMetaFile ?? path.join(Global.Path.state, "plugin-meta.json")
 }
 
 function lock(file: string) {

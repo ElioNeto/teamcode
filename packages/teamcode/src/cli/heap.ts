@@ -1,8 +1,10 @@
 import path from "path"
 import { writeHeapSnapshot } from "node:v8"
-import { Flag } from "@teamcode-ai/core/flag/flag"
+import { Effect } from "effect"
 import { Global } from "@teamcode-ai/core/global"
 import * as Log from "@teamcode-ai/core/util/log"
+import { AppRuntime } from "@/effect/app-runtime"
+import { RuntimeFlags } from "@/effect/runtime-flags"
 
 const log = Log.create({ service: "heap" })
 const MINUTE = 60_000
@@ -12,8 +14,9 @@ let timer: Timer | undefined
 let lock = false
 let armed = true
 
-export function start() {
-  if (!Flag.OPENCODE_AUTO_HEAP_SNAPSHOT) return
+export async function start() {
+  const { autoHeapSnapshot } = await AppRuntime.runPromise(RuntimeFlags.Service.useSync((f) => f))
+  if (!autoHeapSnapshot) return
   if (timer) return
 
   const run = async () => {

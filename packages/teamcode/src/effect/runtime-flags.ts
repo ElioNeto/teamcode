@@ -21,6 +21,13 @@ const positiveInteger = (name: string, alias?: string) => {
   )
 }
 
+const optionalString = (name: string, alias?: string): Config.Config<string | undefined> => {
+  const chain = alias
+    ? Config.string(name).pipe(Config.orElse(() => Config.string(alias)))
+    : Config.string(name)
+  return chain.pipe(Config.orElse(() => Config.succeed(undefined)))
+}
+
 const experimental = bool("TEAMCODE_EXPERIMENTAL", "OPENCODE_EXPERIMENTAL")
 const enabledByExperimental = (name: string, alias?: string) =>
   Config.all({ experimental, enabled: bool(name, alias) }).pipe(Config.map((flags) => flags.experimental || flags.enabled))
@@ -75,6 +82,29 @@ export class Service extends ConfigService.Service<Service>()("@teamcode/Runtime
   disableProjectConfig: bool("TEAMCODE_DISABLE_PROJECT_CONFIG", "OPENCODE_DISABLE_PROJECT_CONFIG"),
   disableFilewatcher: bool("TEAMCODE_EXPERIMENTAL_DISABLE_FILEWATCHER", "OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER"),
   experimentalFilewatcher: bool("TEAMCODE_EXPERIMENTAL_FILEWATCHER", "OPENCODE_EXPERIMENTAL_FILEWATCHER"),
+
+  // === Newly added flags for I-06 migration ===
+  autoHeapSnapshot: bool("TEAMCODE_AUTO_HEAP_SNAPSHOT", "OPENCODE_AUTO_HEAP_SNAPSHOT"),
+  alwaysNotifyUpdate: bool("TEAMCODE_ALWAYS_NOTIFY_UPDATE", "OPENCODE_ALWAYS_NOTIFY_UPDATE"),
+  showTtfd: bool("TEAMCODE_SHOW_TTFD", "OPENCODE_SHOW_TTFD"),
+  disableMouse: bool("TEAMCODE_DISABLE_MOUSE", "OPENCODE_DISABLE_MOUSE"),
+  disableTerminalTitle: bool("TEAMCODE_DISABLE_TERMINAL_TITLE", "OPENCODE_DISABLE_TERMINAL_TITLE"),
+  experimentalDisableCopyOnSelect: Config.boolean("TEAMCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT").pipe(
+    Config.orElse(() => Config.boolean("OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT")),
+    Config.withDefault(process.platform === "win32"),
+  ),
+  serverPassword: optionalString("TEAMCODE_SERVER_PASSWORD", "OPENCODE_SERVER_PASSWORD"),
+  serverUsername: optionalString("TEAMCODE_SERVER_USERNAME", "OPENCODE_SERVER_USERNAME"),
+  workspaceId: optionalString("TEAMCODE_WORKSPACE_ID", "OPENCODE_WORKSPACE_ID"),
+  config: optionalString("TEAMCODE_CONFIG", "OPENCODE_CONFIG"),
+  configContent: optionalString("TEAMCODE_CONFIG_CONTENT", "OPENCODE_CONFIG_CONTENT"),
+  configDir: optionalString("TEAMCODE_CONFIG_DIR", "OPENCODE_CONFIG_DIR"),
+  tuiConfig: optionalString("TEAMCODE_TUI_CONFIG", "OPENCODE_TUI_CONFIG"),
+  permission: optionalString("TEAMCODE_PERMISSION", "OPENCODE_PERMISSION"),
+  db: optionalString("TEAMCODE_DB", "OPENCODE_DB"),
+  gitBashPath: optionalString("TEAMCODE_GIT_BASH_PATH", "OPENCODE_GIT_BASH_PATH"),
+  fakeVcs: optionalString("TEAMCODE_FAKE_VCS", "OPENCODE_FAKE_VCS"),
+  pluginMetaFile: optionalString("TEAMCODE_PLUGIN_META_FILE", "OPENCODE_PLUGIN_META_FILE"),
 }) {}
 
 export type Info = Context.Service.Shape<typeof Service>

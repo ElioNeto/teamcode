@@ -1,10 +1,10 @@
 import path from "path"
 import { type ParseError as JsoncParseError, applyEdits, modify, parse as parseJsonc } from "jsonc-parser"
 import { unique } from "remeda"
-import { Option, Schema } from "effect"
+import { Effect, Option, Schema } from "effect"
 import { DiffStyle, ScrollAcceleration, ScrollSpeed } from "./tui-schema"
-import { Flag } from "@teamcode-ai/core/flag/flag"
 import { Global } from "@teamcode-ai/core/global"
+import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Filesystem } from "@/util/filesystem"
 import * as Log from "@teamcode-ai/core/util/log"
 import * as ConfigPaths from "@/config/paths"
@@ -134,6 +134,9 @@ async function backupAndStripLegacy(file: string, source: string) {
     })
 }
 
+const readRuntimeFlags = () =>
+  Effect.runSync(RuntimeFlags.Service.useSync((flags) => flags).pipe(Effect.provide(RuntimeFlags.defaultLayer)))
+
 async function opencodeFiles(input: { directories: string[]; cwd: string }) {
   const files = [
     ...ConfigPaths.fileInDirectory(Global.Path.config, "teamcode"),
@@ -142,7 +145,8 @@ async function opencodeFiles(input: { directories: string[]; cwd: string }) {
   for (const dir of unique(input.directories)) {
     files.push(...ConfigPaths.fileInDirectory(dir, "teamcode"))
   }
-  if (Flag.OPENCODE_CONFIG) files.push(Flag.OPENCODE_CONFIG)
+  const flags = readRuntimeFlags()
+  if (flags.config) files.push(flags.config)
 
   const existing = await Promise.all(
     unique(files).map(async (file) => {
