@@ -60,12 +60,16 @@
 | `8318a98` | Rebrand | opencode → teamcode (138 arquivos, 208 alterações) |
 | `03efac3` | I-06 | Migração completa de Flag.* → RuntimeFlags (21 arquivos, 160 inserts) |
 | `6d234e1` | - | Fix pre-existing type errors (config.ts, server.ts) |
+| `a12e456` | - | Fix lazy import in instance-layer, wire RuntimeFlags/InstanceLayer layers |
+| `8fe7368` | - | Resolve pre-existing type errors (middleware combine, TypeScript strictness) |
+| `c5b623f` | I-17 | Add gpt-5-chat-latest / openai/gpt-5-chat model filtering (#27) |
+| `3e71d66` | I-14 | Extract EventApi and WorkspaceRoutingQuery to packages/server (#24) |
 
 ## Conclusão
 
 ### Issues Internas (I-01 a I-17)
 - **14 fechadas** — todas com commits e pushes
-- **2 parciais** (I-14, I-17 — esforço contínuo)
+- **2 com progresso** (I-14: contracts extraídos, I-17: gpt-5-chat filtering portado)
 - **1 N/A** (I-07)
 
 ### Issues Upstream Aplicáveis (fixadas)
