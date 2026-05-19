@@ -102,10 +102,11 @@ const rootApiRoutes = HttpApiBuilder.layer(RootHttpApi).pipe(
   Layer.provide(schemaErrorLayer),
   Layer.provide(httpApiAuthLayer),
 )
-const instanceRouterLayer = authorizationRouterMiddleware
-  .combine(instanceRouterMiddleware)
-  .combine(workspaceRouterMiddleware)
-  .layer.pipe(Layer.provide(Socket.layerWebSocketConstructorGlobal), Layer.provide(ServerAuth.Config.defaultLayer))
+const instanceRouterLayer = Layer.mergeAll(
+  authorizationRouterMiddleware.layer,
+  workspaceRouterMiddleware.layer as unknown as Layer.Layer<never>,
+  instanceRouterMiddleware.layer as unknown as Layer.Layer<never>,
+).pipe(Layer.provide(Socket.layerWebSocketConstructorGlobal), Layer.provide(ServerAuth.Config.defaultLayer))
 const eventApiRoutes = HttpApiBuilder.layer(EventApi).pipe(
   Layer.provide(eventHandlers),
   Layer.provide(instanceRouterLayer),

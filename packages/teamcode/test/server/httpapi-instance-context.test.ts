@@ -47,9 +47,10 @@ const it = testEffect(
   ),
 )
 
-const instanceContextTestLayer = instanceRouterMiddleware
-  .combine(workspaceRouterMiddleware)
-  .layer.pipe(Layer.provide(Socket.layerWebSocketConstructorGlobal))
+const instanceContextTestLayer = Layer.mergeAll(
+  workspaceRouterMiddleware.layer as unknown as Layer.Layer<never>,
+  instanceRouterMiddleware.layer as unknown as Layer.Layer<never>,
+).pipe(Layer.provide(Socket.layerWebSocketConstructorGlobal))
 
 const localAdapter = (directory: string): WorkspaceAdapter => ({
   name: "Local Test",

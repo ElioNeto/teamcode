@@ -1,6 +1,9 @@
 import { TuiConfig } from "@/cli/cmd/tui/config/tui"
 import { Rpc } from "@/util/rpc"
+import { type rpc } from "@/cli/cmd/tui/worker"
 import { tui } from "@/cli/cmd/tui/app"
+import type { GlobalEvent } from "@teamcode-ai/sdk/v2"
+import type { EventSource } from "@/cli/cmd/tui/context/sdk"
 
 process.on("SIGPIPE", () => {})
 process.on("SIGCHLD", () => {})
@@ -19,13 +22,15 @@ worker.onerror = (e) => {
   console.error("Worker error:", e.message)
 }
 
-const client = Rpc.client<typeof import("./src/cli/cmd/tui/worker").rpc>(worker)
+type RpcClient = ReturnType<typeof Rpc.client<typeof rpc>>
+
+const client: RpcClient = Rpc.client<typeof rpc>(worker)
 
 console.error("2. Getting config...")
 const config = await TuiConfig.get()
 
-function createWorkerFetch(client: typeof client): typeof fetch {
-  return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+function createWorkerFetch(client: RpcClient): typeof fetch {
+  const fn = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const request = new Request(input, init)
     const body = request.body ? await request.text() : undefined
     const result = await client.call("fetch", {
@@ -39,12 +44,15 @@ function createWorkerFetch(client: typeof client): typeof fetch {
       headers: result.headers,
     })
   }
+  return fn as typeof fetch
 }
 
-function createEventSource(client: typeof client) {
+function createEventSource(client: RpcClient): EventSource {
   return {
-    subscribe: async (handler: (e: any) => void) => {
-      return client.on("global.event", (e) => { handler(e) })
+    subscribe: async (handler) => {
+      return client.on<GlobalEvent>("global.event", (e) => {
+        handler(e)
+      })
     },
   }
 }
