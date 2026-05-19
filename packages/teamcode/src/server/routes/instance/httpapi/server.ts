@@ -222,7 +222,10 @@ export function createRoutes(
     Layer.provide(Observability.layer),
   )
 
-  return routeLayers.pipe(Layer.provide(serviceLayers))
+  return routeLayers.pipe(Layer.provide(serviceLayers)).pipe(
+    Layer.provideMerge(RuntimeFlags.defaultLayer),
+    Layer.provideMerge(InstanceLayer.layer),
+  )
 }
 
 export const routes = createRoutes()
