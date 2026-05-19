@@ -209,7 +209,22 @@ export const TaskTool = Tool.define(
           },
           parts,
         })
-        return result.parts.findLast((item) => item.type === "text")?.text ?? ""
+        const text = result.parts.findLast((item) => item.type === "text")?.text
+        if (text) return text
+
+        // No text part — build diagnostic context from available metadata
+        const finishPart = result.parts.findLast((item): item is MessageV2.StepFinishPart => item.type === "step-finish")
+        const toolParts = result.parts.filter((item): item is MessageV2.ToolPart => item.type === "tool")
+        const errorParts = toolParts.filter((item) => item.state.status === "error")
+        const toolCallCount = toolParts.length
+        const diagnostics: string[] = []
+        if (result.info.role === "assistant" && result.info.finish) diagnostics.push(`Finish reason: ${result.info.finish}`)
+        if (finishPart) diagnostics.push(`Step finish reason: ${finishPart.reason}`)
+        if (errorParts.length > 0) {
+          diagnostics.push(`Errors: ${errorParts.map((p) => (p.state as Extract<MessageV2.ToolState, { status: "error" }>).error).join("; ")}`)
+        }
+        diagnostics.push(`Total tool calls: ${toolCallCount}`)
+        return diagnostics.join("\n")
       })
 
       const resumeWhenIdle: (input: { userID: MessageID; state: "completed" | "error" }) => Effect.Effect<void> =

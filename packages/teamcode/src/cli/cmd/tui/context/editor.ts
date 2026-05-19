@@ -168,10 +168,10 @@ export const { use: useEditorContext, provider: EditorContextProvider } = create
       send({ id: requestID, method, params })
     }
 
-    const connect = () => {
+    const connect = async () => {
       if (closed) return
 
-      const connection = resolveEditorConnection(directory)
+      const connection = await resolveEditorConnection(directory)
       if (!connection) {
         const dbPath = resolveZedDbPath()
         if (!dbPath) {
@@ -300,7 +300,7 @@ export const { use: useEditorContext, provider: EditorContextProvider } = create
     }
 
     onMount(() => {
-      connect()
+      connect().catch(() => {})
 
       onCleanup(() => {
         closed = true
@@ -311,7 +311,7 @@ export const { use: useEditorContext, provider: EditorContextProvider } = create
 
     return {
       enabled() {
-        return Boolean(resolveEditorConnection(directory) || resolveZedDbPath())
+        return Boolean(resolveEditorConnectionSync(directory) || resolveZedDbPath())
       },
       connected() {
         return store.status === "connected"
@@ -357,7 +357,43 @@ function parsePort(value: string | undefined) {
   return parsed
 }
 
-function resolveEditorConnection(directory: string): EditorConnection | undefined {
+/** Try to probe the editor's SSE port with a short HTTP request. */
+async function probePort(port: number): Promise<boolean> {
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}`, {
+      method: "HEAD",
+      signal: AbortSignal.timeout(500),
+    })
+    return response.ok || response.status !== 0
+  } catch {
+    return false
+  }
+}
+
+async function resolveEditorConnection(directory: string): Promise<EditorConnection | undefined> {
+  const port = parsePort(process.env.CLAUDE_CODE_SSE_PORT || (process.env.TEAMCODE_EDITOR_SSE_PORT ?? process.env.OPENCODE_EDITOR_SSE_PORT))
+  if (port) {
+    if (await probePort(port)) {
+      return {
+        url: `ws://127.0.0.1:${port}`,
+        source: `env:${port}`,
+      }
+    }
+    // Port unreachable — fall through to lock file
+  }
+
+  const lock = resolveEditorLockFile(directory)
+  if (lock) {
+    return {
+      url: `ws://127.0.0.1:${lock.port}`,
+      authToken: lock.authToken,
+      source: `lock:${lock.port}`,
+    }
+  }
+}
+
+/** Synchronous variant used by enabled() – skips the connectivity probe. */
+function resolveEditorConnectionSync(directory: string): EditorConnection | undefined {
   const port = parsePort(process.env.CLAUDE_CODE_SSE_PORT || (process.env.TEAMCODE_EDITOR_SSE_PORT ?? process.env.OPENCODE_EDITOR_SSE_PORT))
   if (port) {
     return {

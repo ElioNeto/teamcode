@@ -454,6 +454,11 @@ export const layer = Layer.effect(
               })
             }
             yield* completeToolCall(value.toolCallId, output)
+            yield* plugin.trigger(
+              "tool.execute.after",
+              { tool: value.toolName, sessionID: ctx.sessionID, callID: value.toolCallId, args: toolCall?.part.state.input ?? {} },
+              { title: output.title ?? "", output: output.output, metadata: output.metadata ?? {} },
+            )
             return
           }
 

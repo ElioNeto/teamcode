@@ -632,6 +632,7 @@ export const RunCommand = effectCmd({
         async function loop(client: OpencodeClient, events: Awaited<ReturnType<typeof sdk.event.subscribe>>) {
           const toggles = new Map<string, boolean>()
           let error: string | undefined
+          let pendingSteps = 0
 
           for await (const event of events.stream) {
             if (
@@ -673,10 +674,12 @@ export const RunCommand = effectCmd({
               }
 
               if (part.type === "step-start") {
+                pendingSteps++
                 if (emit("step_start", { part })) continue
               }
 
               if (part.type === "step-finish") {
+                pendingSteps = Math.max(0, pendingSteps - 1)
                 if (emit("step_finish", { part })) continue
               }
 
@@ -725,6 +728,11 @@ export const RunCommand = effectCmd({
               event.properties.sessionID === sessionID &&
               event.properties.status.type === "idle"
             ) {
+              // For JSON output, don't break immediately if there are
+              // pending step-finish events that may arrive after idle.
+              if (args.format === "json" && pendingSteps > 0) {
+                continue
+              }
               break
             }
 
