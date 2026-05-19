@@ -4,27 +4,27 @@
 
 ---
 
-## #28072 — OpenCode fails to open after updating itself
+## #28072 — TeamCode fails to open after updating itself
 
 📅 `2026-05-17` | ✏️ **oxavibes** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/28072](https://github.com/anomalyco/opencode/issues/28072)
 
 
 ### Description
-The "Unsupported 16-Bit Application" error occurs specifically after OpenCode triggers its built-in self-update mechanism on Windows x64. The background process overwrites or leaves a corrupted/truncated `opencode.exe` file in the global pnpm directory.
+The "Unsupported 16-Bit Application" error occurs specifically after TeamCode triggers its built-in self-update mechanism on Windows x64. The background process overwrites or leaves a corrupted/truncated `teamcode.exe` file in the global pnpm directory.
 
 ### Environment
 - **OS:** Windows (64-bit)
 - **Package Manager:** pnpm (Global installation)
-- **Package Version affected:** `opencode-ai@1.15.4`
+- **Package Version affected:** `teamcode-ai@1.15.4`
 - **Trigger:** Built-in auto-update feature (`autoupdate: true`)
 
 ### Error Details
 The background self-update leaves a broken executable at:
-`\??\C:\Users\BlueScreenBeast\AppData\Local\pnpm\global\5\.pnpm\opencode-ai@1.15.4\node_modules\opencode-ai\bin\opencode.exe`
+`\??\C:\Users\BlueScreenBeast\AppData\Local\pnpm\global\5\.pnpm\teamcode-ai@1.15.4\node_modules\teamcode-ai\bin\teamcode.exe`
 
 ### Steps to Reproduce
-1. Have a previous working version of OpenCode installed globally via pnpm.
-2. Allow OpenCode to trigger or perform its internal self-update mechanism.
+1. Have a previous working version of TeamCode installed globally via pnpm.
+2. Allow TeamCode to trigger or perform its internal self-update mechanism.
 3. The next time the tool is run, execution fails with the Windows 16-bit application error popup due to file corruption during the update process.
 
 ### Expected Behavior
@@ -58,25 +58,25 @@ This indicates a bug in Bun, not your code. The panic occurred at:
 ## Environment
 
 - **OS**: Windows 11
-- **opencode version**: 1.15.3 ❌ → **1.15.0 works** ✅
+- **teamcode version**: 1.15.3 ❌ → **1.15.0 works** ✅
 - **Bun version** (system): 1.3.14
-- **Plugins**: oh-my-openagent@4.1.1, opencode-mem@2.14.1
+- **Plugins**: oh-my-openagent@4.1.1, teamcode-mem@2.14.1
 
 ## Steps to Reproduce
 
-1. Install `opencode-ai@1.15.3` via npm on Windows 11
-2. Run `opencode` in any project directory
+1. Install `teamcode-ai@1.15.3` via npm on Windows 11
+2. Run `teamcode` in any project directory
 3. Start a session → crashes within seconds
 
 ## Workaround
 
 ```powershell
-npm install -g opencode-ai@1.15.0
+npm install -g teamcode-ai@1.15.0
 ```
 
 ## Root Cause (confirmed by Bun team)
 
-This is a Bug in Bun's embedded runtime inside the standalone `opencode.exe` binary. Confirmed in [oven-sh/bun#30286](https://github.com/oven-sh/bun/issues/30286):
+This is a Bug in Bun's embedded runtime inside the standalone `teamcode.exe` binary. Confirmed in [oven-sh/bun#30286](https://github.com/oven-sh/bun/issues/30286):
 
 - `NapiEnv::cleanup` does not clear pending exceptions between finalizers
 - `napi_create_error` refuses to run with a pending VM exception (unlike Node.js)
@@ -87,7 +87,7 @@ This is a Bug in Bun's embedded runtime inside the standalone `opencode.exe` bin
 ## Related
 
 - [oven-sh/bun#30286](https://github.com/oven-sh/bun/issues/30286) — Root cause (OPEN)
-- [oven-sh/bun#30424](https://github.com/oven-sh/bun/issues/30424) — Same crash with opencode (C
+- [oven-sh/bun#30424](https://github.com/oven-sh/bun/issues/30424) — Same crash with teamcode (C
 
 > *[Truncado — 1732 chars totais]*
 
@@ -102,7 +102,7 @@ This is a Bug in Bun's embedded runtime inside the standalone `opencode.exe` bin
 
 ## Environment
 - OS: Windows 11 (zh-CN)
-- OpenCode: 1.15.3 (packaged)
+- TeamCode: 1.15.3 (packaged)
 - Electron: 41.2.1 (Node 24.14.1, Chromium 146)
 
 ## GPU Configuration
@@ -115,7 +115,7 @@ This is a Bug in Bun's embedded runtime inside the standalone `opencode.exe` bin
 | MuMu Virtual Display Adapter | 20.36.41.498 | 2026-03-12 |
 
 ## Reproduction
-1. Launch OpenCode 1.15.3 installed at `%LOCALAPPDATA%\Programs\@opencode-aidesktop\OpenCode.exe`
+1. Launch TeamCode 1.15.3 installed at `%LOCALAPPDATA%\Programs\@teamcode-aidesktop\TeamCode.exe`
 2. Window flashes briefly, then disappears
 
 ## Crash Log (console output with --enable-logging)
@@ -135,7 +135,7 @@ This is a Bug in Bun's embedded runtime inside the standalone `opencode.exe` bin
 GPU sandbox in Chromium 146 is incompatible with the system's GPU/driver configuration — likely due to virtual display adapters (GameViewer, Todesk, MuMu) interfering with the GPU sandbox initialization. The crash is deterministic (same exception code 0x80000003, same offset 0x7b594c6) across dozens of attempts.
 
 ## Crash dumps (WER)
-Available at: `C:\ProgramData\Microsoft\Windows\WER\ReportArchive\AppCrash_OpenCode.exe_*` (latest: 2026-05-17)
+Available at: `C:\ProgramData\Microsoft\Windows\WER\ReportArchive\AppCrash_TeamCode.exe_*` (latest: 2026-05-17)
 
 ### Plugins
 
@@ -147,15 +147,15 @@ Available at: `C:\ProgramData\Microsoft\Windows\WER\ReportArchive\AppCrash_OpenC
 
 ---
 
-## #28013 — Blank window after opening OpenCode app
+## #28013 — Blank window after opening TeamCode app
 
 📅 `2026-05-17` | ✏️ **Godwyne** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/28013](https://github.com/anomalyco/opencode/issues/28013)
 
 
 ### Description
 
-Blank window after opening OpenCode app
-Device: MacBook M1 Version MacOS Tahoe 26 running OpenCode app Version 1.15.0   
+Blank window after opening TeamCode app
+Device: MacBook M1 Version MacOS Tahoe 26 running TeamCode app Version 1.15.0   
 
 Troubleshoot:  - Restarted, reloaded, uninstalled and reinstalled using DMG file - Unable to uninstall app through Terminal
 
@@ -163,7 +163,7 @@ Troubleshoot:  - Restarted, reloaded, uninstalled and reinstalled using DMG file
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 Version 1.15.0
 
@@ -234,11 +234,11 @@ Error: Invalid key sequence: sequence cannot be empty
 
 ### Description
 
-# Bug Report: opencode-ai v1.15.3 - Corrupted executable on Windows
+# Bug Report: teamcode-ai v1.15.3 - Corrupted executable on Windows
 
 ## Description
 
-Version `1.15.3` of `opencode-ai` ships a corrupted binary on Windows 10/11. The executable fails to launch with the error:
+Version `1.15.3` of `teamcode-ai` ships a corrupted binary on Windows 10/11. The executable fails to launch with the error:
 
 > "The specified executable is not a valid application for this OS platform"
 
@@ -262,7 +262,7 @@ Version `1.15.0` works correctly. The issue is reproducible on fresh install and
 Downgrade to `v1.15.0`:
 
 ```powershell
-pnpm install -g opencode-ai@1.15.0
+pnpm install -g teamcode-ai@1.15.0
 ```
 
 ---
@@ -278,8 +278,8 @@ pnpm install -g opencode-ai@1.15.0
 
 ## Related
 
-- The issue tracker for `opencode-ai` on GitHub
-- pnpm global install path: `%LOCALAPPDATA%\pnpm\global\v11\*\node_modules\opencode-ai\`
+- The issue tracker for `teamcode-ai` on GitHub
+- pnpm global install path: `%LOCALAPPDATA%\pnpm\global\v11\*\node_modules\teamcode-ai\`
 
 ---
 
@@ -287,7 +287,7 @@ pnpm install -g opencode-ai@1.15.0
 
 ```powershell
 # Check file details
-Get-Item "$env:LOCALAPPDATA\pnpm\global\v11\*\node_modules\opencode-ai\bin\opencode.exe" | Select-Object Name, Length, LastWriteTime
+Get-Item "$env:LOCALAPPDATA\pnpm\global\v11\*\node_modules\teamcode-ai\bin\teamcode.exe" | Select-Object Name, Length, LastWriteTime
 
 # Expected: binary ~50-100MB, normal timestamp
 # Actual (v1.15.3): binary may show incorrect size or corrup
@@ -309,7 +309,7 @@ When the agent works on a Linux patchset project, it attempted to patch 140K+ fi
 
 no
 
-### OpenCode version
+### TeamCode version
 
 1.15.3
 
@@ -342,18 +342,18 @@ _No response_
 
 ### Description
 
-Installing `opencode` via `brew install anomalyco/tap/opencode` forces a full git clone of `homebrew-core`, which fails on modern Homebrew (4.0+) setups that use the JSON API by default.
+Installing `teamcode` via `brew install anomalyco/tap/teamcode` forces a full git clone of `homebrew-core`, which fails on modern Homebrew (4.0+) setups that use the JSON API by default.
 
 ### Environment
 
 - **OS:** macOS (Apple Silicon — M1)
 - **Homebrew version:** 5.1.11-140-gfb60c87 (modern, API-based)
-- **opencode formula version:** 1.15.3
+- **teamcode formula version:** 1.15.3
 
 ### Steps to Reproduce
 
 ```bash
-brew install anomalyco/tap/opencode
+brew install anomalyco/tap/teamcode
 ```
 
 ### Error
@@ -378,7 +378,7 @@ Installation should work without cloning `homebrew-core`, using Homebrew's JSON 
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.15.3
 
@@ -413,9 +413,9 @@ Only the undocumented `OPENCODE_DISABLE_PLUGIN_INSTALL=true` environment variabl
 
 ## Steps to Reproduce
 
-1. Add `"pluginAutoInstall": false` to `opencode.json`
-2. Start opencode
-3. Observe that plugins are still auto-installed (check `~/.cache/opencode/packages/`)
+1. Add `"pluginAutoInstall": false` to `teamcode.json`
+2. Start teamcode
+3. Observe that plugins are still auto-installed (check `~/.cache/teamcode/packages/`)
 
 ## Root Cause
 
@@ -429,7 +429,7 @@ Setting `pluginAutoInstall: false` in config should prevent automatic plugin ins
 
 ## Impact
 
-This caused a critical issue in our deployment: opencode auto-installed an npm package that overwrote our patched fork plugin, destroying session compression state and losing data.
+This caused a critical issue in our deployment: teamcode auto-installed an npm package that overwrote our patched fork plugin, destroying session compression state and losing data.
 
 ---
 
@@ -440,19 +440,19 @@ This caused a critical issue in our deployment: opencode auto-installed an npm p
 
 ### Description
 
-After an automatic update to this version, all ChatGPT/MiniMax/Ollama cloude authorizations crashed for me. But that's not all, the entire chat history is cleared, I checked and opencode.db was COMPLETELY cleared. Why was this done and what should I do now?
+After an automatic update to this version, all ChatGPT/MiniMax/Ollama cloude authorizations crashed for me. But that's not all, the entire chat history is cleared, I checked and teamcode.db was COMPLETELY cleared. Why was this done and what should I do now?
 
 ### Plugins
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.15.1
 
 ### Steps to reproduce
 
-I just opened the OpenCode application, it updated itself and broke everything
+I just opened the TeamCode application, it updated itself and broke everything
 
 ### Screenshot and/or share link
 
@@ -479,7 +479,7 @@ Direct SSH connection to VPS
 
 ### Description
 
-During a FAERS data import session, the AI agent (opencode) executed TRUNCATE on 7 database tables (~30M records) without user authorization. This happened despite the user explicitly instructing "NEVER write to DB directly" in the project's AGENTS.md guide and verbally prohibiting unauthorized DB modifications multiple times during the session.
+During a FAERS data import session, the AI agent (teamcode) executed TRUNCATE on 7 database tables (~30M records) without user authorization. This happened despite the user explicitly instructing "NEVER write to DB directly" in the project's AGENTS.md guide and verbally prohibiting unauthorized DB modifications multiple times during the session.
 
 The agent was given DB credentials for read-only verification but repeatedly used them for destructive writes (TRUNCATE, INSERT during test runs) without asking.
 
@@ -487,13 +487,13 @@ The agent was given DB credentials for read-only verification but repeatedly use
 
 None
 
-### OpenCode version
+### TeamCode version
 
-opencode/deepseek-v4-flash-free
+teamcode/deepseek-v4-flash-free
 
 ### Steps to reproduce
 
-1. Provide DB credentials to opencode for read-only verification
+1. Provide DB credentials to teamcode for read-only verification
 2. Ask it to analyze a database import issue
 3. The agent will TRUNCATE tables and make destructive changes without asking
 
@@ -560,7 +560,7 @@ TypeError: The "path" property must be of type string, got object
 
 ### Problem
 
-When a remote MCP fails to connect with `UnauthorizedError`, opencode sets its status to `needs_auth` and surfaces a toast pointing at the `/mcps` picker (or the `opencode mcp auth` shell subcommand). However, the running agent has zero awareness that this MCP exists:
+When a remote MCP fails to connect with `UnauthorizedError`, teamcode sets its status to `needs_auth` and surfaces a toast pointing at the `/mcps` picker (or the `teamcode mcp auth` shell subcommand). However, the running agent has zero awareness that this MCP exists:
 
 - `MCP.tools()` filters to `status === "connected"` clients only, so no tool from a `needs_auth` MCP reaches the agent's tool list.
 - The system prompt does not enumerate configured MCPs.
@@ -575,13 +575,13 @@ The agent should know which MCPs are configured-but-unauthenticated and have a w
 ### Reproduction
 
 1. Configure a remote MCP with OAuth (e.g. any Keycloak-backed MCP).
-2. Clear its tokens (delete `tokens` from `~/.local/share/opencode/mcp-auth.json` for that MCP) and restart opencode.
+2. Clear its tokens (delete `tokens` from `~/.local/share/teamcode/mcp-auth.json` for that MCP) and restart teamcode.
 3. Ask the agent: "use <name> to <do something>".
 4. The agent reports it doesn't have any tools matching `<name>`.
 
 ### Environment
 
-- opencode 1.14.48 (also reproduces against current `dev` HEAD).
+- teamcode 1.14.48 (also reproduces against current `dev` HEAD).
 - Any remote MCP with OAuth that returns `UnauthorizedError` on connect.
 
 ### Related
@@ -592,7 +592,7 @@ The agent should know which MCPs are configured-but-unauthenticated and have a w
 
 ---
 
-## #27723 — Desktop: sidecar crashes on 2nd LLM call when oh-my-opencode plugin loaded (Windows)
+## #27723 — Desktop: sidecar crashes on 2nd LLM call when oh-my-teamcode plugin loaded (Windows)
 
 📅 `2026-05-15` | ✏️ **laozhaozhusu** | 💬 3 | 🔗 [https://github.com/anomalyco/opencode/issues/27723](https://github.com/anomalyco/opencode/issues/27723)
 
@@ -601,19 +601,19 @@ The agent should know which MCPs are configured-but-unauthenticated and have a w
 
 ## Environment
 
-- **OpenCode Desktop**: v1.15.0 (Windows x64)
-- **OpenCode CLI**: v1.15.0 (same machine, works perfectly)
+- **TeamCode Desktop**: v1.15.0 (Windows x64)
+- **TeamCode CLI**: v1.15.0 (same machine, works perfectly)
 - **OS**: Windows 10/11 (Build 26200)
-- **Plugin**: `oh-my-opencode` v4.1.2 (npm: `oh-my-opencode` / `oh-my-openagent`)
+- **Plugin**: `oh-my-teamcode` v4.1.2 (npm: `oh-my-teamcode` / `oh-my-openagent`)
 
 ## Bug Description
 
-When the `oh-my-opencode` plugin is loaded, the Desktop app's sidecar process (running as Electron `node.mojom.NodeService` utility process) **crashes deterministically on the 2nd LLM streaming call**. The 1st message always succeeds. The CLI version with the exact same config, binary version, and API works perfectly.
+When the `oh-my-teamcode` plugin is loaded, the Desktop app's sidecar process (running as Electron `node.mojom.NodeService` utility process) **crashes deterministically on the 2nd LLM streaming call**. The 1st message always succeeds. The CLI version with the exact same config, binary version, and API works perfectly.
 
 ## Reproduction Steps
 
-1. Install OpenCode Desktop v1.15.0 on Windows
-2. Configure `opencode.jsonc` with `"plugin": ["oh-my-opencode"]`
+1. Install TeamCode Desktop v1.15.0 on Windows
+2. Configure `teamcode.jsonc` with `"plugin": ["oh-my-teamcode"]`
 3. Open Desktop app, start a new session
 4. Send 1st message → succeeds, LLM responds normally
 5. Send 2nd message → **sidecar process dies immediately**, DevTools shows `net::ERR_CONNECTION_REFUSED` for all subsequent requests
@@ -653,7 +653,7 @@ When `prompt_async` is called a **second time** on the same session (conversatio
 
 ## Environment
 
-- opencode version: v1.14.50
+- teamcode version: v1.14.50
 - SSE endpoint tested: both `/event` (instance-level) and `/global/event`
 - Same behavior on both endpoints
 
@@ -691,7 +691,7 @@ node::sqlite::StatementSync::All
 
 ## Steps to reproduce
 
-1. Start opencode on macOS.
+1. Start teamcode on macOS.
 2. Ask the AI to delete a binary file >= ~50 MB (e.g. a `.dmg`, `.iso`, or large `.zip`) via `apply_patch`.
 3. The sidecar process crashes with SIGTRAP / EXC_BREAKPOINT immediately after the patch is applied. All in-flight sessions are lost.
 
@@ -699,7 +699,7 @@ node::sqlite::StatementSync::All
 
 macOS 15 (Darwin arm64)
 
-## OpenCode version
+## TeamCode version
 
 Latest dev branch (reproduced on current `dev` HEAD)
 
@@ -728,7 +728,7 @@ Environment:
 
 * Windows 11
 * Android Studio
-* OpenCode installed via npm (`opencode-ai`)
+* TeamCode installed via npm (`teamcode-ai`)
 * Localhost server mode
 
 Known Working:
@@ -741,23 +741,23 @@ Broken Versions:
 * 1.14.48
 
 Problem:
-Starting with versions newer than 1.14.41, the Android Studio OpenCode panel repeatedly shows:
+Starting with versions newer than 1.14.41, the Android Studio TeamCode panel repeatedly shows:
 
-“Connection Error — Failed to connect to the OpenCode server. Retrying…”
+“Connection Error — Failed to connect to the TeamCode server. Retrying…”
 
 while also spamming:
 
-“Connected to OpenCode server”
+“Connected to TeamCode server”
 
 The UI continuously disconnects/reconnects even though the backend server is alive and localhost networking is functioning correctly.
 
 Backend logs show:
-`opencode server listening on http://127.0.0.1:4096`
+`teamcode server listening on http://127.0.0.1:4096`
 
 `netstat` confirms:
 
 * 127.0.0.1:4096 LISTENING
-* ESTABLISHED localhost connections between Android Studio and OpenCode
+* ESTABLISHED localhost connections between Android Studio and TeamCode
 
 Troubleshooting already performed:
 
@@ -771,7 +771,7 @@ Troubleshooting already performed:
 
 Result:
 Rolling back to:
-`opencode-ai@1.14.41`
+`teamcode-ai@1.14.41`
 
 immediately fixes the issue with no other system changes.
 
@@ -788,14 +788,14 @@ The backend itself does not appear to crash.
 
 Android Studio plugin
 
-### OpenCode version
+### TeamCode version
 
 1.14.41
 
 ### Steps to reproduce
 
-1. Install OpenCode via:
-   `npm install -g opencode-ai@1.14.44`
+1. Install TeamCode via:
+   `npm install -g teamcode-ai@1.14.44`
    or newer 
 
 > *[Truncado — 2199 chars totais]*
@@ -818,8 +818,8 @@ On Windows, Node.js `path.relative()` behaves differently across drives:
 
 | Scenario | `path.relative()` result | `startsWith("..")` | `contains()` returns |
 |---|---|---|---|
-| Same drive: `D:\opencode\test0` → `D:\test.md` | `..\..\test.md` | `true` | `false` ✅ correct |
-| Cross drive: `D:\opencode\test0` → `C:\Users\...\nDoc` | `C:\Users\...\nDoc` (absolute) | `false` | `true` ❌ **BUG** |
+| Same drive: `D:\teamcode\test0` → `D:\test.md` | `..\..\test.md` | `true` | `false` ✅ correct |
+| Cross drive: `D:\teamcode\test0` → `C:\Users\...\nDoc` | `C:\Users\...\nDoc` (absolute) | `false` | `true` ❌ **BUG** |
 
 When drives differ, `path.relative` returns the **full absolute path** of the target, which does NOT start with `..`. This causes `contains()` to incorrectly return `true`, making `containsPath()` (in `instance-context.ts`) treat cross-drive paths as "inside the project" — completely skipping the `external_directory` permission gate.
 
@@ -829,24 +829,24 @@ The issue is also present in `normalizePathPattern()` and potentially affects `o
 
 ---
 
-## #27559 — opencode run -s <missing-session-id> exits 0 with zero stdout instead of failing
+## #27559 — teamcode run -s <missing-session-id> exits 0 with zero stdout instead of failing
 
 📅 `2026-05-14` | ✏️ **paymog** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/27559](https://github.com/anomalyco/opencode/issues/27559)
 
 
 ## Summary
 
-`opencode run -s <session-id>` with a session id that doesn't exist locally exits with **code 0** and produces **zero stdout**, after only writing a `NotFoundError` to stderr. For consumers that script around opencode and rely on exit codes to decide success vs. failure, this looks indistinguishable from a successful no-op run.
+`teamcode run -s <session-id>` with a session id that doesn't exist locally exits with **code 0** and produces **zero stdout**, after only writing a `NotFoundError` to stderr. For consumers that script around teamcode and rely on exit codes to decide success vs. failure, this looks indistinguishable from a successful no-op run.
 
 ## Version
 
-`opencode 1.14.19` (Linux x64, installed via packaged binary in a Daytona sandbox).
+`teamcode 1.14.19` (Linux x64, installed via packaged binary in a Daytona sandbox).
 
 ## Repro
 
 ```bash
 # Use any session id that doesn't exist on this machine:
-echo "hi" | opencode run --format json -m amazon-bedrock/us.anthropic.claude-sonnet-4-6 --variant low -s ses_doesnotexist 2>stderr.log
+echo "hi" | teamcode run --format json -m amazon-bedrock/us.anthropic.claude-sonnet-4-6 --variant low -s ses_doesnotexist 2>stderr.log
 echo "exit=$?"
 cat stderr.log
 ```
@@ -867,11 +867,11 @@ NotFoundError: NotFoundError
 
 ## Expected
 
-`opencode run -s <missing>` should exit with a non-zero status (e.g. `2` for "not found" or `1` for any error). Ideally also emit a single JSON event on stdout when `--format json` is set, so JSON-stream consumers can detect the failure without parsing stderr.
+`teamcode run -s <missing>` should exit with a non-zero status (e.g. `2` for "not found" or `1` for any error). Ideally also emit a single JSON event on stdout when `--format json` is set, so JSON-stream consumers can detect the failure without parsing stderr.
 
 ## Why it matters
 
-We script around `opencode run --format json -s <prior-session>` to resume agent conversations. Stale ids happen routinely (sandboxes get recycled, machines change, sessions get cleaned up). With exit code 0 + zero stdout + stderr-only error, the onl
+We script around `teamcode run --format json -s <prior-session>` to resume agent conversations. Stale ids happen routinely (sandboxes get recycled, machines change, sessions get cleaned up). With exit code 0 + zero stdout + stderr-only error, the onl
 
 > *[Truncado — 2140 chars totais]*
 
@@ -884,11 +884,11 @@ We script around `opencode run --format json -s <prior-session>` to resume agent
 
 ## Summary
 
-OpenCode Desktop's sidecar process exits silently with **code 1** anywhere from 30 seconds to ~10 minutes after `server ready`, with no stderr written to `~/Library/Logs/@opencode-ai/desktop/main.log`. The Desktop UI then displays "server is dead". Repeats on every relaunch.
+TeamCode Desktop's sidecar process exits silently with **code 1** anywhere from 30 seconds to ~10 minutes after `server ready`, with no stderr written to `~/Library/Logs/@teamcode-ai/desktop/main.log`. The Desktop UI then displays "server is dead". Repeats on every relaunch.
 
-**Root cause traced**: a third-party opencode plugin (`oh-my-openagent`) installs a global Node `process.on('uncaughtException', …)` handler that catches ANY unhandled rejection in the sidecar — including ones thrown by opencode core itself — and unconditionally calls `process.exit(1)`. The plugin's maintainer has acknowledged this in [code-yeongyu/oh-my-openagent#3856](https://github.com/code-yeongyu/oh-my-openagent/issues/3856) (open, with proposed fixes) and the v4.1.1 regression specifically in [code-yeongyu/oh-my-openagent#3997](https://github.com/code-yeongyu/oh-my-openagent/issues/3997) (open).
+**Root cause traced**: a third-party teamcode plugin (`oh-my-openagent`) installs a global Node `process.on('uncaughtException', …)` handler that catches ANY unhandled rejection in the sidecar — including ones thrown by teamcode core itself — and unconditionally calls `process.exit(1)`. The plugin's maintainer has acknowledged this in [code-yeongyu/oh-my-openagent#3856](https://github.com/code-yeongyu/oh-my-openagent/issues/3856) (open, with proposed fixes) and the v4.1.1 regression specifically in [code-yeongyu/oh-my-openagent#3997](https://github.com/code-yeongyu/oh-my-openagent/issues/3997) (open).
 
-I'm filing this against opencode anyway because **the architecture that lets a single plugin's global error handler take down the entire sidecar with zero diagnostic surface is itself the bug to fix in opencode**. Even after the upstream plugin fixes #3856, any future plugin can do the same thing and reproduce this exact failure.
+I'm filing this against teamcode anyway because **the architecture that lets a single plugin's global error handler take down the entire sidecar with zero diagnostic surface is itself the bug to fix in teamcode**. Even after the upstream plugin fixes #3856, any future plugin can do the same thing and reproduce this exact failure.
 
 A secondary, independent failure mode (concurrent SQLite access from a co-running CLI server) is documented further down — same observable symptom, different root cause, both worth fixing.
 
@@ -943,16 +943,16 @@ TypeError: undefined is not an object (evaluating 'U.matchAll')
 
 ---
 
-## #27456 — 1.14.49 regression: re-exporting .opencode/tool/index.ts barrel crashes ToolRegistry.state with 'Object.entries requires that input parameter not be null or undefined'
+## #27456 — 1.14.49 regression: re-exporting .teamcode/tool/index.ts barrel crashes ToolRegistry.state with 'Object.entries requires that input parameter not be null or undefined'
 
 📅 `2026-05-14` | ✏️ **kunickiaj** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/27456](https://github.com/anomalyco/opencode/issues/27456)
 
 
 ## Summary
 
-`opencode` 1.14.49 and 1.14.50 crash during `SessionPrompt.resolveTools` with `TypeError: Object.entries requires that input parameter not be null or undefined` when a project's `.opencode/tool/index.ts` (or any user-config tool file) `export … from`'s another module.
+`teamcode` 1.14.49 and 1.14.50 crash during `SessionPrompt.resolveTools` with `TypeError: Object.entries requires that input parameter not be null or undefined` when a project's `.teamcode/tool/index.ts` (or any user-config tool file) `export … from`'s another module.
 
-End-user symptom: `opencode run "<anything>"` returns:
+End-user symptom: `teamcode run "<anything>"` returns:
 
 ```
 Error: {
@@ -963,7 +963,7 @@ Error: {
 }
 ```
 
-…on the very first prompt — the LLM is never reached. The only way to see the underlying cause is `opencode --print-logs`.
+…on the very first prompt — the LLM is never reached. The only way to see the underlying cause is `teamcode --print-logs`.
 
 ## Stack trace
 
@@ -985,14 +985,14 @@ ERROR service=server error=Object.entries requires that input parameter not be n
 
 ---
 
-## #27451 — 1.14.50: opencode run crashes if project agents present
+## #27451 — 1.14.50: teamcode run crashes if project agents present
 
 📅 `2026-05-14` | ✏️ **edwardsconnects90** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/27451](https://github.com/anomalyco/opencode/issues/27451)
 
 
 ### Description
 
-After auto-upgrade to **opencode 1.14.49**, then **1.14.50**, every `opencode run <message>` invocation and every TUI message submit terminates with `Object.entries on null` inside `ToolRegistry.state`. The TUI swallows the error: it accepts `/`-slash commands or plain prompts but Enter produces no visible response; the session crashes server-side without surfacing the error. Non-interactive `opencode run` exits 0 but prints the stack below when `--print-logs` is enabled.
+After auto-upgrade to **teamcode 1.14.49**, then **1.14.50**, every `teamcode run <message>` invocation and every TUI message submit terminates with `Object.entries on null` inside `ToolRegistry.state`. The TUI swallows the error: it accepts `/`-slash commands or plain prompts but Enter produces no visible response; the session crashes server-side without surfacing the error. Non-interactive `teamcode run` exits 0 but prints the stack below when `--print-logs` is enabled.
 
 ```
 ERROR service=server error=Object.entries requires that input parameter not be null or undefined cause=TypeError: Object.entries requires that input parameter not be null or undefined
@@ -1014,20 +1014,20 @@ ERROR service=server error=Object.entries requires that input parameter not be n
 
 ---
 
-## #27446 — Unable to start opencode, it says bun has crashed.
+## #27446 — Unable to start teamcode, it says bun has crashed.
 
 📅 `2026-05-14` | ✏️ **kei-ya-131** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/27446](https://github.com/anomalyco/opencode/issues/27446)
 
 
 ### Description
 
-After upgrade the opencode to 1.14.50, Iaunched opencode in a Windows 11 64-bit environment, and it showed:
+After upgrade the teamcode to 1.14.50, Iaunched teamcode in a Windows 11 64-bit environment, and it showed:
 
 ============================================================
 Bun v1.3.13 (bf2e2cec) Windows x64 (baseline)
 Windows v.win11_dt
 CPU: sse42 avx avx2
-Args: "C:\Users\[user]\AppData\Local\node\node_modules\opencode-ai\node_modules\opencode-windows-x64\bin\opencode.exe" "--user-agent=opencode/1.14.50" "--use-system-ca" "--"
+Args: "C:\Users\[user]\AppData\Local\node\node_modules\teamcode-ai\node_modules\teamcode-windows-x64\bin\teamcode.exe" "--user-agent=teamcode/1.14.50" "--use-system-ca" "--"
 Features: Bun.stderr(2) Bun.stdin(2) Bun.stdout(2) jsc standalone_executable
 Builtins: "bun:ffi" "bun:main" "bun:sqlite" "node:assert" "node:async_hooks" "node:buffer" "node:child_process" "node:crypto" "node:dns" "node:events" "node:fs" "node:fs/promises" "node:http" "node:https" "node:module" "node:net" "node:os" "node:path" "node:path/win32" "node:process" "node:querystring" "node:readline" "node:stream" "node:stream/consumers" "node:stream/promises" "node:string_decoder" "node:timers" "node:timers/promises" "node:tls" "node:tty" "node:url" "node:util" "node:zlib" "undici" "ws" "node:v8" "node:http2" "node:diagnostics_channel" "node:dgram"
 Elapsed: 489ms | User: 437ms | Sys: 109ms
@@ -1045,14 +1045,14 @@ https://bun.report/1.3.13/ea1bf2e2ceEugggCCSntdll.dll017FCSnt
 
 ---
 
-## #27328 — The local server in OpenCode keeps crashing unexpectedly during use
+## #27328 — The local server in TeamCode keeps crashing unexpectedly during use
 
 📅 `2026-05-13` | ✏️ **Purple-Hyacinthi** | 💬 6 | 🔗 [https://github.com/anomalyco/opencode/issues/27328](https://github.com/anomalyco/opencode/issues/27328)
 
 
 ### Description
 
-The local server in OpenCode keeps crashing unexpectedly during use, which prevents me from accessing the model. While the task itself doesn't get interrupted, the interface freezes right after I grant permissions.When I restart it will recover again.
+The local server in TeamCode keeps crashing unexpectedly during use, which prevents me from accessing the model. While the task itself doesn't get interrupted, the interface freezes right after I grant permissions.When I restart it will recover again.
 
 <img width="915" height="101" alt="Image" src="https://github.com/user-attachments/assets/7d26e06a-1ee2-432f-a2fa-ed0bc1046dd6" />
 
@@ -1060,13 +1060,13 @@ The local server in OpenCode keeps crashing unexpectedly during use, which preve
 
 superpower
 
-### OpenCode version
+### TeamCode version
 
 v1.14.48
 
 ### Steps to reproduce
 
-I discovered this serious issue while using the opencode go package. And unlike when calling other APIs, this has affected the output of the agent.It appeared automatically. I'm not sure what caused it.I have witnessed the same phenomenon on both my Windows computer and my friend's Mac computer.
+I discovered this serious issue while using the teamcode go package. And unlike when calling other APIs, this has affected the output of the agent.It appeared automatically. I'm not sure what caused it.I have witnessed the same phenomenon on both my Windows computer and my friend's Mac computer.
 
 ### Screenshot and/or share link
 
@@ -1096,16 +1096,16 @@ When using warp mode (`/warp`) in a worktree session and the agent triggers the 
 - **Ctrl+C (or Cmd+C) does not exit** — normally this would abort the interactive Q&A
 - The only way to recover is to force-close the terminal window (Ghostty + Fish)
 
-When the session is forcibly terminated, OpenCode reports "interactive Q&A aborted by user" on next launch, confirming the question was never dismissed.
+When the session is forcibly terminated, TeamCode reports "interactive Q&A aborted by user" on next launch, confirming the question was never dismissed.
 
 ## Root Cause Hypothesis
 
 The warp flow (`/warp`) manipulates a **dialog stack** via `dialog.clear()`, `dialog.replace()`, etc. It appears the warp dialog lifecycle leaves a **modal overlay or event capture layer** that intercepts **all** input — both mouse and keyboard — and never releases it. The entire TUI event loop for the session becomes blocked.
 
 Key code locations:
-- `packages/opencode/src/cli/cmd/tui/routes/session/question.tsx` — QuestionPrompt with `onMouseUp` and key bindings
-- `packages/opencode/src/cli/cmd/tui/component/dialog-workspace-create.tsx` — warp dialog lifecycle
-- `packages/opencode/src/cli/cmd/tui/ui/` — dialog/overlay components
+- `packages/teamcode/src/cli/cmd/tui/routes/session/question.tsx` — QuestionPrompt with `onMouseUp` and key bindings
+- `packages/teamcode/src/cli/cmd/tui/component/dialog-workspace-create.tsx` — warp dialog lifecycle
+- `packages/teamcode/src/cli/cmd/tui/ui/` — dialog/overlay components
 
 The fact that even Ctrl+C is captured suggests the issue is at the **TUI event loop or dialog overlay** level, not just the QuestionPrompt component.
 
@@ -1124,11 +1124,11 @@ The fact that even Ctrl+C is captured suggests the issue is at the **TUI event l
 
 ## Description
 
-OpenCode GUI (Electron renderer) crashes with `TypeError: Failed to fetch` when a background subagent task completes and the parent session tries to fetch updated messages. The crash kills the entire session — no recovery possible without restarting OpenCode.
+TeamCode GUI (Electron renderer) crashes with `TypeError: Failed to fetch` when a background subagent task completes and the parent session tries to fetch updated messages. The crash kills the entire session — no recovery possible without restarting TeamCode.
 
 ## Environment
 
-- OpenCode: 1.14.48
+- TeamCode: 1.14.48
 - OmO (oh-my-openagent): 4.1.1
 - OS: Windows 11
 - Model: claude-opus-4-6
@@ -1148,7 +1148,7 @@ TypeError: Failed to fetch
 
 ## Reproduction
 
-1. Start OpenCode TUI/GUI
+1. Start TeamCode TUI/GUI
 2. In a session, spawn a background task:
 ```
 task(subagent_type="explore", load_skills=[], run_in_background=true,
@@ -1161,7 +1161,7 @@ task(subagent_type="explore", load_skills=[], run_in_background=true,
 ## Observations
 
 - The crash happens in `fetchMessages` → `loadMessages` — the renderer tries to fetch messages from the completed child session but the fetch fails
-- Backend logs (`~/.local/share/opencode/log/`) do NOT contain `TypeError` or `Failed to fetch` — this is purely renderer-sid
+- Backend logs (`~/.local/share/teamcode/log/`) do NOT contain `TypeError` or `Failed to fetch` — this is purely renderer-sid
 
 > *[Truncado — 2278 chars totais]*
 
@@ -1190,7 +1190,7 @@ by the way, i export NODE_TLS_REJECT_UNAUTHORIZED=0 because auth error before
 and i can modify timeout param, this is my config,
 ```
 {
-  "$schema": "https://opencode.ai/config.json",
+  "$schema": "https://teamcode.ai/config.json",
   "provider": {
     "google": {
       "options": {
@@ -1206,7 +1206,7 @@ and i can modify timeout param, this is my config,
 
 NONE
 
-### OpenCode version
+### TeamCode version
 
 v1.14.48
 
@@ -1230,66 +1230,66 @@ mac app
 
 ---
 
-## #27028 — [Windows] OpenCode crashes when executing git commands in Windows Terminal
+## #27028 — [Windows] TeamCode crashes when executing git commands in Windows Terminal
 
 📅 `2026-05-12` | ✏️ **xwh5** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/27028](https://github.com/anomalyco/opencode/issues/27028)
 
 
 ## Issue Description
 
-On Windows 11 with Windows Terminal, OpenCode crashes unexpectedly when executing git commands such as `git status`, `git stash`, or other git operations. The terminal window closes immediately instead of showing the command output.
+On Windows 11 with Windows Terminal, TeamCode crashes unexpectedly when executing git commands such as `git status`, `git stash`, or other git operations. The terminal window closes immediately instead of showing the command output.
 
 ## Environment
 
 - OS: Windows 11 
 - Terminal: Windows Terminal
 - Shell: PowerShell
-- OpenCode version: Latest (auto-updated)
-- Installation method: npm (`npm install -g opencode-ai`)
+- TeamCode version: Latest (auto-updated)
+- Installation method: npm (`npm install -g teamcode-ai`)
 
 ## Steps to reproduce
 
 1. Open Windows Terminal
-2. Run `opencode`
+2. Run `teamcode`
 3. Execute any git command (e.g., `git status`, `git branch`, `git stash")
 4. Expected: Git command executes and shows output
-5. Actual: OpenCode crashes and terminal window closes
+5. Actual: TeamCode crashes and terminal window closes
 
 ## Expected behavior
 
-Git commands should execute normally without crashing OpenCode or closing the terminal window.
+Git commands should execute normally without crashing TeamCode or closing the terminal window.
 
 ## Actual behavior
 
-The terminal window closes immediately when a git command is being executed. This appears to be related to how OpenCode manages child processes on Windows.
+The terminal window closes immediately when a git command is being executed. This appears to be related to how TeamCode manages child processes on Windows.
 
 ## Related issues
 
 This issue may be related to:
 - #24288 - Windows: self-kill issue when terminating node processes
-- #7950 - [Windows] AI killing node.exe process terminates OpenCode itself
-- #25930 - OpenCode closes when I terminate the running node processes
+- #7950 - [Windows] AI killing node.exe process terminates TeamCode itself
+- #25930 - TeamCode closes when I terminate the running node processes
 
 ## Additional context
 
-The crash happens frequently during git operations and makes OpenCode unusable for development workflows that rely on git commands. A workaround would be highly appreciated.
+The crash happens frequently during git operations and makes TeamCode unusable for development workflows that rely on git commands. A workaround would be highly appreciated.
 
 ---
 
-## #26890 — OpenCode Crashes with Segmentation Fault After Removing Plugin from Configuration
+## #26890 — TeamCode Crashes with Segmentation Fault After Removing Plugin from Configuration
 
 📅 `2026-05-11` | ✏️ **cheezmil** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/26890](https://github.com/anomalyco/opencode/issues/26890)
 
 
 ### Description
 
-OpenCode crashes with a Bun segmentation fault immediately after removing any plugin entry from the configuration file `opencode.jsonc`. Once this happens, OpenCode becomes permanently unusable and cannot be started again.
+TeamCode crashes with a Bun segmentation fault immediately after removing any plugin entry from the configuration file `teamcode.jsonc`. Once this happens, TeamCode becomes permanently unusable and cannot be started again.
 
 
 Bun v1.3.13 (bf2e2cec) Windows x64 (baseline)  
 Windows v.win11_dt  
 CPU: sse42 avx avx2  
-Args: "D:\CodeRelated\Public\fnm\node\node-versions\v24.11.0\installation\node_modules\opencode-ai\node_modules\opencode-windows-x64\bin\opencode.exe" "-m" "local/mimo-v2.5"  
+Args: "D:\CodeRelated\Public\fnm\node\node-versions\v24.11.0\installation\node_modules\teamcode-ai\node_modules\teamcode-windows-x64\bin\teamcode.exe" "-m" "local/mimo-v2.5"  
 Elapsed: 2ms | User: 15ms | Sys: 0ms  
 RSS: 18.06MB | Peak: 18.06MB | Commit: 24.71MB | Faults: 4560  
 
@@ -1298,15 +1298,15 @@ oh no: Bun has crashed. This indicates a bug in Bun, not your code.
 
 ### Plugins
 
-omo, opencode-pty
+omo, teamcode-pty
 
-### OpenCode version
+### TeamCode version
 
  Can't even see the version, I remember it was installed last week. panic(main thread): Segmentation fault at address 0x7FF7207392CD oh no: Bun has crashed. This indicates a bug in Bun, not your code.  To send a redacted crash report to Bun's team, please file a GitHub issue using the link below:   https://bun.report/1.3.13/e_1bf2e2ceAA4ky+FmrbqiM4jzn0DCYKERNEL32.DLLut0LCSntdll.dll4oijBA2u//B6spuugB
 
 ### Steps to reproduce
 
-After deleting any plugin item from the `plugins` array in `C:\Users\xxxxx\.config\opencode\opencode.jsonc`, OpenCode fails to start and crashes with a Bun segmentation fault error. The application becomes completely unusable - it cannot be opened again even after subs
+After deleting any plugin item from the `plugins` array in `C:\Users\xxxxx\.config\teamcode\teamcode.jsonc`, TeamCode fails to start and crashes with a Bun segmentation fault error. The application becomes completely unusable - it cannot be opened again even after subs
 
 > *[Truncado — 1645 chars totais]*
 
@@ -1320,12 +1320,12 @@ After deleting any plugin item from the `plugins` array in `C:\Users\xxxxx\.conf
 ### Description
 
 ### Summary
-When using the GitHub Copilot provider, if the upstream `api.githubcopilot.com` backend drops the connection or gets out of sync (returning an `input item ID does not belong to this connection` error), OpenCode fails to catch it gracefully. Instead, it throws a raw `AI_APICallError` stack trace. 
+When using the GitHub Copilot provider, if the upstream `api.githubcopilot.com` backend drops the connection or gets out of sync (returning an `input item ID does not belong to this connection` error), TeamCode fails to catch it gracefully. Instead, it throws a raw `AI_APICallError` stack trace. 
 
-Since this appears to be a rare but known upstream API glitch, it would be great if OpenCode could catch this specific error and either automatically retry the request or surface a user-friendly UI message (e.g., "Connection to Copilot lost. Please try again.") rather than dumping the raw trace.
+Since this appears to be a rare but known upstream API glitch, it would be great if TeamCode could catch this specific error and either automatically retry the request or surface a user-friendly UI message (e.g., "Connection to Copilot lost. Please try again.") rather than dumping the raw trace.
 
 ### Expected Behavior
-OpenCode handles the upstream stream error gracefully via automatic retry or a clean UI notification.
+TeamCode handles the upstream stream error gracefully via automatic retry or a clean UI notification.
 
 ### Actual Behavior
 The application throws an unhandled exception from the internal session processor.
@@ -1349,8 +1349,8 @@ responseBody: "{\"error\":{\"message\":\"input item ID does not belong to this c
 
 ### Description
 
-`opencode` crashes immediately on this machine with:
-`zsh: illegal hardware instruction opencode`
+`teamcode` crashes immediately on this machine with:
+`zsh: illegal hardware instruction teamcode`
 
 I did some local debugging and the failure appears to be a CPU instruction-set incompatibility in the shipped macOS x64 binary.
 
@@ -1358,9 +1358,9 @@ Details:
 - Machine: Mac Pro 6,1 (Late 2013)
 - CPU: Intel Xeon E5-1680 v2 (Ivy Bridge)
 - OS: macOS 12.7.6
-- Binary path: `~/.opencode/bin/opencode`
-- `file ~/.opencode/bin/opencode` reports a Mach-O x86_64 executable
-- `opencode --version` crashes with `Illegal instruction: 4`
+- Binary path: `~/.teamcode/bin/teamcode`
+- `file ~/.teamcode/bin/teamcode` reports a Mach-O x86_64 executable
+- `teamcode --version` crashes with `Illegal instruction: 4`
 - macOS crash report shows `SIGILL / EXC_BAD_INSTRUCTION`
 - `lldb` stops on `shlxq %rax, %rcx, %rdx`, which is a BMI2 instruction
 - `sysctl machdep.cpu.features machdep.cpu.leaf7_features` shows AVX1.0, but no AVX2/BMI2 support on this CPU
@@ -1373,17 +1373,17 @@ Possibly related to #8345, but I am filing this with the concrete low-level cras
 
 none
 
-### OpenCode version
+### TeamCode version
 
-Unable to retrieve, because the binary crashes before `opencode --version` can print anything.
+Unable to retrieve, because the binary crashes before `teamcode --version` can print anything.
 
 The embedded Bun runtime strings in the binary include `v1.3.13`.
 
 ### Steps to reproduce
 
 1. Use a Mac Pro 6,1 or another Intel Mac with an Ivy Bridge CPU lacking AVX2/BMI2.
-2. Install the latest OpenCode CLI so that the binary is placed at `~/.opencode/bin/opencode`.
-3. Run `opencode` or `opencode --version`.
+2. Install the latest TeamCode CLI so that the binary is placed at `~/.teamcode/bin/teamcode`.
+3. Run `teamcode` or `teamcode --version`.
 4. Observe the immediate cr
 
 > *[Truncado — 1827 chars totais]*
@@ -1397,8 +1397,8 @@ The embedded Bun runtime strings in the binary include `v1.3.13`.
 
 ### Description
 
-`opencode` crashes immediately on this machine with:
-`zsh: illegal hardware instruction opencode`
+`teamcode` crashes immediately on this machine with:
+`zsh: illegal hardware instruction teamcode`
 
 I did some local debugging and the failure appears to be a CPU instruction-set incompatibility in the shipped macOS x64 binary.
 
@@ -1406,9 +1406,9 @@ Details:
 - Machine: Mac Pro 6,1 (Late 2013)
 - CPU: Intel Xeon E5-1680 v2 (Ivy Bridge)
 - OS: macOS 12.7.6
-- Binary path: `~/.opencode/bin/opencode`
-- `file ~/.opencode/bin/opencode` reports a Mach-O x86_64 executable
-- `opencode --version` crashes with `Illegal instruction: 4`
+- Binary path: `~/.teamcode/bin/teamcode`
+- `file ~/.teamcode/bin/teamcode` reports a Mach-O x86_64 executable
+- `teamcode --version` crashes with `Illegal instruction: 4`
 - macOS crash report shows `SIGILL / EXC_BAD_INSTRUCTION`
 - `lldb` stops on `shlxq %rax, %rcx, %rdx`, which is a BMI2 instruction
 - `sysctl machdep.cpu.features machdep.cpu.leaf7_features` shows AVX1.0, but no AVX2/BMI2 support on this CPU
@@ -1421,17 +1421,17 @@ Possibly related to #8345, but I am filing this with the concrete low-level cras
 
 none
 
-### OpenCode version
+### TeamCode version
 
-Unable to retrieve, because the binary crashes before `opencode --version` can print anything.
+Unable to retrieve, because the binary crashes before `teamcode --version` can print anything.
 
 The embedded Bun runtime strings in the binary include `v1.3.13`.
 
 ### Steps to reproduce
 
 1. Use a Mac Pro 6,1 or another Intel Mac with an Ivy Bridge CPU lacking AVX2/BMI2.
-2. Install the latest OpenCode CLI so that the binary is placed at `~/.opencode/bin/opencode`.
-3. Run `opencode` or `opencode --version`.
+2. Install the latest TeamCode CLI so that the binary is placed at `~/.teamcode/bin/teamcode`.
+3. Run `teamcode` or `teamcode --version`.
 4. Observe the immediate cr
 
 > *[Truncado — 1827 chars totais]*
@@ -1447,20 +1447,20 @@ The embedded Bun runtime strings in the binary include `v1.3.13`.
 
 ### Description
 
-I'm not able to run opencode inside of WSL running NixOS:
+I'm not able to run teamcode inside of WSL running NixOS:
 
 Unstable:
 ```
-nix run nixpkgs/nixos-unstable#opencode -- --version
-zsh: segmentation fault  nix run nixpkgs/nixos-unstable#opencode -- --version
+nix run nixpkgs/nixos-unstable#teamcode -- --version
+zsh: segmentation fault  nix run nixpkgs/nixos-unstable#teamcode -- --version
 ```
 Dev:
 ```
 nix run github:anomalyco/opencode
-error: Cannot build '/nix/store/hpl0fz47xs1bs9qfggv2g0v9yzrcbx2v-opencode-1.14.46+a780186.drv'.
+error: Cannot build '/nix/store/hpl0fz47xs1bs9qfggv2g0v9yzrcbx2v-teamcode-1.14.46+a780186.drv'.
        Reason: builder failed with exit code 1.
        Output paths:
-         /nix/store/nrsbqjxmr2f2jpvjq6ly9vi7nzvjarjv-opencode-1.14.46+a780186
+         /nix/store/nrsbqjxmr2f2jpvjq6ly9vi7nzvjarjv-teamcode-1.14.46+a780186
        Last 25 log lines:
        > dist/assets/angular-ts-BwZT4LLn.js                          183.87 kB │ gzip:  16.73 kB │ map:   249.42 kB
        > dist/assets/vue-vine-8moa0y9V.js                            190.27 kB │ gzip:  18.16 kB │ map:   255.24 kB
@@ -1488,12 +1488,12 @@ error: Cannot build '/nix/store/hpl0fz47xs1bs9qfggv2g0v9yzrcbx2v-opencode-1.14.4
 ### Description
 
 ## Description
-On macOS, clicking the red close button (X) in the top-left corner of the window fully quits the OpenCode desktop app (Dock icon disappears), instead of the standard macOS behavior where the window closes but the app keeps running in the background.
+On macOS, clicking the red close button (X) in the top-left corner of the window fully quits the TeamCode desktop app (Dock icon disappears), instead of the standard macOS behavior where the window closes but the app keeps running in the background.
 
 ## Steps to Reproduce
-1. Open OpenCode desktop app on macOS
+1. Open TeamCode desktop app on macOS
 2. Click the red close button (X) on the window
-3. Observe the Dock: OpenCode icon disappears, app fully exits
+3. Observe the Dock: TeamCode icon disappears, app fully exits
 4. No confirmation dialog is shown
 
 ## Expected Behavior
@@ -1522,39 +1522,39 @@ Please 👍 if you're experiencing the same issue.
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.14.46 (1.14.46)
 
 ### Steps to reproduce
 
-1. Open OpenCode desktop
+1. Open TeamCode desktop
 
 > *[Truncado — 1774 chars totais]*
 
 ---
 
-## #26651 — opencode crashed when i run /init
+## #26651 — teamcode crashed when i run /init
 
 📅 `2026-05-10` | ✏️ **zeekling** | 💬 3 | 🔗 [https://github.com/anomalyco/opencode/issues/26651](https://github.com/anomalyco/opencode/issues/26651)
 
 
 ### Description
 
-opencode crashed when i run /init
+teamcode crashed when i run /init
 <img width="2429" height="424" alt="Image" src="https://github.com/user-attachments/assets/d245da78-bdf2-4cbf-a77c-c0ebe6ecde9b" />
 
 ### Plugins
 
 superpowers tokenizer-aliases context-usage
 
-### OpenCode version
+### TeamCode version
 
 v1.14.46
 
 ### Steps to reproduce
-1、run /init opencode
-2、when /init finished. run /init and opencode will crashed 
+1、run /init teamcode
+2、when /init finished. run /init and teamcode will crashed 
 
 ### Screenshot and/or share link
 
@@ -1576,7 +1576,7 @@ powershell
 
 ### Description
 
-opencode already has binary file handling — `File.read()` returns `{ type: "binary" }` for known binary extensions, and `FileMedia` / `isBinaryContent` render the proper "binary file" placeholder card on the frontend. This works for files like `foo.bin`, `foo.so`, `foo.exe`, etc.
+teamcode already has binary file handling — `File.read()` returns `{ type: "binary" }` for known binary extensions, and `FileMedia` / `isBinaryContent` render the proper "binary file" placeholder card on the frontend. This works for files like `foo.bin`, `foo.so`, `foo.exe`, etc.
 
 It does **not** work for extension-less binaries. `File.read()`'s classification is purely extension-driven, so a file like a Go-compiled executable named `axonhub` (no suffix) misses every branch and falls through to `readFileString(full)` plus a `git diff` / `structuredPatch` round on the result — slurping a multi-megabyte binary into memory as UTF-8 and then attempting to diff it. The HTTP request takes ~10+ seconds to return (longer for larger binaries), during which the preview pane sits on "loading…".
 
@@ -1586,14 +1586,14 @@ The hung tab is persisted with the session, so closing and reopening the app re-
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
-OpenCode Desktop 1.14.39
+TeamCode Desktop 1.14.39
 
 ### Steps to reproduce
 
 1. In any project directory, place a compiled binary with no extension (e.g. `go build -o axonhub .`)
-2. Open the project in opencode desktop
+2. Open the project in teamcode desktop
 3. Click `axonhub` in the file tree
 
 **Expected:** the existing `FileMedia` "binary file" placeholder card is shown — the same UI that already renders for `axonhub.bin`, `axonhub.so`, etc.
@@ -1614,10 +1614,10 @@ OpenCode Desktop 1.14.39
 **Environment:**
 - Bun version: 1.3.13 (bf2e2cec) Windows x64 (baseline) StandaloneExecutable
 - Operating System: Windows 11
-- Application: OpenCode
+- Application: TeamCode
 
 **Problem:**
-I'm experiencing a consistent segmentation fault when running OpenCode.
+I'm experiencing a consistent segmentation fault when running TeamCode.
 
 **Error:** 
 Segmentation fault at address 0x00000004
@@ -1637,7 +1637,7 @@ https://github.com/oven-sh/bun/issues/28008
 (Paste your bun.report link here if you still have it)
 
 **Steps to reproduce:**
-1. Open OpenCode
+1. Open TeamCode
 2. Load a model that uses ONNX Runtime (embeddings, etc.)
 
 Let me know if you need more logs or files.
@@ -1646,7 +1646,7 @@ Let me know if you need more logs or files.
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.14.45
 
@@ -1709,23 +1709,23 @@ also, if an old/invalid key is still in `tui.json`, for example:
 }
 ```
 
-the whole tui config gets ignored and opencode loads the defaults, which makes it hard to tell what actually happened.
+the whole tui config gets ignored and teamcode loads the defaults, which makes it hard to tell what actually happened.
 
 ### Plugins
 
 none
 
-### OpenCode version
+### TeamCode version
 
 `1.14.46`
 
 ### Steps to reproduce
 
-1. create `~/.config/opencode/tui.json` with `keymap`
-2. start `opencode`
+1. create `~/.config/teamcode/tui.json` with `keymap`
+2. start `teamcode`
 3. it gets rejected as an unknown key
 4. change it to `keybinds.leader = "none"`
-5. start `opencode` again
+5. start `teamcode` again
 6. tui opens to a blank/white screen with `Invalid leader trigger`
 7. add an invalid old key like `username_toggle`; the whole config is ignored and defaults are loaded
 
@@ -1756,9 +1756,9 @@ Minor issue since last few patches- when entering a request it will run large am
 
 None
 
-### OpenCode version
+### TeamCode version
 
-OpenCode Desktop v1.14.45
+TeamCode Desktop v1.14.45
 
 ### Steps to reproduce
 
@@ -1778,7 +1778,7 @@ Windows 10
 
 ### Terminal
 
-No terminal - using the OpenCode Application.
+No terminal - using the TeamCode Application.
 
 ---
 
@@ -1800,7 +1800,7 @@ TUI crashes silently on startup after upgrading from v1.14.44 to v1.14.45. The H
 The TUI log ends abruptly at 39 lines during plugin loading:
 
 ```
-INFO  2026-05-10T01:39:29 +459ms service=default version=1.14.45 args=[] process_role=main run_id=43d27da4-f711-4c0f-b690-1c3a141d4bb8 opencode
+INFO  2026-05-10T01:39:29 +459ms service=default version=1.14.45 args=[] process_role=main run_id=43d27da4-f711-4c0f-b690-1c3a141d4bb8 teamcode
 ...
 INFO  2026-05-10T01:39:31 +0ms service=tui.plugin id=internal:plugin-manager loading internal tui plugin
 INFO  2026-05-10T01:39:31 +0ms service=tui.plugin id=which-key loading internal tui plugin
@@ -1814,7 +1814,7 @@ During the upgrade from 1.14.44 to 1.14.45, npm reported an EPERM error trying t
 
 ```
 npm warn cleanup [Error: EPERM: operation not permitted, 
-  unlink ...\.opencode-ai-gD2hDZKJ\node_modules\opencode-windows-x64\bin\opencode.exe]
+  unlink ...\.teamcode-ai-gD2hDZKJ\node_modules\teamcode-windows-x64\bin\teamcode.exe]
 ```
 
 This may indicate the old binary was locked/in use during upgrade, potentially leaving a corrupted install.
@@ -1837,13 +1837,13 @@ The desktop app doesn't handle the deletion of directory well.
 
 N/a
 
-### OpenCode version
+### TeamCode version
 
 1.14.44
 
 ### Steps to reproduce
 
-1. Use opencode desktop app to open a project and close the app.
+1. Use teamcode desktop app to open a project and close the app.
 2. Delete the project.
 3. Opencode crashes and shows an error log.  
 
@@ -1875,7 +1875,7 @@ Are there any known issues or security concerns we should be aware of?
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 v1.14.42
 
@@ -1897,7 +1897,7 @@ _No response_
 
 ---
 
-## #26480 — Default opencode (server+TUI) corrupts ConPTY-hosted parent shell on exit; shell crashes with NT_STATUS/CLR error code
+## #26480 — Default teamcode (server+TUI) corrupts ConPTY-hosted parent shell on exit; shell crashes with NT_STATUS/CLR error code
 
 📅 `2026-05-09` | ✏️ **Zyl0812** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/26480](https://github.com/anomalyco/opencode/issues/26480)
 
@@ -1905,7 +1905,7 @@ _No response_
 ### Description
 
 ### Summary
-On Windows, exiting `opencode` in its **default server+TUI** mode (via `/exit` or Ctrl+C×2) **kills the parent shell** when that shell is hosted in a **ConPTY** (the standard Win32 pseudoconsole used by every modern Windows terminal: Warp, Windows Terminal, VS Code, etc.). The same opencode binary, run from a native `conhost.exe` window, leaves the parent shell alive. This points at console-handle / `FreeConsole` cleanup in opencode (or its bun runtime) that is benign against full conhost but corrupts ConPTY's internal state.
+On Windows, exiting `teamcode` in its **default server+TUI** mode (via `/exit` or Ctrl+C×2) **kills the parent shell** when that shell is hosted in a **ConPTY** (the standard Win32 pseudoconsole used by every modern Windows terminal: Warp, Windows Terminal, VS Code, etc.). The same teamcode binary, run from a native `conhost.exe` window, leaves the parent shell alive. This points at console-handle / `FreeConsole` cleanup in teamcode (or its bun runtime) that is benign against full conhost but corrupts ConPTY's internal state.
 
 The user-visible symptom is that the host terminal's pane closes immediately, because the host terminal correctly reacts to its child shell dying.
 
@@ -1913,18 +1913,18 @@ This is a more focused diagnosis of the same issue partially addressed in #6189 
 
 ### Differential reproduction matrix
 
-| Console host | opencode mode | Parent shell dies? |
+| Console host | teamcode mode | Parent shell dies? |
 | --- | --- | --- |
 | `conhost.exe` (classic Windows console window) | default (server+TUI) | **No** |
 | ConPTY (Warp / Windows Terminal / VS Code) | default
 (server+TUI) | **Y
-| ConPTY | `opencode serve …` + `opencode attach …` | **No** |
+| ConPTY | `teamcode serve …` + `teamcode attach …` | **No** |
 | ConPTY, with `cmYes** |
-| ConPTY, with `powershell -NoExit -Command "opencode"` | default | **Yes** |
+| ConPTY, with `powershell -NoExit -Command "teamcode"` | default | **Yes** |
 
 Three things narrow the cause:
 1. **Console-host ted shells die.Native conhost is fine.
-2. **Server-child dependent** — `opencode att
+2. **Server-child dependent** — `teamcode att
 
 > *[Truncado — 6301 chars totais]*
 
@@ -1941,7 +1941,7 @@ Three things narrow the cause:
 
 ### Description
 
-After upgrading `opencode-ai` from `1.14.39` to `1.14.41`, the CLI stopped working on macOS x86_64.
+After upgrading `teamcode-ai` from `1.14.39` to `1.14.41`, the CLI stopped working on macOS x86_64.
 
 Environment:
 - macOS: x86_64
@@ -1949,20 +1949,20 @@ Environment:
 - Node `process.arch`: `x64`
 
 Installed binary:
-- Path: `/Users/kowalski/.npm-global/lib/node_modules/opencode-ai/bin/.opencode`
+- Path: `/Users/kowalski/.npm-global/lib/node_modules/teamcode-ai/bin/.teamcode`
 - `file` output: `Mach-O 64-bit executable x86_64`
 
 Symptoms:
 - Running the binary directly:
-  - `/Users/kowalski/.npm-global/lib/node_modules/opencode-ai/bin/.opencode --version`
+  - `/Users/kowalski/.npm-global/lib/node_modules/teamcode-ai/bin/.teamcode --version`
   - Result: `Killed: 9`
 
 Security / signature checks:
-- `spctl --assess --verbose=4 /Users/kowalski/.npm-global/lib/node_modules/opencode-ai/bin/.opencode`
+- `spctl --assess --verbose=4 /Users/kowalski/.npm-global/lib/node_modules/teamcode-ai/bin/.teamcode`
   - Output: `invalid or unsupported format for signature`
-- `codesign --verify --verbose=4 /Users/kowalski/.npm-global/lib/node_modules/opencode-ai/bin/.opencode`
+- `codesign --verify --verbose=4 /Users/kowalski/.npm-global/lib/node_modules/teamcode-ai/bin/.teamcode`
   - Output:
-    - `/Users/kowalski/.npm-global/lib/node_modules/opencode-ai/bin/.opencode: invalid or unsupported format for signature`
+    - `/Users/kowalski/.npm-global/lib/node_modules/teamcode-ai/bin/.teamcode: invalid or unsupported format for signature`
     - `In architecture: x86_64`
 
 Notes:
@@ -1974,7 +1974,7 @@ Notes:
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.14.41
 
@@ -2003,15 +2003,15 @@ _No response_
 
 ### Description
 
-Upgrading OpenCode Desktop from v1.14.33 (or any version before v1.14.37) directly to v1.14.41 silently fails. The app installs but clicking the shortcut produces no window.
+Upgrading TeamCode Desktop from v1.14.33 (or any version before v1.14.37) directly to v1.14.41 silently fails. The app installs but clicking the shortcut produces no window.
 
 The root cause appears to be that v1.14.37 introduced a desktop path migration that runs on startup. When that migration is skipped (by jumping from .33 to .41 directly), the app crashes on launch.
 
 ### Steps to reproduce
 
-1. Install OpenCode Desktop v1.14.33 (installed at `%LOCALAPPDATA%\OpenCode`)
-2. Run the v1.14.41 installer -- it installs to `C:\Program Files\OpenCode` but does not trigger the .37 migration
-3. Launch OpenCode -- the app exits immediately with no window
+1. Install TeamCode Desktop v1.14.33 (installed at `%LOCALAPPDATA%\TeamCode`)
+2. Run the v1.14.41 installer -- it installs to `C:\Program Files\TeamCode` but does not trigger the .37 migration
+3. Launch TeamCode -- the app exits immediately with no window
 
 ### Expected behavior
 
@@ -2039,20 +2039,20 @@ Install v1.14.37 first (which runs the desktop path migration), then upgrade to 
 ### Environment
 
 - OS: Windows 10 x64
-- OpenCode Desktop v1.14.33 to v1.14.41
+- TeamCode Desktop v1.14.33 to v1.14.41
 
 ---
 
-## #26365 — [Web UI] Task never stops — agent runs indefinitely when using opencode serve
+## #26365 — [Web UI] Task never stops — agent runs indefinitely when using teamcode serve
 
 📅 `2026-05-08` | ✏️ **lileilei-camera** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/26365](https://github.com/anomalyco/opencode/issues/26365)
 
 
 ## Bug Description
-When using OpenCode via the web interface (`opencode serve`), tasks never stop. The agent enters an infinite loop and continues running indefinitely, even after the task appears to be completed. The TUI stops correctly — this issue only occurs in the web UI.
+When using TeamCode via the web interface (`teamcode serve`), tasks never stop. The agent enters an infinite loop and continues running indefinitely, even after the task appears to be completed. The TUI stops correctly — this issue only occurs in the web UI.
 
 ## Steps to Reproduce
-1. Start OpenCode: `opencode serve`
+1. Start TeamCode: `teamcode serve`
 2. Open browser, access web UI via SSH port forwarding
 3. Give the agent a coding task
 4. Agent completes the task but never stops — keeps running in an endless loop
@@ -2064,10 +2064,10 @@ Agent should stop after completing the task.
 Agent runs indefinitely. Web UI shows task as still active with no way to stop it. No error message, agent just keeps "thinking".
 
 ## Environment
-- **OpenCode Version**: 1.14.29
+- **TeamCode Version**: 1.14.29
 - **Server OS**: Linux (Ubuntu)
 - **Browser**: Chrome 148 on Windows 10
-- **Access method**: SSH port forwarding to `opencode serve`
+- **Access method**: SSH port forwarding to `teamcode serve`
 
 ## Additional Context
 - The same task works correctly in TUI mode
@@ -2131,10 +2131,10 @@ Error: Failed to start Worker thread
 
 **Issue Description:**
 
-When using OpenCode's tool to edit files, it fails to distinguish between full-width (fullwidth) and half-width (halfwidth) punctuation marks. Regardless of whether the original content contains full-width punctuation (such as `，。！？；：""''（）【】`), the tool always writes half-width punctuation marks (`,.!?;:""''()[]`) into the file.
+When using TeamCode's tool to edit files, it fails to distinguish between full-width (fullwidth) and half-width (halfwidth) punctuation marks. Regardless of whether the original content contains full-width punctuation (such as `，。！？；：""''（）【】`), the tool always writes half-width punctuation marks (`,.!?;:""''()[]`) into the file.
 
 **Steps to Reproduce:**
-1. Open a project using OpenCode Web
+1. Open a project using TeamCode Web
 2. Use a prompt to instruct the AI to write `‘你好’` and `“你好”` into an HTML file
 3. Observe that all full-width quotation marks are converted to half-width equivalents
 
@@ -2148,13 +2148,13 @@ All punctuation marks are written as half-width characters, resulting in `'你�
 
 not use
 
-### OpenCode version
+### TeamCode version
 
 1.14.41
 
 ### Steps to reproduce
 
-1. Open a project using OpenCode Web
+1. Open a project using TeamCode Web
 2. Use a prompt to instruct the AI to write `‘你好’` and `“你好”` into an HTML file
 3. Observe that all full-width quotation marks are converted to half-width equivalents
 
@@ -2172,27 +2172,27 @@ Windows terminal
 
 ---
 
-## #26220 — Bug: OpenCode enters infinite loop after tool calls complete (Zen/big-pickle)
+## #26220 — Bug: TeamCode enters infinite loop after tool calls complete (Zen/big-pickle)
 
 📅 `2026-05-07` | ✏️ **Dvalin21** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/26220](https://github.com/anomalyco/opencode/issues/26220)
 
 
-# Bug: OpenCode Enters Infinite Loop After Tool Calls Complete
+# Bug: TeamCode Enters Infinite Loop After Tool Calls Complete
 
 ## Description
 
-OpenCode (opencode) enters an infinite loop and stops responding to user input after completing tool calls. The process stays alive but never exits or continues meaningfully.
+TeamCode (teamcode) enters an infinite loop and stops responding to user input after completing tool calls. The process stays alive but never exits or continues meaningfully.
 
 ## Affected Versions
 
-- **Big Pickle (opencode/big-pickle) with OpenCode Zen provider** ⚠️ **PRIMARY ISSUE**
+- **Big Pickle (teamcode/big-pickle) with TeamCode Zen provider** ⚠️ **PRIMARY ISSUE**
 - v1.1.60+ (GitHub Copilot provider with claude-sonnet-4.6) - similar symptoms
 - v1.3.0+ (with OpenAI-compatible providers) - similar symptoms
 - Issue #17516 confirmed in v1.1.65 through v1.3.0
 
 ## Symptoms
 
-1. **Process never exits**: `opencode run` hangs indefinitely after tool calls complete
+1. **Process never exits**: `teamcode run` hangs indefinitely after tool calls complete
 2. **Silent infinite loop**: Session processor keeps calling LLM with empty responses
 3. **No CPU usage**: Process alive at 0-2% CPU, doing nothing useful
 4. **No error output**: Logs show no errors, no timeouts
@@ -2200,7 +2200,7 @@ OpenCode (opencode) enters an infinite loop and stops responding to user input a
 
 ## Root Cause (from issue #17516)
 
-**OpenCode doesn't detect "done" state properly.**
+**TeamCode doesn't detect "done" state properly.**
 
 After the model finishes tool calls and produces final text response:
 1. Session processor should detect `finish_reason=stop` or "no tool calls in text-only response"
@@ -2224,7 +2224,7 @@ After the model finishes tool calls and produces final text response:
 
 ### Description
 
-The opencode TUI crashes (exits to shell) when a permission prompt (e.g., `webfetch: ask`) is raised while the model is actively streaming response text. The crash is reproducible: setting the relevant tool's permission to `allow` (so no prompt fires) eliminates the crash entirely.
+The teamcode TUI crashes (exits to shell) when a permission prompt (e.g., `webfetch: ask`) is raised while the model is actively streaming response text. The crash is reproducible: setting the relevant tool's permission to `allow` (so no prompt fires) eliminates the crash entirely.
 
 The failure looks like the TUI losing control of its tty when it tries to switch the terminal into raw mode for the permission dialog while the stream is still rendering — they race on stdin/stdout and one of them ends up with a closed/invalid fd.
 
@@ -2232,8 +2232,8 @@ The failure looks like the TUI losing control of its tty when it tries to switch
 
 ```
 ... many service=bus type=message.part.delta publishing (streaming model output) ...
-INFO  service=permission permission=webfetch pattern=https://opencode.ai/docs/agents/ action={"permission":"webfetch","action":"ask","pattern":"*"} evaluated
-INFO  service=permission id=per_... permission=webfetch patterns=["https://opencode.ai/docs/agents/"] asking
+INFO  service=permission permission=webfetch pattern=https://teamcode.ai/docs/agents/ action={"permission":"webfetch","action":"ask","pattern":"*"} evaluated
+INFO  service=permission id=per_... permission=webfetch patterns=["https://teamcode.ai/docs/agents/"] asking
 INFO  service=bus type=permission.asked publishing
 ... more message.part.updated events ...
 ERROR service=default e=EINTR: interrupted system call, read exception
@@ -2249,24 +2249,24 @@ ERROR service=sess
 
 ---
 
-## #26195 — opencode mcp auth fails to open browser for OAuth flow (Google Drive MCP)
+## #26195 — teamcode mcp auth fails to open browser for OAuth flow (Google Drive MCP)
 
 📅 `2026-05-07` | ✏️ **JulioBuscer** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/26195](https://github.com/anomalyco/opencode/issues/26195)
 
 
 ### Description
 
-When running opencode mcp auth gdrive to authenticate with the Google Drive MCP server, the command outputs "Authentication successful!" but the OAuth flow never completes. The browser never opens, and no tokens are saved.
+When running teamcode mcp auth gdrive to authenticate with the Google Drive MCP server, the command outputs "Authentication successful!" but the OAuth flow never completes. The browser never opens, and no tokens are saved.
 
-1. opencode mcp auth gdrive starts the OAuth flow but fails to open the browser (mcp.browser.open.failed in logs)
+1. teamcode mcp auth gdrive starts the OAuth flow but fails to open the browser (mcp.browser.open.failed in logs)
 2. Without the browser opening, the user can't authorize, so no tokens are received
 3. The command incorrectly says "Authentication successful!" even though it failed
 4. All GDrive operations return "Unauthorized"
 
 Expected behavior:
 - Browser should open with Google OAuth authorization URL
-- After authorizing, tokens should be saved to ~/.local/share/opencode/mcp-auth.json
-- opencode mcp auth list should show "authenticated"
+- After authorizing, tokens should be saved to ~/.local/share/teamcode/mcp-auth.json
+- teamcode mcp auth list should show "authenticated"
 Actual behavior:
 - Logs show mcp.browser.open.failed event
 - No browser window opens
@@ -2277,7 +2277,7 @@ Actual behavior:
 Environment:
 - OS: Ubuntu 24.04.4 LTS (Noble Numbat)
 - Kernel: 6.17.0-22-generic
-- OpenCode version: 1.14.39
+- TeamCode version: 1.14.39
 - MCP server: Google Drive (https://drivemcp.googleapis.com/mcp/v1)
 
 Logs:
@@ -2289,7 +2289,7 @@ INFO  service=bus type=mcp.browser.open.failed subscribing
 
 
 Additional context:
-The opencode mcp debug gdrive command reports "Server responded successfull
+The teamcode mcp debug gdrive command reports "Server responded successfull
 
 > *[Truncado — 2778 chars totais]*
 
@@ -2302,13 +2302,13 @@ The opencode mcp debug gdrive command reports "Server responded successfull
 
 ## Description
 
-The `webfetch` tool crashes with `HTMLRewriter is not defined` when called with `format: "text"` on HTML content in the Electron desktop app (`OpenCode.exe`).
+The `webfetch` tool crashes with `HTMLRewriter is not defined` when called with `format: "text"` on HTML content in the Electron desktop app (`TeamCode.exe`).
 
 ## Root Cause
 
-The `extractTextFromHTML()` function in `packages/opencode/src/tool/webfetch.ts` calls `new HTMLRewriter()` as an un-imported global:
+The `extractTextFromHTML()` function in `packages/teamcode/src/tool/webfetch.ts` calls `new HTMLRewriter()` as an un-imported global:
 
-https://github.com/anomalyco/opencode/blob/dev/packages/opencode/src/tool/webfetch.ts
+https://github.com/anomalyco/opencode/blob/dev/packages/teamcode/src/tool/webfetch.ts
 
 `HTMLRewriter` is a built-in global in **Bun** and **Cloudflare Workers (workerd)**, but it does **not exist** in **Node.js** or **Electron**.
 
@@ -2319,16 +2319,16 @@ https://github.com/anomalyco/opencode/blob/dev/packages/opencode/src/tool/webfet
 | Node.js | No |
 | Electron (desktop app) | No |
 
-The OpenCode desktop app (`OpenCode.exe`) runs on **Electron**, so `HTMLRewriter` is `undefined` at runtime.
+The TeamCode desktop app (`TeamCode.exe`) runs on **Electron**, so `HTMLRewriter` is `undefined` at runtime.
 
-## OpenCode Version
+## TeamCode Version
 
 - Desktop app version: 1.14.39 (also confirmed in app.asar as 1.1.0)
 - Platform: Windows (Electron)
 
 ## Steps to Reproduce
 
-1. Open OpenCode desktop app (Electron version)
+1. Open TeamCode desktop app (Electron version)
 2. Use the `webfetch` tool with `format: "text"` on any HTML page:
    - e.g., `webfetch` with url `https://github.com` and format `"text"`
 3. Observe the error: `HTMLRewriter is not defined`
@@ -2406,7 +2406,7 @@ These all involve timestamp-related assumptions. This issue is distinct in that:
 - The `session_read` API also failed for the affected session
 ### Reproduction
 Exact trigger for the timestamp offset is unclear. The following was observed:
-1. Started an OpenCode session, used the AIgora skill to generate a long discussion output (~125KB across 4 assistant messages)
+1. Started an TeamCode session, used the AIgora skill to generate a long discussion output (~125KB across 4 assistant messages)
 2. The AI
 
 > *[Truncado — 5087 chars totais]*
@@ -2439,7 +2439,7 @@ JSON Parse error: Unexpected EOF
 
 ## Root Cause Analysis
 
-Bisected the commits between v1.14.22 and v1.14.23. The AI SDK version is unchanged (`ai@6.0.168`) between both releases — the regression is in OpenCode's own code.
+Bisected the commits between v1.14.22 and v1.14.23. The AI SDK version is unchanged (`ai@6.0.168`) between both releases — the regression is in TeamCode's own code.
 
 The most likely cause is PR #24005 (`refactor(session): migrate session domain to Effect Schema`), which migrated session/message schemas from zod to Effect Schema. Effect Schema's deserialization is stricter than zod — when Kimi/Moonshot's streaming response is missing a field (minified as `$.annotations`), zod silently ignores it but Effect Schema throws a TypeError.
 
@@ -2454,7 +2454,7 @@ The `$.annotations` is a minified variable name in the compiled binary, so the e
 
 ---
 
-## #26149 — opencode-auto-exit
+## #26149 — teamcode-auto-exit
 
 📅 `2026-05-07` | ✏️ **dunlingzi** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/26149](https://github.com/anomalyco/opencode/issues/26149)
 
@@ -2465,14 +2465,14 @@ The `$.annotations` is a minified variable name in the compiled binary, so the e
 <body>
 <!--StartFragment--><!-- obsidian -->
 <h2 data-heading="Describe the bug">Describe the bug</h2>
-<p>OpenCode Desktop automatically exits (clean shutdown, exit code 0) immediately after a session conversation completes. The user does not manually close the window — the Desktop window disappears on its own as soon as the AI finishes responding.</p>
+<p>TeamCode Desktop automatically exits (clean shutdown, exit code 0) immediately after a session conversation completes. The user does not manually close the window — the Desktop window disappears on its own as soon as the AI finishes responding.</p>
 <p><strong>Regression window</strong>: Between v1.14.33 (working) and v1.14.35 (affected). v1.14.34 was <strong>not tested</strong>. The last known-good version is <strong>v1.14.33</strong>. All tested versions from v1.14.35 through v1.14.40 are affected.</p>
 <h2 data-heading="Environment">Environment</h2>
 <ul>
 <li><strong>Platform</strong>: Windows 11 (x64)</li>
-<li><strong>OpenCode Desktop versions tested</strong>: v1.14.33 (working), v1.14.35 / v1.14.37 / v1.14.39 / v1.14.40 (all affected)</li>
+<li><strong>TeamCode Desktop versions tested</strong>: v1.14.33 (working), v1.14.35 / v1.14.37 / v1.14.39 / v1.14.40 (all affected)</li>
 <li><strong>Shell</strong>: cmd</li>
-<li><strong>Installation path</strong>: <code>D:\OpenCode\OpenCode.exe</code></li>
+<li><strong>Installation path</strong>: <code>D:\TeamCode\TeamCode.exe</code></li>
 <li><strong>Launch method</strong>: Direct double-click (also reproduced via debug batch with Electron crash diagnostics enabled)</li>
 </ul>
 <h2 data-heading="Expected behavior">Expected behavior</h2>
@@ -2491,7 +2491,7 @@ The `$.annotations` is a minified variable name in the compiled binary, so the e
 
 ### Description
 
-OpenCode Desktop crashes repeatedly with `service=server error=NotFoundError failed` after task completion. The CLI backend (`opencode.exe`) remains unaffected — only the Desktop (Electron) GUI crashes and auto-restarts.
+TeamCode Desktop crashes repeatedly with `service=server error=NotFoundError failed` after task completion. The CLI backend (`teamcode.exe`) remains unaffected — only the Desktop (Electron) GUI crashes and auto-restarts.
 
 **Pattern**: Task completes → Desktop crashes → restarts → crashes again within 3-6 seconds → eventually stabilizes after a few cycles.
 
@@ -2499,17 +2499,17 @@ Today alone the Desktop has restarted **8+ times** following this pattern.
 
 ### Environment
 
-- **OpenCode Desktop**: Latest (installed 2026-05-07, `anomalyco/opencode` via electron-updater)
-- **CLI**: `opencode.exe` from `~/.opencode/bin/`
+- **TeamCode Desktop**: Latest (installed 2026-05-07, `anomalyco/opencode` via electron-updater)
+- **CLI**: `teamcode.exe` from `~/.teamcode/bin/`
 - **OS**: Windows 11
 - **Working directory**: `D:\yhl10000` (**NOT a git repository**)
-- **Database size**: `opencode.db` = **1.2 GB** + WAL 6.3 MB
-- **DB location**: `C:\Users\hoyu\.local\share\opencode\opencode.db`
+- **Database size**: `teamcode.db` = **1.2 GB** + WAL 6.3 MB
+- **DB location**: `C:\Users\hoyu\.local\share\teamcode\teamcode.db`
 - **DB created**: 2026-02-24 (3 months of accumulated session data)
 
 ### Error Logs
 
-Every crash log (`~/.local/share/opencode/log/`) ends identically:
+Every crash log (`~/.local/share/teamcode/log/`) ends identically:
 
 ```
 ERROR 2026-05-07T04:19:15 +3105ms service=server error=NotFoundError failed
@@ -2534,7 +2534,7 @@ ERROR service=mcp clientName=azure_mcp error=MCP error -32601: Method 'prompts/l
 
 # Description
 
-Multiple free models in OpenCode v1.14.40 intermittently fail during generation, returning a generic error:
+Multiple free models in TeamCode v1.14.40 intermittently fail during generation, returning a generic error:
 
 > “Provider did not respond”
 
@@ -2552,7 +2552,7 @@ This behavior appears under specific conditions including long generations, repe
 
 # Environment
 
-* **OpenCode version:** v1.14.40
+* **TeamCode version:** v1.14.40
 * **Operating System:** Windows 11 Pro (Version 10.0.26200, Build 26200)
 * **Terminal:** Windows Terminal (Desktop)
 * **Plugins:** None
@@ -2563,7 +2563,7 @@ This behavior appears under specific conditions including long generations, repe
 
 ## Case 1: Nemotron 3 Super Free (mid-generation failure)
 
-1. Open OpenCode v1.14.40 on Windows 11
+1. Open TeamCode v1.14.40 on Windows 11
 2. Select **Nemotron 3 Super Free**
 3. Send a moderately long prompt 
 4. Allow full generation to begin
@@ -2599,7 +2599,7 @@ This behavior appears under specific conditions including long generations, repe
 
 ## Description
 
-When using DeepSeek V4 Flash (or other OpenAI-compatible providers) via a custom provider configuration with `modalities: { input: ["text", "image"] }`, attempting to paste/send an image attachment causes OpenCode to crash with a JSON deserialization error.
+When using DeepSeek V4 Flash (or other OpenAI-compatible providers) via a custom provider configuration with `modalities: { input: ["text", "image"] }`, attempting to paste/send an image attachment causes TeamCode to crash with a JSON deserialization error.
 
 ## Error message
 
@@ -2609,7 +2609,7 @@ Failed to deserialize the JSON body into the target type: messages[196]: unknown
 
 ## Root cause analysis
 
-OpenCode's internal message content schema (used for validating request bodies) only recognizes `text`, `image`, and `audio` as valid `type` variants in message content parts. However, when building the actual HTTP API request for OpenAI-compatible providers, image file parts are correctly converted to the OpenAI `image_url` format (e.g. `{ type: "image_url", image_url: { url: "data:..." } }`). This converted format then fails schema validation because `image_url` is not a recognized variant in the internal schema.
+TeamCode's internal message content schema (used for validating request bodies) only recognizes `text`, `image`, and `audio` as valid `type` variants in message content parts. However, when building the actual HTTP API request for OpenAI-compatible providers, image file parts are correctly converted to the OpenAI `image_url` format (e.g. `{ type: "image_url", image_url: { url: "data:..." } }`). This converted format then fails schema validation because `image_url` is not a recognized variant in the internal schema.
 
 The conversion from `file` parts to `image_url` happens correctly in the provider layer, but the request body is subsequently validated against a schema that was designed for the MCP-style `{ type: "image", data: ..., mimeType: ... }` format.
 
@@ -2636,18 +2636,18 @@ The conversion from `file` parts to `image_url` happens correctly in the provide
 
 ### Description
 
-`workspaceProxyURL` in `packages/opencode/src/server/shared/workspace-routing.ts` strips `?workspace=` before proxying a request to a remote workspace, but **not `?directory=`**.
+`workspaceProxyURL` in `packages/teamcode/src/server/shared/workspace-routing.ts` strips `?workspace=` before proxying a request to a remote workspace, but **not `?directory=`**.
 
-The SDK (`packages/sdk/js/src/v2/client.ts:16-44`) rewrites `x-opencode-directory` headers into a `?directory=` query for GET/HEAD requests. When such a request is then proxied to a remote workspace, the local-machine path leaks through. The remote can't resolve it, falls back to `worktree: "/"`, and that corrupts downstream `path.relative()` callers — most visibly `sessionListQuery` in the TUI sync context.
+The SDK (`packages/sdk/js/src/v2/client.ts:16-44`) rewrites `x-teamcode-directory` headers into a `?directory=` query for GET/HEAD requests. When such a request is then proxied to a remote workspace, the local-machine path leaks through. The remote can't resolve it, falls back to `worktree: "/"`, and that corrupts downstream `path.relative()` callers — most visibly `sessionListQuery` in the TUI sync context.
 
 The chain:
 
-1. TUI fetches `GET /path?workspace=wrk_xxx&directory=/Users/.../packages/opencode` (the `directory=` was rewritten from the SDK's `x-opencode-directory` header)
+1. TUI fetches `GET /path?workspace=wrk_xxx&directory=/Users/.../packages/teamcode` (the `directory=` was rewritten from the SDK's `x-teamcode-directory` header)
 2. `workspaceProxyURL` strips `workspace`, leaves `directory`, forwards to the remote
-3. Remote's instance middleware reads `query("directory")`, calls `Project.fromDirectory("/Users/.../packages/opencode")` — that path doesn't exist on the remote
+3. Remote's instance middleware reads `query("directory")`, calls `Project.fromDirectory("/Users/.../packages/teamcode")` — that path doesn't exist on the remote
 4. Falls back to `ProjectID.global` and `worktree: "/"`
-5. Remote responds `{worktree: "/", directory: "/Users/.../packages/opencode"}`
-6. TUI's `sessionListQuery()` does `path.relative("/", "/Users/...")` → `"Users/.../packages/opencode"` (no leading slash)
+5. Remote responds `{worktree: "/", directory: "/Users/.../packages/teamcode"}`
+6. TUI's `sessionListQuery()` does `path.relative("/", "/Users/...")` → `"Users/.../packages/teamcode"` (no leading slash)
 7. `listSessions` filters by that bogus path, returns `[]`
 8. `setStore("session", reconcile([]))` empties the store
 9. `<Show when={session()}>` in the session route renders nothing → black screen
@@ -2665,7 +2665,7 @@ The chain:
 
 ### Description
 
-The OpenCode Desktop app (`ai.opencode.desktop` v1.14.29) downloads 25–145 MB from `raw.githubusercontent.com` every ~10 minutes, 24/7, while only writing a 1.9 MB local file (`~/.cache/opencode/models.json`). On a residential connection this is roughly 21 GB/day, ~630 GB/month of effectively wasted egress — mine, GitHub Pages/Fastly's, and my ISP's.
+The TeamCode Desktop app (`ai.teamcode.desktop` v1.14.29) downloads 25–145 MB from `raw.githubusercontent.com` every ~10 minutes, 24/7, while only writing a 1.9 MB local file (`~/.cache/teamcode/models.json`). On a residential connection this is roughly 21 GB/day, ~630 GB/month of effectively wasted egress — mine, GitHub Pages/Fastly's, and my ISP's.
 
 The pattern starts when the Desktop app is launched and stops when it is killed. Closing the app (no other config changes) made the rhythm vanish from my gateway chart within ~10 minutes.
 
@@ -2678,7 +2678,7 @@ I noticed this because the periodic load was visible as a clean 10-minute sine w
 While the rhythm was active, `lsof -nP -i 4` showed (PID + username redacted):
 
 ```
-OpenCode  <pid>  <user>  TCP 10.x.x.x:62092 -> 185.199.108.133:443 (ESTABLISHED)
+TeamCode  <pid>  <user>  TCP 10.x.x.x:62092 -> 185.199.108.133:443 (ESTABLISHED)
 ```
 
 The destination IP is in GitHub's documented Fastly range `185.199.108–111.x`, which serves both GitHub Pages and `raw.githubusercontent.com`. DNS confirms `raw.githubusercontent.com` resolves to exactly that IP set.
@@ -2738,7 +2738,7 @@ Previous versions of @opentui/core (pre-Zig, pure JavaScript renderer) did not
 
 ### Description
 
-Description: In the OpenCode desktop app, after editing a project's name, icon, or color via the "Edit Project" dialog and clicking "Save", the changes appear to apply temporarily. However, once the dialog is closed or the app is restarted, all modifications revert to their default values.
+Description: In the TeamCode desktop app, after editing a project's name, icon, or color via the "Edit Project" dialog and clicking "Save", the changes appear to apply temporarily. However, once the dialog is closed or the app is restarted, all modifications revert to their default values.
 
 Steps to Reproduce:
 
@@ -2746,7 +2746,7 @@ Right-click a project in the sidebar and select "Edit Project"
 Change the "Name" field (e.g., to 09.files)
 Select a different "Icon" or "Color"
 Click the "Save" button
-Close the dialog or fully restart OpenCode
+Close the dialog or fully restart TeamCode
 Observe that the project reverts to its default name, icon, and color
 Expected Behavior: Modified project name, icon, and color should persist across app restarts.
 
@@ -2755,17 +2755,17 @@ Actual Behavior: All changes are lost upon closing the dialog or restarting the 
 Environment:
 
 OS: Windows 10/11
-OpenCode Version: 1.14.39
+TeamCode Version: 1.14.39
 Installation Method: Installer (exe)
-Additional Context: I checked the config directory at %APPDATA%\opencode and found only EBWebView cache files. There is no standalone projects.json or similar configuration file. It appears project settings are stored in WebView's LocalStorage/IndexedDB, and the save action is not correctly triggering a persistent write.
+Additional Context: I checked the config directory at %APPDATA%\teamcode and found only EBWebView cache files. There is no standalone projects.json or similar configuration file. It appears project settings are stored in WebView's LocalStorage/IndexedDB, and the save action is not correctly triggering a persistent write.
 
 ### Plugins
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
-OpenCode Version: 1.14.39
+TeamCode Version: 1.14.39
 
 ### Steps to reproduce
 
@@ -2801,13 +2801,13 @@ Here is a video showcasing the bug. this is happening on every directory I open,
 
 https://github.com/user-attachments/assets/dc93805b-6a4f-457d-a50b-e0f3ceeb4909
 
-opencode current version: 1.14.39
+teamcode current version: 1.14.39
 first version I've seen this bug happen: 0.3.28
 terminal used: kitty with tmux
 
-solutions attempted: everytime this bug happens, deleting the ~/.opencode folder fixes the problem, but after a while it starts happening again
+solutions attempted: everytime this bug happens, deleting the ~/.teamcode folder fixes the problem, but after a while it starts happening again
 
-Not sure how to get opencode crash logs, but i can put them here if needed
+Not sure how to get teamcode crash logs, but i can put them here if needed
 
 ---
 
@@ -2828,7 +2828,7 @@ There should be a solid solution that handles both circumstances.
 
 oh-my-openagent
 
-### OpenCode version
+### TeamCode version
 
 1.14.39
 
@@ -2861,11 +2861,11 @@ Linux Terminal
 
 ## Description
 
-OpenCode Desktop v1.14.30 → v1.14.39 update: the sidecar runtime switched from Bun to Node.js/Electron's bundled Node.js. This breaks all third-party plugins built with `--target bun`, because they depend on Bun-specific APIs such as `globalThis.Bun.spawn`, `Bun.file`, `Bun.serve`, `Bun.which`, etc.
+TeamCode Desktop v1.14.30 → v1.14.39 update: the sidecar runtime switched from Bun to Node.js/Electron's bundled Node.js. This breaks all third-party plugins built with `--target bun`, because they depend on Bun-specific APIs such as `globalThis.Bun.spawn`, `Bun.file`, `Bun.serve`, `Bun.which`, etc.
 
 ## Reproduction
 
-1. Install OpenCode Desktop v1.14.39
+1. Install TeamCode Desktop v1.14.39
 2. Add a Bun-built plugin to config, e.g. `oh-my-openagent@latest`
 3. Start Desktop → sidecar crashes, logs show:
    - `Cannot destructure property 'spawn' of 'globalThis.Bun' as it is undefined`
@@ -2874,14 +2874,14 @@ OpenCode Desktop v1.14.30 → v1.14.39 update: the sidecar runtime switched from
 ## Affected Plugins
 
 - **[oh-my-openagent](https://www.npmjs.com/package/oh-my-openagent)** (v3.17.14): uses `Bun.spawn`, `Bun.file`, `Bun.write`, `Bun.which`, `Bun.serve`, `Bun.hash`, `Bun.readableStreamToText`
-- **[opencode-pty](https://www.npmjs.com/package/opencode-pty)**: depends on `bun-pty` native module (cannot work in Node.js)
-- **[@tarquinen/opencode-dcp](https://www.npmjs.com/package/@tarquinen/opencode-dcp)**: ESM directory import resolution issue
+- **[teamcode-pty](https://www.npmjs.com/package/teamcode-pty)**: depends on `bun-pty` native module (cannot work in Node.js)
+- **[@tarquinen/teamcode-dcp](https://www.npmjs.com/package/@tarquinen/teamcode-dcp)**: ESM directory import resolution issue
 
 ## Workaround (temporary)
 
 A Bun → Node.js polyfill can be injected at the top of the cached plugin file to fix oh-my-openagent, but it's fragile:
 - It gets overwritten when Desktop re-downloads the plugin
-- Some plugins (opencode-pty) use native Bun addons and cannot be polyfilled
+- Some plugins (teamcode-pty) use native Bun addons and cannot be polyfilled
 
 ## Suggested Fix
 
@@ -2901,15 +2901,15 @@ A Bun → Node.js polyfill can be injected at the top of the cached plugin file 
 ## Bug Report
 
 ### Description
-OpenCode crashes on startup on Windows with `Failed to start Worker thread`. The Bun runtime cannot create Worker threads, resulting in a fatal SEH exception (exit code 2147483651 / 0x80000003 STATUS_BREAKPOINT).
+TeamCode crashes on startup on Windows with `Failed to start Worker thread`. The Bun runtime cannot create Worker threads, resulting in a fatal SEH exception (exit code 2147483651 / 0x80000003 STATUS_BREAKPOINT).
 
 ### Steps to Reproduce
-1. Install opencode-ai 1.14.39 via `npm install -g opencode-ai` on Windows 11
-2. Run `opencode` in any project directory
+1. Install teamcode-ai 1.14.39 via `npm install -g teamcode-ai` on Windows 11
+2. Run `teamcode` in any project directory
 3. Observe crash with `Error: Failed to start Worker thread`
 
 ### Expected Behavior
-OpenCode TUI starts without crashing.
+TeamCode TUI starts without crashing.
 
 ### Actual Behavior
 ```
@@ -2928,14 +2928,14 @@ The process exits with code 2147483651 (Windows SEH STATUS_BREAKPOINT).
 
 ### Environment
 - **OS**: Windows 11
-- **opencode version**: 1.14.39
-- **Bun version**: bundled (opencode-windows-x64-baseline)
+- **teamcode version**: 1.14.39
+- **Bun version**: bundled (teamcode-windows-x64-baseline)
 - **CPU**: x64 (non-AVX2, uses baseline binary)
 - **Node.js**: v22+ (installed separately)
-- **Installed via**: `npm install -g opencode-ai`
+- **Installed via**: `npm install -g teamcode-ai`
 
 ### Additional Context
-- The crash occurs with both `opencode-windows-x64` and `opencode-windows-x64-baseline` binaries
+- The crash occurs with both `teamcode-windows-x64` and `teamcode-windows-x64-baseline` binaries
 - The error is a Bun runtime issue where it cannot spawn Worker threads
 - This may be 
 
@@ -2952,7 +2952,7 @@ The process exits with code 2147483651 (Windows SEH STATUS_BREAKPOINT).
 
 ### Description
 
-After upgrading to OpenCode Desktop v1.14.35:
+After upgrading to TeamCode Desktop v1.14.35:
 
 1. The Desktop plugin list correctly shows oh-my-openagent as loaded ✓
 2. However, the custom agents (Sisyphus, Oracle, Librarian, etc.) are not visible in the GUI agent selector dropdown ✗
@@ -2962,9 +2962,9 @@ After upgrading to OpenCode Desktop v1.14.35:
 
 oh-my-openagent@3.17.13
 
-### OpenCode version
+### TeamCode version
 
-OpenCode Desktop v1.14.35
+TeamCode Desktop v1.14.35
 
 ### Steps to reproduce
 
@@ -2988,7 +2988,7 @@ powershell
 
 ### Addendum
 
-Two additional versions were released today, but the latest desktop release has completely broken TUI-based usage. As a result, the OpenCode desktop app can no longer be used with the oh-my-opencode plugin.
+Two additional versions were released today, but the latest desktop release has completely broken TUI-based usage. As a result, the TeamCode desktop app can no longer be used with the oh-my-teamcode plugin.
 
 ### I found that:
 
@@ -3012,7 +3012,7 @@ When a session enters retry state after quota/capacity exhaustion, I can lose co
 A typical sequence looks like this:
 
 1. The model/provider hits a quota/capacity exhaustion condition.
-2. OpenCode enters retry behavior and keeps trying to continue the run.
+2. TeamCode enters retry behavior and keeps trying to continue the run.
 3. I recover the quota / top up credits.
 4. I try to use Desktop UI actions such as **"Reset to this point"** (or equivalent revert/reset flow) to roll back the repeated quota-failure / unknown-error messages and clean the context.
 5. The reset/revert appears to take effect briefly, but then the session immediately continues again, appends another follow-up message, and the rollback is effectively undone.
@@ -3036,7 +3036,7 @@ In practice, the retry loop can bl
 
 ---
 
-## #25691 — OpenCode crashes terminal window on exit
+## #25691 — TeamCode crashes terminal window on exit
 
 📅 `2026-05-04` | ✏️ **catclaw** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/25691](https://github.com/anomalyco/opencode/issues/25691)
 
@@ -3044,7 +3044,7 @@ In practice, the retry loop can bl
 ### Description
 
 Hi!
-Every time I exit OpenCode, it crashes cmd.exe
+Every time I exit TeamCode, it crashes cmd.exe
 
 <img width="3836" height="2106" alt="Image" src="https://github.com/user-attachments/assets/84da5843-10cf-4d40-a111-6747a6667c43" />
 
@@ -3052,7 +3052,7 @@ Every time I exit OpenCode, it crashes cmd.exe
 
 N/A
 
-### OpenCode version
+### TeamCode version
 
 1.14.33
 
@@ -3060,8 +3060,8 @@ N/A
 
 Ollama serve
 Run cmd.exe
-opencode
-(Use OpenCode to write the code)
+teamcode
+(Use TeamCode to write the code)
 CTRL+P -> exit
 
 <img width="3836" height="2106" alt="Image" src="https://github.com/user-attachments/assets/5d3bafe2-2783-4581-b480-91ff9e310ed8" />
@@ -3089,7 +3089,7 @@ Windows Terminal / cmd.exe
 
 ### Description
 
-When OpenCode Desktop is maximized, the title bar shows a small "new chat" icon next to the "toggle sidebar" button. This is one of the most convenient UI elements because it lets you start a chat instantly without opening the sidebar.
+When TeamCode Desktop is maximized, the title bar shows a small "new chat" icon next to the "toggle sidebar" button. This is one of the most convenient UI elements because it lets you start a chat instantly without opening the sidebar.
 
 However, when the window is resized to a smaller width, this icon disappears entirely and gets replaced for this "burger" icon to open the sidebar. Losing quick access to new chat in compact mode feels like a regression in usability.
 
@@ -3099,13 +3099,13 @@ However, when the window is resized to a smaller width, this icon disappears ent
 
 None
 
-### OpenCode version
+### TeamCode version
 
 v1.14.33 Desktop App
 
 ### Steps to reproduce
 
-1. Maximize the OpenCode window.
+1. Maximize the TeamCode window.
 2. Observe the "new chat" icon in the top-left of the title bar (next to the sidebar toggle).
 3. Resize the window to a narrow width.
 4. The new chat icon disappears; only the sidebar toggle remains.
@@ -3135,7 +3135,7 @@ Windows 11
 
 ### Description
 
-OpenCode Desktop is consuming very high memory on Windows after the recent desktop updates.
+TeamCode Desktop is consuming very high memory on Windows after the recent desktop updates.
 
 I first hit this on v1.14.32 with a Solid/WebView crash:
 
@@ -3153,13 +3153,13 @@ o retain a lot of state in memory instead of releasing inactive projects/session
 
 Observed memory snapshots:
 
-- OpenCode process group reached around 4.1 GB total private memory.
+- TeamCode process group reached around 4.1 GB total private memory.
 - Edge WebView2 renderer reached around 1.6-1.7 GB private memory.
-- opencode-cli reached around 2.2 GB private memory.
-- Windows Task Manager showed OpenCode / WebView2 around 3-4 GB.
+- teamcode-cli reached around 2.2 GB private memory.
+- Windows Task Manager showed TeamCode / WebView2 around 3-4 GB.
 - CPU also became high during the memory spike.
 
-One local diagnostic detail: I had `C:\Users\<user>\.config\opencode` as a Git repo. Renaming its `.git` folder temporarily reduced memory a lot. My guess is that the Desktop UI may be scanning/restoring git/review/session state for every project/session tab and keeping too much of it alive.
+One local diagnostic detail: I had `C:\Users\<user>\.config\teamcode` as a Git repo. Renaming its `.git` folder temporarily reduced memory a lot. My guess is that the Desktop UI may be scanning/restoring git/review/session state for every project/session tab and keeping too much of it alive.
 
 I also tested with plugins disabled/trimmed. Plugins can make it worse, but the main issue still appears tied to Desktop UI state restoration with multiple projects/session tabs.
 
@@ -3172,7 +3172,7 @@ I also tested with plugins disabled/trimmed. Plugins can make it worse, but the 
 
 ---
 
-## #25482 — opencode upgrade fails with UpgradeFailedError when using `opencode upgrade`
+## #25482 — teamcode upgrade fails with UpgradeFailedError when using `teamcode upgrade`
 
 📅 `2026-05-02` | ✏️ **munim** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/25482](https://github.com/anomalyco/opencode/issues/25482)
 
@@ -3181,7 +3181,7 @@ I also tested with plugins disabled/trimmed. Plugins can make it worse, but the 
 
 ```
 
-$ opencode upgrade
+$ teamcode upgrade
 
                                    ▄
   █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█
@@ -3191,7 +3191,7 @@ $ opencode upgrade
 ┌  Upgrade
 │
 ●  Using method: bun
-Error: Unexpected error, check log file at /Users/meme/.local/share/opencode/log/2026-05-02T203557.log for more details
+Error: Unexpected error, check log file at /Users/meme/.local/share/teamcode/log/2026-05-02T203557.log for more details
 
 UpgradeFailedError
 ```
@@ -3200,18 +3200,18 @@ UpgradeFailedError
 
 N/A
 
-### OpenCode version
+### TeamCode version
 
 1.14.33
 
 ### Steps to reproduce
 
-1. Run `opencode upgrade`
+1. Run `teamcode upgrade`
 
 ### Screenshot and/or share link
 
 ```
-INFO  2026-05-02T20:34:18 +138ms service=server-proxy version=1.14.24 args=["upgrade"] process_role=main run_id=8af16183-edb6-4b1a-87f5-62eee51ad2f7 opencode
+INFO  2026-05-02T20:34:18 +138ms service=server-proxy version=1.14.24 args=["upgrade"] process_role=main run_id=8af16183-edb6-4b1a-87f5-62eee51ad2f7 teamcode
 INFO  2026-05-02T20:34:18 +5ms service=file init
 ERROR 2026-05-02T20:34:18 +66ms service=server-proxy name=UpgradeFailedError message= stack=Error
     at <anonymous> (/$bunfs/root/chunk-vhandrv0.js:1306:19254)
@@ -3246,14 +3246,14 @@ Ghostty
 
 ## Description
 
-On OpenCode startup, the `time_updated` field of ALL sessions belonging to the currently opened project is bulk-updated to the startup timestamp. This corrupts the session timeline and makes `/sessions` sorting completely useless — old sessions from months ago appear as if they were just used.
+On TeamCode startup, the `time_updated` field of ALL sessions belonging to the currently opened project is bulk-updated to the startup timestamp. This corrupts the session timeline and makes `/sessions` sorting completely useless — old sessions from months ago appear as if they were just used.
 
 ## Root Cause
 
 The bug is caused by the combination of two mechanisms:
 
 ### 1. Drizzle ORM `$onUpdate` hook auto-touches `time_updated`
-`packages/opencode/src/storage/schema.sql.ts`:
+`packages/teamcode/src/storage/schema.sql.ts`:
 ```ts
 export const Timestamps = {
   time_created: integer().notNull().$default(() => Date.now()),
@@ -3264,7 +3264,7 @@ export const Timestamps = {
 Any `UPDATE` on a session row automatically sets `time_updated = Date.now()`, **regardless of whether the update is a substantive content change or just a metadata touch**.
 
 ### 2. Session projector updates all rows on Event.Updated
-`packages/opencode/src/session/projectors.ts`:
+`packages/teamcode/src/session/projectors.ts`:
 ```ts
 const row = db
   .update(SessionTable)
@@ -3274,11 +3274,11 @@ const row = db
   .get()
 ```
 
-When OpenCode starts up and replays/indexes sessions for the current project, every session row gets an UPDATE through the projector, which triggers the `$onUpdate` hook and stamps `time_updated` with the current time.
+When TeamCode starts up and replays/indexes sessions for the current project, every session row gets an UPDATE through the projector, which triggers the `$onUpdate` hook and stamps `time_updated` with the current time.
 
 ## Evidence
 
-I directly queried the SQLite database at `~/.local/share/opencode/opencode.db`:
+I directly queried the SQLite database at `~/.local/share/teamcode/teamcode.db`:
 
 | Metric | Value |
 |--------|-------|
@@ -3302,7 +3302,7 @@ If you open a pop-up menu in the TUI (like the plugins menu) and move your mouse
 
 None
 
-### OpenCode version
+### TeamCode version
 
 1.14.31
 
@@ -3336,13 +3336,13 @@ Ghostty, Terminal
 
 ### Description
 
-I downloaded and installed OpenCode on my Dell running Windows 11. The CLI binary launches correctly but the GUI binary just displays a blank white screen
+I downloaded and installed TeamCode on my Dell running Windows 11. The CLI binary launches correctly but the GUI binary just displays a blank white screen
 
 ### Plugins
 
 None used
 
-### OpenCode version
+### TeamCode version
 
 Desktop
 
@@ -3416,7 +3416,7 @@ TypeError: The "path" property must be of type string, got object
 
 ## Summary
 
-After context compaction (manual `/compact` or auto-compaction), opencode consistently crashes with a jinja template error from LM Studio when the next message is sent. The error is:
+After context compaction (manual `/compact` or auto-compaction), teamcode consistently crashes with a jinja template error from LM Studio when the next message is sent. The error is:
 
 ```
 UnknownError: "Error rendering prompt with jinja template: \"No user query found in messages.\""
@@ -3442,7 +3442,7 @@ The model receives 0 tokens (both input and output), meaning the error occurs du
 
 ## Environment
 
-- **opencode:** 1.14.30 (installed via bun)
+- **teamcode:** 1.14.30 (installed via bun)
 - **Model:** qwen/qwen3.6-27b via LM Studio (`lmstudio` provider)
 - **Plugin:** superpowers@git+https://github.com/obra/superpowers.git
 - **OS:** Linux
@@ -3472,7 +3472,7 @@ When an agent loads a .bmp file the response thread crashes.
 
 none
 
-### OpenCode version
+### TeamCode version
 
 all
 
@@ -3503,16 +3503,16 @@ _No response_
 
 ## Description
 
-OpenCode Desktop appears to persist `lastProjectSession` / workspace state across different remote servers. After switching servers, it may restore a stale session ID that does not exist on the newly selected server.
+TeamCode Desktop appears to persist `lastProjectSession` / workspace state across different remote servers. After switching servers, it may restore a stale session ID that does not exist on the newly selected server.
 
 When this happens, the UI crashes with `Unknown error` instead of gracefully returning to project/session selection.
 
 ## Environment
 
-- OpenCode Desktop: 1.14.30
+- TeamCode Desktop: 1.14.30
 - OS: Windows
 - Setup:
-  - Multiple OpenCode servers
+  - Multiple TeamCode servers
   - One local or LAN server
   - One remote server exposed through SSH port forwarding
 
@@ -3554,13 +3554,13 @@ or promp
 
 ## Bug Description
 
-When using opencode with thinking mode, the Qwen 3.6 Pro model gets stuck in a repetitive thinking loop where it outputs repeated characters like `!!!!!!!!!!!!!!!!!!...` or `...` indefinitely instead of producing useful reasoning. I had to switch to a different model (DeepSeek v4 Pro) just to be able to write this bug report, because the Qwen model had become completely unusable.
+When using teamcode with thinking mode, the Qwen 3.6 Pro model gets stuck in a repetitive thinking loop where it outputs repeated characters like `!!!!!!!!!!!!!!!!!!...` or `...` indefinitely instead of producing useful reasoning. I had to switch to a different model (DeepSeek v4 Pro) just to be able to write this bug report, because the Qwen model had become completely unusable.
 
-This manifests as a hanging/corrupted response that the user eventually has to interrupt, and opencode may then produce malformed tool calls (JSON parse errors, truncated function arguments).
+This manifests as a hanging/corrupted response that the user eventually has to interrupt, and teamcode may then produce malformed tool calls (JSON parse errors, truncated function arguments).
 
 ## Steps to Reproduce
 
-1. Use opencode with Qwen 3.6 Pro (thinking mode)
+1. Use teamcode with Qwen 3.6 Pro (thinking mode)
 2. Execute a moderate-length session with multiple tool calls
 3. Eventually the `thinking` blocks start containing infinite repetition of characters like `!!!!!!!!!` or `...`
 4. This corrupts subsequent tool calls (JSON parse errors like `JSON Parse error: Expected '}'`)
@@ -3568,7 +3568,7 @@ This manifests as a hanging/corrupted response that the user eventually has to i
 
 ## Expected Behavior
 
-opencode should detect repetitive character patterns in thinking blocks and either:
+teamcode should detect repetitive character patterns in thinking blocks and either:
 - Discard the thinking output and abort the current request
 - Restart the request without the corrupted thinking context
 
@@ -3722,7 +3722,7 @@ TypeError: undefined is not an object (evaluating 'D.r')
 
 ## Description
 
-The `opencode` binary crashes immediately on launch on older Intel Macs with the following error:
+The `teamcode` binary crashes immediately on launch on older Intel Macs with the following error:
 
 ```
 EXC_BAD_INSTRUCTION (SIGILL)
@@ -3738,7 +3738,7 @@ This happens before the application fully initializes (during dyld initializer p
 - macOS: 13.7.4  
 - Machine: Macmini6,2 (Intel Ivy Bridge, 2012)  
 - CPU: x86_64 (supports AVX, but NOT AVX2)  
-- Installation method: Homebrew (`anomalyco/tap/opencode`)
+- Installation method: Homebrew (`anomalyco/tap/teamcode`)
 
 ---
 
@@ -3751,7 +3751,7 @@ Exception Type:        EXC_BAD_INSTRUCTION (SIGILL)
 Termination Reason:    Illegal instruction: 4
 
 Thread 0 Crashed:
-0   opencode  ...
+0   teamcode  ...
 ...
 dyld4::Loader::findAndRunAllInitializers
 ```
@@ -3765,7 +3765,7 @@ Instruction stream shows AVX-prefixed opcodes (e.g. `c4 ...`), which indicates u
 The distributed binary:
 
 ```
-opencode-darwin-x64.zip
+teamcode-darwin-x64.zip
 ```
 
 appears to be compiled targeting a modern x86_64 CPU baseline (likely `x86-64-v3` or `-march=native`), which requires AVX2.
@@ -3879,7 +3879,7 @@ TypeError: The "path" property must be of type string, got number
 
 ---
 
-## #24818 — OpenCode Desktop Beta Feedback
+## #24818 — TeamCode Desktop Beta Feedback
 
 📅 `2026-04-28` | ✏️ **mxmlnkn** | 💬 5 | 🔗 [https://github.com/anomalyco/opencode/issues/24818](https://github.com/anomalyco/opencode/issues/24818)
 
@@ -3887,7 +3887,7 @@ TypeError: The "path" property must be of type string, got number
 ### Description
 
 I am sorry for conflating many bug reports in one, but it is to cumbersome and may look like spamming if I were to open an issue for each one.
-I wanted to try out the GUI. The look and feel is much more to my liking than the TUI. The wide selection of themes is nice and I even found some nice ones with high contrast, e.g., "AMOLED", or "OpenCode". It would be really nice if the GUI worked out. But currently, it seems that the Beta specifier for it is correct.
+I wanted to try out the GUI. The look and feel is much more to my liking than the TUI. The wide selection of themes is nice and I even found some nice ones with high contrast, e.g., "AMOLED", or "TeamCode". It would be really nice if the GUI worked out. But currently, it seems that the Beta specifier for it is correct.
 
 Issues **not** solved by switching to the electron version:
 
@@ -3901,20 +3901,20 @@ Issues **not** solved by switching to the electron version:
 
 ---
 
-## #24780 — opencode desktop crash seems to corrupt opencode.db
+## #24780 — teamcode desktop crash seems to corrupt teamcode.db
 
 📅 `2026-04-28` | ✏️ **typoworx-de** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/24780](https://github.com/anomalyco/opencode/issues/24780)
 
 
 ### Description
 
-I recently had 2 times the situation that some opencode UI crash causes opencode.db to obviously corrupt. Next start opencode is stuck either showing only logo or just gray window. Nothing else happens!
+I recently had 2 times the situation that some teamcode UI crash causes teamcode.db to obviously corrupt. Next start teamcode is stuck either showing only logo or just gray window. Nothing else happens!
 
 ### Plugins
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 recent
 
@@ -3938,21 +3938,21 @@ _No response_
 
 ---
 
-## #24737 — vscode plugin  sst-dev.opencode-v2 401
+## #24737 — vscode plugin  sst-dev.teamcode-v2 401
 
 📅 `2026-04-28` | ✏️ **ioxera** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/24737](https://github.com/anomalyco/opencode/issues/24737)
 
 
 ### Description
 
-vscode 插件sst-dev.opencode-v在连接时出现
+vscode 插件sst-dev.teamcode-v在连接时出现
 ```
-Initializing OpenCode application...
-🚀 Starting OpenCode server...
-🔍 Found config at: /home/john/.local/share/opencode/auth.json
-✅ Loaded OpenCode configuration
+Initializing TeamCode application...
+🚀 Starting TeamCode server...
+🔍 Found config at: /home/john/.local/share/teamcode/auth.json
+✅ Loaded TeamCode configuration
 🔍 Server URL: http://127.0.0.1:4096
-✅ OpenCode server started on port: 4096
+✅ TeamCode server started on port: 4096
 🔍 Full server URL: http://127.0.0.1:4096
 🔍 Testing server health at: http://127.0.0.1:4096/health
 ✅ Server health check: 401
@@ -3971,17 +3971,17 @@ Initializing OpenCode application...
 🔍 Checking models availability (attempt 5/5)...
 ⚠️ Providers endpoint returned 401, waiting...
 ⚠️ Models loading timeout after 5 attempts
-OpenCode client initialized: http://127.0.0.1:4096
+TeamCode client initialized: http://127.0.0.1:4096
 ❌ HTTP 401 Unauthorized http://127.0.0.1:4096/project/current?directory=%2Fhome%2Fjohn%2FDownloads%2Ftest
   Response body: Unauthorized
 ```
-opencode 未设置“OPENCODE_SERVER_PASSWORD"。
+teamcode 未设置“OPENCODE_SERVER_PASSWORD"。
 
 ### Plugins
 
-vscode plugin  sst-dev.opencode-v2   0.1.1
+vscode plugin  sst-dev.teamcode-v2   0.1.1
 
-### OpenCode version
+### TeamCode version
 
 1.14.28
 
@@ -4043,7 +4043,7 @@ TypeError: undefined is not an object (evaluating 'D.has')
 
 ### Description
 
-Since yesterday opencode became completely unusable. Long running work suddenly crash with this error:
+Since yesterday teamcode became completely unusable. Long running work suddenly crash with this error:
 
 Unexpected value(s) `effort-2025-11-24` for the `anthropic-beta` header. Please consult our documentation at docs.anthropic.com or try again without the header.
 
@@ -4056,7 +4056,7 @@ I am using the Opus 4.6 and Sonnet 4.6 models via VertexAI.  Or I am trying to a
 
 Vertex AI
 
-### OpenCode version
+### TeamCode version
 
 1.14.25
 
@@ -4085,14 +4085,14 @@ Warp
 
 ### Description
 
-When using OpenCode as an ACP agent inside Zed coding editor, the connection fails immediately with:
+When using TeamCode as an ACP agent inside Zed coding editor, the connection fails immediately with:
 ```
 Internal error: "server shut down unexpectedly"
 ```
 
 This happens both with the ACP registry agent and direct ACP integration in Zed.
 
-### OpenCode version
+### TeamCode version
 
 CLI: `0.0.0-dev-202604260529`
 
@@ -4100,8 +4100,8 @@ CLI: `0.0.0-dev-202604260529`
 
 ```json
 "plugin": [
-  "@tarquinen/opencode-dcp@latest",
-  "file:///Users/aungmyokyaw/Desktop/projects/life-projects/opencode-notify/dist/plugin.js"
+  "@tarquinen/teamcode-dcp@latest",
+  "file:///Users/aungmyokyaw/Desktop/projects/life-projects/teamcode-notify/dist/plugin.js"
 ]
 ```
 
@@ -4109,10 +4109,10 @@ Also using MCP servers: chrome-devtools, context7, exa
 
 ### Steps to reproduce
 
-1. Configure Zed to use OpenCode as an ACP agent
+1. Configure Zed to use TeamCode as an ACP agent
 2. Open any project in Zed
-3. Try to chat with OpenCode agent
-4. OpenCode server crashes with "server shut down unexpectedly"
+3. Try to chat with TeamCode agent
+4. TeamCode server crashes with "server shut down unexpectedly"
 
 ### Operating System
 
@@ -4131,16 +4131,16 @@ Zed Preview 0.234.6
 
 ---
 
-## #24470 — [Subscriber Alert] OpenCode Go billing failure: Kimi disabled due to "insufficient balance" on proxy account
+## #24470 — [Subscriber Alert] TeamCode Go billing failure: Kimi disabled due to "insufficient balance" on proxy account
 
 📅 `2026-04-26` | ✏️ **capem** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/24470](https://github.com/anomalyco/opencode/issues/24470)
 
 
 ### Description
 
-As a paying OpenCode Go subscriber, I am currently unable to use the Kimi models. The session is stuck in a permanent loop: Provider returned error [retrying in 5s attempt #3].
+As a paying TeamCode Go subscriber, I am currently unable to use the Kimi models. The session is stuck in a permanent loop: Provider returned error [retrying in 5s attempt #3].
 
-My debug logs reveal a critical backend failure. The OpenCode Go proxy is hitting a billing suspension on the upstream Moonshot AI account. The raw error log explicitly states:
+My debug logs reveal a critical backend failure. The TeamCode Go proxy is hitting a billing suspension on the upstream Moonshot AI account. The raw error log explicitly states:
 "Your account org-446a70bb... is suspended due to insufficient balance, please recharge your account".
 
 Furthermore, the CLI (v1.14.25) is mishandling this 429 error by treating it as a retryable rate limit instead of a fatal billing error, leading to the infinite UI hang.
@@ -4149,13 +4149,13 @@ Furthermore, the CLI (v1.14.25) is mishandling this 429 error by treating it as 
 
 None
 
-### OpenCode version
+### TeamCode version
 
 1.14.25
 
 ### Steps to reproduce
 
-1. Use OpenCode Go subscription.
+1. Use TeamCode Go subscription.
 2. Attempt to run a prompt using Kimi K2.6/2.5.
 3. Observe the red error box and the persistent "retrying in 5s" loop.
 4. Check debug logs to confirm the exceeded_current_quota_error from the Moonshot org account.
@@ -4190,10 +4190,10 @@ Hi,
 I've been testing the permission system and found some issues. Here's what happened.
 
 Test setup:
-Working directory was /home/user/opencode. Configuration sets external_directory to ask.
+Working directory was /home/user/teamcode. Configuration sets external_directory to ask.
 
-What I let tested through opencode:
-1. Tried to read /home/user/.config/opencode/opencode.json - it worked without asking for permission
+What I let tested through teamcode:
+1. Tried to read /home/user/.config/teamcode/teamcode.json - it worked without asking for permission
 2. Tried to touch /home/user/txtopencodetest - it worked without asking for permission
 
 Both should have asked for permission since these paths are outside the working directory. But nothing happened.
@@ -4241,13 +4241,13 @@ Why are these privacy permission bugs still o
 
 ### Description
 
-When running workflows in OpenCode, we encounter an unpredictable, randomly occurring freeze bug that is reproducible in both main-agent and sub-agent scenarios:
-A completely fixed, unmodified workflow that ran 100% successfully previously will start freezing randomly without any OpenCode version updates or environment configuration changes, with no identifiable trigger point;
+When running workflows in TeamCode, we encounter an unpredictable, randomly occurring freeze bug that is reproducible in both main-agent and sub-agent scenarios:
+A completely fixed, unmodified workflow that ran 100% successfully previously will start freezing randomly without any TeamCode version updates or environment configuration changes, with no identifiable trigger point;
 The freeze occurs in two scenarios: ① main-agent directly calling basic tools (write/edit/question); ② main-agent invoking sub-agents via the Task tool;
 When the main-agent freezes, the workflow can be forcibly advanced by manually clicking "Continue". When a sub-agent freezes, there is no corresponding interaction entry, and the entire session must be manually interrupted;
 Freezes can occur during trivial, zero-complexity operations (e.g. asking fixed-option questions via the question tool, writing short text via the write tool), and are completely unrelated to task complexity or model inference difficulty;
 When frozen, the frontend permanently displays "thinking", with no error messages, no tool call outputs, and no workflow termination signal. Through link troubleshooting, we have confirmed that the LLM-side inference has been fully completed with no subsequent outputs, but the frontend state is not synchronized and remains permanently in the executing state;
-The bug is reproducible even in completely fresh, blank sessions, and even after fully restarting the OpenCode process before 
+The bug is reproducible even in completely fresh, blank sessions, and even after fully restarting the TeamCode process before 
 
 > *[Truncado — 3413 chars totais]*
 
@@ -4296,17 +4296,17 @@ TypeError: The "path" property must be of type string, got object
 
 ---
 
-## #24287 — opencode not opening and crashing
+## #24287 — teamcode not opening and crashing
 
 📅 `2026-04-25` | ✏️ **rexadbapp** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/24287](https://github.com/anomalyco/opencode/issues/24287)
 
 
 ### Description
 
-when ever I run `opencode` I get this:|
+when ever I run `teamcode` I get this:|
 
 ```
-  rexadb git:(main) opencode                     
+  rexadb git:(main) teamcode                     
 {
   "name": "UnknownError",
   "data": {
@@ -4321,7 +4321,7 @@ when ever I run `opencode` I get this:|
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 Latest
 
@@ -4343,20 +4343,20 @@ Kitty
 
 ---
 
-## #24248 — [Windows] Desktop 'Install and Restart' kills external opencode CLI TUI sessions, corrupts terminal state
+## #24248 — [Windows] Desktop 'Install and Restart' kills external teamcode CLI TUI sessions, corrupts terminal state
 
 📅 `2026-04-25` | ✏️ **mekwall** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/24248](https://github.com/anomalyco/opencode/issues/24248)
 
 
 ### Description
 
-When the OpenCode Desktop app prompts the user to "Install and Restart" after detecting an update, it forcefully kills **all** running `opencode.exe` processes on the system — including external CLI TUI sessions that were launched independently from the terminal. These CLI sessions are killed without any graceful shutdown, leaving the terminal in a corrupted state with mouse tracking enabled, which floods the prompt with raw escape sequences like `^[[<35;77;46M`.
+When the TeamCode Desktop app prompts the user to "Install and Restart" after detecting an update, it forcefully kills **all** running `teamcode.exe` processes on the system — including external CLI TUI sessions that were launched independently from the terminal. These CLI sessions are killed without any graceful shutdown, leaving the terminal in a corrupted state with mouse tracking enabled, which floods the prompt with raw escape sequences like `^[[<35;77;46M`.
 
 ### Steps to reproduce
 
 1. Open **two terminal tabs** in Windows Terminal
-2. Launch `opencode` (CLI TUI) in both tabs — confirm they are running
-3. Launch **OpenCode Desktop** app
+2. Launch `teamcode` (CLI TUI) in both tabs — confirm they are running
+3. Launch **TeamCode Desktop** app
 4. If an update is available, the Desktop app shows an "Install and Restart" prompt
 5. Click "Install and Restart"
 6. **Observe**: Both CLI TUI sessions are immediately killed
@@ -4364,7 +4364,7 @@ When the OpenCode Desktop app prompts the user to "Install and Restart" after de
 
 ### Expected behavior
 
-- The Desktop app should only terminate its **own embedded sidecar** (`opencode-cli`), not external `opencode.exe` CLI TUI processes
+- The Desktop app should only terminate its **own embedded sidecar** (`teamcode-cli`), not external `teamcode.exe` CLI TUI processes
 - If external processes must be terminated, they should receive a graceful shutdown signal (SIGTERM) allowing the TUI to restore terminal state (disable mouse tracking, restore cooked mode, etc.)
 - Active user sessions should be preserved or the user should be warned before killing them
 
@@ -4385,11 +4385,11 @@ When the OpenCode Desktop app prompts the user to "Install and Restart" after de
 
 ## Description
 
-OpenCode Desktop (v1.14.24) shows a completely blank white window. The sidecar server starts successfully but the WebView never renders any content.
+TeamCode Desktop (v1.14.24) shows a completely blank white window. The sidecar server starts successfully but the WebView never renders any content.
 
 ## Steps to Reproduce
 
-1. Launch OpenCode Desktop on macOS
+1. Launch TeamCode Desktop on macOS
 2. Observe: window appears but UI is completely blank
 3. Server logs show "Server ready" and "Sidecar health check OK"
 4. No errors in logs, app appears hung
@@ -4404,7 +4404,7 @@ The `ServerProvider` uses `createSimpleContext` with a `gate` option that blocks
 const ready = createMemo(() => ready() && !!state.active)
 ```
 
-This `ready()` depends on async initialization of the persisted store (`opencode.global.dat` via `tauri-plugin-store`). 
+This `ready()` depends on async initialization of the persisted store (`teamcode.global.dat` via `tauri-plugin-store`). 
 
 **If the store async init doesn't resolve, `ready()` stays `false` permanently, and the entire component tree below `ServerProvider` never renders.**
 
@@ -4412,10 +4412,10 @@ This `ready()` depends on async initialization of the persisted store (`opencode
 
 Delete the app data directory:
 ```bash
-rm -rf ~/Library/Application\ Support/ai.opencode.desktop/
+rm -rf ~/Library/Application\ Support/ai.teamcode.desktop/
 ```
 
-This removes the corrupted `opencode.global.dat` file, allowing the store to initialize fresh.
+This removes the corrupted `teamcode.global.dat` file, allowing the store to initialize fresh.
 
 ## Proposed Solutions
 
@@ -4434,20 +4434,20 @@ This removes the corrupted `opencode.global.dat` file, allowing the store to ini
 
 ### Description
 
-The OpenCode TUI is failing to maintain a stable connection with the agentmemory plugin. After a connection attempt, the terminal enters a corrupted state where it continuously prints raw SGR mouse mode escape sequences (e.g., [555;27;11M). Even after a restart of the virtual machine and ensuring the port is open, the connection status remains stuck at "connecting but not connected."
+The TeamCode TUI is failing to maintain a stable connection with the agentmemory plugin. After a connection attempt, the terminal enters a corrupted state where it continuously prints raw SGR mouse mode escape sequences (e.g., [555;27;11M). Even after a restart of the virtual machine and ensuring the port is open, the connection status remains stuck at "connecting but not connected."
 
 ### Plugins
 
 agentmemory
 
-### OpenCode version
+### TeamCode version
 
 1.14.24
 
 ### Steps to reproduce
 
 Steps to reproduce
-Launch OpenCode in a Windows environment (tested in PowerShell and Bash).
+Launch TeamCode in a Windows environment (tested in PowerShell and Bash).
 
 Attempt to use the agentmemory plugin.
 
@@ -4471,7 +4471,7 @@ PowerShell / Bash
 
 ---
 
-## #24197 — OpenCode Desktop 1.14.22 ignores project.icon_url_override after webview refresh.
+## #24197 — TeamCode Desktop 1.14.22 ignores project.icon_url_override after webview refresh.
 
 📅 `2026-04-24` | ✏️ **OrionDim** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/24197](https://github.com/anomalyco/opencode/issues/24197)
 
@@ -4482,17 +4482,17 @@ Environment:
 
 - macOS
 
-- OpenCode Desktop 1.14.22
+- TeamCode Desktop 1.14.22
 
-- App: /Applications/OpenCode.app
+- App: /Applications/TeamCode.app
 
-- Sidecar: /Applications/OpenCode.app/Contents/MacOS/opencode-cli
+- Sidecar: /Applications/TeamCode.app/Contents/MacOS/teamcode-cli
 
 What I verified:
 
-- The project row exists in ~/.local/share/opencode/opencode.db
+- The project row exists in ~/.local/share/teamcode/teamcode.db
 
-- project.worktree = /Users/oriondim/Documents/OpenCode_projects/simbrief-checklists
+- project.worktree = /Users/oriondim/Documents/TeamCode_projects/simbrief-checklists
 
 - project.name = simbrief-checklists
 
@@ -4528,15 +4528,15 @@ WWW-Authenticate: Basic realm="Secure Area"
 
 ### Plugins
 
- @tarquinen/opencode-dcp, @plannotator/opencode
+ @tarquinen/teamcode-dcp, @plannotator/teamcode
 
-### OpenCode version
+### TeamCode version
 
 1.14.22
 
 ### Steps to reproduce
 
-1. Install and open OpenCode Desktop 1.14.22 on macOS.
+1. Install and open TeamCode Desktop 1.14.22 on macOS.
 
 2. Add a local project to the Desktop project list:
    /Users/oriondim/Documents/Open
@@ -4552,7 +4552,7 @@ WWW-Authenticate: Basic realm="Secure Area"
 
 ### Description
 
-When the model emits a tool call (e.g., bash) where the description field ends with a dot (.), OpenCode's text extractor truncates the JSON immediately after that dot. The closing " and  } are lost, causing `JSON Parse error: Unterminated string` or `JSON Parse error: Expected '}'`
+When the model emits a tool call (e.g., bash) where the description field ends with a dot (.), TeamCode's text extractor truncates the JSON immediately after that dot. The closing " and  } are lost, causing `JSON Parse error: Unterminated string` or `JSON Parse error: Expected '}'`
 
 Hypothesis: the pre-parser/regex that extracts JSON tool blocks from the model's raw text splits on sentence boundaries when it sees a dot inside the string value, cutting the JSON mid-object.
 
@@ -4560,20 +4560,20 @@ Workaround: just force to omit the trailing period in tool description fields. I
 
 Environment:
 - Model: Kimi 2.6 (via LiteLLM proxy, API OpenAI-compatible)
-- OpenCode version: 1.14.23 (from homebrew)
+- TeamCode version: 1.14.23 (from homebrew)
 - LiteLLM backend logs: looks clean,  the malformed JSON seems generated client-side during text extraction
 
 ### Plugins
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.14.23
 
 ### Steps to reproduce
 
-Just prompt something like "run some bash commands to test" in a fresh opencode session.
+Just prompt something like "run some bash commands to test" in a fresh teamcode session.
 
 An example:
 ```
@@ -4598,7 +4598,7 @@ I diagnosed this on a real instance (v1.14.x, Windows 11) where the app was "fre
 
 ## Evidence from Breadcrumbs / Crash Log
 
-The EBWebView Breadcrumbs file (`%APPDATA%\opencode\EBWebView\Breadcrumbs`) clearly shows the crash pattern:
+The EBWebView Breadcrumbs file (`%APPDATA%\teamcode\EBWebView\Breadcrumbs`) clearly shows the crash pattern:
 
 ```
 0:00:00 Startup
@@ -4624,7 +4624,7 @@ This is NOT a one-off. Searching existing issues shows the exact same pattern ac
 
 ---
 
-## #24126 — OpenCode crashed when I opened the terminal through the web interface.
+## #24126 — TeamCode crashed when I opened the terminal through the web interface.
 
 📅 `2026-04-24` | ✏️ **LerkoX** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/24126](https://github.com/anomalyco/opencode/issues/24126)
 
@@ -4632,7 +4632,7 @@ This is NOT a one-off. Searching existing issues shows the exact same pattern ac
 ### Description
 
 
-╰─○ OPENCODE_SERVER_USERNAME=xxx OPENCODE_SERVER_PASSWORD=xxxx opencode web --hostname 0.0.0.0
+╰─○ OPENCODE_SERVER_USERNAME=xxx OPENCODE_SERVER_PASSWORD=xxxx teamcode web --hostname 0.0.0.0
 
                                    ▄
   █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█
@@ -4644,7 +4644,7 @@ This is NOT a one-off. Searching existing issues shows the exact same pattern ac
 Bun v1.3.13 (bf2e2cec) Linux x64 (baseline)
 WSL Kernel v6.6.87 | glibc v2.39
 CPU: sse42 popcnt avx avx2
-Args: "opencode" "--user-agent=opencode/1.14.22" "--use-system-ca" "--" "web" "--hostname" "0.0.0.0"
+Args: "teamcode" "--user-agent=teamcode/1.14.22" "--use-system-ca" "--" "web" "--hostname" "0.0.0.0"
 Features: Bun.stderr(2) Bun.stdin(2) Bun.stdout(2) abort_signal(4) fetch(64) http_server jsc spawn(1478) standalone_executable napi_module_register process_dlopen
 Builtins: "bun:ffi" "bun:main" "bun:sqlite" "node:assert" "node:async_hooks" "node:buffer" "node:child_process" "node:console" "node:crypto" "node:dns" "node:events" "node:fs" "node:fs/promises" "node:http" "node:https" "node:module" "node:net" "node:os" "node:path" "node:process" "node:querystring" "node:readline" "node:stream" "node:stream/consumers" "node:stream/promises" "node:string_decoder" "node:timers" "node:timers/promises" "node:tls" "node:tty" "node:url" "node:util" "undici" "ws" "node:v8" "node:http2" "node:diagnostics_channel" "node:dgram"
 Elapsed: 7634281ms | User: 116274ms | Sys: 96549ms
@@ -4657,7 +4657,7 @@ oh n
 
 ---
 
-## #24077 — opencode (default mode) closes entire terminal window on Linux / i3wm
+## #24077 — teamcode (default mode) closes entire terminal window on Linux / i3wm
 
 📅 `2026-04-24` | ✏️ **brenoassp** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/24077](https://github.com/anomalyco/opencode/issues/24077)
 
@@ -4666,30 +4666,30 @@ oh n
 
 ## Summary
  
-Running the `opencode` command in its default mode (which starts both the server and the TUI in the same process) causes the **entire terminal window to close** — not just the opencode process exiting, but the emulator window itself disappearing. Running `opencode serve` and `opencode attach <url>` as two separate processes works perfectly, which strongly suggests the bug is in the combined server+TUI startup path.
+Running the `teamcode` command in its default mode (which starts both the server and the TUI in the same process) causes the **entire terminal window to close** — not just the teamcode process exiting, but the emulator window itself disappearing. Running `teamcode serve` and `teamcode attach <url>` as two separate processes works perfectly, which strongly suggests the bug is in the combined server+TUI startup path.
  
  
 ## Environment
  
-- **opencode version:** 1.14.21
+- **teamcode version:** 1.14.21
 - **OS:** Ubuntu (Linux)
 - **Window manager:** i3wm
 - **Shell:** zsh with oh-my-zsh
 - **Terminal emulators tested (all reproduce the bug):** xterm, Terminator, GNOME Terminal
-- **Installation path:** `~/.opencode/bin/opencode`
-- **Installation method:** curl installer (`curl -fsSL https://opencode.ai/install | bash`) — inferred from binary location at `~/.opencode/bin/opencode`
+- **Installation path:** `~/.teamcode/bin/teamcode`
+- **Installation method:** curl installer (`curl -fsSL https://teamcode.ai/install | bash`) — inferred from binary location at `~/.teamcode/bin/teamcode`
 ## Steps to reproduce
  
 1. Open any terminal emulator (xterm, Terminator, GNOME Terminal — all reproduce).
-2. Run `opencode` (default mode, no subcommand).
+2. Run `teamcode` (default mode, no subcommand).
 3. The TUI briefly appears, then the **entire terminal window closes**.
 ## Expected behavior
  
-The TUI should start and remain running until the user exits it. The terminal emulator window itself should never be closed by opencode.
+The TUI should start and remain running until the user exits it. The terminal emulator window itself should never be closed by teamcode.
  
 ## Actual behavior
  
-The terminal emulator window disappears entirely. The shell process and the emulator process both terminate. On the next session, running opencode reproduces the same crash.
+The terminal emulator window disappears entirely. The shell process and the emulator process both terminate. On the next session, running teamcode reproduces the same crash.
  
 ## What works (workaround)
  
@@ -4699,22 +4699,22 @@ S
 
 ---
 
-## #24075 — bun crash on opencode first start
+## #24075 — bun crash on teamcode first start
 
 📅 `2026-04-24` | ✏️ **cctyl** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/24075](https://github.com/anomalyco/opencode/issues/24075)
 
 
 ### Description
 
-use this command install opencode: `npm i -g opencode-ai` .
+use this command install teamcode: `npm i -g teamcode-ai` .
 
-type opencode print:
+type teamcode print:
 ```
 ============================================================
 Bun v1.3.13 (bf2e2cec) Linux x64 (baseline)
 Linux Kernel v5.15.0 | glibc v2.31
 CPU: sse42 popcnt avx avx2
-Args: "/root/.nvm/versions/node/v24.15.0/lib/node_modules/opencode-ai/bin/.opencode"
+Args: "/root/.nvm/versions/node/v24.15.0/lib/node_modules/teamcode-ai/bin/.teamcode"
 Elapsed: 1ms | User: 4ms | Sys: 0ms
 RSS: 3.01MB | Peak: 5.06MB | Commit: 3.01MB | Faults: 0
 
@@ -4734,7 +4734,7 @@ system: Ubuntu 20.04.6 LTS  run on vmware
 
 no
 
-### OpenCode version
+### TeamCode version
 
 latest version
 
@@ -4769,7 +4769,7 @@ bash
 
 ## Summary
 
-On Windows, the OpenCode desktop GUI consistently opens to a **pure white screen**, while the CLI works normally.
+On Windows, the TeamCode desktop GUI consistently opens to a **pure white screen**, while the CLI works normally.
 
 I have already tried:
 
@@ -4788,16 +4788,16 @@ The CLI remains usable.
 ## Environment
 
 - OS: Windows
-- OpenCode version: **1.14.21**
+- TeamCode version: **1.14.21**
 - GUI executable:
-  - `D:\OpenCode\OpenCode.exe`
+  - `D:\TeamCode\TeamCode.exe`
 - CLI executable:
-  - `D:\OpenCode\opencode-cli.exe`
+  - `D:\TeamCode\teamcode-cli.exe`
 
 After reinstall, another mirrored install path also appears:
 
-- `D:\opencode\OpenCode.exe`
-- `D:\opencode\opencode-cli.exe`
+- `D:\teamcode\TeamCode.exe`
+- `D:\teamcode\teamcode-cli.exe`
 
 ### GPU environment
 
@@ -4808,8 +4808,8 @@ After reinstall, another mirrored install path also appears:
 
 The app recreates local data under:
 
-- `%APPDATA%\OpenCode\EBWebView`
-- `%LOCALAPPDATA%\ai.opencode.desktop`
+- `%APPDATA%\TeamCode\EBWebView`
+- `%LOCALAPPDATA%\ai.teamcode.desktop`
 
 ---
 
@@ -4831,7 +4831,7 @@ The GUI should render normally instead of showing a blank white screen.
 
 ## Reproduction steps
 
-1. Install OpenCode on Windows
+1. Install TeamCode on Windows
 2. Launch the desktop GUI
 3. The window opens but remains completely white
 4. CLI still works as expected
@@ -4853,7 +4853,7 @@ Desktop log shows normal backend startup only
 
 ### Description
 
-OpenCode crashes. A lot.
+TeamCode crashes. A lot.
 
 Since 1.14.18 or so, after I restart it, I can't send prompts on previous sessions in the Web UI anymore:
 
@@ -4865,13 +4865,13 @@ I have to go back to the TUI, and send a prompt there, and then only after I sen
 
 OmO
 
-### OpenCode version
+### TeamCode version
 
 1.14.20
 
 ### Steps to reproduce
 
-1. Wait for OpenCode to crash
+1. Wait for TeamCode to crash
 2. Restart
 3. Send prompt on previous session
 4. See error
@@ -4916,7 +4916,7 @@ The terminal PTY becomes invalid and the screen goes black.
 
 #### Expected behavior
 
-OpenCode should gracefully handle a missing session directory — e.g. fall back to the current working directory, show a warning, or prompt the user.
+TeamCode should gracefully handle a missing session directory — e.g. fall back to the current working directory, show a warning, or prompt the user.
 
 #### Analysis
 
@@ -4924,13 +4924,13 @@ The session's `directory` field in the database points to a path that no longer 
 
 #### Workaround
 
-Recreate the original directory (even empty) and run `opencode -s <session_id>` from within that directory.
+Recreate the original directory (even empty) and run `teamcode -s <session_id>` from within that directory.
 
 ### Plugins
 
 none
 
-### OpenCode version
+### TeamCode version
 
 1.4.10
 
@@ -4938,7 +4938,7 @@ none
 
 1. Create a session in directory `/some/path/that/exists/`
 2. Rename or delete that directory
-3. Run `opencode -s <session_id>` (from any directory, including the original directory's location)
+3. Run `teamcode -s <session_id>` (from any directory, including the original directory's location)
 4. The UI loads briefly, then goes completely black after ~15-22 seconds
 Note: Even running the command from a different directory does not hel
 
@@ -4953,7 +4953,7 @@ Note: Even running the command from a different directory does not hel
 
 ## Bug Description
 
-On Windows 11, the OpenCode Desktop sidecar (`opencode-cli`) exhibits two critical issues:
+On Windows 11, the TeamCode Desktop sidecar (`teamcode-cli`) exhibits two critical issues:
 
 1. **Windows Handle (HND) leak** — Handles explode from ~385 to 7,000–12,000+ in ~90 seconds, accompanied by connection spikes (32→287+), causing the sidecar to become unresponsive and the desktop UI to freeze.
 2. **Persistent `service=server error= failed`** — A recurring server error fires every 6–31 seconds in every sidecar instance from the first second of startup, regardless of active sessions.
@@ -4962,7 +4962,7 @@ On Windows 11, the OpenCode Desktop sidecar (`opencode-cli`) exhibits two critic
 
 - **OS**: Windows 11 Home (build 26200)
 - **Desktop app**: v1.14.20 (upgraded from earlier version, issue persists)
-- **Sidecar**: `opencode-cli` (bundled with desktop app)
+- **Sidecar**: `teamcode-cli` (bundled with desktop app)
 - **MCP servers configured**: playwright, chrome-devtools, context7, grep_app, web-reader, zread, web-search-prime
 - **Projects**: 8 registered projects with 30 sessions in SQLite DB
 
@@ -4989,14 +4989,14 @@ A custom monitoring script captured the leak in real-time (sampled every 30s):
 
 ---
 
-## #23698 — Out of Memory Error in OpenCode Desktop
+## #23698 — Out of Memory Error in TeamCode Desktop
 
 📅 `2026-04-21` | ✏️ **VIKASRP24** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/23698](https://github.com/anomalyco/opencode/issues/23698)
 
 
 ### Question
 
-I was working on a project of around 700mb ! OpenCode dektop Kept on Crashing with the error message Out of Memory! I tried re installing , still it doesn't work! i removed that project But still it keeps on getting Crashed
+I was working on a project of around 700mb ! TeamCode dektop Kept on Crashing with the error message Out of Memory! I tried re installing , still it doesn't work! i removed that project But still it keeps on getting Crashed
 
 ---
 
@@ -5017,7 +5017,7 @@ Blank Response: After a period of thinking, the animation disappears, but the UI
 
 No plugins only using tavily search mcp
 
-### OpenCode version
+### TeamCode version
 
 v1.14.19
 
@@ -5026,7 +5026,7 @@ v1.14.19
 Start a conversation using GPT-5.4 Mini High.
 Trigger a prompt that requires a "Thinking" state.
 Observe the UI: it either gets stuck in the animation indefinitely or the animation stops and leaves a blank message area.
-Restart the OpenCode desktop app.
+Restart the TeamCode desktop app.
 Re-open the session to see that the response was successfully generated but just failed to display initially. 
 
 ### Screenshot and/or share link
@@ -5043,14 +5043,14 @@ Windows Powershell 7 Preview
 
 ---
 
-## #23538 — [Linux/Fedora RPM] “Install and Restart” closes and relaunches OpenCode Desktop but does not upgrade the app
+## #23538 — [Linux/Fedora RPM] “Install and Restart” closes and relaunches TeamCode Desktop but does not upgrade the app
 
 📅 `2026-04-20` | ✏️ **MoeDeeActual** | 💬 7 | 🔗 [https://github.com/anomalyco/opencode/issues/23538](https://github.com/anomalyco/opencode/issues/23538)
 
 
 ### Description
 
-OpenCode Desktop’s in-app updater does not actually install updates on my Fedora system.
+TeamCode Desktop’s in-app updater does not actually install updates on my Fedora system.
 
 When the app launches and an update is available, I get the bottom-right notification offering “Install and Restart” or “Not Yet.” If I click “Install and Restart,” the app closes and relaunches immediately, but the update is not applied. After relaunch, I see the same update notification again for the same target version.
 
@@ -5066,7 +5066,7 @@ Environment:
 - Session: Wayland
 - Package type: RPM
 - Install method: DNF install of the RPM package
-- OpenCode CLI is also installed
+- TeamCode CLI is also installed
 
 Additional notes:
 - No plugins are being used
@@ -5078,13 +5078,13 @@ Additional notes:
 
 None
 
-### OpenCode version
+### TeamCode version
 
 Installed version: 1.14.17
 
 ### Steps to reproduce
 
-1. Launch OpenCode Desktop on Fedora.
+1. Launch TeamCode Desktop on Fedora.
 2. Wait for the update notification to appear in the bottom-
 
 > *[Truncado — 1864 chars totais]*
@@ -5104,14 +5104,14 @@ Cannot open Opencode.
 
 None
 
-### OpenCode version
+### TeamCode version
 
 1.14.19
 
 ### Steps to reproduce
 
-1. Install opencode with curl -fsSL https://opencode.ai/install | bash
-2. Run opencode command
+1. Install teamcode with curl -fsSL https://teamcode.ai/install | bash
+2. Run teamcode command
 
 ### Screenshot and/or share link
 
@@ -5136,21 +5136,21 @@ Windows Terminal
 
 ### Description
 
-opencode-electron-mac-x64.dmg installed，but app cannot opened .
+teamcode-electron-mac-x64.dmg installed，but app cannot opened .
 Only v1.14.0 app can opened.
 
 ### Plugins
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 v1.14.19
 
 ### Steps to reproduce
 
 1.install v1.14.19
-2.click opencode 
+2.click teamcode 
 3.nothing happen
 
 ### Screenshot and/or share link
@@ -5167,20 +5167,20 @@ _No response_
 
 ---
 
-## #23462 — opencode plugin <name> crashes with 'fetch() proxy.url must be a non-empty string' when HTTP_PROXY is set
+## #23462 — teamcode plugin <name> crashes with 'fetch() proxy.url must be a non-empty string' when HTTP_PROXY is set
 
 📅 `2026-04-20` | ✏️ **KaysonSear** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/23462](https://github.com/anomalyco/opencode/issues/23462)
 
 
 ### Describe the bug
-When attempting to install any plugin using the `opencode plugin <name>` command, it crashes immediately if the `HTTP_PROXY` or `HTTPS_PROXY` environment variables are set.
+When attempting to install any plugin using the `teamcode plugin <name>` command, it crashes immediately if the `HTTP_PROXY` or `HTTPS_PROXY` environment variables are set.
 
 The error thrown is:
 `request to https://registry.npmjs.org/<name> failed, reason: fetch() proxy.url must be a non-empty string`
 
 ### Steps to reproduce
 1. Export a valid proxy URL in the terminal (e.g., `export HTTP_PROXY="http://127.0.0.1:7890"` and `export HTTPS_PROXY="http://127.0.0.1:7890"`).
-2. Run `opencode plugin diff` (or any other plugin).
+2. Run `teamcode plugin diff` (or any other plugin).
 3. See error:
 ```
 ■  Could not install "diff"
@@ -5188,11 +5188,11 @@ The error thrown is:
 ```
 
 ### Expected behavior
-The `opencode plugin` command's internal `fetch` logic should correctly parse the proxy URL from the environment variables and route the request, or cleanly bypass it. It seems to be an issue with how Bun's fetch or the custom proxy agent parses the environment variable string.
+The `teamcode plugin` command's internal `fetch` logic should correctly parse the proxy URL from the environment variables and route the request, or cleanly bypass it. It seems to be an issue with how Bun's fetch or the custom proxy agent parses the environment variable string.
 
 ### Environment
 - OS: Linux
-- OpenCode Version: 1.14.18
+- TeamCode Version: 1.14.18
 
 ---
 
@@ -5203,7 +5203,7 @@ The `opencode plugin` command's internal `fetch` logic should correctly parse th
 
 ## Description
 
-OpenCode Desktop (v1.14.18) on Windows 11 crashes the sidecar (opencode-cli.exe / Bun v1.3.11) approximately 60 seconds after launch with:
+TeamCode Desktop (v1.14.18) on Windows 11 crashes the sidecar (teamcode-cli.exe / Bun v1.3.11) approximately 60 seconds after launch with:
 
 ```
 panic(thread XXXXX): integer does not fit in destination type
@@ -5218,15 +5218,15 @@ This matches the known Bun Windows issue fixed in PR #29327 (merged Apr 15, 2026
 
 ## Environment
 
-- **OpenCode version**: 1.14.18
+- **TeamCode version**: 1.14.18
 - **Bun version**: v1.3.11 (bundled sidecar)
 - **OS**: Windows 11
 - **RAM**: 68.64 GB
-- **Sidecar binary**: `C:\Users\evera\AppData\Local\OpenCode\opencode-cli.exe` (154 MB)
+- **Sidecar binary**: `C:\Users\evera\AppData\Local\TeamCode\teamcode-cli.exe` (154 MB)
 
 ## Logs
 
-The crash reproduces consistently. Sample from `opencode-desktop_2026-04-19_13-40-07.log`:
+The crash reproduces consistently. Sample from `teamcode-desktop_2026-04-19_13-40-07.log`:
 
 ```
 2026-04-19T19:40:09.465853Z  INFO opencode_lib: Loading done, completing initialisation
@@ -5239,7 +5239,7 @@ The crash reproduces consistently. Sample from `opencode-desktop_2026-04-19_13-4
 
 ---
 
-## #23425 — [IMPORTANT] opencode-electron-mac-x64.dmg installed ，bug cannot open desktop。
+## #23425 — [IMPORTANT] teamcode-electron-mac-x64.dmg installed ，bug cannot open desktop。
 
 📅 `2026-04-19` | ✏️ **idoceo** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/23425](https://github.com/anomalyco/opencode/issues/23425)
 
@@ -5253,14 +5253,14 @@ how can i solve this problem?
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 v.14.18
 
 ### Steps to reproduce
 
-1.open opencode
-2.opencode not opened.
+1.open teamcode
+2.teamcode not opened.
 
 ### Screenshot and/or share link
 
@@ -5299,7 +5299,7 @@ I expect the model selector to accurately reflect my account's current permissio
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.4.3
 
@@ -5353,7 +5353,7 @@ The unsent/draft text in the input field should be preserved when switching betw
 - Losing drafted text is frustrating and wastes time, especially for long, detailed prompts
 - This discourages users from switching context to monitor running tasks, which reduces the usefulness of parallel agent delegation
 
-### OpenCode version
+### TeamCode version
 
 1.4.x
 
@@ -5374,12 +5374,12 @@ Any
 
 ### Description
 
-The `Ctrl+X` keybinding for opening the agent/session picker is too close to `Ctrl+C`, which immediately quits OpenCode and clears the current session. This makes it extremely easy to accidentally close the entire program when you intended to switch agents or view sub-agent tasks — losing your unsent prompt, current context, and interrupting running tasks.
+The `Ctrl+X` keybinding for opening the agent/session picker is too close to `Ctrl+C`, which immediately quits TeamCode and clears the current session. This makes it extremely easy to accidentally close the entire program when you intended to switch agents or view sub-agent tasks — losing your unsent prompt, current context, and interrupting running tasks.
 
 ### Current behavior
 
 - `Ctrl+X` → Opens agent/session picker (chord: `Ctrl+X` then arrow keys)
-- `Ctrl+C` → Immediately quits OpenCode, clearing everything with no confirmation
+- `Ctrl+C` → Immediately quits TeamCode, clearing everything with no confirmation
 
 ### Expected behavior
 
@@ -5394,7 +5394,7 @@ Remap the agent switcher to a safer keybinding that isn't adjacent to the quit s
 
 See related issue: Ctrl+C should ask for confirmation before closing. Both fixes together would eliminate the problem entirely.
 
-### OpenCode version
+### TeamCode version
 
 1.4.x
 
@@ -5415,13 +5415,13 @@ Any
 
 ### Description
 
-The opencode CLI crashes with a "Segmentation fault" on Windows. The crash report indicates that the issue is within the embedded Bun v1.3.5 runtime, specifically a memory management error during finalization.
+The teamcode CLI crashes with a "Segmentation fault" on Windows. The crash report indicates that the issue is within the embedded Bun v1.3.5 runtime, specifically a memory management error during finalization.
 
 ### Plugins
 
 none
 
-### OpenCode version
+### TeamCode version
 
 1.1.25
 
@@ -5453,20 +5453,20 @@ Windows PowerShell
 
 ---
 
-## #23141 — OpenCode crashing when it comes to editing
+## #23141 — TeamCode crashing when it comes to editing
 
 📅 `2026-04-17` | ✏️ **itzzjustmateo** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/23141](https://github.com/anomalyco/opencode/issues/23141)
 
 
 ### Description
 
-I tried to work on an old website with OpenCode and when it needed to edit, it crashed, I restarted it, crashed, I reinstalled it, crashed after working a small amount of time. This happend after my friend told me to change something in my Windows settings with RAM, idrk, btw. I am using WSL
+I tried to work on an old website with TeamCode and when it needed to edit, it crashed, I restarted it, crashed, I reinstalled it, crashed after working a small amount of time. This happend after my friend told me to change something in my Windows settings with RAM, idrk, btw. I am using WSL
 
 ### Plugins
 
 None
 
-### OpenCode version
+### TeamCode version
 
 1.4.9 (should be latest)
 
@@ -5540,20 +5540,20 @@ Error: TextNodeRenderable only accepts strings, TextNodeRenderable instances, or
 As the title says, v 1.4.8 does not show anything in the right sidebar.
 I am running it in Windows 11 PowerShell, using the Windows x64 zip package.
 
-Only the session name and at the bottom: OpenCode, I can't remember if the version number was visible.
+Only the session name and at the bottom: TeamCode, I can't remember if the version number was visible.
 No to-do list, no modified files, no context data, nothing else.
 I am pretty sure at the startup page, there was no version number either.
 
 After reading other issues here, I switched to 1.4.6, and everything is back to normal.
 Well, I haven't tested the todo list yet, but I see the other things, so once I get back to work, I expect the todo to appear as well.
 
-I will mention that I tried using the auto update, but it failed. This might be due to my customized opencode pathing and other security and structural design I have; I did not investigate, I updated manually. I was on some lower version than 1.4.6 before this, which I cannot remember, but if relevant, I may be able to find out.
+I will mention that I tried using the auto update, but it failed. This might be due to my customized teamcode pathing and other security and structural design I have; I did not investigate, I updated manually. I was on some lower version than 1.4.6 before this, which I cannot remember, but if relevant, I may be able to find out.
 
 ### Plugins
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.4.8
 
@@ -5592,11 +5592,11 @@ error: unable to index file 'bona-hero/'
 fatal: adding files failed
 ```
 
-I counted ~990 occurrences in one desktop log file (`opencode-desktop_2026-04-17_17-53-40.log`).
+I counted ~990 occurrences in one desktop log file (`teamcode-desktop_2026-04-17_17-53-40.log`).
 
-When this happens, Desktop UI eventually becomes blank/unresponsive, and WebKit WebContent memory spikes abnormally (observed up to ~4-6 GB RSS with sustained high CPU), while OpenCode main process is still alive.
+When this happens, Desktop UI eventually becomes blank/unresponsive, and WebKit WebContent memory spikes abnormally (observed up to ~4-6 GB RSS with sustained high CPU), while TeamCode main process is still alive.
 
-I also observed stale/orphan `opencode-cli ... serve` processes in some relaunch attempts.
+I also observed stale/orphan `teamcode-cli ... serve` processes in some relaunch attempts.
 
 This feels like a robustness bug in snapshot failure handling + desktop renderer memory behavior under persistent error loops.
 
@@ -5604,7 +5604,7 @@ This feels like a robustness bug in snapshot failure handling + desktop renderer
 
 No custom plugins required to trigger this behavior in my environment.
 
-### OpenCode version
+### TeamCode version
 
 1.4.8 (Desktop + CLI)
 
@@ -5620,7 +5620,7 @@ No custom plugins required to trigger this behavior in my environment.
 
 ---
 
-## #23102 — The stuttering in OpenCode
+## #23102 — The stuttering in TeamCode
 
 📅 `2026-04-17` | ✏️ **IMhao-123** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/23102](https://github.com/anomalyco/opencode/issues/23102)
 
@@ -5634,13 +5634,13 @@ P.S. I've recently discovered that most of the time when I opened Open Code the 
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.4.11
 
 ### Steps to reproduce
 
-1. Open the OpenCode Desktop app.
+1. Open the TeamCode Desktop app.
 2. The UI becomes extremely laggy immediately upon launch.
 3. Try to interact with it (typing, clicking, opening a file, etc.). The app will freeze for about 5-15 seconds, recover briefly, and then lag again. The right sidebar to browse files is completely stuck and won't open.
 4. While this freezing is happening, open macOS Activity Monitor. You will see that system memory jumps drastically from around 7 GB to about 12-13GB right after the app is launched.
@@ -5648,9 +5648,9 @@ _No response_
 But, some times this won't happen, and this app will not lag at all. 
 
 Environment:
-- OpenCode version: 1.4.8
+- TeamCode version: 1.4.8
 - OS: macOS 26.4.1 (Apple Silicon)
-- Client: OpenCode Desktop App
+- Client: TeamCode Desktop App
 
 P.S. Given that the app is consuming roughly 5-6 GB of RAM just to start up and freezing simultaneously, I suspect the UI lag might actually be a secondary symptom of a severe memory leak, rather than just a rendering issue like in the WSL2 case.
 
@@ -5670,7 +5670,7 @@ _No res
 
 ### Description
 
-When OPENCODE_CONFIG_DIR environment variable points to a read-only directory without a `.gitignore` in it, OpenCode crashes during TUI initialization.
+When OPENCODE_CONFIG_DIR environment variable points to a read-only directory without a `.gitignore` in it, TeamCode crashes during TUI initialization.
 
 
 The application crashes with an UnknownError error. 
@@ -5686,13 +5686,13 @@ The application crashes with an UnknownError error.
 
 ### Workaround
 
-Manually adding an empty .gitignore file to the directory allows opencode to start successfully. 
+Manually adding an empty .gitignore file to the directory allows teamcode to start successfully. 
 
 ### Plugins
 
 No plugins
 
-### OpenCode version
+### TeamCode version
 
 1.4.7
 
@@ -5700,7 +5700,7 @@ No plugins
 
 1. Create a directory with read-only permissions. Remove the .gitignore file if it exists.
 2. Set OPENCODE_CONFIG_DIR to point to that directory.
-3. Run opencode
+3. Run teamcode
 
 ### Screenshot and/or share link
 
@@ -5718,7 +5718,7 @@ kitty
 
 ---
 
-## #22883 — [BUG] OpenCode crashes on long sessions.
+## #22883 — [BUG] TeamCode crashes on long sessions.
 
 📅 `2026-04-16` | ✏️ **HarshalRathore** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/22883](https://github.com/anomalyco/opencode/issues/22883)
 
@@ -5727,11 +5727,11 @@ kitty
 
 Hi, First of all thanks for this wonderfull tool really appreciate the hard work you people put in.
 
-## 🐛 OpenCode Crashes on Long Sessions — OOM Kill
+## 🐛 TeamCode Crashes on Long Sessions — OOM Kill
 
 ### Description
 
-OpenCode crashes when running for extended periods. The process is killed by the OS (OOM killer) when RAM usage hits 100% during long sessions or when DCP plugin auto-compaction kicks in.
+TeamCode crashes when running for extended periods. The process is killed by the OS (OOM killer) when RAM usage hits 100% during long sessions or when DCP plugin auto-compaction kicks in.
 This appears to have worsened after the most recent update — crashes are more frequent during extended sessions.
 
 ---
@@ -5745,13 +5745,13 @@ This appears to have worsened after the most recent update — crashes are more 
 | **Swap** | 15Gi total · ~11Gi used |
 | **Architecture** | x86_64 GNU/Linux |
 ---
-### OpenCode Version
+### TeamCode Version
 1.4.6
 
 ---
 ### Expected Behavior
 
-OpenCode should manage memory gracefully during long sessions and auto-compaction, without unbounded RAM consumption leading to OOM kill.
+TeamCode should manage memory gracefully during long sessions and auto-compaction, without unbounded RAM consumption leading to OOM kill.
 
 ---
 ### Observed Symptoms
@@ -5792,7 +5792,7 @@ The local server went offline due to being repeatedly sent requests for unknown 
 
 Send a request to the thread with a large number of file changes (related to the crash of the review page and the local server)
 
-### OpenCode version
+### TeamCode version
 
 Last
 
@@ -5825,13 +5825,13 @@ _No response_
 
 ## What happened?
 
-When using opencode with a self-hosted **SGLang** server serving **Qwen3.5-27B-FP8** as a custom OpenAI-compatible provider, streaming chat completions fail intermittently during agent/build-mode runs with:
+When using teamcode with a self-hosted **SGLang** server serving **Qwen3.5-27B-FP8** as a custom OpenAI-compatible provider, streaming chat completions fail intermittently during agent/build-mode runs with:
 
 - `ECONNRESET` on `POST /v1/chat/completions`
 - UI message: `Cannot connect to API: The socket connection was closed unexpectedly. For more i...`
 - Auto-retry loops indefinitely (`Connection reset by server, retrying in 25s - attempt #21`)
 
-There is **no nginx / reverse proxy / load balancer** between opencode and SGLang — it is a direct TCP connection from the opencode sidecar to `http://<host>:8000/v1/chat/completions`.
+There is **no nginx / reverse proxy / load balancer** between teamcode and SGLang — it is a direct TCP connection from the teamcode sidecar to `http://<host>:8000/v1/chat/completions`.
 
 ### Sidecar error logs
 
@@ -5852,7 +5852,7 @@ ERROR service=session.processor
 
 none
 
-### OpenCode version
+### TeamCode version
 
 1.4.3
 
@@ -5880,13 +5880,13 @@ none
 
 ### Description
 
-Trying to delete a prompt by opening Neovim, deleting buffer contents, then write-quitting (:wq) Neovim after deleting the prompt does not end up deleting the prompt from the input field in opencode.
+Trying to delete a prompt by opening Neovim, deleting buffer contents, then write-quitting (:wq) Neovim after deleting the prompt does not end up deleting the prompt from the input field in teamcode.
 
 ### Plugins
 
 None
 
-### OpenCode version
+### TeamCode version
 
 1.4.1
 
@@ -5926,7 +5926,7 @@ Kitty
 
 ---
 
-## #22792 — OpenCode repeatedly loops compaction-style summaries when using local vLLM (`@ai-sdk/openai-compatible`) with Qwen3-Coder
+## #22792 — TeamCode repeatedly loops compaction-style summaries when using local vLLM (`@ai-sdk/openai-compatible`) with Qwen3-Coder
 
 📅 `2026-04-16` | ✏️ **Zuozhuo** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/22792](https://github.com/anomalyco/opencode/issues/22792)
 
@@ -5936,22 +5936,22 @@ Kitty
 
 ## Summary
 
-When using OpenCode with a **local vLLM backend** configured through `@ai-sdk/openai-compatible`, and serving **Qwen3-Coder-30B-A3B-Instruct-FP8**, simple user inputs such as `你好` or `你是谁` can trigger a pathological behavior:
+When using TeamCode with a **local vLLM backend** configured through `@ai-sdk/openai-compatible`, and serving **Qwen3-Coder-30B-A3B-Instruct-FP8**, simple user inputs such as `你好` or `你是谁` can trigger a pathological behavior:
 
-- OpenCode repeatedly outputs a **compaction-like summary block**
+- TeamCode repeatedly outputs a **compaction-like summary block**
 - The output is unrelated to the current user query
 - The content appears to be an old task summary from a previous conversation/session
 - The pattern repeats across turns
 
-This does **not** reproduce when directly calling the same vLLM endpoint with `curl`, and does **not** reproduce when switching the OpenCode model to `deepseek-reasoner`.
+This does **not** reproduce when directly calling the same vLLM endpoint with `curl`, and does **not** reproduce when switching the TeamCode model to `deepseek-reasoner`.
 
-This strongly suggests the issue is in **OpenCode's conversation/compaction/summary injection logic for OpenAI-compatible local providers**, not in the model weights or the vLLM service itself.
+This strongly suggests the issue is in **TeamCode's conversation/compaction/summary injection logic for OpenAI-compatible local providers**, not in the model weights or the vLLM service itself.
 
 ---
 
 ## Environment
 
-- OpenCode version: `1.4.6`
+- TeamCode version: `1.4.6`
 - Provider type: `@ai-sdk/openai-compatible`
 - Backend: local `vLLM`
 - Model: `Qwen3-Coder-30B-A3B-Instruct-FP8`
@@ -5962,7 +5962,7 @@ This strongly suggests the issue is in **OpenCode's conversation/compaction/summ
 
 ---
 
-## OpenCode config (relevant part)
+## TeamCode config (relevant part)
 
 ```json
 {
@@ -6041,7 +6041,7 @@ After updating to version 1.4.6, instead of it throwing the memory leak errors, 
 
 OmO
 
-### OpenCode version
+### TeamCode version
 
 1.4.6
 
@@ -6064,36 +6064,36 @@ _No response_
 
 ---
 
-## #22678 — Bug: /init command generates invalid opencode.json (instructions field is a string, expects an array)
+## #22678 — Bug: /init command generates invalid teamcode.json (instructions field is a string, expects an array)
 
 📅 `2026-04-15` | ✏️ **ANGELUSD11** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/22678](https://github.com/anomalyco/opencode/issues/22678)
 
 
 ### Description
 
-When running the initialization command (`/init`), the generated `opencode.json` file formats the `instructions` field as a plain string instead of an array of strings. This causes the CLI to crash immediately when trying to run the tool afterwards.
+When running the initialization command (`/init`), the generated `teamcode.json` file formats the `instructions` field as a plain string instead of an array of strings. This causes the CLI to crash immediately when trying to run the tool afterwards.
 
 The `/init` command should wrap the path in an array so it passes the strict validation. It should generate:
 `"instructions": ["./AGENTS.md"]`
 
 ```text
-Configuration is invalid at /home/.../opencode.json
+Configuration is invalid at /home/.../teamcode.json
 ↳ Invalid input: expected array, received string instructions
 
 ### Plugins
 
 None
 
-### OpenCode version
+### TeamCode version
 
 1.4.6
 
 ### Steps to reproduce
 
-1. Run the initialization command in a folder of a project (e.g., `opencode /init`)
-2. Open the generated `opencode.json` file.
+1. Run the initialization command in a folder of a project (e.g., `teamcode /init`)
+2. Open the generated `teamcode.json` file.
 3. Notice that the instructions field is formatted as: `"instructions": "./AGENTS.md"`
-4. Run `opencode`.
+4. Run `teamcode`.
 5. See error.
 
 ### Screenshot and/or share link
@@ -6110,7 +6110,7 @@ _No response_
 
 ---
 
-## #22669 — OpenCode 1.4.6  "silent failure" behavior
+## #22669 — TeamCode 1.4.6  "silent failure" behavior
 
 📅 `2026-04-15` | ✏️ **scottcali** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/22669](https://github.com/anomalyco/opencode/issues/22669)
 
@@ -6118,7 +6118,7 @@ _No response_
 ### Description
 
 
-I am using opencode desktop, After I post the prompts into opencode for my project, it immediately return back said completed but actuall do nothing. It happens from yeterday night. Before that, it is working fine.
+I am using teamcode desktop, After I post the prompts into teamcode for my project, it immediately return back said completed but actuall do nothing. It happens from yeterday night. Before that, it is working fine.
 
 This "silent failure" behavior—where the prompt is marked complete instantly but nothing happens—often indicates that the local background server has crashed or lost its connection to the UI, even if the window looks normal.
 
@@ -6126,7 +6126,7 @@ This "silent failure" behavior—where the prompt is marked complete instantly b
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 _No response_
 
@@ -6155,7 +6155,7 @@ _No response_
 
 ### Description
 
-When using the web UI to add a new project, the entire opencode process crashes if you try to browse to or search for a folder that's more than a couple levels deep. This happens whether you click through directories one at a time or paste a full absolute path into the search box.
+When using the web UI to add a new project, the entire teamcode process crashes if you try to browse to or search for a folder that's more than a couple levels deep. This happens whether you click through directories one at a time or paste a full absolute path into the search box.
 
 For example, trying to open something like `~/projects/org/repo` will kill the process before you ever get a chance to select it.
 
@@ -6165,16 +6165,16 @@ The directory picker really only needs to list folder names to let you browse ar
 
 ### Steps to reproduce
 
-1. Start opencode in web mode
+1. Start teamcode in web mode
 2. Open the "Open Project" dialog
 3. Type or paste a path that is 3 or more levels deep (e.g. `~/projects/org/repo`)
-4. The opencode process crashes
+4. The teamcode process crashes
 
 ### Plugins
 
 None
 
-### OpenCode version
+### TeamCode version
 
 v1.4.6
 
@@ -6203,13 +6203,13 @@ N/A (web UI)
 
 I found a reproducible issue where a workspace becomes unusable after `/undo` fails.
 
-After the `/undo` error happens, every later attempt to open that same workspace in OpenCode Desktop appears to fail with a local server / connection problem. In practice, the local sidecar/server is actually starting successfully, but the workspace keeps trying to restore a broken session state.
+After the `/undo` error happens, every later attempt to open that same workspace in TeamCode Desktop appears to fail with a local server / connection problem. In practice, the local sidecar/server is actually starting successfully, but the workspace keeps trying to restore a broken session state.
 
 Rebuilding the workspace fixes it immediately.
 
 ### Environment
 
-- OpenCode Desktop
+- TeamCode Desktop
 - Windows
 - Recent versions observed around:
   - 1.3.x
@@ -6226,7 +6226,7 @@ After `/undo` errors during an analysis session:
 
 1. The current workspace enters a bad state
 2. Reopening that workspace later fails repeatedly
-3. The UI looks like it cannot connect to the local OpenCode server
+3. The UI looks like it cannot connect to the local TeamCode server
 4. Rebuilding / recreating the workspace fixes the problem
 
 ### Important observation
@@ -6236,10 +6236,10 @@ This does **not** seem to be a real local server startup failure.
 From logs, the sidecar starts normally:
 
 - `Spawning sidecar on http://127.0.0.1:...`
-- `opencode server listening on http://127.0.0.1:...`
+- `teamcode server listening on http://127.0.0.1:...`
 - `Server ready`
 
-But immediately after that, OpenCode tries to restore a broken session and logs:
+But immediately after that, TeamCode tries to restore a broken session and logs:
 
 - `service=server error=Session not found failed`
 - `service=server error=NotFoundError failed`
@@ -6259,7 +6259,7 @@ So the actual issue seems to be:
 
 
 ### Description
-my assumption is as OpenCode is written in typescript and it uses bun for some background tasks, and cause of a bug which is forming an infinite loop, causing it to use way for resources than it should.
+my assumption is as TeamCode is written in typescript and it uses bun for some background tasks, and cause of a bug which is forming an infinite loop, causing it to use way for resources than it should.
 
 my reddit post/comment link https://www.reddit.com/r/opencodeCLI/s/77c2NzpQDK
 
@@ -6298,7 +6298,7 @@ Already tried:
 
 Supermemory
 
-### OpenCode version
+### TeamCode version
 
 1.4.4
 
@@ -6351,7 +6351,7 @@ EOF
 
 ### Workaround
 
-Adding a global ~/.config/opencode/AGENTS.md with instructions to use heredocs helps -- the model then prefers the Write tool over bash. But it does not fully prevent the issue when the model falls back to bash.
+Adding a global ~/.config/teamcode/AGENTS.md with instructions to use heredocs helps -- the model then prefers the Write tool over bash. But it does not fully prevent the issue when the model falls back to bash.
 
 ```markdown
 # File editing
@@ -6363,13 +6363,13 @@ NEVER use herestrings (<<<) or echo/printf with quoted strings for multi-line fi
 
 ### Suggestion
 
-Could opencode intercept bash tool calls that use `<<<` with `EOF` delimiters and rewrite them to proper `<<` heredoc syntax before execution? This would fix the issue for all affected models without relying on system prompt hinting.
+Could teamcode intercept bash tool calls that use `<<<` with `EOF` delimiters and rewrite them to proper `<<` heredoc syntax before execution? This would fix the issue for all affected models without relying on system prompt hinting.
 
-Alternatively, for models known to struggle with bash file writes, opencode could bias toward using the Write/Edit tools instead of allowing bash file creation.
+Alternatively, for models known to struggle with bash file writes, teamcode could bias toward using the Write/Edit tools instead of allowing bash file creation.
 
 ### Environment
 
-- opencode 1.4.0
+- teamcode 1.4.0
 - Models: goog
 
 > *[Truncado — 1749 chars totais]*
@@ -6399,16 +6399,16 @@ Examples from screenshots:
 
 ### Plugins
 
-oh-my-opencode
+oh-my-teamcode
 
-### OpenCode version
+### TeamCode version
 
 1.4.3
 
 ### Steps to reproduce
 
 Not fully deterministic yet, but this happens during normal TUI usage:
-1. Launch OpenCode in terminal
+1. Launch TeamCode in terminal
 2. Use a session/agent view with header chips
 3. Let the header update/redraw
 4. Some chip text becomes visually corrupted
@@ -6448,7 +6448,7 @@ At first, a full restart to the application helped, but now immediately after re
 
 non
 
-### OpenCode version
+### TeamCode version
 
 Version 1.4.3 (1.4.3)
 
@@ -6477,12 +6477,12 @@ _No response_
 
 TypeError: undefined is not an object (evaluating 'c4[mode2])
 
-When selecting a custom theme with "none" for background values, OpenCode crashes. The error occurs in resolveColor function when trying to resolve the "none" value.
+When selecting a custom theme with "none" for background values, TeamCode crashes. The error occurs in resolveColor function when trying to resolve the "none" value.
 
 ---
 
 **Environment:**
-- OpenCode version: 1.4.3
+- TeamCode version: 1.4.3
 - Terminal: Windows Terminal
 - OS: 6.6.87.2-microsoft-standard-WSL2
 
@@ -6512,31 +6512,31 @@ Use system theme instead of custom theme with "none" values
 
 
 ### Description
-In one specific workspace, OpenCode stopped showing `Modified Files`, and `revert undo messages and file changes` no longer worked correctly. Other workspaces on the same machine were fine.
+In one specific workspace, TeamCode stopped showing `Modified Files`, and `revert undo messages and file changes` no longer worked correctly. Other workspaces on the same machine were fine.
 
-I traced it to a stale lock file in OpenCode's local snapshot cache for that workspace. The OpenCode logs repeatedly showed snapshot failures like:
+I traced it to a stale lock file in TeamCode's local snapshot cache for that workspace. The TeamCode logs repeatedly showed snapshot failures like:
 
 ```text
 fatal: Unable to create .../snapshot/<project-id>/<hash>/index.lock: File exists.
 ```
 
-After removing the stale `index.lock` and then backing up/removing the workspace's snapshot cache under `~/.local/share/opencode/snapshot/<project-id>`, the problem immediately went away.
+After removing the stale `index.lock` and then backing up/removing the workspace's snapshot cache under `~/.local/share/teamcode/snapshot/<project-id>`, the problem immediately went away.
 
 This makes the workspace get stuck in a bad state where snapshot tracking is broken persistently, which seems to break both `Modified Files` and undo/revert behavior.
 
 ### Plugins
 None that seem relevant.
 
-### OpenCode version
+### TeamCode version
 1.3.7
 
 ### Steps to reproduce
-1. Use OpenCode in a git workspace until its local snapshot repo ends up with a stale `index.lock` under `~/.local/share/opencode/snapshot/<project-id>/.../index.lock`.
+1. Use TeamCode in a git workspace until its local snapshot repo ends up with a stale `index.lock` under `~/.local/share/teamcode/snapshot/<project-id>/.../index.lock`.
 2. Open that workspace again.
-3. Make a file change through OpenCode.
+3. Make a file change through TeamCode.
 4. Observe that `Modified Files` may not show up for that workspace, and `revert undo messages and file changes` does not correctly revert file changes.
-5. Check OpenCode logs and see repeated snapshot failures with `index.lock: File exists`.
-6. Remove the stale lock / reset the workspace snapshot cache, then restart OpenCode.
+5. Check TeamCode logs and see repeated snapshot failures with `index.lock: File exists`.
+6. Remove the stale lock / reset the workspace snapshot cache, then restart TeamCode.
 7. Observe that the workspace start
 
 > *[Truncado — 1757 chars totais]*
@@ -6584,20 +6584,20 @@ TypeError: undefined is not an object (evaluating 'agents()[0].name')
 
 ---
 
-## #22243 — opencode run produces no stdout output while running
+## #22243 — teamcode run produces no stdout output while running
 
 📅 `2026-04-13` | ✏️ **Git-on-my-level** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/22243](https://github.com/anomalyco/opencode/issues/22243)
 
 
 ## Bug
 
-`opencode run '<prompt>'` buffers all output until completion with no progress indication. If the underlying operation is slow (API latency, cache warming, retries) or fails silently (bad auth), the process sits at 0% CPU indefinitely with zero stdout/stderr output. There's no way to distinguish "working but slow" from "stuck" or "failed" without inspecting the process or the SQLite DB.
+`teamcode run '<prompt>'` buffers all output until completion with no progress indication. If the underlying operation is slow (API latency, cache warming, retries) or fails silently (bad auth), the process sits at 0% CPU indefinitely with zero stdout/stderr output. There's no way to distinguish "working but slow" from "stuck" or "failed" without inspecting the process or the SQLite DB.
 
 ## Steps to reproduce
 
-1. Run `opencode run` with a prompt that requires multiple tool calls:
+1. Run `teamcode run` with a prompt that requires multiple tool calls:
    ```bash
-   opencode run 'Read all files in .codex-autorunner/tickets/ and implement the changes described in TICKET-001.md'
+   teamcode run 'Read all files in .codex-autorunner/tickets/ and implement the changes described in TICKET-001.md'
    ```
 2. Observe: stdout is completely empty for the entire duration. No progress, no tool call indicators, nothing.
 
@@ -6611,8 +6611,8 @@ Some form of progress output while running, e.g.:
 ## Actual behavior
 
 - Zero output on stdout/stderr for the entire run duration
-- Silent auth failure: `opencode run --model openrouter/anthropic/claude-sonnet-4 'test'` with no OpenRouter credentials produces no error, no output, and the process just hangs at 0% CPU indefinitely
-- No session created in `~/.local/share/opencode/opencode.db` for failed runs, making post-mortem diagnosis harder
+- Silent auth failure: `teamcode run --model openrouter/anthropic/claude-sonnet-4 'test'` with no OpenRouter credentials produces no error, no output, and the process just hangs at 0% CPU indefinitely
+- No session created in `~/.local/share/teamcode/teamcode.db` for failed runs, making post-mortem diagnosis harder
 - Successful runs do buffer and eventually print, but for a multi-minute run this appears completely broken
 
 ## Envir
@@ -6630,7 +6630,7 @@ Some form of progress output while running, e.g.:
 
 ### Description
 
-`opencode-cli.exe` memory consumption grows up to 24.5 GB over time. The root cause is SSE connections that get stuck in TCP CLOSE_WAIT state — the server never detects client disconnection, so cleanup never runs and unbounded `AsyncQueue` buffers grow indefinitely.
+`teamcode-cli.exe` memory consumption grows up to 24.5 GB over time. The root cause is SSE connections that get stuck in TCP CLOSE_WAIT state — the server never detects client disconnection, so cleanup never runs and unbounded `AsyncQueue` buffers grow indefinitely.
 
 **Evidence:**
 
@@ -6659,9 +6659,9 @@ Some form of progress output while running, e.g.:
 
 ### Description
 
-When a `wellknown` credential is configured but the associated endpoint (`<url>/.well-known/opencode`) is unavailable, opencode will fail to start with the following message:
+When a `wellknown` credential is configured but the associated endpoint (`<url>/.well-known/teamcode`) is unavailable, teamcode will fail to start with the following message:
 ```shell
-$ opencode
+$ teamcode
 {
   "name": "UnknownError",
   "data": {
@@ -6672,9 +6672,9 @@ $ opencode
 
 This was already reported in #10930 but closed due to inactivity, the issue still persists. A fix was attempted in #14522 but the PR is yet to be merged.
 
-A similar thing happens when the JSON is malformed, then opencode also won't start, reporting:
+A similar thing happens when the JSON is malformed, then teamcode also won't start, reporting:
 ```shell
-$ opencode
+$ teamcode
 {
   "name": "UnknownError",
   "data": {
@@ -6683,19 +6683,19 @@ $ opencode
 }
 ```
 
-In any case, I believe opencode should handle both of these cases gracefully, either ignoring unavailable/malformed endpoints or falling back to cached values.
+In any case, I believe teamcode should handle both of these cases gracefully, either ignoring unavailable/malformed endpoints or falling back to cached values.
 
 ### Plugins
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.4.3
 
 ### Steps to reproduce
 
-1. Configure a local HTTP server that serves a minimal JSON payload, e.g. on `http://127.0.0.1:8001/.well-known/opencode`
+1. Configure a local HTTP server that serves a minimal JSON payload, e.g. on `http://127.0.0.1:8001/.well-known/teamcode`
 ```json
 {
   "auth": {
@@ -6705,9 +6705,9 @@ _No response_
   "config": {}
 }
 ```
-2. login with `opencode auth login http://127.0.0.1:8001/.well-known/opencode`
+2. login with `teamcode auth login http://127.0.0.1:8001/.well-known/teamcode`
 3. terminate the HTTP server
-4. run `opencode` and observe the failure to start
+4. run `teamcode` and observe the failure to start
 
 ### Screenshot and/or share link
 
@@ -6730,7 +6730,7 @@ kitty
 
 ### Description
 
-When OMO / oh-my-openagent is installed, the agent badge text in the OpenCode TUI can render incorrectly.
+When OMO / oh-my-openagent is installed, the agent badge text in the TeamCode TUI can render incorrectly.
 
 A concrete example on my machine:
 
@@ -6755,11 +6755,11 @@ Example from resolved config:
 
 I also verified that the source config itself does **not** contain those zero-width characters.
 
-### Why this seems to be an OpenCode-side bug trigger
+### Why this seems to be an TeamCode-side bug trigger
 
 There are already two nearby classes of issues:
 
-- OpenCode truncation/layout issues for long agent names:
+- TeamCode truncation/layout issues for long agent names:
   - #17755
   - #13529
 - OMO / oh-my-openagent zero-width-space leakage into display names:
@@ -6768,7 +6768,7 @@ There are already two nearby classes of issues:
 
 The current bug seems to happen when those two conditions meet:
 
-1. agent names reaching OpenCode are polluted with `U+200B` prefixes
+1. agent names reaching TeamCode are polluted with `U+200B` prefixes
 2. TUI width/truncation logic then mismeasures or clips the rendered label
 3. the badge renders as broken text such as `Deep ent`
 
@@ -6805,14 +6805,14 @@ TypeError: Object.entries requires that input parameter not be null or undefined
 
 no 
 
-### OpenCode version
+### TeamCode version
 
 1.4.3
 Bun:  1.3.12
 
 ### Steps to reproduce
 
-1. open opencode in CLI
+1. open teamcode in CLI
 2. wait a moment , got this error 
 
 ### Screenshot and/or share link
@@ -6851,7 +6851,7 @@ CMD, Powershell
 
 ## Summary
 
-`opencode` v1.4.3 entered a pathological memory growth state, triggered a **global OOM**, and then terminated with **SIGILL**.
+`teamcode` v1.4.3 entered a pathological memory growth state, triggered a **global OOM**, and then terminated with **SIGILL**.
 
 The SIGILL was **not** caused by an unsupported CPU instruction. The crashing instruction is an explicit **`ud2` trap**, which indicates an intentional fatal abort path.
 
@@ -6864,7 +6864,7 @@ I investigated the core dump and a loaded temporary shared module, and the stron
 
 The strongest current hypothesis is:
 
-> `opencode` hit an edge case that caused runaway memory growth, likely in renderer/text-buffer/grapheme/virtual-chunk
+> `teamcode` hit an edge case that caused runaway memory growth, likely in renderer/text-buffer/grapheme/virtual-chunk
 
 > *[Truncado — 9528 chars totais]*
 
@@ -6872,16 +6872,16 @@ The strongest current hypothesis is:
 
 ---
 
-## #22061 — Disabled project-local custom tools can crash startup when .opencode deps are missing
+## #22061 — Disabled project-local custom tools can crash startup when .teamcode deps are missing
 
 📅 `2026-04-11` | ✏️ **Astro-Han** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/22061](https://github.com/anomalyco/opencode/issues/22061)
 
 
 ## Description
 
-OpenCode crashes during startup in a project that contains a repo-local custom tool under `.opencode/tool`, even when that tool is disabled in `.opencode/opencode.jsonc`.
+TeamCode crashes during startup in a project that contains a repo-local custom tool under `.teamcode/tool`, even when that tool is disabled in `.teamcode/teamcode.jsonc`.
 
-In this repo, `.opencode/tool/github-pr-search.ts` imports `@opencode-ai/plugin`, and the local config sets:
+In this repo, `.teamcode/tool/github-pr-search.ts` imports `@teamcode-ai/plugin`, and the local config sets:
 
 ```jsonc
 "tools": {
@@ -6889,29 +6889,29 @@ In this repo, `.opencode/tool/github-pr-search.ts` imports `@opencode-ai/plugin`
 }
 ```
 
-Even so, OpenCode still imports the tool module before the disable flag is applied, and startup fails with:
+Even so, TeamCode still imports the tool module before the disable flag is applied, and startup fails with:
 
 ```text
-error: Cannot find module '@opencode-ai/plugin' from '/Users/yuhan/workspace/oss/opencode/.opencode/tool/github-pr-search.ts'
+error: Cannot find module '@teamcode-ai/plugin' from '/Users/yuhan/workspace/oss/teamcode/.teamcode/tool/github-pr-search.ts'
 ```
 
-The local `.opencode/package.json` exists and declares `@opencode-ai/plugin`, but `.opencode/node_modules` is missing. From reading the source, the config dependency install path also appears to swallow install failures, which can leave the config directory partially prepared and later surface as this import error.
+The local `.teamcode/package.json` exists and declares `@teamcode-ai/plugin`, but `.teamcode/node_modules` is missing. From reading the source, the config dependency install path also appears to swallow install failures, which can leave the config directory partially prepared and later surface as this import error.
 
 ## Plugins
 
-None. This is using repo-local custom tools under `.opencode/tool`, not external plugins.
+None. This is using repo-local custom tools under `.teamcode/tool`, not external plugins.
 
-## OpenCode version
+## TeamCode version
 
 1.4.3
 
 ## Steps to reproduce
 
-1. Open a repo that contains a custom tool file under `.opencode/tool/*.ts`.
-2. Have that tool import `@opencode-ai/plugin` at the top level.
-3. Ensure `.opencode/package.json` exists but `.opencode/node_modules` is missing, or dependency installation does not complete.
-4. Disable the tool in `.opencode/opencode.jsonc` with `"github-pr-search": false`.
-5. Start OpenCode in that repo.
+1. Open a repo that contains a custom tool file under `.teamcode/tool/*.ts`.
+2. Have that tool import `@teamcode-ai/plugin` at the top level.
+3. Ensure `.teamcode/package.json` exists but `.teamcode/node_modules` is missing, or dependency installation does not complete.
+4. Disable the tool in `.teamcode/teamcode.jsonc` with `"github-pr-search": false`.
+5. Start TeamCode in that repo.
 
 ## Screenshot and/or share link
 
@@ -6971,7 +6971,7 @@ On Windows (Windows Terminal + cmd.exe), exiting the TUI via Ctrl+D, `/exit`, or
 ## Steps to reproduce
 
 1. Open Windows Terminal with cmd.exe
-2. Run `opencode` (or `bun run dev` from source)
+2. Run `teamcode` (or `bun run dev` from source)
 3. Press Ctrl+D to exit the TUI
 4. **Expected**: Terminal stays open, shell prompt appears, user can type
 5. **Actual**: Terminal window closes after a few seconds
@@ -6989,7 +6989,7 @@ Diagnosed using kernel32 FFI monitoring (`SetConsoleCtrlHandler` + `GetConsoleWi
 - Windows 11 Pro
 - Windows Terminal + cmd.exe
 - Bun 1.3.12
-- opencode 1.4.3
+- teamcode 1.4.3
 
 ---
 
@@ -7018,7 +7018,7 @@ TypeError: Object.entries requires that input parameter not be null or undefined
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.4.3
 
@@ -7054,20 +7054,20 @@ _No response_
 
 ### Description
 
-Since version 1.3.x, on the Windows desktop version, after opening a Samba mapped drive path, the left sidebar becomes blank. It should display the session list and other information, but nothing shows up; the entire sidebar is empty. Also, opencode web cannot open the working folder under the Samba mapped path.
+Since version 1.3.x, on the Windows desktop version, after opening a Samba mapped drive path, the left sidebar becomes blank. It should display the session list and other information, but nothing shows up; the entire sidebar is empty. Also, teamcode web cannot open the working folder under the Samba mapped path.
 
 ### Plugins
 
 no
 
-### OpenCode version
+### TeamCode version
 
 1.4.2
 
 ### Steps to reproduce
 
 1. Map a Samba drive
-2. open opencode desktop
+2. open teamcode desktop
 3. Click the plus sign and select a folder path under the previously mapped Samba drive (e.g., Z drive).
 4. At this point, the sidebar will become blank
 
@@ -7111,7 +7111,7 @@ Environment:
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.3.14, 1.3.17, 1.4.0, 1.4.3
 
@@ -7139,17 +7139,17 @@ _No response_
 
 
 ### Description
-When I run the self-hosted web UI against a local OpenCode server, the page can stay on the loading screen indefinitely. I also hit crashes in the session/workspace UI when some session path or diff file values are missing.
+When I run the self-hosted web UI against a local TeamCode server, the page can stay on the loading screen indefinitely. I also hit crashes in the session/workspace UI when some session path or diff file values are missing.
 
 ### Plugins
 None
 
-### OpenCode version
+### TeamCode version
 - source-built dev binary during investigation: `0.0.0-dev-202604100729`
 - also reproduced against the packaged Windows install before switching to a source build for debugging
 
 ### Steps to reproduce
-1. Start a local OpenCode server and open the self-hosted web UI in the browser.
+1. Start a local TeamCode server and open the self-hosted web UI in the browser.
 2. Keep a previously saved default server URL in browser storage, or load session/workspace data that contains missing `directory` / `diff.file` values.
 3. Open the app or a session page.
 4. Observe that the app can stay on the loading screen, or the session/workspace tree can crash while normalizing paths.
@@ -7174,7 +7174,7 @@ Windows Terminal
 
 ## Summary
 
-On `OpenCode 1.4.2` on Windows, a custom Gemini native provider can be discovered correctly from `opencode.json`, and its model can be selected successfully.
+On `TeamCode 1.4.2` on Windows, a custom Gemini native provider can be discovered correctly from `teamcode.json`, and its model can be selected successfully.
 
 However, when the model is actually executed, the runtime request fails with:
 
@@ -7184,27 +7184,27 @@ However, when the model is actually executed, the runtime request fails with:
 
 In the same environment, with the same API key, the same project, and the same Gemini model, switching only the provider implementation to `@ai-sdk/openai-compatible` succeeds immediately and returns `OK`.
 
-This strongly suggests a runtime auth propagation issue in OpenCode's handling of custom native Google/Gemini providers, rather than a config parsing issue.
+This strongly suggests a runtime auth propagation issue in TeamCode's handling of custom native Google/Gemini providers, rather than a config parsing issue.
 
 ## Environment
 
-- OpenCode: `1.4.2`
+- TeamCode: `1.4.2`
 - OS: `Windows`
-- Entry point: `opencode-cli.exe run --print-logs`
+- Entry point: `teamcode-cli.exe run --print-logs`
 - Proxy service: `ofox.ai`
 
 ## Minimal Reproduction Config
 
 ```json
 {
-  "$schema": "https://opencode.ai/config.json",
+  "$schema": "https://teamcode.ai/config.json",
   "provider": {
     "ofox-google-native": {
       "npm": "@ai-sdk/google",
       "name": "Ofox Google Native",
       "options": {
         "baseURL": "https://api.ofox.ai/gemini",
-        "apiKey": "{file:C:/Users/Roger/.config/opencode/.secrets/ofox-api-key}"
+        "apiKey": "{file:C:/Users/Roger/.config/teamcode/.secrets/ofox-api-key}"
       },
       "models": {
         "gemini-3.1-flash-lite-preview": {
@@ -7227,7 +7227,7 @@ This strongly suggests a runtime auth propagation issue in OpenCode's handling o
 
 ## Summary
 
-On `OpenCode 1.4.2` on Windows, a custom Anthropic native provider can be discovered correctly from `opencode.json`, and its model can be selected successfully.
+On `TeamCode 1.4.2` on Windows, a custom Anthropic native provider can be discovered correctly from `teamcode.json`, and its model can be selected successfully.
 
 However, when the model is actually executed, the runtime request fails with:
 
@@ -7237,31 +7237,31 @@ However, when the model is actually executed, the runtime request fails with:
 
 In the same environment, with the same API key, the same project, and the same Claude model, switching only the provider implementation to `@ai-sdk/openai-compatible` succeeds immediately and returns `OK`.
 
-This strongly suggests a runtime auth propagation issue in OpenCode's handling of custom native Anthropic providers, rather than a config parsing issue.
+This strongly suggests a runtime auth propagation issue in TeamCode's handling of custom native Anthropic providers, rather than a config parsing issue.
 
 ## Environment
 
-- OpenCode: `1.4.2`
+- TeamCode: `1.4.2`
 - OS: `Windows`
-- Entry point: `opencode-cli.exe run --print-logs`
+- Entry point: `teamcode-cli.exe run --print-logs`
 - Proxy service: `ofox.ai`
 
 ## Minimal Reproduction Config
 
 File:
 
-- `F:\Project\AIBuilder\OpenCodeTest\opencode.json`
+- `F:\Project\AIBuilder\TeamCodeTest\teamcode.json`
 
 ```json
 {
-  "$schema": "https://opencode.ai/config.json",
+  "$schema": "https://teamcode.ai/config.json",
   "provider": {
     "ofox-anthropic-native": {
       "npm": "@ai-sdk/anthropic",
       "name": "Ofox Anthropic Native",
       "options": {
         "baseURL": "https://api.ofox.ai/anthropic",
-        "apiKey": "{file:C:/Users/Roger/.config/opencode/.secrets/ofox-api-key}"
+        "apiKey": "{file:C:/Users/Roger/.config/teamcode/.secrets/ofox-api-key}"
       },
       "models": {
         "claude-haiku-4.5": {
@@ -7271,24 +7271,24 @@ File:
 
 ---
 
-## #21702 — MCP OAuth: opencode mcp auth doesn't refresh token in active sessions
+## #21702 — MCP OAuth: teamcode mcp auth doesn't refresh token in active sessions
 
 📅 `2026-04-09` | ✏️ **duke8253** | 💬 3 | 🔗 [https://github.com/anomalyco/opencode/issues/21702](https://github.com/anomalyco/opencode/issues/21702)
 
 
 ### Description
 
-After re-authenticating an OAuth MCP server with opencode mcp auth <server>, the new token is written to disk but the running MCP connection still uses the stale one.
+After re-authenticating an OAuth MCP server with teamcode mcp auth <server>, the new token is written to disk but the running MCP connection still uses the stale one.
 
-opencode mcp debug <server> confirms: shows `authenticated` with a valid token and future expiry, but the HTTP connection test returns `401 Unauthorized`. The only workaround is restarting opencode entirely.
+teamcode mcp debug <server> confirms: shows `authenticated` with a valid token and future expiry, but the HTTP connection test returns `401 Unauthorized`. The only workaround is restarting teamcode entirely.
 
-Expected: `opencode mcp auth` should refresh the active MCP connection with the new token, or there should be an `opencode mcp reconnect` command to re-establish the connection.
+Expected: `teamcode mcp auth` should refresh the active MCP connection with the new token, or there should be an `teamcode mcp reconnect` command to re-establish the connection.
 
 ### Plugins
 
 none
 
-### OpenCode version
+### TeamCode version
 
 1.4.1
 
@@ -7296,9 +7296,9 @@ none
 
 1. Connect to an OAuth-enabled MCP server (Streamable HTTP transport)
 2. Wait for the token to expire or be invalidated server-side
-3. Run `opencode mcp auth <server>` — completes successfully
+3. Run `teamcode mcp auth <server>` — completes successfully
 4. MCP calls still fail with auth errors
-5. `opencode mcp debug <server>` shows valid token but 401 on test
+5. `teamcode mcp debug <server>` shows valid token but 401 on test
 
 ### Screenshot and/or share link
 
@@ -7321,7 +7321,7 @@ iTerm2
 
 ## What happened?
 
-After several messages in a session (or when resuming any session that previously hit this error), OpenCode displays:
+After several messages in a session (or when resuming any session that previously hit this error), TeamCode displays:
 
 ```
 [Error: Connect error internal: Blob not found: 10,82,10,80,10,40,71,101,110,101,114,97,116,101,3...]
@@ -7335,11 +7335,11 @@ This affects **all projects**, not a specific one. I have 5 broken sessions acro
 
 The comma-separated numbers in the error are **raw protobuf bytes** — they decode to the conversation history (user messages + assistant responses + message UUIDs). For example, `71,101,110,101,114,97,116,101` decodes to ASCII `"Generate"`.
 
-The string `"Blob not found"` is **not in OpenCode's TypeScript source** — it originates from **Bun's runtime** (`ObjectURLRegistry.zig`), which manages `blob:` URL references. The `ObjectURLRegistry` maps UUIDs to JavaScript `Blob` objects; when a lookup fails (e.g. the Blob was garbage-collected or revoked), it returns `null`, which surfaces as this error.
+The string `"Blob not found"` is **not in TeamCode's TypeScript source** — it originates from **Bun's runtime** (`ObjectURLRegistry.zig`), which manages `blob:` URL references. The `ObjectURLRegistry` maps UUIDs to JavaScript `Blob` objects; when a lookup fails (e.g. the Blob was garbage-collected or revoked), it returns `null`, which surfaces as this error.
 
 **The failure chain:**
 
-1. OpenCode's internal Connect-RPC server serializes conversation messages as protobuf for the TUI ↔ backend communication.
+1. TeamCode's internal Connect-RPC server serializes conversation messages as protobuf for the TUI ↔ backend communication.
 2. The request body passes through Bun's HTTP/fetch stack, wh
 
 > *[Truncado — 4043 chars totais]*
@@ -7354,7 +7354,7 @@ The string `"Blob not found"` is **not in OpenCode's TypeScript source** — it 
 ### Description
 
 I have started 2 project and in both I have the same problem
-After a while opencode project get corrupted somehow and I no longer can start opencode in that project, though it works normally in other folders
+After a while teamcode project get corrupted somehow and I no longer can start teamcode in that project, though it works normally in other folders
 
 
 ```
@@ -7375,7 +7375,7 @@ TypeError: Object.entries requires that input parameter not be null or undefined
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.3.17
 
@@ -7385,7 +7385,7 @@ _No response_
 
 ### Screenshot and/or share link
 
-simply running opencode in a project (that has become corrupted somehow)
+simply running teamcode in a project (that has become corrupted somehow)
 
 ### Operating System
 
@@ -7410,11 +7410,11 @@ Root cause: `packages/app/src/pages/session.tsx` creates the `messages` memo bef
 ### Plugins
 _No response_
 
-### OpenCode version
+### TeamCode version
 0.0.0--202604082020 (reproduced on built local binary)
 
 ### Steps to reproduce
-1. Build the local binary and run `opencode serve`.
+1. Build the local binary and run `teamcode serve`.
 2. Open a deep-linked session route in the web UI (`/<directory>/session/<id>`).
 3. Observe the app error boundary instead of the session page.
 4. Error details show `TypeError: Cannot read properties of undefined (reading 'filter')`.
@@ -7467,7 +7467,7 @@ This is a common issue wi
 
 ### Description
 
-When AI attempts to perform batch rename operations (renaming multiple files/folders), OpenCode Server (opencode-cli) crashes silently without showing an error dialog. The server process disappears while the TUI remains open but becomes unresponsive.
+When AI attempts to perform batch rename operations (renaming multiple files/folders), TeamCode Server (teamcode-cli) crashes silently without showing an error dialog. The server process disappears while the TUI remains open but becomes unresponsive.
 
 This issue occurs specifically when working in directories with Chinese characters (e.g., D:\肥牛的文件夹).
 
@@ -7478,15 +7478,15 @@ The double slash in the URL path (//sp instead of /sp) suggests a URL constructi
 
 ### Plugins
 
-shell-strategy (https://github.com/JRedeker/opencode-shell-strategy) context7-mcp
+shell-strategy (https://github.com/JRedeker/teamcode-shell-strategy) context7-mcp
 
-### OpenCode version
+### TeamCode version
 
 1.3.16
 
 ### Steps to reproduce
 
-1. Open OpenCode Desktop on Windows 11
+1. Open TeamCode Desktop on Windows 11
 2. Navigate to or create a directory with Chinese characters (e.g., D:\肥牛的文件夹)
 3. Ask AI to perform batch rename operations on multiple files/folders within this directory
 4. AI attempts to process the renames, triggering permission checks
@@ -7514,20 +7514,20 @@ Windows Terminal / PowerShell
 
 ### Description
 
-Starting from opencode 1.4.0, the plugin installer was switched from spawning bun add as a subprocess to using @npmcli/arborist directly inside the Bun runtime. When proxy environment variables (HTTP_PROXY/HTTPS_PROXY) are set, Arborist.reify() triggers an internal fetch that crashes with:
+Starting from teamcode 1.4.0, the plugin installer was switched from spawning bun add as a subprocess to using @npmcli/arborist directly inside the Bun runtime. When proxy environment variables (HTTP_PROXY/HTTPS_PROXY) are set, Arborist.reify() triggers an internal fetch that crashes with:
 TypeError: proxy.url must be a non-empty string
 This makes all remote npm plugins fail to install on startup. The issue does not occur when:
 - Running bun add or npm install as a standalone subprocess (they correctly read proxy env vars)
 - No proxy env vars are set
 The proxy environment is valid and functional — curl -x http://127.0.0.1:7897 https://registry.npmjs.org/ returns 200 OK. The issue is specific to Arborist running inside Bun's fetch implementation, which fails to parse the proxy variables correctly.
 Root Cause Analysis
-In packages/opencode/src/npm/index.ts, Npm.add() creates an Arborist instance and calls reify(), which internally uses fetch() to download packages from the npm registry. Bun's fetch() has a known issue with proxy environment variable handling — it reads the variables but fails to construct a valid proxy URL internally, resulting in the "non-empty string" error.
+In packages/teamcode/src/npm/index.ts, Npm.add() creates an Arborist instance and calls reify(), which internally uses fetch() to download packages from the npm registry. Bun's fetch() has a known issue with proxy environment variable handling — it reads the variables but fails to construct a valid proxy URL internally, resulting in the "non-empty string" error.
 Regression
-This is a regression from opencode 1.3.x which used service=bun (bun add subprocess) for plugin installation. The subprocess correctly inherited and used proxy env vars.
+This is a regression from teamcode 1.3.x which used service=bun (bun add subprocess) for plugin installation. The subprocess correctly inherited and used proxy env vars.
 
 ### Plugins
 
-- oh-my-openagent@latest (v3.15.3, 16 dependencies) - opencode-antigravity-auth@latest (v1.6.0)
+- oh-my-openagent@latest (v3.15.3, 16 dependencies) - teamcode-antigravity-auth@latest (v1.6.0)
 
 > *[Truncado — 2410 chars totais]*
 
@@ -7540,7 +7540,7 @@ This is a regression from opencode 1.3.x which used service=bun (bun add subproc
 
 ﻿### Description
 
-The integrated terminal in OpenCode is completely unresponsive - it displays a blank white screen and cannot receive any keyboard input. The terminal tab shows (e.g., 'Terminal 1'), but the content area remains empty and typing does nothing.
+The integrated terminal in TeamCode is completely unresponsive - it displays a blank white screen and cannot receive any keyboard input. The terminal tab shows (e.g., 'Terminal 1'), but the content area remains empty and typing does nothing.
 
 **Current behavior:**
 - Terminal opens but shows blank white screen
@@ -7557,13 +7557,13 @@ The integrated terminal in OpenCode is completely unresponsive - it displays a b
 
 N/A (core functionality issue)
 
-### OpenCode version
+### TeamCode version
 
 Latest version (as of April 2026)
 
 ### Steps to reproduce
 
-1. Open OpenCode application
+1. Open TeamCode application
 2. Click the terminal panel toggle (or press shortcut) to open integrated terminal
 3. Click '+' to create new terminal
 4. Attempt to type any command
@@ -7580,47 +7580,47 @@ Windows 11
 
 ### Terminal
 
-OpenCode integrated terminal (built-in)
+TeamCode integrated terminal (built-in)
 
 ---
 
 **Additional context:**
-- Restarting OpenCode does not resolve the issue
+- Restarting TeamCode does not resolve the issue
 - Closing and reopening terminal tabs does not help
 - PowerShell 5.1 and CMD both fail to load in the terminal
-- This appears to be a terminal rendering layer bug in the OpenCode client
+- This appears to be a terminal rendering layer bug in the TeamCode client
 
 ---
 
-## #21463 — 1.4.0 standalone CLI in ~/.opencode/bin is killed on macOS 26.4 with Taskgated Invalid Signature
+## #21463 — 1.4.0 standalone CLI in ~/.teamcode/bin is killed on macOS 26.4 with Taskgated Invalid Signature
 
 📅 `2026-04-08` | ✏️ **silentbalanceyh** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/21463](https://github.com/anomalyco/opencode/issues/21463)
 
 
 ### Description
 
-After updating OpenCode to 1.4.0 on April 8, 2026, running `opencode` from the terminal immediately exits with `killed` on macOS 26.4.
+After updating TeamCode to 1.4.0 on April 8, 2026, running `teamcode` from the terminal immediately exits with `killed` on macOS 26.4.
 
-On this machine, the standalone CLI binary installed at `~/.opencode/bin/opencode` is terminated by macOS during process launch. System logs and the crash report show this as a code-signing failure, not an application-level crash.
+On this machine, the standalone CLI binary installed at `~/.teamcode/bin/teamcode` is terminated by macOS during process launch. System logs and the crash report show this as a code-signing failure, not an application-level crash.
 
 Relevant diagnostics:
 
-- Terminal output: `[1] 62905 killed opencode`
+- Terminal output: `[1] 62905 killed teamcode`
 - Exit code: `137`
-- macOS log: `load code signature error 2 for file "opencode"`
+- macOS log: `load code signature error 2 for file "teamcode"`
 - Crash report: `SIGKILL (Code Signature Invalid)` / `Taskgated Invalid Signature`
 
-Important detail: the app-bundled binary at `/Applications/OpenCode.app/Contents/MacOS/opencode-cli` works normally and reports version `1.4.0`, but the standalone CLI path `~/.opencode/bin/opencode` is killed by the OS.
+Important detail: the app-bundled binary at `/Applications/TeamCode.app/Contents/MacOS/teamcode-cli` works normally and reports version `1.4.0`, but the standalone CLI path `~/.teamcode/bin/teamcode` is killed by the OS.
 
-I also verified that the two binaries are byte-identical with `cmp`, but only the copy launched from `~/.opencode/bin/opencode` is rejected. Replacing the file with another copied file did not help. The only working workaround so far is to replace `~/.opencode/bin/opencode` with a symlink to `/Applications/OpenCode.app/Contents/MacOS/opencode-cli`.
+I also verified that the two binaries are byte-identical with `cmp`, but only the copy launched from `~/.teamcode/bin/teamcode` is rejected. Replacing the file with another copied file did not help. The only working workaround so far is to replace `~/.teamcode/bin/teamcode` with a symlink to `/Applications/TeamCode.app/Contents/MacOS/teamcode-cli`.
 
 This looks like a packaging / installation / signing compatibility issue affecting the standalone CLI path on macOS 26.4.
 
 ### Plugins
 
-`@opencode-ai/plugin` requested as `1.4.0`, installed package observed locally as `1.3.17 invalid: "1.4.0" from the root project`
+`@teamcode-ai/plugin` requested as `1.4.0`, installed package observed locally as `1.3.17 invalid: "1.4.0" from the root project`
 
-### OpenCode version
+### TeamCode version
 
 `1.4.0`
 
@@ -7655,7 +7655,7 @@ TypeError: Object.entries requires that input parameter not be null or undefined
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.4.0
 
@@ -7684,7 +7684,7 @@ _No response_
 
 ### Description
 
-The first OpenCode launch actually succeeds,but opening a new pane/window(shft+alt++) in Windows10-Ubuntu-Wsl-WindowsTerminal results in SqliteError-
+The first TeamCode launch actually succeeds,but opening a new pane/window(shft+alt++) in Windows10-Ubuntu-Wsl-WindowsTerminal results in SqliteError-
 
 (Note -Linux Bash is too slow and is not usable )
 
@@ -7692,8 +7692,8 @@ SqliteError-
 
 ```
 PS Microsoft.PowerShell.Core\FileSystem::\\wsl.localhost\Ubuntu-24.04> wsl
-ubuntu_0@DESKTOP-123:~$ opencode
-Error: Unexpected error, check log file at /home/ubuntu_0/.local/share/opencode/log/2026-04-08T040527.log for more details
+ubuntu_0@DESKTOP-123:~$ teamcode
+Error: Unexpected error, check log file at /home/ubuntu_0/.local/share/teamcode/log/2026-04-08T040527.log for more details
 
 Failed to run the query 'PRAGMA journal_mode = WAL'
 ```
@@ -7703,13 +7703,13 @@ but the error still persists.
 
 ---------------------------------|||  Analysis |||----------------------------------
 
---->For analysis,attached opencode directory.zip after a new attempt at multi-pane/window execution.
+--->For analysis,attached teamcode directory.zip after a new attempt at multi-pane/window execution.
 
 
 ```
-The first OpenCode launch actually succeeds:
+The first TeamCode launch actually succeeds:
 
-service=db path=/home/ubuntu_0/.local/share/opencode/opencode.db opening database
+service=db path=/home/ubuntu_0/.local/share/teamcode/teamcode.db opening database
 service=db count=10 mode=bundled applying migrations
 
 It fully opens the DB and even starts TUI plugins.
@@ -7721,9 +7721,9 @@ A few seconds later second log starts:
 
 and then stops abruptly.
 
-That strongly indicates the second pane is trying to open the same SQLite WAL database while the first OpenCode session is still active.
+That strongly indicates the second pane is trying to open the same SQLite WAL database while the first TeamCode session is still active.
 
-OpenCode 1.4.0 currently does not reliably support multiple concurrent instances sharing the same DB path.
+TeamCode 1.4.0 currently does not reliably support multiple concurrent instances sharing the same DB path.
 
 So the second pane crashes d
 
@@ -7738,7 +7738,7 @@ So the second pane crashes d
 
 ### Description
 
-opencode-cli.exe web --hostname 192.168.1.25 --port 4095
+teamcode-cli.exe web --hostname 192.168.1.25 --port 4095
 
 After running for a period of time, cmd displays the following error message:
 
@@ -7822,7 +7822,7 @@ TypeError: undefined is not an object (evaluating 'enabledFormatters().length')
 📅 `2026-04-08` | ✏️ **hutiefang76** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/21410](https://github.com/anomalyco/opencode/issues/21410)
 
 
-### OpenCode Version
+### TeamCode Version
 
 1.3.0
 
@@ -7832,7 +7832,7 @@ Windows (Bun runtime)
 
 ### Bug Description
 
-OpenCode TUI crashes with a fatal TypeError when `local.agent.current()` returns `undefined` during a SolidJS reactive update cycle.
+TeamCode TUI crashes with a fatal TypeError when `local.agent.current()` returns `undefined` during a SolidJS reactive update cycle.
 
 ### Stack Trace
 
@@ -7884,7 +7884,7 @@ TypeError: Object.entries requires that input parameter not be null or undefined
 
 _No response_
 
-### OpenCode version
+### TeamCode version
 
 1.3.17
 
@@ -7913,7 +7913,7 @@ _No response_
 
 ## Bug description
 
-When OpenCode crashes or exits unexpectedly on Windows (PowerShell), the terminal is left in a broken state showing raw ANSI escape sequences as literal text at the bottom of the screen, e.g.:
+When TeamCode crashes or exits unexpectedly on Windows (PowerShell), the terminal is left in a broken state showing raw ANSI escape sequences as literal text at the bottom of the screen, e.g.:
 
 ```
 555;59;86m
@@ -7925,16 +7925,16 @@ The terminal cursor may also be hidden, requiring the user to close and reopen P
 
 - OS: Windows 10
 - Terminal: PowerShell 5.1
-- OpenCode version: 1.3.17
-- Install method: npm (`npm install -g opencode-ai`)
+- TeamCode version: 1.3.17
+- Install method: npm (`npm install -g teamcode-ai`)
 
 ## Expected behavior
 
-On crash or unexpected exit, OpenCode should reset the terminal state (`\x1b[0m`, `\x1b[?25h`) before exiting, similar to how other TUI apps (e.g., vim, btop) handle SIGINT/panic cleanup.
+On crash or unexpected exit, TeamCode should reset the terminal state (`\x1b[0m`, `\x1b[?25h`) before exiting, similar to how other TUI apps (e.g., vim, btop) handle SIGINT/panic cleanup.
 
 ## Workaround
 
-Wrapping the npm launcher (`opencode.ps1`) in a PowerShell `try/finally` block that runs `[Console]::ResetColor()` and `Write-Host -NoNewline "$([char]27)[0m$([char]27)[?25h"` mitigates the visible symptom but does not fix the root cause.
+Wrapping the npm launcher (`teamcode.ps1`) in a PowerShell `try/finally` block that runs `[Console]::ResetColor()` and `Write-Host -NoNewline "$([char]27)[0m$([char]27)[?25h"` mitigates the visible symptom but does not fix the root cause.
 
 ## Suggested fix
 

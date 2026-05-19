@@ -129,10 +129,10 @@ async function showRemovalSummary(targets: RemovalTargets, method: Installation.
 
   if (method !== "curl" && method !== "unknown") {
     const cmds: Record<string, string> = {
-      npm: "npm uninstall -g opencode-ai",
-      pnpm: "pnpm uninstall -g opencode-ai",
-      bun: "bun remove -g opencode-ai",
-      yarn: "yarn global remove opencode-ai",
+      npm: "npm uninstall -g teamcode-ai",
+      pnpm: "pnpm uninstall -g teamcode-ai",
+      bun: "bun remove -g teamcode-ai",
+      yarn: "yarn global remove teamcode-ai",
       brew: "brew uninstall teamcode",
       choco: "choco uninstall teamcode",
       scoop: "scoop uninstall teamcode",

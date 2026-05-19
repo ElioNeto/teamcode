@@ -292,8 +292,12 @@ jobs:
         run: |
           mkdir -p ~/apt-cache && chmod -R a+rw ~/apt-cache
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends -o dir::cache::archives="$HOME/apt-cache" rpm
+          sudo apt-get install -y --no-install-recommends -o dir::cache::archives="$HOME/apt-cache" \
+            rpm flatpak flatpak-builder
           sudo chmod -R a+rw ~/apt-cache
+          # Ensure flatpak user installation is set up
+          flatpak remote-add --if-not-exists --user flathub \
+            https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
 
       - name: Setup git committer
         id: committer

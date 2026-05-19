@@ -74,7 +74,31 @@ const getBase = (): Configuration => ({
   linux: {
     icon: `resources/icons`,
     category: "Development",
-    target: ["AppImage", "deb", "rpm"],
+    target: ["AppImage", "deb", "rpm", "flatpak"],
+    executableArgs: ["--no-sandbox"],
+  },
+  flatpak: {
+    id: channel === "prod" ? "ai.opencode.desktop" : `ai.opencode.desktop.${channel}`,
+    branch: channel === "prod" ? "stable" : channel,
+    runtime: "org.electronjs.Electron2.BaseApp",
+    runtimeVersion: "24.08",
+    sdk: "org.freedesktop.Sdk//24.08",
+    base: "org.electronjs.Electron2.BaseApp",
+    baseVersion: "24.08",
+    finishArgs: [
+      "--socket=x11",
+      "--socket=wayland",
+      "--device=dri",
+      "--socket=pulseaudio",
+      "--share=network",
+      "--share=ipc",
+      "--filesystem=home",
+      "--talk-name=org.freedesktop.Notifications",
+      "--talk-name=org.kde.StatusNotifierWatcher",
+    ],
+    useSystemElectron: false,
+    symlinks: [],
+    writablePaths: [],
   },
 })
 

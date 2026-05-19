@@ -1,0 +1,117 @@
+id: ai.opencode.desktop
+runtime: org.freedesktop.Sdk
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk//24.08
+base: org.electronjs.Electron2.BaseApp
+base-version: '24.08'
+separate-locales: false
+
+command: opencode-desktop
+rename-icon: ai.opencode.desktop
+
+build-options:
+  env:
+    ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    npm_config_nodedir: /usr/lib/sdk/node22
+
+finish-args:
+  - --socket=x11
+  - --socket=wayland
+  - --device=dri
+  - --socket=pulseaudio
+  - --share=network
+  - --share=ipc
+  - --filesystem=home
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.kde.StatusNotifierWatcher
+
+modules:
+  - shared-modules/node/node22.json
+
+  - name: bun
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 bun /app/bin/bun
+    sources:
+      - type: archive
+        url: https://github.com/oven-sh/bun/releases/download/bun-v1.3.13/bun-linux-x64-baseline.zip
+        sha256: skip
+        strip-components: 0
+        only-arches:
+          - x86_64
+      - type: archive
+        url: https://github.com/oven-sh/bun/releases/download/bun-v1.3.13/bun-linux-arm64-baseline.zip
+        sha256: skip
+        strip-components: 0
+        only-arches:
+          - aarch64
+
+  - name: opencode
+    buildsystem: simple
+    build-commands:
+      # Install workspace dependencies
+      - bun install --frozen-lockfile --filter '!./' --filter './packages/opencode'
+        --filter './packages/desktop' --filter './packages/app' --ignore-scripts
+      # Build the CLI binary
+      - cd packages/opencode && OPENCODE_DISABLE_MODELS_FETCH=true bun run script/build.ts
+        --single --skip-install
+      # Build the desktop app
+      - cd packages/desktop && bun run build
+    sources:
+      - type: dir
+        path: /run/build/opencode
+
+  - name: launcher
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 opencode-desktop.sh /app/bin/opencode-desktop
+      - install -Dm644 ai.opencode.desktop.desktop /app/share/applications/ai.opencode.desktop.desktop
+      - install -Dm644 ai.opencode.desktop.metainfo.xml /app/share/metainfo/ai.opencode.desktop.metainfo.xml
+      - for size in 64 128 256 512; do
+          install -Dm644 icon.png /app/share/icons/hicolor/${size}x${size}/apps/ai.opencode.desktop.png;
+        done
+    sources:
+      - type: script
+        dest-filename: opencode-desktop.sh
+        commands:
+          - |
+            #!/bin/sh
+            export TMPDIR="${XDG_RUNTIME_DIR}/app/${FLATPAK_ID}"
+            exec zypak-wrapper /app/extra/opencode-desktop/opencode-desktop "$@"
+      - type: inline
+        dest-filename: ai.opencode.desktop.desktop
+        contents: |
+          [Desktop Entry]
+          Name=OpenCode
+          Comment=AI-powered development tool
+          Exec=/app/bin/opencode-desktop %U
+          Icon=ai.opencode.desktop
+          Terminal=false
+          Type=Application
+          Categories=Development;IDE;
+          MimeType=x-scheme-handler/opencode;
+          StartupNotify=true
+      - type: inline
+        dest-filename: ai.opencode.desktop.metainfo.xml
+        contents: |
+          <?xml version="1.0" encoding="UTF-8"?>
+          <component type="desktop-application">
+            <id>ai.opencode.desktop</id>
+            <metadata_license>CC0-1.0</metadata_license>
+            <project_license>MIT</project_license>
+            <name>OpenCode</name>
+            <summary>AI-powered development tool</summary>
+            <developer id="teamcode">
+              <name>TeamCode</name>
+            </developer>
+            <description>
+              <p>OpenCode is an open source AI-powered development tool that helps you write and run code with any AI model.</p>
+            </description>
+            <launchable type="desktop-id">ai.opencode.desktop.desktop</launchable>
+            <content_rating type="oars-1.1"/>
+            <url type="homepage">https://opencode.ai</url>
+            <url type="vcs-browser">https://github.com/teamcode/teamcode</url>
+          </component>
+      - type: file
+        path: packages/desktop/resources/icons/icon.png
+        dest-filename: icon.png

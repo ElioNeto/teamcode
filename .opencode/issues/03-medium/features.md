@@ -15,10 +15,10 @@
 
 ### Describe the enhancement you want to request
 
-Not sure if it's a stretch asking for this, as I don't know if anyone else wants this, or it's just my specific use-case this fits in. I run OpenCode in a firewalled VM with only certain ports open, this is the case for all tools I use involving an agent with code execution. The WebUI is very helpful for this, but I need to manually transfer the files after the agent is finished. It would be great if the agent could create a patch file, or package it up into an archive, and use a tool for it to be downloadable by the user within the WebUI.
+Not sure if it's a stretch asking for this, as I don't know if anyone else wants this, or it's just my specific use-case this fits in. I run TeamCode in a firewalled VM with only certain ports open, this is the case for all tools I use involving an agent with code execution. The WebUI is very helpful for this, but I need to manually transfer the files after the agent is finished. It would be great if the agent could create a patch file, or package it up into an archive, and use a tool for it to be downloadable by the user within the WebUI.
 ## Other use-cases
-- A user without the hardware to run OpenCode may run the WebUI on a VPS and is able to view generated artifacts without accessing the VPS itself.
-- An organisation providing OpenCode as a service will able to give users access to a sandboxed OpenCode instance while keeping file access and code execution behind the scenes.
+- A user without the hardware to run TeamCode may run the WebUI on a VPS and is able to view generated artifacts without accessing the VPS itself.
+- An organisation providing TeamCode as a service will able to give users access to a sandboxed TeamCode instance while keeping file access and code execution behind the scenes.
 
 ---
 
@@ -73,7 +73,7 @@ Better for UX.
 
 ### Describe the enhancement you want to request
 
-It would be nice to be able to see the last text prompted. only for like couple lines of text, so at least the users have and idea what opencode was working on.
+It would be nice to be able to see the last text prompted. only for like couple lines of text, so at least the users have and idea what teamcode was working on.
 
 This would be a nice feature specially working on a lot of  terminals at the same time.
 
@@ -117,7 +117,7 @@ User presses: ^+B
 
 ---
 
-## #28030 — [FEATURE]: Add ability to delete projects in OpenCode Desktop
+## #28030 — [FEATURE]: Add ability to delete projects in TeamCode Desktop
 
 📅 `2026-05-17` | ✏️ **kadeshar** | 💬 4 | 🔗 [https://github.com/anomalyco/opencode/issues/28030](https://github.com/anomalyco/opencode/issues/28030)
 
@@ -128,7 +128,7 @@ User presses: ^+B
 
 ### Describe the enhancement you want to request
 
-OpenCode currently has no way to delete a project from the Desktop application. Users can list, create, and update projects, but there is no delete option in the UI. This leaves stale project entries that cannot be cleaned up without manual SQLite manipulation.
+TeamCode currently has no way to delete a project from the Desktop application. Users can list, create, and update projects, but there is no delete option in the UI. This leaves stale project entries that cannot be cleaned up without manual SQLite manipulation.
 
 I've verified that #25004 (which proposed the backend `DELETE /project/:id` endpoint) was closed for not following contributing guidelines, and #8083 and #15694 (similar requests) are also closed. The backend API for project deletion may not yet be implemented, but this issue is specifically about adding a **UI feature in the Desktop app** that allows users to delete projects they no longer need.
 
@@ -180,14 +180,14 @@ Hello, I work on Roslyn/Razor tooling and thought I'd log this as an FYI, we jus
 My suggestion:
 1. Consider having a tabbed view instead of a list view, where a tab relates to one main aspect (with sub-sections), and I could move between tabs with right and left arrows.
 2. Change "Suggested" to "Recently used" or "Frequently used". The suggested list looks static, I don't know what the logic/algorithm is, but it's always showing the same items there. Pretty useless. Showing the 3 to 5 most recently used items might be more helpful. Or it could be "Frequently used" based on usage statistics.
-3. First section (could be in the same tab as "Recently used" or "Frequently used") could be "OpenCode" system commands limited to ONLY Help, docs and Exit. (These items are excluded from the "Recently used" or "Frequently used" lists.)
+3. First section (could be in the same tab as "Recently used" or "Frequently used") could be "TeamCode" system commands limited to ONLY Help, docs and Exit. (These items are excluded from the "Recently used" or "Frequently used" lists.)
 4. Second section could be "Session Management" which is limited to ONLY option
 
 > *[Truncado — 2040 chars totais]*
 
 ---
 
-## #28001 — [FEATURE]: opencode-go stop and print out warning when 80% full/daily/weekly is reached
+## #28001 — [FEATURE]: teamcode-go stop and print out warning when 80% full/daily/weekly is reached
 
 📅 `2026-05-17` | ✏️ **suse-coder** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/28001](https://github.com/anomalyco/opencode/issues/28001)
 
@@ -198,7 +198,7 @@ My suggestion:
 
 ### Describe the enhancement you want to request
 
-It would be great if one reaches in opencode-go 80% in fully/weekly/daily that opencode stops short and prints out a warning so the user can decide to continue (by typing in continue) or would go with a cheaper model. Otherwise one only finds out the limit is reached when having 100%.
+It would be great if one reaches in teamcode-go 80% in fully/weekly/daily that teamcode stops short and prints out a warning so the user can decide to continue (by typing in continue) or would go with a cheaper model. Otherwise one only finds out the limit is reached when having 100%.
 
 ---
 
@@ -215,7 +215,7 @@ It would be great if one reaches in opencode-go 80% in fully/weekly/daily that o
 
 ## The Feature
 
-Add an object form for `autoupdate` in `opencode.json` so users can choose an update channel and the version range that may be applied automatically.
+Add an object form for `autoupdate` in `teamcode.json` so users can choose an update channel and the version range that may be applied automatically.
 
 Existing values should keep working.
 
@@ -270,7 +270,7 @@ If `version_policy` is omitted, I think it should default to `any` to preserve t
 
 ## Motivation, pitch
 
-OpenCode is part of active develo
+TeamCode is part of active develo
 
 > *[Truncado — 5504 chars totais]*
 
@@ -335,9 +335,9 @@ Skills are currently registered as flat names from SKILL.md frontmatter, with no
 Proposed: derive a prefix from the directory structure under skills/ using the same : separator MCP prompts already use (clientName:promptName).
 
 Examples:
-- .opencode/skills/deploy/SKILL.md → /deploy (flat, unchanged)
-- .opencode/skills/team-a/deploy/SKILL.md → /team-a:deploy
-- .opencode/skills/org/team/deploy/SKILL.md → /org:team:deploy
+- .teamcode/skills/deploy/SKILL.md → /deploy (flat, unchanged)
+- .teamcode/skills/team-a/deploy/SKILL.md → /team-a:deploy
+- .teamcode/skills/org/team/deploy/SKILL.md → /org:team:deploy
 
 This is backward compatible — flat skill layouts produce no prefix. Only skills nested one or more directories deep get prefixed.
 
@@ -357,8 +357,8 @@ Related: #23361 (categorized skill listing) — that issue is about display grou
 ### Describe the enhancement you want to request
 
 Description:
-When using opencode from the CLI, sessions are stored per-project in ~/.local/share/opencode/storage/session/<project_hash>/. When using the GUI (desktop app or web interface), sessions are stored globally in ~/.local/share/opencode/storage/session/global/. This means sessions started from the CLI never appear in the GUI session list and vice versa.
-Expected behavior: CLI and GUI should share the same session history so I can resume a session started from the CLI in the GUI, or see all my recent sessions regardless of how I launched opencode.
+When using teamcode from the CLI, sessions are stored per-project in ~/.local/share/teamcode/storage/session/<project_hash>/. When using the GUI (desktop app or web interface), sessions are stored globally in ~/.local/share/teamcode/storage/session/global/. This means sessions started from the CLI never appear in the GUI session list and vice versa.
+Expected behavior: CLI and GUI should share the same session history so I can resume a session started from the CLI in the GUI, or see all my recent sessions regardless of how I launched teamcode.
 Options to consider:
 - 
 The GUI could also list per-project sessions from projects the user has worked on.
@@ -366,7 +366,7 @@ The GUI could also list per-project sessions from projects the user has worked o
 The CLI could optionally write to the global session store, or both modes could use a unified store.
 - 
 Add a config option (e.g., "session_storage": "global" | "per-project") to let users choose.
-Version: opencode 1.15.3
+Version: teamcode 1.15.3
 Platform: Windows
 
 ---
@@ -384,31 +384,31 @@ Platform: Windows
 
 Add command discovery for `.agents/commands/**/*.md`, matching the existing `.agents/skills` convention.
 
-opencode already discovers reusable skills from `.agents/skills`, but slash command markdown is only discovered from `.opencode/command(s)`. This makes it harder to keep agent-related commands and skills together in shared dotfile/project setups.
+teamcode already discovers reusable skills from `.agents/skills`, but slash command markdown is only discovered from `.teamcode/command(s)`. This makes it harder to keep agent-related commands and skills together in shared dotfile/project setups.
 
 This is related to #14240, but intentionally narrower: support the `.agents/commands` convention without adding a general configurable path system.
 
 ---
 
-## #27971 — `opencode serve` accepts requests while plugin npm install is still blocking the event loop
+## #27971 — `teamcode serve` accepts requests while plugin npm install is still blocking the event loop
 
 📅 `2026-05-17` | ✏️ **marcusrbrown** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/27971](https://github.com/anomalyco/opencode/issues/27971)
 
 
-# `opencode serve` accepts requests while plugin npm install is still blocking
+# `teamcode serve` accepts requests while plugin npm install is still blocking
 
-OpenCode's HTTP server starts listening and emits `server.connected` on the SSE stream before plugin npm reify finishes. During the reify window the event loop is blocked, so any API call hangs and eventually `fetch failed`s with no useful error. We've measured this window at 5+ minutes on CI runners.
+TeamCode's HTTP server starts listening and emits `server.connected` on the SSE stream before plugin npm reify finishes. During the reify window the event loop is blocked, so any API call hangs and eventually `fetch failed`s with no useful error. We've measured this window at 5+ minutes on CI runners.
 
 There is no way for a caller to know the server is ready to process requests.
 
-Related: #19197 (`OpenCode 1.3.2 has ~75 seconds startup delay`). Same root cause, more severe in CI environments.
+Related: #19197 (`TeamCode 1.3.2 has ~75 seconds startup delay`). Same root cause, more severe in CI environments.
 
 ## Repro
 
 ```bash
 # Start a server with a fresh cache (no warm npm cache) and a plugin in config
-rm -rf ~/.cache/opencode/packages/oh-my-openagent
-opencode serve --port 4096 &
+rm -rf ~/.cache/teamcode/packages/oh-my-openagent
+teamcode serve --port 4096 &
 
 # Immediately try to make any API call
 sleep 1
@@ -422,9 +422,9 @@ The server is bound and the SSE `server.connected` event has already been emitte
 
 | Time | Event |
 |---|---|
-| 00:00 | `opencode serve` spawned |
+| 00:00 | `teamcode serve` spawned |
 | 00:01 | Server bound, SSE emits `server.connected` |
-| 00:01 | Client (`@opencode-ai/sdk`) sends `POST /session` |
+| 00:01 | Client (`@teamcode-ai/sdk`) sends `POST /session` |
 | 00:01 | npm reify starts for `@fro.bot/systematic`, `oh-my-openagent` |
 | 04:58 | npm reify completes (298s) |
 | 04:59 | Server starts processing the queued `/session` request — 
@@ -444,7 +444,7 @@ The server is bound and the SSE `server.connected` event has already been emitte
 
 ### Describe the enhancement you want to request
 
-Please add compact timestamps to the OpenCode Desktop chat/thread list, showing when each chat was last active or last opened.
+Please add compact timestamps to the TeamCode Desktop chat/thread list, showing when each chat was last active or last opened.
 
 In the desktop app, the sidebar currently shows chat titles but not when they were used. This makes it hard to find the right chat when several sessions have similar names or when coming back after a few days.
 
@@ -480,7 +480,7 @@ Ideally, theres:
 
 ---
 
-## #27929 — [FEATURE]: Restore the previous 1M context window for `opencode/deepseek-v4-flash-free`
+## #27929 — [FEATURE]: Restore the previous 1M context window for `teamcode/deepseek-v4-flash-free`
 
 📅 `2026-05-16` | ✏️ **djeddi-yacine** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/27929](https://github.com/anomalyco/opencode/issues/27929)
 
@@ -491,8 +491,8 @@ Ideally, theres:
 
 ### Describe the enhancement you want to request
 
-First of all, thank you for maintaining OpenCode and providing access to these models.
-`opencode/deepseek-v4-flash-free` quickly became one of my favorite coding models to use in the terminal.
+First of all, thank you for maintaining TeamCode and providing access to these models.
+`teamcode/deepseek-v4-flash-free` quickly became one of my favorite coding models to use in the terminal.
 
 I noticed that the context window was reduced from around 1M tokens to 200k. I understand there may be infrastructure or cost-related reasons behind the change, but I wanted to express how impactful the larger context window was in real-world usage.
 
@@ -506,7 +506,7 @@ If possible, I’d really appreciate reconsidering the decision or offering:
 * an opt-in “large context” mode,
 * or even a rate-limited version with the original 1M context.
 
-The larger context window was honestly one of the strongest reasons to use this model through OpenCode.
+The larger context window was honestly one of the strongest reasons to use this model through TeamCode.
 
 Thank
 
@@ -531,7 +531,7 @@ The `edit` tool's description text says:
 > before editing. This tool will error if you attempt an edit
 > without reading the file."
 
-Runtime test on opencode 1.15.1 shows the string lives in the
+Runtime test on teamcode 1.15.1 shows the string lives in the
 LLM-facing tool schema only. The executable code path does not
 enforce the precondition. A clean edit succeeded on a fresh session
 with no prior `read` of the target file (`Version: 0.23.23 →
@@ -570,7 +570,7 @@ A che
 
 ### Describe the enhancement you want to request
 
-opencode 1.15.1 documents `tool.execute.before` and
+teamcode 1.15.1 documents `tool.execute.before` and
 `tool.execute.after` as a paired event surface. Runtime test shows
 they fire on different populations:
 
@@ -597,7 +597,7 @@ Possible shapes:
   a status field. This breaks plugins that assume current
   semantics.
 - Document the success-only semantics explicitly at
-  https://opencode.ai/docs/plugins/ so framework authors don't
+  https://teamcode.ai/docs/plugins/ so framework authors don't
   assume symmetry from the name pair.
 
 Related: #25918 (`tool.execute.after` is declared but nev
@@ -606,7 +606,7 @@ Related: #25918 (`tool.execute.after` is declared but nev
 
 ---
 
-## #27899 — [FEATURE]: headless prompt-mutation hook for opencode run (parallel to tui.prompt.append)
+## #27899 — [FEATURE]: headless prompt-mutation hook for teamcode run (parallel to tui.prompt.append)
 
 📅 `2026-05-16` | ✏️ **haabe** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/27899](https://github.com/anomalyco/opencode/issues/27899)
 
@@ -617,13 +617,13 @@ Related: #25918 (`tool.execute.after` is declared but nev
 
 ### Describe the enhancement you want to request
 
-opencode 1.15.1 documents `tui.prompt.append` as a plugin hook for
+teamcode 1.15.1 documents `tui.prompt.append` as a plugin hook for
 mutating the outbound prompt before it reaches the model. In the
 interactive TUI this is exactly what frameworks need to inject
 session-level context (pre-task checklists, project conventions,
 guardrails) without the user having to repeat it every turn.
 
-In `opencode run` (headless mode), the hook is silently inert.
+In `teamcode run` (headless mode), the hook is silently inert.
 `plugin.init` fires, but `tui.prompt.append` never does. Consistent
 with the `tui.*` namespace, fine. But it leaves no documented
 headless equivalent for prompt mutation.
@@ -631,7 +631,7 @@ headless equivalent for prompt mutation.
 Use case: frameworks like Mycelium (theory-grounded agent harness,
 https://github.com/haabe/mycelium) want one plugin that injects
 pre-task context whether the user is in TUI or running headless via
-`opencode run` from a parent process.
+`teamcode run` from a parent process.
 
 Possible shapes:
 
@@ -690,11 +690,11 @@ A parent agent launches multi
 
 ## Description
 
-OpenCode Desktop on Windows does not respect the system proxy settings for the agent's built-in `webfetch` tool (and likely other HTTP calls made by the agent runtime). This is similar to #26629 but focused on the agent's web fetching capability rather than GitHub Copilot OAuth.
+TeamCode Desktop on Windows does not respect the system proxy settings for the agent's built-in `webfetch` tool (and likely other HTTP calls made by the agent runtime). This is similar to #26629 but focused on the agent's web fetching capability rather than GitHub Copilot OAuth.
 
 ### What happened
 
-When using OpenCode Desktop with a Windows system proxy (set via Windows Settings → Network & Internet → Proxy, or through tools like v2rayN in system proxy mode), the agent's `webfetch` tool cannot access websites behind the GFW (e.g., google.com, reddit.com). It works for sites accessible from China (e.g., bing.com, baidu.com), confirming the requests go direct without passing through the system proxy.
+When using TeamCode Desktop with a Windows system proxy (set via Windows Settings → Network & Internet → Proxy, or through tools like v2rayN in system proxy mode), the agent's `webfetch` tool cannot access websites behind the GFW (e.g., google.com, reddit.com). It works for sites accessible from China (e.g., bing.com, baidu.com), confirming the requests go direct without passing through the system proxy.
 
 ### Expected behavior
 
@@ -710,7 +710,7 @@ The agent's webfetch tool (and all outbound HTTP calls from the agent runtime) s
 ### Environment
 
 - OS: Windows
-- App: OpenCode Desktop (GUI app)
+- App: TeamCode Desktop (GUI app)
 - Proxy: v2rayN in system proxy mode, Clash in system proxy mode
 - Network: behind GFW (China mainland)
 
@@ -722,7 +722,7 @@ The desktop app relies on Node.js's `fetch` implementation which only respec
 
 ---
 
-## #27885 — [FEATURE]: Add opencode-gpt-imagegen to ecosystem plugins list
+## #27885 — [FEATURE]: Add teamcode-gpt-imagegen to ecosystem plugins list
 
 📅 `2026-05-16` | ✏️ **yuji-hatakeyama** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/27885](https://github.com/anomalyco/opencode/issues/27885)
 
@@ -735,12 +735,12 @@ The desktop app relies on Node.js's `fetch` implementation which only respec
 
 I'd like to add a community plugin to the Ecosystem → Plugins list.
 
-- **Plugin** : opencode-gpt-imagegen
-- **GitHub** : https://github.com/yuji-hatakeyama/opencode-gpt-imagegen
-- **npm** : https://www.npmjs.com/package/opencode-gpt-imagegen
+- **Plugin** : teamcode-gpt-imagegen
+- **GitHub** : https://github.com/yuji-hatakeyama/teamcode-gpt-imagegen
+- **npm** : https://www.npmjs.com/package/teamcode-gpt-imagegen
 
 What it does:
-- gpt-image-2 (ChatGPT Images 2) image generation from within OpenCode
+- gpt-image-2 (ChatGPT Images 2) image generation from within TeamCode
 - Works via the user's ChatGPT subscription (OpenAI OAuth in `auth.json`)
 
 ---
@@ -758,7 +758,7 @@ What it does:
 
 ## Description
 
-OpenCode currently seems to assume UTF-8 when using built-in tools such as `Read`, `Grep`, `Edit`, and `Write`.
+TeamCode currently seems to assume UTF-8 when using built-in tools such as `Read`, `Grep`, `Edit`, and `Write`.
 
 This works well for modern projects, but it can cause problems in legacy codebases that contain files encoded with GB2312, GBK, Big5, EUC-KR, Shift-JIS, or other non-UTF-8 encodings.
 
@@ -766,7 +766,7 @@ For example, some older projects still contain source files encoded with non-UTF
 
 ## Expected behavior
 
-It would be very helpful if OpenCode could support multiple file encodings in its built-in file tools, similar to editors like VS Code or Cursor.
+It would be very helpful if TeamCode could support multiple file encodings in its built-in file tools, similar to editors like VS Code or Cursor.
 
 Possible improvements:
 
@@ -799,7 +799,7 @@ Why this matters
 
 ---
 name: "Feature Request: Auto-relink stale sessions when project_id matches current project"
-about: "Suggest an idea for OpenCode"
+about: "Suggest an idea for TeamCode"
 title: "feat: auto-relink stale sessions when project_id matches but directory is outdated"
 labels: ["enhancement", "core"]
 ---
@@ -836,7 +836,7 @@ project.id        = "abc123..."  (git root com
 
 ---
 
-## #27819 — [FEATURE]: Add `/init --global` or `opencode rules init` to create global AGENTS.md interactively
+## #27819 — [FEATURE]: Add `/init --global` or `teamcode rules init` to create global AGENTS.md interactively
 
 📅 `2026-05-16` | ✏️ **zico00** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/27819](https://github.com/anomalyco/opencode/issues/27819)
 
@@ -847,15 +847,15 @@ project.id        = "abc123..."  (git root com
 
 ### Describe the enhancement you want to request
 
-opencode already supports global rules via `~/.config/opencode/AGENTS.md` — this file is automatically loaded into every session's context. The feature is documented on the Rules page.
+teamcode already supports global rules via `~/.config/teamcode/AGENTS.md` — this file is automatically loaded into every session's context. The feature is documented on the Rules page.
 
 However, there is **no interactive way to create this file**. The only entry points users have are:
 
 | Action | Result |
 |--------|--------|
 | `/init` | Creates a **project-level** `AGENTS.md` only |
-| Asking the LLM "help me create global rules" | Depends on whether the model knows about `~/.config/opencode/AGENTS.md` |
-| Manually creating `~/.config/opencode/AGENTS.md` | Requires the user to already know the exact path |
+| Asking the LLM "help me create global rules" | Depends on whether the model knows about `~/.config/teamcode/AGENTS.md` |
+| Manually creating `~/.config/teamcode/AGENTS.md` | Requires the user to already know the exact path |
 
 This creates a discoverability gap:
 
@@ -868,7 +868,7 @@ This creates a discoverability gap:
 Add a `--global` flag to the existing `/init` command:
 
 ```
-/init --global    → Creates/updates ~/.config/opencode/AGENTS.md
+/init --global    → Creates/updates ~/.config/teamcode/AGENTS.md
 /init             → Creates/updates <project-root>/AGENTS.md (existing behavior, unchanged)
 ```
 
@@ -972,7 +972,7 @@ This makes it easier to scan the overall size of the current session diff withou
 
 ### Describe the enhancement you want to request
 
-OpenCode advertises multi-session ("Start multiple agents in parallel on the same project") but provides no way for sessions to detect each other. If a parallel session crashes or hangs, its resources (temp dirs, ports, files) are never released, and other sessions have no way to know.
+TeamCode advertises multi-session ("Start multiple agents in parallel on the same project") but provides no way for sessions to detect each other. If a parallel session crashes or hangs, its resources (temp dirs, ports, files) are never released, and other sessions have no way to know.
 
 Add two fields to the existing session table:
 - `heartbeat_at` — timestamp, written every 30s while session is alive
@@ -986,7 +986,7 @@ Extend the existing compaction/prune to skip sessions with heartbeat_at older th
 
 ---
 
-## #27752 — [FEATURE]: Plugin showcase: opencode-mempalace-persistence — auto-save conversations to MemPalace
+## #27752 — [FEATURE]: Plugin showcase: teamcode-mempalace-persistence — auto-save conversations to MemPalace
 
 📅 `2026-05-15` | ✏️ **geco** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/27752](https://github.com/anomalyco/opencode/issues/27752)
 
@@ -997,7 +997,7 @@ Extend the existing compaction/prune to skip sessions with heartbeat_at older th
 
 ### Describe the enhancement you want to request
 
-I built a plugin that automatically saves every OpenCode conversation to MemPalace (a local vector database) in real-time.
+I built a plugin that automatically saves every TeamCode conversation to MemPalace (a local vector database) in real-time.
 
 Features:
 - Auto-sync every conversation turn after each response
@@ -1011,12 +1011,12 @@ Uses these hooks:
 - event: session.idle (catches the last turn before shutdown)
 
 Setup:
-1. Add "opencode-mempalace-persistence" to plugin in opencode.json
+1. Add "teamcode-mempalace-persistence" to plugin in teamcode.json
 2. Create AGENTS.md telling the model to search MemPalace via MCP
 3. Add identity to ~/.mempalace/identity.txt
 
-Repo: https://github.com/geco/opencode-mempalace-persistence
-npm: opencode-mempalace-persistence
+Repo: https://github.com/geco/teamcode-mempalace-persistence
+npm: teamcode-mempalace-persistence
 
 Happy to hear feedback!
 
@@ -1037,7 +1037,7 @@ I hope to add a configuration option for the sub-agent to set a whitelist of all
 
 ---
 
-## #27746 — [FEATURE]: Add 'opencode agents' command for background session management
+## #27746 — [FEATURE]: Add 'teamcode agents' command for background session management
 
 📅 `2026-05-15` | ✏️ **alanZee** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/27746](https://github.com/anomalyco/opencode/issues/27746)
 
@@ -1049,17 +1049,17 @@ I hope to add a configuration option for the sub-agent to set a whitelist of all
 ### Describe the enhancement you want to request
 
 ## Feature Description
-Add an `opencode agents` command that provides an interactive TUI interface for managing background agent sessions, similar to Claude Code's `claude agents` command.
+Add an `teamcode agents` command that provides an interactive TUI interface for managing background agent sessions, similar to Claude Code's `claude agents` command.
 ## Motivation
 Claude Code has a `claude agents` command that opens an interactive TUI view for managing background coding sessions. This allows users to:
 - View all running background sessions at a glance
 - Switch between sessions easily
 - Monitor session status and progress
 - Dispatch new sessions with specific settings (model, effort level, permissions)
-Currently, OpenCode manages background sessions through CLI commands (`opencode session list`, `opencode -s <id>`, `opencode -c`), which lacks the convenience of a unified interactive interface.
+Currently, TeamCode manages background sessions through CLI commands (`teamcode session list`, `teamcode -s <id>`, `teamcode -c`), which lacks the convenience of a unified interactive interface.
 ## Proposed Solution
-Add a new `opencode agents` command that:
-1. Opens an interactive TUI (similar to the main OpenCode TUI)
+Add a new `teamcode agents` command that:
+1. Opens an interactive TUI (similar to the main TeamCode TUI)
 2. Lists all background sessions with their status, model, and working directory
 3. Allows selecting a session to attach/resume
 4. Provides options to start new sessions with configurable settings
@@ -1067,9 +1067,9 @@ Add a new `opencode agents` command that:
 Example usage:
 ```bash
 # Open the agents management TUI
-opencode agents
+teamcode agents
 # Filter by working directory
-opencode agents --cwd /path/to/project
+teamcode agents --cwd /path/to/project
 # Set default model for new sessions from the TUI
 openco
 
@@ -1096,29 +1096,29 @@ I use the following `docker-compose.yaml`:
 
 ```yaml
 services:
-  opencode:
-    container_name: opencode-ai
+  teamcode:
+    container_name: teamcode-ai
     image: ghcr.io/anomalyco/opencode:1.15.3
     ports:
       - "4096:4096"
 
-    # Container entrypoint is already the opencode executable, so we only need to pass launch parameters for the web UI.
+    # Container entrypoint is already the teamcode executable, so we only need to pass launch parameters for the web UI.
     # command: "serve --hostname 0.0.0.0 --port 4096"
 
     # To install the git executable for the web UI,
     # the entrypoint needs to be reset on startup.
     entrypoint: []
-    command: ["sh", "-c", "command -v git >/dev/null 2>&1 || apk add --no-cache git; exec opencode serve --hostname 0.0.0.0 --port 4096"]
+    command: ["sh", "-c", "command -v git >/dev/null 2>&1 || apk add --no-cache git; exec teamcode serve --hostname 0.0.0.0 --port 4096"]
 
     working_dir: /workspace
 
     volumes:
       - ./volumes/data:/home/ubuntu/.local
-      - ./volumes/config:/root/.config/opencode
+      - ./volumes/config:/root/.config/teamcode
       - ./volumes/projects:/workspace
 
     environment:
-      - OPENCODE_SERVER_USERNAME=${OPENCODE_SERVER_USERNAME:-opencode}
+      - OPENCODE_SERVER_USERNAME=${OPENCODE_SERVER_USERNAME:-teamcode}
       -
 
 > *[Truncado — 1559 chars totais]*
@@ -1151,7 +1151,7 @@ PLZ, add support for Agent Router (agentrouter.org)
 
 ### Describe the enhancement you want to request
 
-See the OpenCode go plan usage stats within the CLI itself.
+See the TeamCode go plan usage stats within the CLI itself.
 
 ---
 
@@ -1166,7 +1166,7 @@ See the OpenCode go plan usage stats within the CLI itself.
 
 ### Describe the enhancement you want to request
 
-Description: Currently, the opencode chat interface does not support dragging and dropping Microsoft Office files (such as .docx and .xlsx). Users are forced to manually provide file paths or convert files to text/PDF before uploading.
+Description: Currently, the teamcode chat interface does not support dragging and dropping Microsoft Office files (such as .docx and .xlsx). Users are forced to manually provide file paths or convert files to text/PDF before uploading.
 
 Proposed Solution:
 
@@ -1189,7 +1189,7 @@ Use Case: Many software engineering and administrative tasks involve reading req
 
 Summary:
 
-Problem: Managing skills in OpenCode desktop is inconvenient
+Problem: Managing skills in TeamCode desktop is inconvenient
 Request: Add a visible installed-skills panel
 Location: Desktop UI top-right corner, alongside existing Server / MCP / LSP / Plugins panels
 Intent: Make skills discoverable and manageable at a glance, same as other core resources
@@ -1226,8 +1226,8 @@ Maybe it's possible to work around but built-in support for the provider (with d
 
 ## Problem
 
-When running `opencode serve` in a shared multi-tenant environment, all sessions
-share the same static MCP configuration loaded from `opencode.json` at startup.
+When running `teamcode serve` in a shared multi-tenant environment, all sessions
+share the same static MCP configuration loaded from `teamcode.json` at startup.
 There is no way to pass a dynamic, per-session MCP config at session creation time.
 
 This makes it impossible to implement role-based or user-specific MCP access
@@ -1235,12 +1235,12 @@ without complex workarounds.
 
 ## Use Case
 
-A common pattern for teams using `opencode serve` is:
+A common pattern for teams using `teamcode serve` is:
 
 1. A backend service manages user authentication and roles
 2. When a user starts a new chat, the backend knows which MCPs that user
    should have access to
-3. The backend calls `POST /session` to create an opencode session
+3. The backend calls `POST /session` to create an teamcode session
 
 The problem is at step 3 — there is no way to pass the user's allowed MCP
 list to the session. Every session gets the same MCPs regardless of who
@@ -1292,7 +1292,7 @@ In `packages/ui/src/components/message-part.tsx:1343`, the fallback renderer for
 
 For comparison:
 
-- TUI `GenericTool` at `packages/opencode/src/cli/cmd/tui/feature-plugins/system/session-v2.tsx:480-514` reads `props.output` and renders a 3-line preview with click-to-expand (the fix from #10649).
+- TUI `GenericTool` at `packages/teamcode/src/cli/cmd/tui/feature-plugins/system/session-v2.tsx:480-514` reads `props.output` and renders a 3-line preview with click-to-expand (the fix from #10649).
 - Share UI `FallbackTool` at `packages/web/src/components/share/part.tsx:721-755` renders `state.output` via `ContentText`.
 
 So a custom or MCP tool's output is visible in the TUI and in shared session URLs, but not in the live desktop app.
@@ -1316,7 +1316,7 @@ Suggested fix: patch `GenericTool` in `packages/ui/src/components/basic-tool.tsx
 
 ## Description
 
-Currently, opencode matches LSP servers to files **only by extension** via the `extensions` field. This doesn't work for files that have no extension, like `Dockerfile`, `Makefile`, `Containerfile`, or `CHANGELOG`.
+Currently, teamcode matches LSP servers to files **only by extension** via the `extensions` field. This doesn't work for files that have no extension, like `Dockerfile`, `Makefile`, `Containerfile`, or `CHANGELOG`.
 
 The JSON schema for LSP server entries (`additionalProperties: false`) doesn't include a `filePatterns` field, even though users commonly try to add it expecting it to work.
 
@@ -1368,15 +1368,15 @@ For example:
 
 ### Describe the enhancement you want to request
 
-Currently, interacting with large-scale repositories can lead to context-window saturation or "hallucinations" when the model lacks specific project knowledge. I am proposing the integration of a RAG pipeline and Vector Embedding Search into OpenCode.
+Currently, interacting with large-scale repositories can lead to context-window saturation or "hallucinations" when the model lacks specific project knowledge. I am proposing the integration of a RAG pipeline and Vector Embedding Search into TeamCode.
 This will allow the AI to index local files, documentation, and issues, providing highly relevant context to queries without requiring the user to manually attach every file.
 Local Vector Store: Implement a lightweight vector database (like ChromaDB or LanceDB) to store file embeddings. 
 Indexing Workflow: A background process to chunk and embed repository files.
 Context Injection: Automatically retrieving the top-$k$ relevant code snippets and injecting them into the prompt context during chat or autocomplete sessions.
 
-**Model Request:** Qwen3-Embedding-8B To power this, I suggest adding support for qwen/qwen3-embedding-8b in the OpenCode Go plan. because It offers state-of-the-art retrieval performance and handles long-context code chunks more efficiently than smaller 1B-3B models.
+**Model Request:** Qwen3-Embedding-8B To power this, I suggest adding support for qwen/qwen3-embedding-8b in the TeamCode Go plan. because It offers state-of-the-art retrieval performance and handles long-context code chunks more efficiently than smaller 1B-3B models.
 
-Real-World Impact "Knowledge is of two kinds. We know a subject ourselves, or we know where we can find information upon it." — Samuel Johnson By adding RAG, OpenCode moves from the first kind of knowledge to the second. For developers, this means: Instant Onboarding: As
+Real-World Impact "Knowledge is of two kinds. We know a subject ourselves, or we know where we can find information upon it." — Samuel Johnson By adding RAG, TeamCode moves from the first kind of knowledge to the second. For developers, this means: Instant Onboarding: As
 
 > *[Truncado — 1695 chars totais]*
 
@@ -1393,7 +1393,7 @@ Real-World Impact "Knowledge is of two kinds. We know a subject ourselves, or we
 
 ### Describe the enhancement you want to request
 
-For MCP tools, the optional outputSchema provides information about the output to expect from the tool. But opencode is not including this in context, only the tool description. According to [the MCP spec](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#output-schema):
+For MCP tools, the optional outputSchema provides information about the output to expect from the tool. But teamcode is not including this in context, only the tool description. According to [the MCP spec](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#output-schema):
 
 > Providing an output schema helps clients **and LLMs** understand and properly handle structured tool outputs by:
 > ...
@@ -1433,9 +1433,9 @@ I don't know if this should be classified as a feature or a bug 🤷‍♂️
 
 ## Describe the enhancement you want to request
 
-OpenAI-compatible providers configured with a `baseURL` (e.g. llama-swap, Ollama, LM Studio) serve a `/v1/models` endpoint that lists their available models. Right now you have to list every model manually in `opencode.json`, which means the config goes stale every time you swap a model on the backend.
+OpenAI-compatible providers configured with a `baseURL` (e.g. llama-swap, Ollama, LM Studio) serve a `/v1/models` endpoint that lists their available models. Right now you have to list every model manually in `teamcode.json`, which means the config goes stale every time you swap a model on the backend.
 
-This PR adds auto-discovery: on startup, OpenCode calls `GET /v1/models` for each `@ai-sdk/openai-compatible` provider that has a `baseURL` and no statically configured `models`. It reads `id`, `name`, `context_length`/`max_context_length`, and `max_output_tokens` from the response. Manually configured models always win (non-destructive merge), and opt-out is `discoverModels: false` in the provider config.
+This PR adds auto-discovery: on startup, TeamCode calls `GET /v1/models` for each `@ai-sdk/openai-compatible` provider that has a `baseURL` and no statically configured `models`. It reads `id`, `name`, `context_length`/`max_context_length`, and `max_output_tokens` from the response. Manually configured models always win (non-destructive merge), and opt-out is `discoverModels: false` in the provider config.
 
 Discovery runs in parallel across providers with a 2-second timeout per request, so offline servers don't slow startup. Errors are swallowed silently.
 
@@ -1450,7 +1450,7 @@ Discovery runs in parallel across providers with a 2-second timeout per request,
 
 ## Description
 
-OpenCode currently lacks a built-in browser capability. Unlike some other AI coding agents (e.g. Claude Code has browser tool, OpenClaw has browser control), OpenCode cannot browse web pages, fill forms, or extract data from websites directly.
+TeamCode currently lacks a built-in browser capability. Unlike some other AI coding agents (e.g. Claude Code has browser tool, OpenClaw has browser control), TeamCode cannot browse web pages, fill forms, or extract data from websites directly.
 
 ## Use cases
 - Browse documentation and extract code examples
@@ -1462,13 +1462,13 @@ OpenCode currently lacks a built-in browser capability. Unlike some other AI cod
 ## Suggested implementation
 A built-in browser tool (like Playwright/Puppeteer-based) that allows the agent to navigate, click, type, and extract content from web pages, similar to what other coding agents provide.
 
-Would greatly enhance OpenCode's autonomy for tasks involving web interaction.
+Would greatly enhance TeamCode's autonomy for tasks involving web interaction.
 
 - [x] I have searched for existing issues and this feature has not been requested before
 
 ---
 
-## #27526 — [FEATURE]: OPENCODE_DISABLE_EXTERNAL_SKILLS should also skip registering the built-in customize-opencode skill
+## #27526 — [FEATURE]: OPENCODE_DISABLE_EXTERNAL_SKILLS should also skip registering the built-in customize-teamcode skill
 
 📅 `2026-05-14` | ✏️ **criterium** | 💬 4 | 🔗 [https://github.com/anomalyco/opencode/issues/27526](https://github.com/anomalyco/opencode/issues/27526)
 
@@ -1479,7 +1479,7 @@ Would greatly enhance OpenCode's autonomy for tasks involving web interaction.
 
 ### Describe the enhancement you want to request
 
-The built-in skill "customize-opencode" is registered unconditionally in skill/index.ts lines 250-257:
+The built-in skill "customize-teamcode" is registered unconditionally in skill/index.ts lines 250-257:
 
 ```
 s.skillsCUSTOMIZE_OPENCODE_SKILL_NAME = {
@@ -1502,11 +1502,11 @@ if (!Flag.OPENCODE_DISABLE_EXTERNAL_SKILLS) {
 ```
 
 WORKAROUND (until the fix is merged)
-Add this to your opencode.jsonc to hide the built-in skill from the
+Add this to your teamcode.jsonc to hide the built-in skill from the
 model via the permission system:
 ```
   "permission": {
-    "skill": { "*": "allow", "customize-opencode": "deny" }
+    "skill": { "*": "allow", "customize-teamcode": "deny" }
   }
 ```
 Note: the order matters ("*" first, specific name last) because
@@ -1518,7 +1518,7 @@ registered in memo
 
 ---
 
-## #27514 — [FEATURE]: Add @artem-kuprin/opencode-toolcost to ecosystem plugins
+## #27514 — [FEATURE]: Add @artem-kuprin/teamcode-toolcost to ecosystem plugins
 
 📅 `2026-05-14` | ✏️ **ArtemKx1** | 💬 3 | 🔗 [https://github.com/anomalyco/opencode/issues/27514](https://github.com/anomalyco/opencode/issues/27514)
 
@@ -1527,9 +1527,9 @@ registered in memo
 
 ### Describe the enhancement you want to request
 
-Add [@artem-kuprin/opencode-toolcost](https://github.com/ArtemKx1/opencode-toolcost) to the Plugins table on the OpenCode Ecosystem page.
+Add [@artem-kuprin/teamcode-toolcost](https://github.com/ArtemKx1/teamcode-toolcost) to the Plugins table on the TeamCode Ecosystem page.
 
-It's a published npm package (`@artem-kuprin/opencode-toolcost`) that provides real-time per-tool token & cost breakdown in the TUI sidebar. List it alongside other community plugins so users can discover it from the official docs.
+It's a published npm package (`@artem-kuprin/teamcode-toolcost`) that provides real-time per-tool token & cost breakdown in the TUI sidebar. List it alongside other community plugins so users can discover it from the official docs.
 
 ---
 
@@ -1545,7 +1545,7 @@ It's a published npm package (`@artem-kuprin/opencode-toolcost`) that provides r
 ### Describe the enhancement you want to request
 
 🚀 Feature Description
-I would like to request a "Suspend/Resume" feature for OpenCode. The goal is to allow users to temporarily pause the output and execution of both the main Agent and Subagents.
+I would like to request a "Suspend/Resume" feature for TeamCode. The goal is to allow users to temporarily pause the output and execution of both the main Agent and Subagents.
 💡 Use Case & Motivation
 This feature would be incredibly useful for scenarios where I need to switch locations or devices, such as commuting between home and the office. Currently, if I need to stop working, the agent might continue running or lose its immediate state context.
 Having a suspend button would allow the agent to:
@@ -1555,7 +1555,7 @@ Enter a suspended state until I press "Resume" to continue the job from where it
 🛠️ Proposed Behavior
 Suspend Action: When triggered, the Agent/Subagent should complete its currently running tool call and then halt any further actions or output.
 Resume Action: When triggered, the Agent should pick up the task and continue its workflow seamlessly.
-This would greatly improve the flexibility of OpenCode for developers who work across different environments throughout the day.
+This would greatly improve the flexibility of TeamCode for developers who work across different environments throughout the day.
 
 ---
 
@@ -1572,8 +1572,8 @@ This would greatly improve the flexibility of OpenCode for developers who work a
 
 ## Problem
 
-When using `opencode serve` with a shared pod setup (multiple users connecting
-via `opencode attach` or browser), there is currently no way to pre-select an
+When using `teamcode serve` with a shared pod setup (multiple users connecting
+via `teamcode attach` or browser), there is currently no way to pre-select an
 agent when opening a session programmatically or via URL.
 
 The `POST /session` API only accepts `directory` and `workspace` query params.
@@ -1585,13 +1585,13 @@ writing per-user config files with `default_agent` set.
 
 ## Use Case
 
-We run `opencode serve` on a Kubernetes pod. A dashboard backend authenticates
+We run `teamcode serve` on a Kubernetes pod. A dashboard backend authenticates
 users via SSO, determines their role (engineer / devops / admin / pm), and
-opens an opencode session for them. Each role has a different agent configured
+opens an teamcode session for them. Each role has a different agent configured
 with different MCP permissions.
 
 Currently the only way to auto-select the agent is to write a per-user
-`opencode.json` with `default_agent` set — which requires creating per-user
+`teamcode.json` with `default_agent` set — which requires creating per-user
 session directories, symlinks, and a backend service just to select an agent.
 
 ## Requested Change
@@ -1623,15 +1623,15 @@ POST /session?directory=/workspace/repos/my-repo&agentId=devops
 ## Describe the enhancement you want to request
 
 **Current behavior:**
-Permission configuration is only available by manually editing `opencode.jsonc`, and applies as a single global setting. There is no way to quickly switch between different permission levels during a session.
+Permission configuration is only available by manually editing `teamcode.jsonc`, and applies as a single global setting. There is no way to quickly switch between different permission levels during a session.
 
 For users who are not comfortable editing JSON configuration, setting up custom permissions has a high barrier to entry.
 
 **Suggested enhancement:**
 Add a permission preset selector in the chat UI (e.g., in the toolbar or status bar) that allows users to quickly switch between predefined permission schemes:
 
-- **Default**: opencode's standard permission model (ask before each sensitive operation)
-- **Custom**: reads the user's `permission` config from `opencode.jsonc`
+- **Default**: teamcode's standard permission model (ask before each sensitive operation)
+- **Custom**: reads the user's `permission` config from `teamcode.jsonc`
 - **Full access**: allows all operations without prompting, suitable for trusted environments where maximum productivity is needed
 
 This would allow users to:
@@ -1644,7 +1644,7 @@ Related: #23258 (permission model too noisy for autonomous sessions)
 
 **Environment:**
 - OS: Windows 11 (Build 26200, 25H2)
-- opencode Desktop: v1.14.50
+- teamcode Desktop: v1.14.50
 
 ---
 
@@ -1663,7 +1663,7 @@ Related: #23258 (permission model too noisy for autonomous sessions)
 
 - Accidental clicks cause immediate session loss
 - Long-running Agent tasks are interrupted without warning
-- No way to keep opencode running in the background while switching to other applications
+- No way to keep teamcode running in the background while switching to other applications
 
 **Suggested improvements:**
 
@@ -1681,7 +1681,7 @@ Both options could coexist as a configurable preference in settings.
 
 **Environment:**
 - OS: Windows 11 (Build 26200, 25H2)
-- opencode Desktop: v1.14.50
+- teamcode Desktop: v1.14.50
 
 ---
 
@@ -1720,7 +1720,7 @@ Log entry (from error-level request logging):
 Note: no `thinking` field present, despite the variant being selected.
 
 **Root cause:**
-Looking at the opencode config schema (`config.json`), the `variants` object per variant only defines a `disabled` property:
+Looking at the teamcode config schema (`config.json`), the `variants` object per variant only defines a `disabled` property:
 ```json
 variants: {
   type: object,
@@ -1764,7 +1764,7 @@ Either:
 
 ### Additional Context
 
-Environment: Windows 11, opencode CLI. Encountered during a multi-step codebase scanning session. Related to #18071 (persistent todos) but this is about completion marking rather than persistence.
+Environment: Windows 11, teamcode CLI. Encountered during a multi-step codebase scanning session. Related to #18071 (persistent todos) but this is about completion marking rather than persistence.
 
 ---
 
@@ -1790,9 +1790,9 @@ Environment: Windows 11, opencode CLI. Encountered during a multi-step codebase 
 
 I have verified this feature I'm about to request hasn't been suggested before.
 
-I would like opencode to support Pyrefly as a built-in Python language server.
+I would like teamcode to support Pyrefly as a built-in Python language server.
 
-Today opencode has built-in Python LSP support for `pyright` and experimental `ty`, but users who prefer Pyrefly need to configure it manually. Pyrefly v1 is stable, exposes a standalone language server as `pyrefly lsp`, and can be installed as a stable executable with `uv tool install pyrefly`.
+Today teamcode has built-in Python LSP support for `pyright` and experimental `ty`, but users who prefer Pyrefly need to configure it manually. Pyrefly v1 is stable, exposes a standalone language server as `pyrefly lsp`, and can be installed as a stable executable with `uv tool install pyrefly`.
 
 Proposed minimal behavior:
 
@@ -1816,7 +1816,7 @@ Proposed minimal behavior:
 
 ## Describe the enhancement you want to request
 
-OpenCode server auth currently supports disabled or Basic auth. Exposed server deployments need first-class OIDC support for browser, API, SDK, and UI access without relying on shared Basic credentials.
+TeamCode server auth currently supports disabled or Basic auth. Exposed server deployments need first-class OIDC support for browser, API, SDK, and UI access without relying on shared Basic credentials.
 
 Requested behavior:
 
@@ -1875,7 +1875,7 @@ Current version: `1.14.48`
 Pure code logic, environment-agnostic.
 
 ## Problem Description
-Exposing the context compaction hook in OpenCode is a brilliant design choice. It allows us to control the compaction behavior via plugins to ensure minimal information loss. The current state of this hook is as follows:
+Exposing the context compaction hook in TeamCode is a brilliant design choice. It allows us to control the compaction behavior via plugins to ensure minimal information loss. The current state of this hook is as follows:
 
 ### experimental.session.compacting
 **Parameters**:
@@ -1886,10 +1886,10 @@ Exposing the context compaction hook in OpenCode is a brilliant design choice. I
 - There is only one caller at `session/compaction.ts:404-408`
 
 ### The Issue
-The current problem is that even after we intervene in the context compaction via a plugin, OpenCode still proceeds to execute its internal compaction logic. Ideally, if a plugin has already handled the compaction, the context should be considered optimized. But OpenCode internal logic will unconditionally compress our processed high-quality context again, it may cause the loss of useful information.
+The current problem is that even after we intervene in the context compaction via a plugin, TeamCode still proceeds to execute its internal compaction logic. Ideally, if a plugin has already handled the compaction, the context should be considered optimized. But TeamCode internal logic will unconditionally compress our processed high-quality context again, it may cause the loss of useful information.
 
 ## Improvement Suggestions
-Enrich the Output data structure to allow skipping OpenCode's internal compaction logic.
+Enrich the Output data structure to allow skipping TeamCode's internal compaction logic.
 
 ### experimental.session.compacting
 **Parameters**:
@@ -1921,7 +1921,7 @@ Pure code logic, environment-agnostic.
 
 ## Problem Description
 
-While developing an OpenCode plugin, I discovered the `experimental.chat.system.transform` and `experimental.chat.messages.transform` hooks.
+While developing an TeamCode plugin, I discovered the `experimental.chat.system.transform` and `experimental.chat.messages.transform` hooks.
 
 I was excited because they seemed perfect for fine-tuning system prompts and message history for each prompt. However, I quickly realized they didn't meet my expectations due to a shared limitation: the Input and Output data structures are insufficient. See the details below:
 
@@ -1963,7 +1963,7 @@ I was excited because they seemed perfect for fine-tuning system prompts and mes
 
 ### Describe the enhancement you want to request
 
-It will be great to be able to start a web OpenCode session with a prompt injected in the URL.
+It will be great to be able to start a web TeamCode session with a prompt injected in the URL.
 
 A good use case is Linear, which offers this feature: 
 <img width="706" height="458" alt="Image" src="https://github.com/user-attachments/assets/5a4a23cd-253a-4456-8aec-1a5edf206c0f" />
@@ -2068,7 +2068,7 @@ Thanks for the gre
 
 ---
 
-## #27303 — [FEATURE]: Official OpenCode Go/Zen BYOK language model provider extension for VSCode Copilot
+## #27303 — [FEATURE]: Official TeamCode Go/Zen BYOK language model provider extension for VSCode Copilot
 
 📅 `2026-05-13` | ✏️ **Gr33nLight** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/27303](https://github.com/anomalyco/opencode/issues/27303)
 
@@ -2082,10 +2082,10 @@ Thanks for the gre
 VSCode today improved support for BYOK and the use of external language model provider extensions with Copilot. 
 https://code.visualstudio.com/docs/copilot/customization/language-models#_bring-your-own-language-model-key
 
-There are a couple of unofficial extensions adding this support in Copilot, I was wondering if there is a plan to add an official extension to support OpenCode Go/Zen.
+There are a couple of unofficial extensions adding this support in Copilot, I was wondering if there is a plan to add an official extension to support TeamCode Go/Zen.
 
-https://marketplace.visualstudio.com/items?itemName=enough.opencode-zen-chat-provider-reasoning
-https://marketplace.visualstudio.com/items?itemName=OnesoftQwQ.opencode-go-copilot-provider
+https://marketplace.visualstudio.com/items?itemName=enough.teamcode-zen-chat-provider-reasoning
+https://marketplace.visualstudio.com/items?itemName=OnesoftQwQ.teamcode-go-copilot-provider
 
 Thanks!!
 
@@ -2102,7 +2102,7 @@ Thanks!!
 
 ### Describe the enhancement you want to request
 
-I'd like to use OpenCode in compination with QtCreator.
+I'd like to use TeamCode in compination with QtCreator.
 QtCreator recently added an option to run as an MCP server.
 https://doc.qt.io/qtcreator/creator-how-to-mcp-server.html#:~:text=Qt%20Creator%20supports%20the%20model%20context%20protocol%20%28MCP%29,MCP%20server%20extension%20to%20start%20the%20MCP%20server.
 
@@ -2110,13 +2110,13 @@ However the response coming from this MCP is in the format:
 
 `07:00:00.628 mcp.server.io: Writing response: {"id":9,"jsonrpc":"2.0","result":{"content":[],"isError":false,"structuredContent":{"failures":["tst_serializer::xmlRoundtrip","tst_serializer::readFileDetectsXml"],"summary":{"blacklisted":0,"build_failed":false,"duration_ms":1,"failed":2,"fatal":0,"passed":16,"skipped":0,"total":18},"summary_text":"16 passed, 2 failed, 0 skipped in 1 ms","tests_with_warnings":[]}}}`
 
-The LLMs I tried all respone: empty answer. Some tell, that there seems to be a structuredContent that OpenCode does not seem to transport to the LLM.
+The LLMs I tried all respone: empty answer. Some tell, that there seems to be a structuredContent that TeamCode does not seem to transport to the LLM.
 
 As you can see, the "content" in the answer is empty.
 
-Should OpenCode have a mechanism to transport the structuredContent to the LLM is the content is empty?
+Should TeamCode have a mechanism to transport the structuredContent to the LLM is the content is empty?
 
-Currently OpenCode cannot communicate with QtCreator.
+Currently TeamCode cannot communicate with QtCreator.
 
 ---
 
@@ -2129,7 +2129,7 @@ Currently OpenCode cannot communicate with QtCreator.
 - [x] I have verified this feature I'm about to request hasn't been suggested before.
 ### Describe the enhancement you want to request
 I would like the option to be able to use a warm Coffee theme for reduced eye strain during long coding sessions.
-After long hours of continuous opencode use , the existing high-contrast and blue-heavy themes cause significant eye fatigue and irritation for me and I think other users could benefit from this change. 
+After long hours of continuous teamcode use , the existing high-contrast and blue-heavy themes cause significant eye fatigue and irritation for me and I think other users could benefit from this change. 
 ## Proposed Solution
 A new built-in **Coffee** theme with a warm, low-contrast palette inspired by natural coffee tones:
 - **Reduced blue light** — warm browns and beiges instead of cool grays/blues
@@ -2139,7 +2139,7 @@ A new built-in **Coffee** theme with a warm, low-contrast palette inspired by na
 - Dark mode: deep espresso backgrounds (#1E120C → #3D2B1F) with latte-colored text (#FED8B1, #ECB176)
 - Light mode: warm parchment (#FAF3EB) with dark roast text (#2C1810)
 - Primary: #6F4E37 (coffee brown) and #ECB176 (caramel)
-## Why This Belongs in OpenCode
+## Why This Belongs in TeamCode
 - Fills an accessibility gap for sustained-use eye comfort
 - Static theme files only, no runtime logic changes
 - Low maintenance — follows existing theme patterns exactly
@@ -2174,7 +2174,7 @@ Official website: https://ai.youdao.com/new/thinkflow
 
 ### Describe the enhancement you want to request
 
-OpenCode has custom slash commands, but there is no native persistent session goal/lifecycle feature.
+TeamCode has custom slash commands, but there is no native persistent session goal/lifecycle feature.
 
 Proposal: add one persisted goal per session, exposed through shared server APIs so TUI and desktop app clients can view, set, edit, pause, resume, clear, and observe it. Active goals can continue when idle, track token/time usage, support optional token budgets, and let the model mark a goal complete only after verification.
 
@@ -2217,7 +2217,7 @@ Add a structured `headersHelper` object on remote MCP servers, for example:
 - require trust approval before executing project-local or remote-config helpers
 
 ## Why this would help
-Today OpenCode supports static headers and OAuth, but some MCP servers need custom auth headers generated at runtime.
+Today TeamCode supports static headers and OAuth, but some MCP servers need custom auth headers generated at runtime.
 
 ## Notes
 I have a local implementation draft for this, but I do **not** want to open a PR until the core team confirms the design is acceptable.
@@ -2292,7 +2292,7 @@ However I want to see the time ticking up while it is running as well.
 
 Note, Codex CLI does this as an example. 
 
-The reason this is particularly useful for opencode imo is that there are so many models and providers that having this performance feedback without having to wait for completion is useful. 
+The reason this is particularly useful for teamcode imo is that there are so many models and providers that having this performance feedback without having to wait for completion is useful. 
 I also forget sometimes when I actually started a prompt running, and if I need to cancel it or not, if it's been running too long.
 
 ---
@@ -2310,18 +2310,18 @@ I also forget sometimes when I actually started a prompt running, and if I need 
 
 ## Problem
 
-When OpenCode spawns tool subprocesses (shell tool, stdio MCP transports, LSP servers, formatter, git, etc.), it does not propagate the active OTel context. Tools that emit their own telemetry land in disconnected root traces, breaking continuity between the OpenCode invocation and the work the tool performed. 
+When TeamCode spawns tool subprocesses (shell tool, stdio MCP transports, LSP servers, formatter, git, etc.), it does not propagate the active OTel context. Tools that emit their own telemetry land in disconnected root traces, breaking continuity between the TeamCode invocation and the work the tool performed. 
   
 ## Expected behavior
   
-When OpenCode spawns a tool subprocess, the OTel context active at spawn time should be propagated via the standard `TRACEPARENT` (and `TRACESTATE` when non-empty) env vars, per the [OTel environment variable carrier spec](https://opentelemetry.io/docs/specs/otel/context/api-propagators/#textmap-propagator). Tool subprocesses that emit OTel-instrumented telemetry should appear as children of opencode's invocation trace.
+When TeamCode spawns a tool subprocess, the OTel context active at spawn time should be propagated via the standard `TRACEPARENT` (and `TRACESTATE` when non-empty) env vars, per the [OTel environment variable carrier spec](https://opentelemetry.io/docs/specs/otel/context/api-propagators/#textmap-propagator). Tool subprocesses that emit OTel-instrumented telemetry should appear as children of teamcode's invocation trace.
 
 ## Scope
   
 Every subprocess spawn site:
 
-  - Shell tool (`packages/opencode/src/tool/shell.ts`)
-  - Stdio MCP transports (`packages/opencode/src/mcp/index.ts` → `StdioClientTransport`)
+  - Shell tool (`packages/teamcode/src/tool/shell.ts`)
+  - Stdio MCP transports (`packages/teamcode/src/mcp/index.ts` → `StdioClientTransport`)
   - All Effect-based `spawner.spawn` callers (LSP servers, git/worktree, format, snapshot, project, etc.) — these route through `packages/core/src/cross-spawn-spawner.ts`, so a single injection point there covers them all. 
    
 ## Related
@@ -2343,7 +2343,7 @@ Sibling to #18801, which covers the inbound direction (extracting `traceparent` 
 
 ### Describe the enhancement you want to request
 
- Most `Effect.withSpan` / `Effect.fn` call sites in opencode emit spans whose name reveals what happened but not what it operated on. 
+ Most `Effect.withSpan` / `Effect.fn` call sites in teamcode emit spans whose name reveals what happened but not what it operated on. 
 
   Examples of currently attributeless spans:
   
@@ -2373,13 +2373,13 @@ Sibling to #18801, which covers the inbound direction (extracting `traceparent` 
 
 I frequently encounter `429 Too Many Requests` or `cannot connect API` errors during long sessions. Currently, when switching networks (e.g., VPN, Wi-Fi), I have to manually stop the session, resend messages, and re-verify connectivity. This creates a very disruptive debugging experience.
 ﻿
-I propose adding an `/overtime` command that allows users to define a global retry/wait duration. This enables OpenCode to automatically handle transient network failures without manual intervention.
+I propose adding an `/overtime` command that allows users to define a global retry/wait duration. This enables TeamCode to automatically handle transient network failures without manual intervention.
 
 <img width="1338" height="262" alt="Image" src="https://github.com/user-attachments/assets/73849f10-ed0c-4304-b845-c6f225a70bbf" />
 
 ---
 
-## #27020 — [FEATURE]: Scrollbar in VS code opencode extention
+## #27020 — [FEATURE]: Scrollbar in VS code teamcode extention
 
 📅 `2026-05-12` | ✏️ **AsifZaman777** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/27020](https://github.com/anomalyco/opencode/issues/27020)
 
@@ -2390,11 +2390,11 @@ I propose adding an `/overtime` command that allows users to define a global ret
 
 ### Describe the enhancement you want to request
 
-The VS code opencode extension doesnt consist any scrollbar option. So please add the feature
+The VS code teamcode extension doesnt consist any scrollbar option. So please add the feature
 
 ---
 
-## #27008 — [FEATURE]:I would like to add the copy image capability into opencode in order to read the image and transfer to text similar like claude, is possible?
+## #27008 — [FEATURE]:I would like to add the copy image capability into teamcode in order to read the image and transfer to text similar like claude, is possible?
 
 📅 `2026-05-12` | ✏️ **maugomez77** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/27008](https://github.com/anomalyco/opencode/issues/27008)
 
@@ -2405,7 +2405,7 @@ The VS code opencode extension doesnt consist any scrollbar option. So please ad
 
 ### Describe the enhancement you want to request
 
-[FEATURE]:I would like to add the copy image capability into opencode in order to read the image and transfer to text similar like claude, is possible?
+[FEATURE]:I would like to add the copy image capability into teamcode in order to read the image and transfer to text similar like claude, is possible?
 
 ---
 
@@ -2424,7 +2424,7 @@ The VS code opencode extension doesnt consist any scrollbar option. So please ad
 Currently, Agent configuration and management can only be done via the command line or by manually editing configuration files. This is not very intuitive for users who prefer using the desktop client. For example, if I want to view all configured agents, temporarily disable a specific agent, or quickly add a new custom agent, I have to leave the desktop environment and use the terminal or edit files. This creates a fragmented experience and reduces efficiency.
 
 **Describe the solution you'd like**  
-I would like to see a dedicated **Agent configuration panel** added to the OpenCode Desktop application, with the following capabilities:
+I would like to see a dedicated **Agent configuration panel** added to the TeamCode Desktop application, with the following capabilities:
 
 1. **List existing agents**  
    - Display all available agents (both built-in and user-defined) in a list or card layout.  
@@ -2442,7 +2442,7 @@ I would like to see a dedicated **Agent configuration panel** added to the OpenC
 
 ---
 
-## #26995 — [FEATURE]: Add release age filtering to opencode upgrade
+## #26995 — [FEATURE]: Add release age filtering to teamcode upgrade
 
 📅 `2026-05-12` | ✏️ **yoshi-taka** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/26995](https://github.com/anomalyco/opencode/issues/26995)
 
@@ -2453,7 +2453,7 @@ I would like to see a dedicated **Agent configuration panel** added to the OpenC
 
 ### Describe the enhancement you want to request
 
-opencode upgrade currently upgrades dependencies to the latest available versions immediately, including packages published only moments ago.
+teamcode upgrade currently upgrades dependencies to the latest available versions immediately, including packages published only moments ago.
 
 It would be useful to support a minimumReleaseAge-style mechanism for upgrade operations, so recently published package versions can be temporarily avoided during upgrades.
 
@@ -2483,13 +2483,13 @@ We need to be able to edit files manually. As any other code editor
 
 ## Problem
 
-When using OpenCode as an orchestrator that launches multiple sub-agents via the Task tool, **there is no way to specify which model each sub-agent should use**. The `subagent_type` parameter only accepts `general` or `explore` — there is no `model` parameter.
+When using TeamCode as an orchestrator that launches multiple sub-agents via the Task tool, **there is no way to specify which model each sub-agent should use**. The `subagent_type` parameter only accepts `general` or `explore` — there is no `model` parameter.
 
 This means every sub-agent runs on the same (expensive) model as the orchestrator, even when the sub-agent's task is simple data gathering that a cheaper model could handle perfectly.
 
 ### Real-world example (anonymized)
 
-I asked OpenCode (using GitHub Copilot as a provider) to audit Kubernetes resource usage across multiple clusters. The orchestrator launched 5 sub-agents in parallel:
+I asked TeamCode (using GitHub Copilot as a provider) to audit Kubernetes resource usage across multiple clusters. The orchestrator launched 5 sub-agents in parallel:
 
 | Sub-agent Task | Complexity | Ideal Model | Actual Model |
 |---|---|---|---|
@@ -2522,7 +2522,7 @@ Ad
 
 ### Summary
 
-The file explorer panel in OpenCode currently lacks a right-click context menu. Adding standard context menu options would bring OpenCode's file explorer in line with every major code editor.
+The file explorer panel in TeamCode currently lacks a right-click context menu. Adding standard context menu options would bring TeamCode's file explorer in line with every major code editor.
 
 ### Problem
 
@@ -2567,7 +2567,7 @@ Add a context menu on right-click in the file explorer panel with the following 
 
 ### Summary
 
-OpenCode currently does not support RTL text rendering in the chat panel. Arabic, Hebrew, and Persian-speaking users experience broken text alignment and poor readability when writing in their native languages.
+TeamCode currently does not support RTL text rendering in the chat panel. Arabic, Hebrew, and Persian-speaking users experience broken text alignment and poor readability when writing in their native languages.
 
 ### Problem
 
@@ -2599,7 +2599,7 @@ Arabic-speaking developers are a significant and growing user base in the Middle
 
 ---
 
-## #26891 — [FEATURE]:Auto-load user-defined skills from ~/.config/opencode/skills/
+## #26891 — [FEATURE]:Auto-load user-defined skills from ~/.config/teamcode/skills/
 
 📅 `2026-05-11` | ✏️ **zhulei1983-dotcom** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/26891](https://github.com/anomalyco/opencode/issues/26891)
 
@@ -2636,8 +2636,8 @@ Modify the `skill` tool and task loading mechanism to support loading user-defin
 
 | Priority | Path | Description |
 |----------|------|-------------|
-| High | `./.opencode/skills/` | Project-level |
-| Low | `~/.config/opencode/skills/` | Global-level |
+| High | `./.teamcode/skills/` | Project-level |
+| Low | `~/.config/teamcode/skills/` | Global-level |
 
 Reference other tools' approaches:
 - npm: looks up `node_modules` in both global and local directories
@@ -2667,7 +2667,7 @@ This feature would benefit users who:
 
 In [v1.14.46](https://github.com/anomalyco/opencode/releases/tag/v1.14.46) there was this fix: "Fixed a Plan Mode security bypass where subagents could ignore parent-agent deny rules."
 
-The problem is that this broke some ways of using and optimizing OpenCode. For example, my use case was having very limited permissions on the plan agent, and having a small research subagent that was capable of search, fetch and sleep (custom tool to avoid search rate limits). Now I am forced to allow these tools in the plan agent, bloating the context and making the agent calling these tools against my will a possibility that was not there before.
+The problem is that this broke some ways of using and optimizing TeamCode. For example, my use case was having very limited permissions on the plan agent, and having a small research subagent that was capable of search, fetch and sleep (custom tool to avoid search rate limits). Now I am forced to allow these tools in the plan agent, bloating the context and making the agent calling these tools against my will a possibility that was not there before.
 
 Maybe a good solution would be a new 'allow_subagent_bypass' setting or something similar that enables the old behaviour.
 
@@ -2688,7 +2688,7 @@ Maybe a good solution would be a new 'allow_subagent_bypass' setting or somethin
 
 # Auto-detect and dynamically load Ollama models via CLI or `/api/tags` endpoint
 
-Currently, OpenCode requires manual configuration of available models in `opencode.json`. For users who already have Ollama installed or running (locally or remotely), this creates redundant setup friction. This feature proposes automatic model discovery by querying the Ollama binary or HTTP API, dynamically populating the model picker, and supporting custom host/port configuration for non-default instances.
+Currently, TeamCode requires manual configuration of available models in `teamcode.json`. For users who already have Ollama installed or running (locally or remotely), this creates redundant setup friction. This feature proposes automatic model discovery by querying the Ollama binary or HTTP API, dynamically populating the model picker, and supporting custom host/port configuration for non-default instances.
 
 Motivation
 - Reduces initial setup time and manual JSON maintenance
@@ -2743,7 +2743,7 @@ Currently, remote MCP connections support OAuth and custom headers but do not of
 
 ---
 
-## #26848 — [FEATURE]: opencode should filter out node_modules before starting a LSP (in our case: oxlint)
+## #26848 — [FEATURE]: teamcode should filter out node_modules before starting a LSP (in our case: oxlint)
 
 📅 `2026-05-11` | ✏️ **ptandler** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/26848](https://github.com/anomalyco/opencode/issues/26848)
 
@@ -2754,7 +2754,7 @@ Currently, remote MCP connections support OAuth and custom headers but do not of
 
 ### Describe the enhancement you want to request
 
-opencode seem to sometimes start several LSP instances for oxlint:
+teamcode seem to sometimes start several LSP instances for oxlint:
 
 **LSP**
 - typescript 
@@ -2765,7 +2765,7 @@ opencode seem to sometimes start several LSP instances for oxlint:
 
 However, there's no need to lint external files from node_modules.
 
-In our `opencode.json` we have:
+In our `teamcode.json` we have:
 
 ```
   "lsp": {
@@ -2801,11 +2801,11 @@ But it seems that the ignore-pattern does not help here.
 
 
 ## Summary
-[Featherless.ai](https://featherless.ai/) is a serverless LLM hosting platform providing OpenAI-compatible API access to 37,000+ open-source models. It would be great to have it as a built-in provider in OpenCode.
+[Featherless.ai](https://featherless.ai/) is a serverless LLM hosting platform providing OpenAI-compatible API access to 37,000+ open-source models. It would be great to have it as a built-in provider in TeamCode.
 
 ## Why
-- Currently Featherless works as a custom provider via `@ai-sdk/openai-compatible`, but users must manually define every `model` entry in `opencode.json`.
-- Featherless hosts many popular models (DeepSeek V4 Pro, Kimi K2.6, GLM-5.1, Qwen3.6, MiniMax-M2.7, etc.) that overlap with OpenCode Go's lineup.
+- Currently Featherless works as a custom provider via `@ai-sdk/openai-compatible`, but users must manually define every `model` entry in `teamcode.json`.
+- Featherless hosts many popular models (DeepSeek V4 Pro, Kimi K2.6, GLM-5.1, Qwen3.6, MiniMax-M2.7, etc.) that overlap with TeamCode Go's lineup.
 - Adding it as a first-class provider would allow users to simply run `/connect` -> select "Featherless" -> paste API key, just like other built-in providers.
 
 ## API Details
@@ -2838,7 +2838,7 @@ Currently using custom provider config:
 
 ---
 
-## #26806 — [FEATURE]: add OpenCode Chat Bot to ecosystem
+## #26806 — [FEATURE]: add TeamCode Chat Bot to ecosystem
 
 📅 `2026-05-11` | ✏️ **luoyingwen** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/26806](https://github.com/anomalyco/opencode/issues/26806)
 
@@ -2849,9 +2849,9 @@ Currently using custom provider config:
 
 ### Describe the enhancement you want to request
 
-Add OpenCode Chat Bot to the ecosystem Projects list.
+Add TeamCode Chat Bot to the ecosystem Projects list.
 
-OpenCode Chat Bot is a community project that provides a mobile chat bot client for controlling OpenCode and monitoring tasks. Listing it in the ecosystem documentation helps users discover another mobile-friendly way to interact with OpenCode.
+TeamCode Chat Bot is a community project that provides a mobile chat bot client for controlling TeamCode and monitoring tasks. Listing it in the ecosystem documentation helps users discover another mobile-friendly way to interact with TeamCode.
 
 ---
 
@@ -2897,7 +2897,7 @@ OpenCode Chat Bot is a community project that provides a mobile chat bot client 
 
 ### Describe the enhancement you want to request
 
-I would like OpenCode Desktop to include an integrated browser workspace.
+I would like TeamCode Desktop to include an integrated browser workspace.
 
 The goal is to let users inspect and interact with web pages without switching to an external browser. This would be useful for tasks where the agent needs browser context, screenshots, console messages, page annotations, or form interaction.
 
@@ -2923,7 +2923,7 @@ Proposed behavior:
 
 ### Describe the enhancement you want to request
 
-Currently, only some Opencode Go models are supported with the OpenAI and Anthropic SDKs. This feature requests that all officially-listed Opencode Go models (see https://opencode.ai/docs/go/) be fully supported via both the OpenAI and Anthropic SDK integrations.
+Currently, only some Opencode Go models are supported with the OpenAI and Anthropic SDKs. This feature requests that all officially-listed Opencode Go models (see https://teamcode.ai/docs/go/) be fully supported via both the OpenAI and Anthropic SDK integrations.
 
 Enhancing coverage will ensure teams can access the full suite of Opencode Go models regardless of SDK preference. This will benefit users requiring a consistent model set in hybrid or multi-provider environments and reduce friction when new models are added to Opencode Go. Implementation should:
 - Ensure all documented Go models can be used via both SDKs
@@ -2991,7 +2991,7 @@ The primitives already exist:
 
 ### Describe the enhancement you want to request
 
-Today, redirecting opencode mid-turn takes too many keystrokes:
+Today, redirecting teamcode mid-turn takes too many keystrokes:
 
 1. See it going the wrong way
 2. Type a correction and hit Enter — lands as a draft, waiting for the current turn
@@ -3019,11 +3019,11 @@ Related but distinct from the broader queue/interrupt threads (#5333, #16102, #2
 
 ## Summary
 
-I'd love to see a built-in mascot/buddy system in OpenCode's TUI, similar to what Claude Code introduced with "Claude Buddy" — a virtual pet/tamagotchi that lives in the terminal and accompanies you while coding.
+I'd love to see a built-in mascot/buddy system in TeamCode's TUI, similar to what Claude Code introduced with "Claude Buddy" — a virtual pet/tamagotchi that lives in the terminal and accompanies you while coding.
 
 ## Motivation
 
-Developers spend hours in their terminals every day. Despite being our most-used application, terminals remain the most lifeless environment on our computers. A small companion that reacts to your activity, has personality, and makes long sessions more enjoyable would make OpenCode feel more human and less like a pure productivity tool.
+Developers spend hours in their terminals every day. Despite being our most-used application, terminals remain the most lifeless environment on our computers. A small companion that reacts to your activity, has personality, and makes long sessions more enjoyable would make TeamCode feel more human and less like a pure productivity tool.
 
 Claude Code's "Claude Buddy" was extremely well-received by the community (even though it started as an April Fools feature). It includes:
 - 18 species with ASCII art sprites and animations
@@ -3037,10 +3037,10 @@ Claude Code's "Claude Buddy" was extremely well-received by the community (even 
 
 ## Proposed Feature
 
-A native mascot system integrated into OpenCode's TUI:
+A native mascot system integrated into TeamCode's TUI:
 
 1. **Statusline mascot** — A small ASCII pet that lives in the TUI statusline area, with subtle breathing/idle animations
-2. **Species selection** — A few OpenCode-themed species to choose from
+2. **Species selection** — A few TeamCode-themed species to choose from
 3. **Activity reactions** — The m
 
 > *[Truncado — 2739 chars totais]*
@@ -3068,7 +3068,7 @@ Currently there is no easy way to do this without creating fully separate agents
 Support **model-specific** AGENTS files that are loaded **in addition to** the regular `AGENTS.md`.
 
 - Project level: `AGENTS_{model}.md`
-- Global level: `~/.config/opencode/AGENTS_{model}.md`
+- Global level: `~/.config/teamcode/AGENTS_{model}.md`
 
 **Examples:**
 - `AGENTS_claude-opus-4-7.md`
@@ -3104,7 +3104,7 @@ Since `AGENTS.md` is currently loaded at startup, model-specific files may need 
 
 ### Describe the enhancement you want to request
 
-In the Windows desktop app for OpenCode, the selected **Cycle Thinking Effort** setting (Low / Medium / High / Max, etc.) currently resets back to the default value.
+In the Windows desktop app for TeamCode, the selected **Cycle Thinking Effort** setting (Low / Medium / High / Max, etc.) currently resets back to the default value.
 
 It would improve usability if the app remembered the user’s last selected thinking effort preference and automatically applied it across sessions until manually changed.
 
@@ -3136,7 +3136,7 @@ Desktop app: Add a right-side conversation navigation panel (like DeepSeek web) 
 
 ### Describe the enhancement you want to request
 
-The Fireworks.AI Pass subscription (https://app.fireworks.ai/fire-pass) has changed and now uses Kimi K2.6 Turbo instead of Kimi K2.5 Turbo (Kimi K2.5 Turbo not being available anymore), but in the opencode /models interface there is only the Kimi K2.5 Turbo model available. Is it possible to update the models list?
+The Fireworks.AI Pass subscription (https://app.fireworks.ai/fire-pass) has changed and now uses Kimi K2.6 Turbo instead of Kimi K2.5 Turbo (Kimi K2.5 Turbo not being available anymore), but in the teamcode /models interface there is only the Kimi K2.5 Turbo model available. Is it possible to update the models list?
 
 <img width="454" height="534" alt="Image" src="https://github.com/user-attachments/assets/a2717f3d-4192-438f-9dbe-fb12987a4d2b" />
 
@@ -3153,7 +3153,7 @@ The Fireworks.AI Pass subscription (https://app.fireworks.ai/fire-pass) has chan
 
 ### Describe the enhancement you want to request
 
-kimi 2.6 is available on wandb, will it be added/updated soon in opencode /models?
+kimi 2.6 is available on wandb, will it be added/updated soon in teamcode /models?
 
 
 ```sh
@@ -3188,7 +3188,7 @@ curl https://api.inference.wandb.ai/v1/models \
 Related issues: #5148 #14451 #21240
 
 **The problem:**
-Yesterday I spent ~$100 in two OpenCode sessions with Claude Opus via OpenRouter. 
+Yesterday I spent ~$100 in two TeamCode sessions with Claude Opus via OpenRouter. 
 Looking at the usage logs, every single request was sending 660,000–689,000 input 
 tokens — the entire chat history and codebase context re-sent from scratch each time. 
 My actual new message was maybe 100 tokens. The rest was stale history.
@@ -3203,7 +3203,7 @@ call — something like provider.request.before — where the plugin receives
 the full messages array and returns a modified (pruned) version.
 
 As a workaround I could run a local OpenAI-compatible proxy that sits between 
-OpenCode and the real API (by swapping baseURL in opencode.json), but a native 
+TeamCode and the real API (by swapping baseURL in teamcode.json), but a native 
 plugin hook would be much cleaner.
 
 **Why this matters:**
@@ -3231,7 +3231,7 @@ Is a pre-reques
 
 Kiro now supports API-key based authentication for Kiro CLI headless / non-interactive usage via the `KIRO_API_KEY` environment variable.
 
-OpenCode already supports adding provider credentials through `/connect`, and it would be useful to have Kiro available as a first-class selectable provider there, instead of requiring custom configuration or third-party plugins.
+TeamCode already supports adding provider credentials through `/connect`, and it would be useful to have Kiro available as a first-class selectable provider there, instead of requiring custom configuration or third-party plugins.
 
 Requested behavior:
 - Add `Kiro` to the selectable provider list in `/connect`.
@@ -3243,7 +3243,7 @@ Requested behavior:
 References:
 - Kiro CLI headless mode uses `KIRO_API_KEY`.
 - Kiro API keys can be generated from the Kiro web console for supported plans.
-- OpenCode supports adding provider credentials via `/connect`.
+- TeamCode supports adding provider credentials via `/connect`.
 
 ---
 
@@ -3258,13 +3258,13 @@ References:
 
 ### Describe the enhancement you want to request
 
-Updated the issue description to make it shorter and more focused on the actual workflow/problem I’m experiencing while using OpenCode in long TUI sessions.
+Updated the issue description to make it shorter and more focused on the actual workflow/problem I’m experiencing while using TeamCode in long TUI sessions.
 
 Also linking it more closely to #5102 since the ideas are related.
 
 ---
 
-I’ve been using OpenCode for longer coding sessions where the model progressively modifies multiple files, and one thing that becomes difficult in the TUI is reviewing and controlling those changes comfortably without leaving the terminal workflow.
+I’ve been using TeamCode for longer coding sessions where the model progressively modifies multiple files, and one thing that becomes difficult in the TUI is reviewing and controlling those changes comfortably without leaving the terminal workflow.
 
 Right now we already have diffs/revert capabilities, but I would love to see a more interactive review flow directly in the TUI.
 
@@ -3290,7 +3290,7 @@ The main idea is making AI-generated changes easier to review incrementally duri
 
 ## Problem
 
-In a fresh OpenCode session with a standard setup (Sisyphus agent, ~100 skills, 50+ tools), the token count **before the user sends a single message** is approximately **68,000 tokens**. This is ~99% system overhead.
+In a fresh TeamCode session with a standard setup (Sisyphus agent, ~100 skills, 50+ tools), the token count **before the user sends a single message** is approximately **68,000 tokens**. This is ~99% system overhead.
 
 Breakdown:
 - **Skill descriptions**: 100+ skills with full descriptions inlined in system prompt
@@ -3335,7 +3335,7 @@ Currently all 100+ skill names + descriptions are inlined. Only inject skill **n
 
 ## Background
 
-The OpenCode local server crashes repeatedly during normal use. From `.opencode-notify.log` analysis (21.5 MB, 369K lines over 3 days), I identified several systemic issues that cause server instability and make debugging impossible.
+The TeamCode local server crashes repeatedly during normal use. From `.teamcode-notify.log` analysis (21.5 MB, 369K lines over 3 days), I identified several systemic issues that cause server instability and make debugging impossible.
 
 ## Problems identified
 
@@ -3382,7 +3382,7 @@ All 3
 
 ### Describe the enhancement you want to request
 
-Its so so confusing to add an mcp server on opencode desktop, open code was crashing since the mcp wasnt loading properly , please add a similar window like goose to add mcp servers easily
+Its so so confusing to add an mcp server on teamcode desktop, open code was crashing since the mcp wasnt loading properly , please add a similar window like goose to add mcp servers easily
 
 <img width="600" height="675" alt="Image" src="https://github.com/user-attachments/assets/b57e802f-bc08-43ed-a614-4d815827c94a" />
 
@@ -3395,7 +3395,7 @@ Its so so confusing to add an mcp server on opencode desktop, open code was cras
 
 # Feature Request: Git UI for Commit & Push
 
-Add a lightweight Git UI inside OpenCode to handle common actions without using the terminal.
+Add a lightweight Git UI inside TeamCode to handle common actions without using the terminal.
 
 Features:
 
@@ -3421,11 +3421,11 @@ A simple sidebar/panel similar to the VS Code source control workflow would grea
 ### Describe the enhancement you want to request
 
 申请一个opneclaw的QQ机器人，通过QQbot，与我的桥去发信息叫opencode做工作。
-https://github.com/Kovisun/opencode-bridge-v2
+https://github.com/Kovisun/teamcode-bridge-v2
 
 ---
 
-## #26532 — [FEATURE]: Restore Linux ARM64 build for OpenCode Desktop
+## #26532 — [FEATURE]: Restore Linux ARM64 build for TeamCode Desktop
 
 📅 `2026-05-09` | ✏️ **NN708** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/26532](https://github.com/anomalyco/opencode/issues/26532)
 
@@ -3436,11 +3436,11 @@ https://github.com/Kovisun/opencode-bridge-v2
 
 ### Describe the enhancement you want to request
 
-With the removal of the Tauri build in #19067, the Linux ARM64 build for OpenCode Desktop is no longer being produced. Could support for Linux ARM64 be restored?
+With the removal of the Tauri build in #19067, the Linux ARM64 build for TeamCode Desktop is no longer being produced. Could support for Linux ARM64 be restored?
 
 ---
 
-## #26523 — [FEATURE]: opencode.ai microsoft sign in
+## #26523 — [FEATURE]: teamcode.ai microsoft sign in
 
 📅 `2026-05-09` | ✏️ **AceVentura** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/26523](https://github.com/anomalyco/opencode/issues/26523)
 
@@ -3543,13 +3543,13 @@ Related:
 
 ### Describe the enhancement you want to request
 
-在  opencode/packages/opencode/src/provider/transform.ts:L1277, 即在 providerOptions 函数 return之前加入以下代码: 
+在  teamcode/packages/teamcode/src/provider/transform.ts:L1277, 即在 providerOptions 函数 return之前加入以下代码: 
 const effort = options.reasoning_effort
   if (effort !== undefined) {
     return { [key]: { ...options, reasoningEffort: effort, reasoning_effort: effort } }
   }
 
-然后在 opencode.json中按如下配置即可:
+然后在 teamcode.json中按如下配置即可:
           "variants": {
             "max": {
               "reasoning_effort": "max"
@@ -3599,7 +3599,7 @@ This is a **streaming auto-follow** smoothness ask, distinct from user-driven sc
 
 ### Problem
 
-OpenCode already supports **caller-side** task permission control via `permission.task`: a primary agent can declare which subagents it's allowed to invoke. However, there is no **callee-side** equivalent — no way for a subagent to declare *which parent agents are allowed to invoke it*.
+TeamCode already supports **caller-side** task permission control via `permission.task`: a primary agent can declare which subagents it's allowed to invoke. However, there is no **callee-side** equivalent — no way for a subagent to declare *which parent agents are allowed to invoke it*.
 
 This means:
 - A subagent intended exclusively for one orchestrator agent is still visible to every other primary agent.
@@ -3661,11 +3661,11 @@ Add an option to configure the MCP server in the settings to quickly add MCP ser
 
 ### Problem
 
-OpenCode scans 6 standard skill directories (global + project-level):
-- ~/.config/opencode/skills/<name>/SKILL.md
+TeamCode scans 6 standard skill directories (global + project-level):
+- ~/.config/teamcode/skills/<name>/SKILL.md
 - ~/.claude/skills/<name>/SKILL.md
 - ~/.agents/skills/<name>/SKILL.md
-- .opencode/skills/<name>/SKILL.md
+- .teamcode/skills/<name>/SKILL.md
 - .claude/skills/<name>/SKILL.md
 - .agents/skills/<name>/SKILL.md
 
@@ -3673,7 +3673,7 @@ Users may want to exclude specific directories (e.g., ~/.agents/skills/) while k
 
 ### Proposed Solution
 
-Add a skills.exclude config option in opencode.json:
+Add a skills.exclude config option in teamcode.json:
 ```json
 {
   skills: {
@@ -3716,13 +3716,13 @@ Behavior:
 
 Hi all,
 
-I would like to request an option to somehow sanitise the opencode serve api responses so that the /api/config endpoint does not return plaintext apiKeys loaded from the config. 
+I would like to request an option to somehow sanitise the teamcode serve api responses so that the /api/config endpoint does not return plaintext apiKeys loaded from the config. 
 
 I would suggest the option be made available through an environment flag, its a bit niche for a cli option.
 
 This would make it much easier to achieve containerised isolation of Opencode without needing to setup a cumbersome proxy.
 
-If anyone has good suggestions for setting up an isolated opencode sandbox which has no key access I would be grateful.
+If anyone has good suggestions for setting up an isolated teamcode sandbox which has no key access I would be grateful.
 
 Thanks.
 
@@ -3741,9 +3741,9 @@ Thanks.
 
 **Current behavior:**
 
-When an LLM provider error occurs mid-session, the TUI displays the error and stops. If the backend recovers and continues processing the session (e.g. via `opencode run --attach`), the original TUI does not follow — it remains stuck on the error screen with no further updates.
+When an LLM provider error occurs mid-session, the TUI displays the error and stops. If the backend recovers and continues processing the session (e.g. via `teamcode run --attach`), the original TUI does not follow — it remains stuck on the error screen with no further updates.
 
-The only way to see what happened after recovery is to exit the TUI and reopen the session with `opencode -s <session-id>`, which only shows a static snapshot of completed messages up to that point.
+The only way to see what happened after recovery is to exit the TUI and reopen the session with `teamcode -s <session-id>`, which only shows a static snapshot of completed messages up to that point.
 
 **Expected behavior:**
 
@@ -3766,11 +3766,11 @@ For long-running autonomous sessions, a transient LLM error followed by automati
 
 ### Describe the enhancement you want to request
 
-There's references to integration with GitHub via GitHub Actions and how to setup Gitlab integration via Gitlab Duo, but I've built (and regularly use) robust handling for Forgejo Actions as well, which are patterned quite closely off GitHub Actions. The existing documented methods aren't directly portable in part because the APIs are different between the two, and in part because the GitHub handler is built deeply into opencode.
+There's references to integration with GitHub via GitHub Actions and how to setup Gitlab integration via Gitlab Duo, but I've built (and regularly use) robust handling for Forgejo Actions as well, which are patterned quite closely off GitHub Actions. The existing documented methods aren't directly portable in part because the APIs are different between the two, and in part because the GitHub handler is built deeply into teamcode.
 
 Forgejo is the system behind https://codeberg,org,  so in addition to supporting the self-hosted version of the system (called Forgejo: https://forgejo.org) it also automagically adds support for agentic handling of projects hosted on Codeberg.org for anyone who cares to use it as well.
 
-I've been using it pretty extensively recently via my self hosted instance and a few others have started to use it as well. At this point I consider it feature complete enough to stop messing with it consistently (beyond maybe tweaks to the prompt passed into opencode if someone feels like suggesting improvements), so thought it was time to submit a request here to see if there was interest in getting it documented similar to how the current Gitlab handling is (this is also a "community project" I believe).
+I've been using it pretty extensively recently via my self hosted instance and a few others have started to use it as well. At this point I consider it feature complete enough to stop messing with it consistently (beyond maybe tweaks to the prompt passed into teamcode if someone feels like suggesting improvements), so thought it was time to submit a request here to see if there was interest in getting it documented similar to how the current Gitlab handling is (this is also a "community project" I believe).
 
 The Forgejo Action details, repository and documentation are here:
 https://codeber
@@ -3810,7 +3810,7 @@ Add a new `session/update` kind, `agent_error`, carrying a small closed vocabula
 
 ---
 
-## #26376 — [FEATURE]: Save dynamically generated system prompt to opencode.db so it's included in transcript exports
+## #26376 — [FEATURE]: Save dynamically generated system prompt to teamcode.db so it's included in transcript exports
 
 📅 `2026-05-08` | ✏️ **justinlyon12** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/26376](https://github.com/anomalyco/opencode/issues/26376)
 
@@ -3821,7 +3821,7 @@ Add a new `session/update` kind, `agent_error`, carrying a small closed vocabula
 
 ### Describe the enhancement you want to request
 
-Currently, the dynamically generated system prompt (instructions) is built in-memory before the LLM call and is not persisted in the `opencode.db` SQLite database. Because of this, it is omitted when exporting a session transcript, making it difficult to debug custom instructions or agent behavior without a network proxy or debug logs.
+Currently, the dynamically generated system prompt (instructions) is built in-memory before the LLM call and is not persisted in the `teamcode.db` SQLite database. Because of this, it is omitted when exporting a session transcript, making it difficult to debug custom instructions or agent behavior without a network proxy or debug logs.
 
 **Request:** 
 Persist the dynamically generated system prompt into the `message` table (e.g., as `role: "system"`) at session initialization. This would allow the existing transcript export features to natively include the full system prompt alongside the rest of the conversation history.
@@ -3840,13 +3840,13 @@ Persist the dynamically generated system prompt into the `message` table (e.g., 
 
 ### Describe the enhancement you want to request
 
-Currently, pressing `Ctrl+C` immediately exits the entire OpenCode CLI. This is surprising and disruptive — it's easy to accidentally exit during a long session.
+Currently, pressing `Ctrl+C` immediately exits the entire TeamCode CLI. This is surprising and disruptive — it's easy to accidentally exit during a long session.
 
 Claude Code and Codex both use a two-press pattern:
 1. **First `Ctrl+C`** — interrupts the current agent action / cancels the in-progress operation
 2. **Second `Ctrl+C`** — exits the CLI entirely
 
-OpenCode should adopt the same behavior. This gives users a safe escape hatch for cancelling operations without losing their session context.
+TeamCode should adopt the same behavior. This gives users a safe escape hatch for cancelling operations without losing their session context.
 
 The first `Ctrl+C` could show a message like "Press Ctrl+C again to exit" so the user knows what's happening.
 
@@ -3875,7 +3875,7 @@ Related issue (clarifying docs): https://github.com/anomalyco/opencode/issues/23
 
 My previous request(https://github.com/anomalyco/opencode/issues/26288) was autoclosed for using Kimi to draft. I am writing this to conform to the guidelines.
 
-I've been using agentic workflows on opencode. One pattern that will help unlock efficiency is to have segmented caching. Where in I can select different segments to pass as context to the model, before asking a modification request.
+I've been using agentic workflows on teamcode. One pattern that will help unlock efficiency is to have segmented caching. Where in I can select different segments to pass as context to the model, before asking a modification request.
 
 For example consider different segments. Possibly different files or subparts of files
 
@@ -3920,7 +3920,7 @@ Please evaluate and consider API/first class acc
 
 # Self-Service Email Change
 
-Users should be able to change the email associated with their OpenCode Console / Go / Zen account without needing to contact support.
+Users should be able to change the email associated with their TeamCode Console / Go / Zen account without needing to contact support.
 
 A user raised this on Discord after signing up with a company email and later leaving the company. Today, there does not appear to be a self-service way to move the account email to a personal address while keeping the same account, workspaces, billing, keys, and usage history.
 
@@ -3928,10 +3928,10 @@ A user raised this on Discord after signing up with a company email and later le
 
 1. Logged-in user opens account settings.
 2. User enters a new email address.
-3. OpenCode sends confirmation links to both:
+3. TeamCode sends confirmation links to both:
    - the current email, to authorize the change
    - the new email, to verify the destination
-4. Once both links are confirmed, OpenCode updates the account's canonical email.
+4. Once both links are confirmed, TeamCode updates the account's canonical email.
 5. Existing Google/GitHub login identities remain linked to the same account.
 
 This should reduce support load as Go/Zen usage grows and make account management more self-service.
@@ -3950,14 +3950,14 @@ This should reduce support load as Go/Zen usage grows and make account managemen
 
 # Idea
 
-Most OpenCode users (beginners, vibe coders, devs, casual), often need quick reference for common or basic core things, how to configure opencode, processing configs, commands in general in which they may process JSON, git workflows, shell scripting.
+Most TeamCode users (beginners, vibe coders, devs, casual), often need quick reference for common or basic core things, how to configure teamcode, processing configs, commands in general in which they may process JSON, git workflows, shell scripting.
 
 ## Proposed Implementation:
 
 A built-in compiled skills system, SKILL.md files embedded into the binary at build time. They always appear in <available_skills>, zero filesystem dependency, impossible to delete, for better UX (User Experience).
 
 ## Initial built-in skills (that i can think of):
-1. `opencode-config` —comprehensive opencode reference (config, feature, CLI, TUI, agents, tools, providers, LSP, themes, keybinds, references)
+1. `teamcode-config` —comprehensive teamcode reference (config, feature, CLI, TUI, agents, tools, providers, LSP, themes, keybinds, references)
 2. `jq` — JSON processing reference (universally useful)
 3. More to be decided, regex, etc.
 
@@ -3965,7 +3965,7 @@ Not limited to these skills, the system is extensible. But start with the most u
 
 ## The inspiration:
 
-Tools like [Charm's Crush])https://github.com/charmbracelet/crush) ship built-in documentation and common knowledge baked into the toold. It's always there, zero setup. OpenCode as an AI-native tool should do the same.
+Tools like [Charm's Crush])https://github.com/charmbracelet/crush) ship built-in documentation and common knowledge baked into the toold. It's always there, zero setup. TeamCode as an AI-native tool should do the same.
 
 > I'd like to implement this if the idea has traction & accepted.
 
@@ -3984,7 +3984,7 @@ Regards
 
 ### Describe the enhancement you want to request
 
-Please add support for https://commandcode.ai/ as a provider/authentication option in OpenCode
+Please add support for https://commandcode.ai/ as a provider/authentication option in TeamCode
 
 ## Why this would be useful
 
@@ -3995,7 +3995,7 @@ Pricing: https://commandcode.ai/pricing
 
 <img width="1205" height="726" alt="Image" src="https://github.com/user-attachments/assets/67f4d046-35da-46af-b514-60f421eceeb8" />
 
-This would make OpenCode more accessible for developers looking for a low-cost coding agent provider with capable models
+This would make TeamCode more accessible for developers looking for a low-cost coding agent provider with capable models
 
 ## Suggested Integration
 - Add CommandCode to supported providers
@@ -4017,7 +4017,7 @@ This would make OpenCode more accessible for developers looking for a low-cost c
 
 ## Motivation
 
-While an MCP call is running, OpenCode’s TUI currently doesn’t show progress info, even if the MCP server sends progress updates.
+While an MCP call is running, TeamCode’s TUI currently doesn’t show progress info, even if the MCP server sends progress updates.
 
 Especially with longer-running services (which are common in MCP, e.g. on-demand embedding runs), this is awkward from the user’s point of view because the conversation can seem stuck for minutes. That effect is about to get even more noticeable when [#24964](<https://github.com/anomalyco/opencode/issues/24964>) is merged, which (correctly) fixes an issue with `resetTimeoutOnProgress`, causing the “user is waiting for anything to happen” time to become potentially unbounded.
 
@@ -4110,7 +4110,7 @@ For very long conversations, implement virtual scrolling:
 
 ### Describe the enhancement you want to request
 
-Can we develop OpenCode and the VS Code OpenCode plugin so that they can recognize the IDE background, selected areas, or screen content?
+Can we develop TeamCode and the VS Code TeamCode plugin so that they can recognize the IDE background, selected areas, or screen content?
 
 ---
 
@@ -4149,7 +4149,7 @@ Reference code location: See `packages/sdk/js/src/gen/client/client.gen.ts` (`be
 
 ### Problem
 
-When using OpenCode with certain LLM providers (for example, services with stricter rate limits like NVIDIA NIM), I quickly hit 429 rate limit errors. It seems the current implementation uses a fixed or inflexible limit (around 40 requests), which doesn't work well across different backends that enforce lower concurrency or RPM limits.
+When using TeamCode with certain LLM providers (for example, services with stricter rate limits like NVIDIA NIM), I quickly hit 429 rate limit errors. It seems the current implementation uses a fixed or inflexible limit (around 40 requests), which doesn't work well across different backends that enforce lower concurrency or RPM limits.
 
 This leads to frequent failures and poor user experience on providers with more conservative quotas.
 
@@ -4175,7 +4175,7 @@ This small addition would greatly improve compatibility with a wide range of LLM
 
 
 
-Thanks for considering this! OpenCode is otherwise working great.
+Thanks for considering this! TeamCode is otherwise working great.
 
 ---
 
@@ -4205,12 +4205,12 @@ I used built-in LM studio provider, it only asking API and I entered it(default 
 
 ## Summary
 
-After experiencing repeated `Segmentation fault` crashes on Windows 11 with Bun v1.3.13, running `npm i -g opencode-ai@latest` resolved the issue without any code changes. This suggests the bundled Bun version in the npm package was outdated, and the reinstall pulled in a newer Bun build that fixed the crash.
+After experiencing repeated `Segmentation fault` crashes on Windows 11 with Bun v1.3.13, running `npm i -g teamcode-ai@latest` resolved the issue without any code changes. This suggests the bundled Bun version in the npm package was outdated, and the reinstall pulled in a newer Bun build that fixed the crash.
 
 ## Environment
 
-- **OpenCode**: via `npm i -g opencode-ai@latest`
-- **Bun**: 1.3.13 (bf2e2cec) — bundled in `opencode-windows-x64`
+- **TeamCode**: via `npm i -g teamcode-ai@latest`
+- **Bun**: 1.3.13 (bf2e2cec) — bundled in `teamcode-windows-x64`
 - **Platform**: Windows 11 Home China 10.0.26200 (x64 baseline, sse42/avx/avx2/avx512)
 
 ## Crash Report
@@ -4227,14 +4227,14 @@ Full crash report: https://bun.report/1.3.13/e_1bf2e2ceAA4ky+FmrbqiM4jzn0DCYKERN
 Simply running:
 
 ```powershell
-npm i -g opencode-ai@latest
+npm i -g teamcode-ai@latest
 ```
 
-This reinstalled the package and pulled in an updated `opencode-windows-x64` binary with a newer Bun runtime. After reinstall, the segfaults stopped.
+This reinstalled the package and pulled in an updated `teamcode-windows-x64` binary with a newer Bun runtime. After reinstall, the segfaults stopped.
 
 ## Root Cause Analysis
 
-The `opencode-ai` npm package bundles `opencode-windows-x64`, which is a Bun-compiled standalone executable. The Bun version is pinned to the package release — if Bun releases a Windows compatibility fix, users who installed an older version of `opencode-ai` won't get it until they manually reinstall the entire package.
+The `teamcode-ai` npm package bundles `teamcode-windows-x64`, which is a Bun-compiled standalone executable. The Bun version is pinned to the package release — if Bun releases a Windows compatibility fix, users who installed an older version of `teamcode-ai` won't get it until they manually reinstall the entire package.
 
 This is different from Mac/Linux users who can install via GitHub Releases (Go native binary, no Bun dependency).
 
@@ -4257,14 +4257,14 @@ This is different from Mac/Linux users who can install via GitHub Releases (Go n
 
 Hi team — I'm Himanshu, I built Agent Friendly Code, which scores public repos on how legible they are to AI coding agents (clear conventions, docs, tests, build signals — not anything about accepting agent-authored PRs).
 
-`opencode` scored 79.6/100 — full breakdown: https://www.agentfriendlycode.com/repo/116
+`teamcode` scored 79.6/100 — full breakdown: https://www.agentfriendlycode.com/repo/116
 
 If you're open to it, here's a badge you can drop in the README:
 ```
-[![Agent Friendly](https://agentfriendlycode.com/api/badge/github/sst/opencode.svg)](https://agentfriendlycode.com/repo/116)
+[![Agent Friendly](https://agentfriendlycode.com/api/badge/github/sst/teamcode.svg)](https://agentfriendlycode.com/repo/116)
 ```
 
-Renders as: [![Agent Friendly](https://agentfriendlycode.com/api/badge/github/sst/opencode.svg)](https://agentfriendlycode.com/repo/116)
+Renders as: [![Agent Friendly](https://agentfriendlycode.com/api/badge/github/sst/teamcode.svg)](https://agentfriendlycode.com/repo/116)
 
 _A note on what this isn't: the badge signals codebase readability for agents, not an invitation for drive-by AI PRs. I just wanted to let you know that your contribution policy is unchanged. Totally fine to pass — happy either way, and feedback on the score itself is welcome._
 
@@ -4287,11 +4287,11 @@ The TUI has a dedicated `/skills` dialog (`DialogSkill`) that lists all availabl
 2. Browse/search skills before invoking them
 3. See which skills are currently loaded
 
-The `/` slash autocomplete in the Web/Desktop prompt only shows `builtin` + `custom commands`, but **not skills** discovered from `.opencode/skills/`, `.claude/skills/`, or `.agents/skills/`.
+The `/` slash autocomplete in the Web/Desktop prompt only shows `builtin` + `custom commands`, but **not skills** discovered from `.teamcode/skills/`, `.claude/skills/`, or `.agents/skills/`.
 
 ## Background
 
-- **TUI**: Has `DialogSkill` component at `packages/opencode/src/cli/cmd/tui/component/dialog-skill.tsx` that calls `sdk.client.app.skills()` — works well.
+- **TUI**: Has `DialogSkill` component at `packages/teamcode/src/cli/cmd/tui/component/dialog-skill.tsx` that calls `sdk.client.app.skills()` — works well.
 - **App (Web/Desktop)**: The `slash-popover.tsx` has a `SlashCommand` type that already supports `source?: "command" | "mcp" | "skill"`, but skills are never populated into the slash command list. The `prompt-input.tsx` only pulls from `sync.data.command` (custom commands) and `command.options` (built-in).
 
 ## Request
@@ -4326,7 +4326,7 @@ Current behavior : ctrl+backspace does not delete the previous word in the TUI i
 
 Expected behavior : ctrl+backspace should delete the previous word, consistent with behavior in most terminals, editors, and OS-level text inputs (especially on Windows/Linux where it's the primary muscle-memory shortcut).
 
-Why this matters : alt+backspace is not available in all terminal emulators, and ctrl+w conflicts with browser/app close shortcuts when running opencode in certain environments. ctrl+backspace is the most universally expected shortcut for word deletion.
+Why this matters : alt+backspace is not available in all terminal emulators, and ctrl+w conflicts with browser/app close shortcuts when running teamcode in certain environments. ctrl+backspace is the most universally expected shortcut for word deletion.
 
 ---
 
@@ -4345,7 +4345,7 @@ When the model is streaming a response, text appears word by word, which causes 
 
 Claude Code doesn't have this problem — it seems to buffer the stream and append text in larger chunks (roughly paragraph sized), so the output grows in stable steps rather than a continuous shuffle.
 
-Would be great if opencode did something similar — either flush on paragraph boundaries boundaries, or on a short timer like every 100ms. Even a config option to enable this would work.
+Would be great if teamcode did something similar — either flush on paragraph boundaries boundaries, or on a short timer like every 100ms. Even a config option to enable this would work.
 
 ---
 
@@ -4398,7 +4398,7 @@ Thanks!
 
 Currently when writing prompt from external editor the file tagging doesnt work.
 
-in tui using `prefix + e` then writing your prompt `what does this file @filename do` saving then getting back to opencode the prompt is returned in plain text. 
+in tui using `prefix + e` then writing your prompt `what does this file @filename do` saving then getting back to teamcode the prompt is returned in plain text. 
 
 their should be a mechanism then if tagging @something it should resolve first if any agent is mentioned it should automatically tag the agent like @explore if no agent is found the file should be resolved for the agent context.
 
@@ -4461,7 +4461,7 @@ It's an awkward colour choice that can't be easily changed.
 
 ---
 
-## #26241 — [FEATURE]:Support manually installed opencode CLI with VSCode extension sst-dev.opencode-v2
+## #26241 — [FEATURE]:Support manually installed teamcode CLI with VSCode extension sst-dev.teamcode-v2
 
 📅 `2026-05-07` | ✏️ **reserveword** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/26241](https://github.com/anomalyco/opencode/issues/26241)
 
@@ -4472,9 +4472,9 @@ It's an awkward colour choice that can't be easily changed.
 
 ### Describe the enhancement you want to request
 
-When I installed opencode CLI by like adding it directy into PATH or a .lnk link, the VSCode extension 
-sst-dev.opencode-v2 does not recognize it and won't work.
-It will be best if sst-dev.opencode-v2 can read the result of `where opencode` and execute it.
+When I installed teamcode CLI by like adding it directy into PATH or a .lnk link, the VSCode extension 
+sst-dev.teamcode-v2 does not recognize it and won't work.
+It will be best if sst-dev.teamcode-v2 can read the result of `where teamcode` and execute it.
 
 ---
 
@@ -4491,7 +4491,7 @@ It will be best if sst-dev.opencode-v2 can read the result of `where opencode` a
 
 Add a built-in `/menu` slash command that opens the same TUI command menu currently opened by `Ctrl+P`.
 
-This gives users a keyboard-shortcut-independent way to access the menu when opencode runs inside IDE terminals where `Ctrl+P` can conflict with editor shortcuts.
+This gives users a keyboard-shortcut-independent way to access the menu when teamcode runs inside IDE terminals where `Ctrl+P` can conflict with editor shortcuts.
 
 Related context:
 - https://github.com/anomalyco/opencode/issues/6245
@@ -4545,10 +4545,10 @@ I'd love to be able to open URLs directly from the terminal like I can in codex
 ### Describe the enhancement you want to request
 
 Feature request
-Add an in-app Appearance setting to the macOS desktop app (OpenCode.app) that lets users force Light, Dark, or System mode independently of the macOS global appearance.
+Add an in-app Appearance setting to the macOS desktop app (TeamCode.app) that lets users force Light, Dark, or System mode independently of the macOS global appearance.
 
 Current behavior
-OpenCode.app follows the macOS system appearance. The theme selector (Cmd+P → theme) only affects markdown/syntax rendering inside chat — not the app chrome (background, sidebar, panels).
+TeamCode.app follows the macOS system appearance. The theme selector (Cmd+P → theme) only affects markdown/syntax rendering inside chat — not the app chrome (background, sidebar, panels).
 
 Selecting a "dark" theme like Tokyo Night while macOS is in Light mode still leaves the app with a white background.
 
@@ -4581,7 +4581,7 @@ Thanks!
 ### Describe the enhancement you want to request
 
 ## Description
-Currently, switching between sessions requires opening the session list dialog (ctrl-x l), navigating to the desired session, and pressing Enter. This is cumbersome when frequently switching between two sessions. My usual flow is to have two LLMs running at the same time in the same opencode instance.
+Currently, switching between sessions requires opening the session list dialog (ctrl-x l), navigating to the desired session, and pressing Enter. This is cumbersome when frequently switching between two sessions. My usual flow is to have two LLMs running at the same time in the same teamcode instance.
 
 ## Proposed Solution
 Add a session_last keybinding (<leader>o / ctrl-x o) to quickly switch to the previously viewed session, similar to Emacs's C-x o for switching windows.
@@ -4608,7 +4608,7 @@ Only be available when a previous session exists
 
 ### Problem
 
-OpenCode is a harness on top of AI models that performs local operations to modify code. Most open-weight models don't support image input — they simply cannot process images at all.
+TeamCode is a harness on top of AI models that performs local operations to modify code. Most open-weight models don't support image input — they simply cannot process images at all.
 
 When a user sends an image with a message using a model that doesn't support image input, the system either:
 1. Falls back to an error message: *"This model doesn't support image input - I cannot view or analyze images."*
@@ -4672,7 +4672,7 @@ When my plugin changes a file, it should be able to ping Opencode so it can upda
 
 ---
 
-## #26113 — [FEATURE]:opencode change the code without history in vscode,the time line is clean.
+## #26113 — [FEATURE]:teamcode change the code without history in vscode,the time line is clean.
 
 📅 `2026-05-07` | ✏️ **LLLCDYY** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/26113](https://github.com/anomalyco/opencode/issues/26113)
 
@@ -4719,7 +4719,7 @@ This is **especially impactful for Windows desktop users**, who are a significan
 
 ### Why now?
 
-With OpenCode gaining traction as a daily driver for AI-assisted coding, image-based interaction (screenshots of UI bugs, error messages, architecture diagrams) is be
+With TeamCode gaining traction as a daily driver for AI-assisted coding, image-based interaction (screenshots of UI bugs, error messages, architecture diagrams) is be
 
 > *[Truncado — 2978 chars totais]*
 
@@ -4739,7 +4739,7 @@ I'd like to propose a small extension to the TUI plugin API so plugins can influ
 2. the projection of the native session switcher/list
 This is **not** a request to upstream a specific product feature.  
 The goal is to expose **generic host hooks** so advanced plugins can rely on native session/session-list UI with materially less local host patching.
-Based on forward ports through OpenCode `1.15.0`, these adapters would remove a large and important part of the current host patch surface, but they would not fully eliminate local host patching on their own yet.
+Based on forward ports through TeamCode `1.15.0`, these adapters would remove a large and important part of the current host patch surface, but they would not fully eliminate local host patching on their own yet.
 ---
 ## Problem
 Today, plugins can inject some UI and commands, but they still lack a clean way to control session-aware behavior in the native TUI.
@@ -4827,7 +4827,7 @@ If the user **explicitly requests** content access (e.g., "Show me my .env file"
 
 Ability for anomalyco/opencode/github to specify in inputs whether agent should create draft PR, or a regular PR (default), optionally no PR, just output.
 
-The main problem is when regular PR (ready for review) is created with potential incomplete work, it triggers a lot of unnecessary workflow tests and other agents (which are added to project) jump into reviewing that PR which sometimes it's invalid (not ready to review), creating unnecessary noise. For example I'm asking opencode to create the issue, but it still creates PR with the .md file which create unexpected PR in this case and many other cases.
+The main problem is when regular PR (ready for review) is created with potential incomplete work, it triggers a lot of unnecessary workflow tests and other agents (which are added to project) jump into reviewing that PR which sometimes it's invalid (not ready to review), creating unnecessary noise. For example I'm asking teamcode to create the issue, but it still creates PR with the .md file which create unexpected PR in this case and many other cases.
 
 ---
 
@@ -4851,12 +4851,12 @@ import * as os from 'os';
 
 export const NotifyPlugin = async ({ project, client, $, directory, worktree }) => {
   const icon = '/usr/share/icons/Adwaita/symbolic/status/mail-unread-symbolic.svg';
-  const appName = 'OpenCode';
+  const appName = 'TeamCode';
   const summary = 'Task Completed';
-  const body = 'OpenCode has finished the assigned task and is idle now.';
-  const hint = 'string:desktop-entry:ai.opencode.cli';
+  const body = 'TeamCode has finished the assigned task and is idle now.';
+  const hint = 'string:desktop-entry:ai.teamcode.cli';
 
-  const logDir = path.join(os.homedir(), '.config', 'opencode', 'logs');
+  const logDir = path.join(os.homedir(), '.config', 'teamcode', 'logs');
   await fs.mkdir(logDir, { recursive: true }).catch(() => {});
   const logFile = path.join(logDir, 'events.log');
 
@@ -4936,35 +4936,35 @@ This is currently impossible without heavy workarounds.
 
 I’d like to propose adding support for multiple custom config directories.
 
-Currently, opencode supports `OPENCODE_CONFIG_DIR`, which allows loading one custom `.opencode`-like directory. This works well for a single external config source, but it makes composition difficult when configuration is split across multiple reusable local sources.
+Currently, teamcode supports `OPENCODE_CONFIG_DIR`, which allows loading one custom `.teamcode`-like directory. This works well for a single external config source, but it makes composition difficult when configuration is split across multiple reusable local sources.
 
 Example workspace:
 
 ```text
 workspace/
   agents/
-    backend/.opencode/
-    frontend/.opencode/
-    reviewer/.opencode/
+    backend/.teamcode/
+    frontend/.teamcode/
+    reviewer/.teamcode/
 ```
 
 Each of these directories may contain its own agents, commands, modes, plugins, tools, and config files.
 
-Today, the workaround is to generate a synthetic `.opencode` directory with copied files or symlinks. It would be cleaner if opencode could load several local config directories directly.
+Today, the workaround is to generate a synthetic `.teamcode` directory with copied files or symlinks. It would be cleaner if teamcode could load several local config directories directly.
 
 ## Suggested behavior
 
 Add a new environment variable:
 
 ```bash
-OPENCODE_CONFIG_DIRS="/path/to/backend/.opencode:/path/to/frontend/.opencode" opencode
+OPENCODE_CONFIG_DIRS="/path/to/backend/.teamcode:/path/to/frontend/.teamcode" teamcode
 ```
 
 On Windows, it should use the platform delimiter:
 
 ```powershell
-$env:OPENCODE_CONFIG_DIRS="C:\backend\.opencode;C:\frontend\.opencode"
-opencode
+$env:OPENCODE_CONFIG_DIRS="C:\backend\.teamcode;C:\frontend\.teamcode"
+teamcode
 ```
 
 `OPENCODE_CONFIG_DIR` should remain supported and unchanged for backwards compatibility.
@@ -5006,7 +5006,7 @@ When a user selects a provider to connect (e.g., OpenAI, Anthropic, Groq), inste
 - Easy for contributors to add new provider guides
 
 **Implementation approach:**
-- Create a shared `provider-guide.ts` module in `@opencode-ai/core` with guide data (steps + URLs)
+- Create a shared `provider-guide.ts` module in `@teamcode-ai/core` with guide data (steps + URLs)
 - Conditionally render guide in `dialog-connect-provider.tsx` (web) and `dialog-provider.tsx` (TUI)
 - Add i18n keys for guide text
 - Start with ~30 popular providers, infrastructure makes it easy to add more
@@ -5031,7 +5031,7 @@ OpenAI, Anthropic, Google, Groq, DeepSeek, xAI, OpenRouter, Together AI, Firewor
 
 Please add a config option to disable automatic session diff summarization during prompt processing.
 
-For very long sessions, automatic `SessionSummary.summarize(...)` work can be expensive because it computes session/message diff metadata in the background during LLM turns. In the Electron desktop app, where the opencode server runs inside the app process, that background work can contribute to visible UI stalls during active prompts.
+For very long sessions, automatic `SessionSummary.summarize(...)` work can be expensive because it computes session/message diff metadata in the background during LLM turns. In the Electron desktop app, where the teamcode server runs inside the app process, that background work can contribute to visible UI stalls during active prompts.
 
 A config option such as:
 
@@ -5104,9 +5104,9 @@ Please could you add a switch to toggle web interface between light and dark mod
 
 I’m reopening this in a simpler form because I think the original issue was unnecessarily focused on the writing style instead of the actual request.
 
-Right now OpenCode feels heavily tied to local folders and repositories. That works well for project-based coding, but it makes broader agent workflows difficult.
+Right now TeamCode feels heavily tied to local folders and repositories. That works well for project-based coding, but it makes broader agent workflows difficult.
 
-What I’d personally like is a mode where OpenCode can work without requiring a workspace, and instead connect directly to external services like GitHub, Notion, Google Drive, databases, APIs, or MCP servers.
+What I’d personally like is a mode where TeamCode can work without requiring a workspace, and instead connect directly to external services like GitHub, Notion, Google Drive, databases, APIs, or MCP servers.
 
 For my own usage, this would make it possible to gather context automatically across multiple tools instead of manually feeding everything into the agent every time. I also think it would open the door to more autonomous workflows, especially for multi-repo maintenance, documentation, research, and remote operations.
 
@@ -5143,11 +5143,11 @@ This blocks plugin-only implementations of side-question features (`/btw`-style 
 ### Existing pieces that already do most of this
 
 - `PromptInput.noReply` already exists and short-circuits `loop()`:
-  https://github.com/anomalyco/opencode/blob/aa3c99a3c0a609ea4dd485355627e3161251584a/packages/opencode/src/session/prompt.ts#L1387
+  https://github.com/anomalyco/opencode/blob/aa3c99a3c0a609ea4dd485355627e3161251584a/packages/teamcode/src/session/prompt.ts#L1387
 - `experimental.compaction.autocontinue` is the same shape: a hook output flag (`enabled`) read back by the caller to skip work:
-  https://github.com/anomalyco/opencode/blob/aa3c99a3c0a609ea4dd485355627e3161251584a/packages/opencode/src/session/compaction.ts#L511-L527
+  https://github.com/anomalyco/opencode/blob/aa3c99a3c0a609ea4dd485355627e3161251584a/packages/teamcode/src/session/compaction.ts#L511-L527
 - `plugin.trigger()` already returns the mutated output object, so reading it back from `chat.message` is a no-op infra-wise:
-  https://github.com/anomalyco/opencode/blob/aa3c99a3c0a609ea4dd485355627e3161251584a/packages/opencode/src/plugin/index.ts#L258-L271
+  https://github.com/anomalyco/opencode/blob/aa3c99a3c0a609ea4dd485355627e3161251584a/packages/teamcode/src/plugin/index.ts#L258-L271
 
 ### Proposed change (minimal)
 
@@ -5188,7 +5188,7 @@ The fix is just adding import `katex/contrib/mhchem` and I'm going to create PR 
 
 ### Describe the enhancement you want to request
 
-Currently, OpenCode sends every prompt directly to the LLM provider. This causes redundant API calls, higher latency, and increased costs when users iterate on similar code fixes or re-run comparable queries.
+Currently, TeamCode sends every prompt directly to the LLM provider. This causes redundant API calls, higher latency, and increased costs when users iterate on similar code fixes or re-run comparable queries.
 
 I'm proposing a lightweight, zero-dependency client-side prompt cache that:
 - Normalizes prompts & caches responses with configurable TTL & max size
@@ -5199,7 +5199,7 @@ I'm proposing a lightweight, zero-dependency client-side prompt cache that:
 **Scope:**
 - [ ] Create `prompt-cache.ts` module (LRU + TTL + normalization)
 - [ ] Wrap existing provider calls in the request pipeline
-- [ ] Add `promptCache` config to `opencode.json` / CLI flags
+- [ ] Add `promptCache` config to `teamcode.json` / CLI flags
 - [ ] Unit tests + local benchmark script
 - [ ] Update docs with usage example
 
@@ -5301,12 +5301,12 @@ For reference
 I cannot delete the registered model. My version is 1.14.39. I tried to delete the following configurations: 
 
 ```
-~/.config/opencode/opencode.json
-~/.local/state/opencode/model.json
-~/.local/share/opencode/auth.json
+~/.config/teamcode/teamcode.json
+~/.local/state/teamcode/model.json
+~/.local/share/teamcode/auth.json
 ```
 
-I also tried using the `opencode auth logout` command, but it still doesn't work.
+I also tried using the `teamcode auth logout` command, but it still doesn't work.
 
 Can delete commands or hotkeys be added?
 
@@ -5323,7 +5323,7 @@ Can delete commands or hotkeys be added?
 
 ### Describe the enhancement you want to request
 
-Add Omniroute as a built-in provider in OpenCode.
+Add Omniroute as a built-in provider in TeamCode.
 
 Omniroute is an OpenAI-compatible provider/gateway. It can expose user-defined/custom models, so a static bundled model list is not enough. Users currently need to configure Omniroute manually as a custom OpenAI-compatible provider and keep model definitions in sync themselves.
 
@@ -5337,13 +5337,13 @@ Proposed behavior:
 
 - Add a built-in `omniroute` provider.
 - Implement it as an OpenAI-compatible provider, e.g. via `@ai-sdk/openai-compatible`.
-- Support dynamic model discovery for Omniroute, so models added by the user in Omniroute become available in OpenCode without manually editing the OpenCode config.
+- Support dynamic model discovery for Omniroute, so models added by the user in Omniroute become available in TeamCode without manually editing the TeamCode config.
 - If possible, use Omniroute's OpenAI-compatible model listing endpoint, for example `/v1/models`, or a provider-specific discovery endpoint if Omniroute exposes one.
 
 Why this helps:
 
 - Omniroute users can add their own custom models and route them through one OpenAI-compatible endpoint.
-- OpenCode would show the actual available Omniroute models instead of requiring users to duplicate model metadata in config.
+- TeamCode would show the actual available Omniroute models instead of requiring users to duplicate model metadata in config.
 - This makes Omniroute consistent with the provider UX for model 
 
 > *[Truncado — 1547 chars totais]*
@@ -5382,7 +5382,7 @@ As shown in the image, the last line is my question, and the rest is the skill p
 
 ## Problem
 
-When using OpenCode, the AI sometimes outputs content in other languages (Japanese, Korean, Russian, etc.). If a conversation contains foreign text the user cannot understand, they currently have to manually copy and paste it into a translation tool, which disrupts the workflow.
+When using TeamCode, the AI sometimes outputs content in other languages (Japanese, Korean, Russian, etc.). If a conversation contains foreign text the user cannot understand, they currently have to manually copy and paste it into a translation tool, which disrupts the workflow.
 
 This is especially painful for Windows desktop users who lack browser extension-style translation support.
 
@@ -5434,9 +5434,9 @@ Add a new setting:
 
 ## Analysis
 
-The top-level script awaits each shell command, so a final log after the last await would only print after successful generation. `packages/opencode/src/cli/cmd/generate.ts` writes JSON to stdout, so progress logging should stay in the wrapper scripts rather than the JSON-producing CLI command.
+The top-level script awaits each shell command, so a final log after the last await would only print after successful generation. `packages/teamcode/src/cli/cmd/generate.ts` writes JSON to stdout, so progress logging should stay in the wrapper scripts rather than the JSON-producing CLI command.
 
-AI assistance: OpenCode/openai/gpt-5.5 helped inspect the relevant scripts and draft this issue.
+AI assistance: TeamCode/openai/gpt-5.5 helped inspect the relevant scripts and draft this issue.
 
 ## Proposed Fix
 
@@ -5500,7 +5500,7 @@ This would significantly improve usability for long debugging or iterative sessi
 
 > Summary
 >
-> Currently, OpenCode's LSP integration only provides diagnostics (errors/warnings). For navigation and code understanding, the agent relies solely on grep/glob-based search. This is insufficient for complex languages like C++, where grep cannot resolve:
+> Currently, TeamCode's LSP integration only provides diagnostics (errors/warnings). For navigation and code understanding, the agent relies solely on grep/glob-based search. This is insufficient for complex languages like C++, where grep cannot resolve:
 >
 > - Template instantiations vs declarations
 > - Macro expansions and conditional compilation
@@ -5543,11 +5543,11 @@ This would significantly improve usability for long debugging or iterative sessi
 
 ## Feature Request: Customizable Status Line
 Claude Code supports a `statusline` setting in `~/.claude/settings.json` that lets users display arbitrary info (git branch, time, costs, etc.) in the bottom bar.
-It would be great if OpenCode had something similar — ideally a small DSL or template string in `tui.json` that renders into the status bar.
+It would be great if TeamCode had something similar — ideally a small DSL or template string in `tui.json` that renders into the status bar.
 ### Specific use case: Go usage at a glance
 As a Go subscriber, I'd love to see my usage for the current period directly in the TUI status line, e.g.:
 Go: 42% (5h) | 38% (week) | 25% (month)
-Right now I have to open `opencode.ai/auth` in a browser to check. Having this info persist in the terminal would save a lot of context switching.
+Right now I have to open `teamcode.ai/auth` in a browser to check. Having this info persist in the terminal would save a lot of context switching.
 ### What I'm imagining
 ```jsonc
 // tui.json
@@ -5650,7 +5650,7 @@ Add a visual button (e.g. a "+" or "/" icon) next to the text input field that o
 
 ### Describe the enhancement you want to request
 
-add importing auth.json though opencode import —file (file way)
+add importing auth.json though teamcode import —file (file way)
 
 ---
 
@@ -5665,7 +5665,7 @@ add importing auth.json though opencode import —file (file way)
 
 ### Describe the enhancement you want to request
 
-Add the option to rename sessions manually, like with /rename in the right session or through opencode session rename (new name) (session id)
+Add the option to rename sessions manually, like with /rename in the right session or through teamcode session rename (new name) (session id)
 
 ---
 
@@ -5725,7 +5725,7 @@ This is different from #22141 (custom instructions passed to the agent every ses
 A set of session and data management tools to give users more control over their local data.
 
 **1. Factory Reset / Reset to Initial State**
-Add an option to reset OpenCode to its initial installation state, clearing all configuration, cached data, sessions, and user data. Useful for troubleshooting, preparing for reinstall, or ensuring a complete cleanup before handing off a machine.
+Add an option to reset TeamCode to its initial installation state, clearing all configuration, cached data, sessions, and user data. Useful for troubleshooting, preparing for reinstall, or ensuring a complete cleanup before handing off a machine.
 
 **2. Bulk Session Management**
 - Delete all sessions in one action (currently users must delete sessions one by one)
@@ -5793,7 +5793,7 @@ Add an optional \liases\ field to command definitions that accepts localized na
 | /review | /审查 | Review changes |
 
 **Implementation notes:**
-- The command system is in packages/opencode/src/command/
+- The command system is in packages/teamcode/src/command/
 - Commands are defined with Schema.Struct and have a \
 ame\ field
 - The prompt popover in the UI shows available commands
@@ -5843,7 +5843,7 @@ ame\ field
 
 **问题一：使用 AI 操控 GitHub 账号时，应遵守仓库模板规范**
 
-当 opencode 通过 deepseek 等模型控制用户 GitHub 账号提交 Issue 或 PR 时，目前不会主动检查目标仓库是否有 Issue/PR 模板。如果仓库有 `.github/ISSUE_TEMPLATE/` 或 PR 模板，模型应该优先读取并按模板格式提交。没有模板时，也应参考该仓库已有 Issue 的惯用格式，而不是自由发挥。
+当 teamcode 通过 deepseek 等模型控制用户 GitHub 账号提交 Issue 或 PR 时，目前不会主动检查目标仓库是否有 Issue/PR 模板。如果仓库有 `.github/ISSUE_TEMPLATE/` 或 PR 模板，模型应该优先读取并按模板格式提交。没有模板时，也应参考该仓库已有 Issue 的惯用格式，而不是自由发挥。
 
 否则提交的内容格式与仓库规范不符，容易被维护者关闭或忽视，也显得不专业。
 
@@ -5873,7 +5873,7 @@ ame\ field
 
 Hey, I'd like to add [`oc-plugin-gitgud`](https://github.com/khoaHyh/oc-plugin-gitgud) to the ecosystem plugins list.
 
-It is a TUI plugin for Git and Graphite workflows inside OpenCode: review changes, stage/unstage files, generate commit messages, commit, push, and work with Graphite stacks without leaving the TUI.
+It is a TUI plugin for Git and Graphite workflows inside TeamCode: review changes, stage/unstage files, generate commit messages, commit, push, and work with Graphite stacks without leaving the TUI.
 
 Tweet 🐥: https://x.com/khoaHyh/status/2049921791846404447
 
@@ -5892,7 +5892,7 @@ Tweet 🐥: https://x.com/khoaHyh/status/2049921791846404447
 
 ## Background
 
-I built [Conclave](https://github.com/adndvlp/conclave), a fork of OpenCode that 
+I built [Conclave](https://github.com/adndvlp/conclave), a fork of TeamCode that 
 adds structured multi-LLM debate. It's been running for a few days and I wanted 
 to share the design decisions in case they're useful for a native implementation.
 
@@ -5905,7 +5905,7 @@ Demo: https://adndvlp.github.io/conclave/
 
 ## What it adds
 
-5 new files under `packages/opencode/src/team/`:
+5 new files under `packages/teamcode/src/team/`:
 
 | File | Lines | Role |
 |---|---|---|
@@ -5915,7 +5915,7 @@ Demo: https://adndvlp.github.io/conclave/
 | `cli-adapter.ts` | 359 | Adapters for Gemini CLI, Claude Code, Codex as team members |
 | `schema.ts` | 43 | Types: `TeamConfig`, `TeamMember`, `SubTeam`, `CrossTeamMessage` |
 
-Modified OpenCode files:
+Modified TeamCode files:
 
 | File | Change |
 |---|---|
@@ -5927,7 +5927,7 @@ Modified OpenCode files:
 
 ---
 
-## #25752 — [FEATURE]: Add hiai-opencode to ecosystem plugins table
+## #25752 — [FEATURE]: Add hiai-teamcode to ecosystem plugins table
 
 📅 `2026-05-04` | ✏️ **vlgalib** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/25752](https://github.com/anomalyco/opencode/issues/25752)
 
@@ -5938,9 +5938,9 @@ Modified OpenCode files:
 
 ### Describe the enhancement you want to request
 
-Add the hiai-opencode plugin to the Plugins table on the ecosystem page.
+Add the hiai-teamcode plugin to the Plugins table on the ecosystem page.
 
-Repository: https://github.com/HiAi-gg/hiai-opencode
+Repository: https://github.com/HiAi-gg/hiai-teamcode
 Description: multi-agent cockpit with 12 agents, MCP, LSP and skills.
 
 ---
@@ -5956,7 +5956,7 @@ Description: multi-agent cockpit with 12 agents, MCP, LSP and skills.
 
 ### Describe the enhancement you want to request
 
-opencode web only upload media and documents file. Exe why not?
+teamcode web only upload media and documents file. Exe why not?
 I would like to try to analyze hexstrike-ai MCP server tool.
 
 ---
@@ -6002,10 +6002,10 @@ Please add the Doubleword.ai provider because currently it doen't have it yet.  
 
 ### Describe the enhancement you want to request
 
-Packaging OpenCode as a Snap would make the Experience on Ubuntu more pleasant.
+Packaging TeamCode as a Snap would make the Experience on Ubuntu more pleasant.
 This would allow users to run 
 ```
-$ snap install opencode
+$ snap install teamcode
 ```
 like they can do with other tools already (vscode, sublime-text, etc).
 
@@ -6022,7 +6022,7 @@ like they can do with other tools already (vscode, sublime-text, etc).
 
 ### Describe the enhancement you want to request
 
-CircleCI offers [a language server](https://github.com/CircleCI-Public/circleci-yaml-language-server) for editing `config.yml` files inside a project's `.circleci` directory. For any user working on a project with a `.circleci/config.yml`, this will help OpenCode agents get better diagnostics while working with CCI configs (rather than just hoping it's correct and pushing up to CI to get validation).
+CircleCI offers [a language server](https://github.com/CircleCI-Public/circleci-yaml-language-server) for editing `config.yml` files inside a project's `.circleci` directory. For any user working on a project with a `.circleci/config.yml`, this will help TeamCode agents get better diagnostics while working with CCI configs (rather than just hoping it's correct and pushing up to CI to get validation).
 
 ---
 
@@ -6047,7 +6047,7 @@ be like
 
 "agent / model / request time / *current hour"
 
-[opencode tui]
+[teamcode tui]
 
 ---
 
@@ -6079,13 +6079,13 @@ This feature allow all permission commands only for one prompt.
 
 ### Describe the enhancement you want to request
 
-Currently, the keybinding for "fullscreen diff" is [hardcoded](https://github.com/anomalyco/opencode/blob/dev/packages/opencode/src/cli/cmd/tui/routes/session/permission.tsx#L555) and cannot be changed in `tui.json`.
+Currently, the keybinding for "fullscreen diff" is [hardcoded](https://github.com/anomalyco/opencode/blob/dev/packages/teamcode/src/cli/cmd/tui/routes/session/permission.tsx#L555) and cannot be changed in `tui.json`.
 
 This has been highlighted on https://github.com/anomalyco/opencode/issues/14093 , however, I'm not asking for you to change the default, but rather the ability to remap it.
 
 <img width="1092" height="565" alt="fullscreen diff with ctrl+f as keybinding" src="https://github.com/user-attachments/assets/001be0c6-f4bb-43fa-889a-4daa836c6e39" />
 
-The issue is that "ctrl+f" is the default keybinding for Search in most terminal emulators, IDEs, and editors. This makes it one of the top keybindings people want to change and one of the few that currently [cannot be changed via `tui.json`](https://opencode.ai/docs/keybinds) [(as seen here)](https://github.com/anomalyco/opencode/blob/dev/packages/opencode/src/config/keybinds.ts).
+The issue is that "ctrl+f" is the default keybinding for Search in most terminal emulators, IDEs, and editors. This makes it one of the top keybindings people want to change and one of the few that currently [cannot be changed via `tui.json`](https://teamcode.ai/docs/keybinds) [(as seen here)](https://github.com/anomalyco/opencode/blob/dev/packages/teamcode/src/config/keybinds.ts).
 
 ---
 
@@ -6103,13 +6103,13 @@ The issue is that "ctrl+f" is the default keybinding for Search in most terminal
 My feature request has been implemented partially using the following command
 
 ```
-opencode export session ses_20db0ffa4ffevnErBmBTwl4NCC
+teamcode export session ses_20db0ffa4ffevnErBmBTwl4NCC
 ```
 
 but it would be great to have an additional parameter able to export all the sessions:
 
 ```
-opencode export session --all
+teamcode export session --all
 ```
 
 ---
@@ -6136,7 +6136,7 @@ This is a much better and safer way than just using a YOLO mode.
 
 ### Separate choice of model
 
-Ideally, OpenCode should offer users flexibility in the cost of this feature, for example, by allowing them to choose which model to use for auto-reviews. So users could choose a cheaper, lighter model than the main one used in the session.
+Ideally, TeamCode should offer users flexibility in the cost of this feature, for example, by allowing them to choose which model to use for auto-reviews. So users could choose a cheaper, lighter model than the main one used in the session.
 
 ---
 
@@ -6179,7 +6179,7 @@ It would be great if it could be moved to a more conventional location aligned w
 
 It used to be there but now it's missing!
 
-I have ChatGPT Pro sub and I'm using the subscription in OpenCode via the official OAuth method.
+I have ChatGPT Pro sub and I'm using the subscription in TeamCode via the official OAuth method.
 
 <img width="805" height="426" alt="Image" src="https://github.com/user-attachments/assets/a0aed22b-fed6-4ea5-82cf-4a2fba01f47a" />
 
@@ -6198,7 +6198,7 @@ I have ChatGPT Pro sub and I'm using the subscription in OpenCode via the offici
 
 ## Description
 
-OpenRouter's `claude-opus-4.7` model introduces breaking changes regarding reasoning and sampling parameters. Currently, OpenCode uses parameters that are ignored by this model and lacks support for the new `verbosity` parameter which is the correct way to control response effort on Opus 4.7.
+OpenRouter's `claude-opus-4.7` model introduces breaking changes regarding reasoning and sampling parameters. Currently, TeamCode uses parameters that are ignored by this model and lacks support for the new `verbosity` parameter which is the correct way to control response effort on Opus 4.7.
 
 ## Background
 
@@ -6210,7 +6210,7 @@ According to the [OpenRouter Claude 4.7 Migration Guide](https://openrouter.ai/d
 
 ## Current Behavior
 
-In `packages/opencode/src/provider/transform.ts`:
+In `packages/teamcode/src/provider/transform.ts`:
 
 1. **`adaptiveReasoningOptions()`** (lines ~475-477):
    Returns `{ reasoning: { effort } }` for OpenRouter Claude models. On `claude-opus-4.7`, this parameter is ignored.
@@ -6306,7 +6306,7 @@ A PR is ready: #25476.
 ## Describe the enhancement you want to request
 
 **环境信息**
-- OpenCode 版本：v1.14.33（桌面版）
+- TeamCode 版本：v1.14.33（桌面版）
 - 操作系统：Windows（win32）
 
 **问题描述**
@@ -6347,7 +6347,7 @@ A PR is ready: #25476.
 ## Describe the enhancement you want to request
 
 **环境信息**
-- OpenCode 版本：v1.14.33（桌面版）
+- TeamCode 版本：v1.14.33（桌面版）
 - 操作系统：Windows（win32）
 
 **建议背景**
@@ -6378,7 +6378,7 @@ A PR is ready: #25476.
 
 ---
 
-## #25607 — [FEATURE]: Support '>' prefix in OpenCode Desktop's command palette to display all available commands
+## #25607 — [FEATURE]: Support '>' prefix in TeamCode Desktop's command palette to display all available commands
 
 📅 `2026-05-03` | ✏️ **MarkSFrancis** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/25607](https://github.com/anomalyco/opencode/issues/25607)
 
@@ -6389,7 +6389,7 @@ A PR is ready: #25476.
 
 ### Describe the enhancement you want to request
 
-Discoverability of commands in OpenCode Desktop is currently limited. The `Mod+K` / `Mod+P` omni-search only displays a very limited, pre-selected subset of commands alongside files and sessions. Users must guess the name of an unlisted command to filter for it, which hinders the discoverability of commands.
+Discoverability of commands in TeamCode Desktop is currently limited. The `Mod+K` / `Mod+P` omni-search only displays a very limited, pre-selected subset of commands alongside files and sessions. Users must guess the name of an unlisted command to filter for it, which hinders the discoverability of commands.
 
 **Proposed Solution:**
 Introduce support for the `> ` prefix in the command palette to trigger a "command-only" search mode, overriding the default omni-search behavior.
@@ -6419,7 +6419,7 @@ would be great to have a signal trigger to execute plans
 
 ---
 
-## #25582 — [FEATURE]: Add "Fork to new session" action from message timeline in OpenCode Desktop
+## #25582 — [FEATURE]: Add "Fork to new session" action from message timeline in TeamCode Desktop
 
 📅 `2026-05-03` | ✏️ **adrian15** | 💬 7 | 🔗 [https://github.com/anomalyco/opencode/issues/25582](https://github.com/anomalyco/opencode/issues/25582)
 
@@ -6431,7 +6431,7 @@ would be great to have a signal trigger to execute plans
 ### Describe the enhancement you want to request
 
 ## Summary
-OpenCode App should support forking directly from a specific user message into a new session, matching existing CLI/TUI behavior.
+TeamCode App should support forking directly from a specific user message into a new session, matching existing CLI/TUI behavior.
 
 ## Problem
 In the app flow, users currently need to use the session fork dialog/command flow to branch from history. This is slower and less discoverable than a message-level action.
@@ -6475,13 +6475,13 @@ In the app flow, users currently need to use the session fork dialog/command flo
 
 ## Feature Request Summary
 
-I would like to request a feature similar to Claude Code's `add-dir` command, which allows users to include additional directories outside the current workspace into the working context. This would enable OpenCode's internal **Gork Tool** to retrieve and reference content from shared external directories, without requiring manual copying or recreation of those directories in every new worktree.
+I would like to request a feature similar to Claude Code's `add-dir` command, which allows users to include additional directories outside the current workspace into the working context. This would enable TeamCode's internal **Gork Tool** to retrieve and reference content from shared external directories, without requiring manual copying or recreation of those directories in every new worktree.
 
 ## Motivation & Problem
 
 In my current workflow, I maintain several worktrees for different features or branches. Many of these projects depend on a common set of shared resources (e.g., utility libraries, documentation, configuration templates, or reference data) that reside in a centralized directory outside any individual worktree.
 
-Currently, to make these resources accessible to the Gork Tool within OpenCode, I have to manually copy or recreate these shared directories inside each new worktree. This approach is:
+Currently, to make these resources accessible to the Gork Tool within TeamCode, I have to manually copy or recreate these shared directories inside each new worktree. This approach is:
 
 - **Time-consuming**: Every new worktree requires redundant setup.
 - **Error-prone**: Manual copying can lead to version mismatches or missing files.
@@ -6507,7 +6507,7 @@ Currently, to make these resources accessible to the Gork Tool within OpenCode, 
 
 ## Description
 
-Currently, OpenCode does not support specifying multiple skills simultaneously in a single prompt. When I input multiple skill commands such as `/vue3 /vue-router-v4`, only the first skill (`/vue3`) is loaded and activated. The second skill (`/vue-router-v4`) is incorrectly treated as plain user input rather than being parsed and loaded as an additional skill.
+Currently, TeamCode does not support specifying multiple skills simultaneously in a single prompt. When I input multiple skill commands such as `/vue3 /vue-router-v4`, only the first skill (`/vue3`) is loaded and activated. The second skill (`/vue-router-v4`) is incorrectly treated as plain user input rather than being parsed and loaded as an additional skill.
 
 ## Current Behavior
 
@@ -6577,7 +6577,7 @@ When the assistant asks a design/implementation question and then builds on the 
 
 ### Environment
 
-- opencode version: latest
+- teamcode version: latest
 
 ---
 
@@ -6666,13 +6666,13 @@ When helping with partition tasks on de
 
 Support runtime-refreshable plugin tools with session-aware execution context
 
-I’m integrating an external tool/runtime system into OpenCode and ran into a gap between the current plugin API and the MCP integration model.
+I’m integrating an external tool/runtime system into TeamCode and ran into a gap between the current plugin API and the MCP integration model.
 
 ## The gap
 
 Today there are two useful capabilities, but they live on different sides:
 
-1. **Plugin tools** have access to OpenCode-native context such as `sessionID`, and plugin hooks can participate in tool execution and prompt shaping.
+1. **Plugin tools** have access to TeamCode-native context such as `sessionID`, and plugin hooks can participate in tool execution and prompt shaping.
 2. **MCP tools** support dynamic tool inventory changes (`tools changed`, reconnect/disconnect, re-listing, etc).
 
 For some integrations, we need **both at the same time**.
@@ -6685,9 +6685,9 @@ We have an external tool/runtime backend whose available tools are dynamic:
 - updating may add/remove/rename tools
 - backend restart/reconnect may temporarily remove and later restore tools
 
-At the same time, some of those tools cannot be exposed to the model as raw passthrough tools. They need **OpenCode-specific wrapping** using host/session context.
+At the same time, some of those tools cannot be exposed to the model as raw passthrough tools. They need **TeamCode-specific wrapping** using host/session context.
 
-A concrete example is a memory-oriented skill/tool that expects a backend-specific `workmem_id`, but in OpenCode the correct product behavior is to derive that automatically from the current `sessionID` (and potentially workspace/project/thread semantics), so the model never has to manage that identifier itself.
+A concrete example is a memory-oriented skill/tool that expects a backend-specific `workmem_id`, but in TeamCode the correct product behavior is to derive that automatically from the current `sessionID` (and potentially workspace/project/thread semantics), so the model never has to manage that identifier itself.
 
 This means:
 - **MCP alone is not enough**, because we still need a host/plugin layer to adapt ar
@@ -6696,14 +6696,14 @@ This means:
 
 ---
 
-## #25508 — [FEATURE]: Native --stdin support for opencode run to handle large prompts without ARG_MAX errors
+## #25508 — [FEATURE]: Native --stdin support for teamcode run to handle large prompts without ARG_MAX errors
 
 📅 `2026-05-03` | ✏️ **aleka** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/25508](https://github.com/anomalyco/opencode/issues/25508)
 
 
 ### Problem Description
 
-When using `opencode run` with large prompts (e.g., code reviews of 1700+ line files), the prompt is passed as a positional argument. This causes critical issues:
+When using `teamcode run` with large prompts (e.g., code reviews of 1700+ line files), the prompt is passed as a positional argument. This causes critical issues:
 
 1. **ARG_MAX limit**: On Linux, the maximum argument length is ~2MB. Large prompts exceed this, causing `E2BIG: argument list too long` errors before the command even executes.
 2. **Performance**: Passing large strings as command-line arguments is inefficient and slow.
@@ -6713,23 +6713,23 @@ When using `opencode run` with large prompts (e.g., code reviews of 1700+ line f
 
 ```bash
 # This fails with large prompts (>2MB)
-opencode run --model kimi-for-coding/kimi-k2-thinking "very large prompt..."
+teamcode run --model kimi-for-coding/kimi-k2-thinking "very large prompt..."
 
 # Current workaround: write to file in project directory
 echo "$prompt" > ./temp_prompt.txt
-opencode run --model kimi-for-coding/kimi-k2-thinking "Review this" -f ./temp_prompt.txt
+teamcode run --model kimi-for-coding/kimi-k2-thinking "Review this" -f ./temp_prompt.txt
 ```
 
 ### Proposed Solution
 
-Add native `--stdin` support for `opencode run`:
+Add native `--stdin` support for `teamcode run`:
 
 ```bash
 # Option 1: Explicit --stdin flag
-printf '%s' "$prompt" | opencode run --model kimi-for-coding/kimi-k2-thinking --stdin
+printf '%s' "$prompt" | teamcode run --model kimi-for-coding/kimi-k2-thinking --stdin
 
 # Option 2: Auto-detect stdin when no positional args
-printf '%s' "$prompt" | opencode run --model kimi-for-coding/kimi-k2-thinking
+printf '%s' "$prompt" | teamcode run --model kimi-for-coding/kimi-k2-thinking
 ```
 
 ### Benefits
@@ -6790,26 +6790,26 @@ Add `pre_chat.messages.transform` — a hook that fires **before** the LLM, rece
 
 ---
 
-## #25478 — [FEATURE] `opencode tool <name>` subcommand for non-LLM single-tool exec
+## #25478 — [FEATURE] `teamcode tool <name>` subcommand for non-LLM single-tool exec
 
 📅 `2026-05-02` | ✏️ **JRedeker** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/25478](https://github.com/anomalyco/opencode/issues/25478)
 
 
 ## Summary
 
-Need a CLI path to invoke a single MCP tool against a project context and exit, without any LLM round-trip. Current options (`opencode run --agent build "Run X tool"`) cost 60–300s of LLM-loop overhead per call, even for read-only verification ops.
+Need a CLI path to invoke a single MCP tool against a project context and exit, without any LLM round-trip. Current options (`teamcode run --agent build "Run X tool"`) cost 60–300s of LLM-loop overhead per call, even for read-only verification ops.
 
 ## Proposed
 
 ```bash
-opencode tool <tool-name> \
+teamcode tool <tool-name> \
   --dir <project-dir> \
   --args '{"key":"value"}' \
   [--format json|text]
 ```
 
 Behavior:
-1. Resolve project context for `--dir` (load plugins, MCP servers, config — same path as `opencode serve`).
+1. Resolve project context for `--dir` (load plugins, MCP servers, config — same path as `teamcode serve`).
 2. Look up `<tool-name>` in the registered tool registry (built-ins + plugin tools + MCP tools).
 3. Validate `--args` against the tool's input schema.
 4. Execute the tool's handler synchronously.
@@ -6820,9 +6820,9 @@ Behavior:
 
 Tooling-heavy plugins (ADV/spec-driven dev, codebase scanners, custom diagnostic tools) need automated cross-project ops. Examples:
 
-- `opencode tool adv_workflow_repair --dir ~/dev/other-repo --args '{"changeId":"..."}'` — repair another project's ADV workflow state from a script.
-- `opencode tool adv_change_list --dir ~/dev/proj-a --args '{"limit":50}' | jq` — read another project's ADV state for dashboards/CI.
-- `opencode tool sentry_get_issue --args '{"issueId":"X"}' --format json` — fetch a single MCP tool result in CI without spinning up an agent.
+- `teamcode tool adv_workflow_repair --dir ~/dev/other-repo --args '{"changeId":"..."}'` — repair another project's ADV workflow state from a script.
+- `teamcode tool adv_change_list --dir ~/dev/proj-a --args '{"limit":50}' | jq` — read another project's ADV state for dashboards/CI.
+- `teamcode tool sentry_get_issue --args '{"issueId":"X"}' --format json` — fetch a single MCP tool result in CI without spinning up an agent.
 - Migration scripts that need to invoke 20+ tools in 
 
 > *[Truncado — 3202 chars totais]*
@@ -6842,7 +6842,7 @@ Session title generation is a lightweight, insignificant operation — it doesn'
 
 ```jsonc
 {
-  "$schema": "https://opencode.ai/config.json",
+  "$schema": "https://teamcode.ai/config.json",
   "agent": {
     "title": {
       // can be set to "none", "minimal", "low", "medium", "high"
@@ -6871,25 +6871,25 @@ Session title generation is a lightweight, insignificant operation — it doesn'
 
 ### Describe the enhancement you want to request
 
-I use OpenCode client on my office computer that connects to remote servers via Opencode Server . The current remote workflow has a lot of friction because each remote OpenCode server needs its own provider/API credentials configured locally.
+I use TeamCode client on my office computer that connects to remote servers via Opencode Server . The current remote workflow has a lot of friction because each remote TeamCode server needs its own provider/API credentials configured locally.
 
-For example, if I use OpenRouter, I want to add my OpenRouter API key once on my desktop OpenCode client and then connect to remote servers without manually adding/copying that key to every server.
+For example, if I use OpenRouter, I want to add my OpenRouter API key once on my desktop TeamCode client and then connect to remote servers without manually adding/copying that key to every server.
 
 Right now, the practical options are all awkward:
 
 - Run /connect separately on every remote server
-- Copy ~/.local/share/opencode/auth.json to each server
+- Copy ~/.local/share/teamcode/auth.json to each server
 - Inject provider API keys through SSH/env vars
 - Use an external gateway/proxy just to centralize credentials
 
 All of these either add operational overhead or increase the chance of leaking long-lived API keys.
 
-Remote development is common. Many users build and run apps on VPS machines, cloud dev boxes, staging servers, and production-like environments. Requiring provider credentials to be configured separately on every server makes remote OpenCode harder to use and less secure.
+Remote development is common. Many users build and run apps on VPS machines, cloud dev boxes, staging servers, and production-like environments. Requiring provider credentials to be configured separately on every server makes remote TeamCode harder to use and less secure.
 
 Implementation Options
 Option 1: Temporary In-Memory Key Handoff
 
-The desktop client sends the provider API key to the remote OpenCode server over the authenticated OpenCode client/server connection when a remote session starts.
+The desktop client sends the provider API key to the remote TeamCode server over the authenticated TeamCode client/server connection when a remote session starts.
 
 The 
 
@@ -6938,25 +6938,25 @@ A more stable top bar would make the app feel calmer, more native, and more prof
 
 ## Description
 
-**What:** Integration for generating publication-ready scientific papers directly from OpenCode using local LLM via Ollama.
+**What:** Integration for generating publication-ready scientific papers directly from TeamCode using local LLM via Ollama.
 
-**Why this fits OpenCode:**
-- OpenCode is the AI-native IDE — researchers need academic writing tools integrated into their workflow
+**Why this fits TeamCode:**
+- TeamCode is the AI-native IDE — researchers need academic writing tools integrated into their workflow
 - CAJAL generates structured papers (7 sections: Abstract, Introduction, Methods, Results, Discussion, Conclusion, References) with real arXiv citations
-- 100% local via Ollama, matching OpenCode's privacy-first philosophy
+- 100% local via Ollama, matching TeamCode's privacy-first philosophy
 - Zero API cost, MIT licensed, open source
 
 **Integration approach:**
-- OpenCode tool integration (like existing /explain, /doc commands)
+- TeamCode tool integration (like existing /explain, /doc commands)
 - New command: `/paper <topic>` or `/cajal <topic>`
-- Ollama bridge for local inference (OpenCode already supports local models)
+- Ollama bridge for local inference (TeamCode already supports local models)
 - Structured output with tribunal scoring
 
 **Implementation:** https://github.com/Agnuxo1/CAJAL
 
 **Note on #22985:** I reviewed #22985 and it appears to be a different proposal (peer-reviewed paper generation via slash command using a community tool). CAJAL is a standalone local model with structured 7-section generation and tribunal scoring — the integration approach differs.
 
-Happy to adapt to OpenCode's tool conventions and contribute a PR with working code.
+Happy to adapt to TeamCode's tool conventions and contribute a PR with working code.
 
 ---
 
@@ -6992,14 +6992,14 @@ AWS docs: https://docs.aws.amazon.com/bedrock/latest/userguide/service-tiers-inf
 
 Please improve custom OpenAI-compatible providers so model capabilities do not have to be entered manually for every model.
 
-My custom provider exposes models through `/v1/models`, but OpenCode still needs each model manually configured in `opencode.jsonc` to get useful capabilities such as:
+My custom provider exposes models through `/v1/models`, but TeamCode still needs each model manually configured in `teamcode.jsonc` to get useful capabilities such as:
 
 - `limit.context`
 - `limit.output`
 - `modalities.input`, especially image support
 - reasoning variants/options for known OpenAI GPT/Codex models
 
-The practical problem: I had an image-capable GPT model exposed by a custom provider, but OpenCode treated it as text-only until I manually added:
+The practical problem: I had an image-capable GPT model exposed by a custom provider, but TeamCode treated it as text-only until I manually added:
 
 ```jsonc
 "modalities": {
@@ -7015,7 +7015,7 @@ For a provider with many models, manually adding all model metadata is very tedi
 Suggested behavior:
 
 - For custom OpenAI-compatible providers, call `{baseURL}/models` to discover available model IDs.
-- If a model ID is known in Models.dev, hydrate OpenCode metadata from there where possible.
+- If a model ID is known in Models.dev, hydrate TeamCode metadata from there where possible.
 - Merge this with user config, with explicit user config taking precedence.
 - At minimum, auto-fill known limits and modalities for recognized models.
 
@@ -7088,11 +7088,11 @@ Thanks!
 📅 `2026-05-02` | ✏️ **Po1nt9** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/25395](https://github.com/anomalyco/opencode/issues/25395)
 
 
-I use opencode desktop app and really wish it could run tasks automatically at set times.\n\nRight now I have to manually trigger opencode every time. Would be nice if I could set up a schedule for tasks, similar to cron.\n\nThings I would like to do:\n- run code review automatically every morning\n- check for outdated dependencies periodically  \n- run tests at night\n\n---\n- [x] I have searched for existing issues and confirmed this is not a duplicate\n- [x] I have read the contribution guidelines
+I use teamcode desktop app and really wish it could run tasks automatically at set times.\n\nRight now I have to manually trigger teamcode every time. Would be nice if I could set up a schedule for tasks, similar to cron.\n\nThings I would like to do:\n- run code review automatically every morning\n- check for outdated dependencies periodically  \n- run tests at night\n\n---\n- [x] I have searched for existing issues and confirmed this is not a duplicate\n- [x] I have read the contribution guidelines
 
 ---
 
-## #25393 — [FEATURE]: Can you please add edit feature. We want to use OpenCode as IDE
+## #25393 — [FEATURE]: Can you please add edit feature. We want to use TeamCode as IDE
 
 📅 `2026-05-02` | ✏️ **arenaura** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/25393](https://github.com/anomalyco/opencode/issues/25393)
 
@@ -7103,7 +7103,7 @@ I use opencode desktop app and really wish it could run tasks automatically at s
 
 ### Describe the enhancement you want to request
 
-I would like to use this tool like IDEA and edit files inside OpenCode. At this moment, I am going to Visual Studio Code to edit little things. This feature will help us to econom time and nerves.
+I would like to use this tool like IDEA and edit files inside TeamCode. At this moment, I am going to Visual Studio Code to edit little things. This feature will help us to econom time and nerves.
 
 ---
 
@@ -7127,7 +7127,7 @@ Current:
 {
   "plugin": [
     "/home/myuser/workspace/oc-timer/tui.tsx",
-    "/home/myuser/workspace/tokeninspector/plugins/opencode-tui/oc-tokeninspector.tsx"
+    "/home/myuser/workspace/tokeninspector/plugins/teamcode-tui/oc-tokeninspector.tsx"
   ]
 }
 ```
@@ -7138,7 +7138,7 @@ Proposed:
 {
   "plugin": [
     "$HOME/workspace/oc-timer/tui.tsx",
-    "$HOME/workspace/tokeninspector/plugins/opencode-tui/oc-tokeninspector.tsx"
+    "$HOME/workspace/tokeninspector/plugins/teamcode-tui/oc-tokeninspector.tsx"
   ]
 }
 ```
@@ -7156,7 +7156,7 @@ The `read` tool truncates any line exceeding **2000 characters** at a hardcoded 
 
 ### Location in code
 
-`packages/opencode/src/tool/read.ts`:
+`packages/teamcode/src/tool/read.ts`:
 ```typescript
 const MAX_LINE_LENGTH = 2000
 const MAX_LINE_SUFFIX = `... (line truncated to ${MAX_LINE_LENGTH} chars)`
@@ -7172,7 +7172,7 @@ const MAX_LINE_SUFFIX = `... (line truncated to ${MAX_LINE_LENGTH} chars)`
 ### Proposed solutions (any of the below)
 
 **Option A — Make it configurable:**
-Add a config field `read_max_line_length` to `opencode.json`:
+Add a config field `read_max_line_length` to `teamcode.json`:
 ```jsonc
 {
   "experimental": {
@@ -7307,7 +7307,7 @@ Acceptance:
 The sidebar panel contains all session-at-a-glance info:
 
 ```
-OpenCode JSON TUI session header visibility
+TeamCode JSON TUI session header visibility
 Context
 77,003 tokens · 39% used · $0.00 spent
 MCP  blender ● · figma ✗ · gmail ● · google-calendar ● · notion ● · playwright ●
@@ -7415,7 +7415,7 @@ Seems everything is included other than GIT version control (same as vs code eas
 
 ## Problem
 
-Currently, OpenCode does not support automatic fallback to an alternate model when the primary model fails. This causes issues when:
+Currently, TeamCode does not support automatic fallback to an alternate model when the primary model fails. This causes issues when:
 - API errors occur
 - Rate limits are hit
 - Timeouts occur
@@ -7430,7 +7430,7 @@ Add support for fallback models at configuration level:
 1. **Model Priority List** - Allow specifying multiple models in priority order:
 ```json
 {
-  "model": ["deepseek-ai/DeepSeek-V4-Pro", "opencode/gpt-5.1-codex"]
+  "model": ["deepseek-ai/DeepSeek-V4-Pro", "teamcode/gpt-5.1-codex"]
 }
 ```
 
@@ -7558,7 +7558,7 @@ The dialog and sidebar overlays in the TUI use hardcoded RGBA values for their b
 
 ## Problem
 
-In `packages/opencode/src/cli/cmd/tui/ui/dialog.tsx` and `packages/opencode/src/cli/cmd/tui/routes/session/index.tsx`, the overlay backgrounds are hardcoded:
+In `packages/teamcode/src/cli/cmd/tui/ui/dialog.tsx` and `packages/teamcode/src/cli/cmd/tui/routes/session/index.tsx`, the overlay backgrounds are hardcoded:
 
 ```ts
 // dialog.tsx
@@ -7570,9 +7570,9 @@ backgroundColor={RGBA.fromInts(0, 0, 0, 70)}
 
 That makes it impossible to adjust overlay transparency or color via their theme configuration.
 
-For my use case I'd like to set the background of opencode to transparent, which is possible for the main background but not for dialog backgrounds.
+For my use case I'd like to set the background of teamcode to transparent, which is possible for the main background but not for dialog backgrounds.
 
-See https://github.com/jnslmk/opencode-catppuccin-translucent-theme.
+See https://github.com/jnslmk/teamcode-catppuccin-translucent-theme.
 
 **Current behavior**
 <img width="1252" height="1337" alt="Image" src="https://github.com/user-attachments/assets/6a14c288-1397-48ab-a4f0-daae8288cf84" />
@@ -7602,7 +7602,7 @@ Add two new optional theme properties:
 
 ### Describe the enhancement you want to request
 
-The /review command prompt starts a much more detailed review than the default prompt, used in the GitHub action. And since the GitHub action does more than just review (like posting the response), we can't just use `opencode run --command review` to get the same result.
+The /review command prompt starts a much more detailed review than the default prompt, used in the GitHub action. And since the GitHub action does more than just review (like posting the response), we can't just use `teamcode run --command review` to get the same result.
 
 Ideally the same prompt that is used locally to review is also used in the GitHub action, so that the improvements to one are reflected in the other.
 
@@ -7625,7 +7625,7 @@ Ideally the same prompt that is used locally to review is also used in the GitHu
 
 ## Describe the enhancement you want to request
 
-Right now, when OpenCode asks for permission to run a command and I choose **Allow always**, the TUI only lets me confirm the server-suggested pattern(s). That works for simple cases, but it is too limiting for commands where the suggested rule is much broader than what I actually want to allow.
+Right now, when TeamCode asks for permission to run a command and I choose **Allow always**, the TUI only lets me confirm the server-suggested pattern(s). That works for simple cases, but it is too limiting for commands where the suggested rule is much broader than what I actually want to allow.
 
 For example, if the requested command is something like:
 
@@ -7678,7 +7678,7 @@ Suggested behavior:
 
 ### Describe the enhancement you want to request
 
-Thank you the opencode team for this GREAT software.
+Thank you the teamcode team for this GREAT software.
 
 I have checked the documentation and the current issue, but I couldn't find any information on how to hide the spent information on the context panel in the TUI. This information often diverts my attention away from the task and towards thoughts like "Oh dear, another dollar has been spent. I need to act quickly. 🏃 " Is there any way to hide it?
 
@@ -7699,7 +7699,7 @@ Problem
 When a model generates SVG or HTML content, the desktop app only shows raw code. There's no way to preview the rendered output without copying it to a browser.
 Proposed solution
 Add an inline preview panel in the desktop app (Tauri-based) that renders SVG/HTML when the model outputs a code block tagged as svg or html. Similar to how Claude.ai or LobeChat handle Artifacts.
-Why it belongs in OpenCode
+Why it belongs in TeamCode
 The desktop app already wraps a web UI via Tauri, so a webview-based renderer is a natural fit. This would make the desktop experience meaningfully different from the TUI.
 
 ---
@@ -7715,7 +7715,7 @@ The desktop app already wraps a web UI via Tauri, so a webview-based renderer is
 
 ### Describe the enhancement you want to request
 
-Would be awesome if opencode shipped with something like                      
+Would be awesome if teamcode shipped with something like                      
   https://github.com/cursor/cookbook out of the box — basically a curated set of
    TypeScript examples showing how to hook into the SDK.                        
 
@@ -7730,7 +7730,7 @@ Would be awesome if opencode shipped with something like
 
 ---
 
-## #25030 — [FEATURE]: Check OpenCode Go quota directly in the UI
+## #25030 — [FEATURE]: Check TeamCode Go quota directly in the UI
 
 📅 `2026-04-30` | ✏️ **franjorub** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/25030](https://github.com/anomalyco/opencode/issues/25030)
 
@@ -7741,7 +7741,7 @@ Would be awesome if opencode shipped with something like
 
 ### Describe the enhancement you want to request
 
-Hi, I just subscribed to OpenCode Go and loving it. I would like to know if it is possible to have a command to print the daily, weekly and monthly remaining quota directly in the agent, similar to the stats command in gemini cli.
+Hi, I just subscribed to TeamCode Go and loving it. I would like to know if it is possible to have a command to print the daily, weekly and monthly remaining quota directly in the agent, similar to the stats command in gemini cli.
 
 could this be released maybe as a plugin ?
 
@@ -7775,12 +7775,12 @@ Each time we submit a prompt, clear the screen so the prompt is on the top, and 
 
 The `gemini.txt` system prompt tells the agent to ask clarifying questions but never mentions the `question` tool. The tool is registered and available, but Gemini models usually fall back to plain-text questions instead of the structured multi-choice UI without further, explicit instruction from the user.
 
-This is the same class of problem as #22244 (Gemini missing Task tool instructions)—it seeks to encourage Gemini models to make use of the tools OpenCode provides.
+This is the same class of problem as #22244 (Gemini missing Task tool instructions)—it seeks to encourage Gemini models to make use of the tools TeamCode provides.
 
 A prior attempt at this change (PR #8982) was cloned since there was no existing linked issue.
 
 ### Proposed change
-One line in `packages/opencode/src/session/prompt/gemini.txt` line 30:
+One line in `packages/teamcode/src/session/prompt/gemini.txt` line 30:
 
 Append "using the `question` tool" to the existing "ask concise, targeted clarification questions" instruction.
 
@@ -7799,7 +7799,7 @@ Append "using the `question` tool" to the existing "ask concise, targeted clarif
 
 ### Describe the enhancement you want to request
 
-During compaction, OpenCode enforces `tools: {}` and `summary: true`, blocking all tool calls. This prevents plugins from performing critical write operations before context is compressed — specifically, archiving important understandings from the conversation into scratchpad files and/or persistent memory (e.g., Memory.md).
+During compaction, TeamCode enforces `tools: {}` and `summary: true`, blocking all tool calls. This prevents plugins from performing critical write operations before context is compressed — specifically, archiving important understandings from the conversation into scratchpad files and/or persistent memory (e.g., Memory.md).
 
 The existing `experimental.session.compacting` hook only allows injecting text into the summary prompt. It cannot execute tools, so structured data migration is impossible.
 
@@ -7837,7 +7837,7 @@ Add an `experimental.session.pre-compact` hook that fires **before** compaction,
 
 ### Describe the enhancement you want to request
 
-Currently, there is no way to directly inspect or view system messages (such as system prompts, environment info, or initial context details) from the OpenCode TUI during a session. This feature request proposes adding a TUI feature to view the current or previous system message(s) associated with the active session or a selected session. 
+Currently, there is no way to directly inspect or view system messages (such as system prompts, environment info, or initial context details) from the TeamCode TUI during a session. This feature request proposes adding a TUI feature to view the current or previous system message(s) associated with the active session or a selected session. 
 
 **Benefits:**
 - Allows users to verify, debug, and audit what system prompt/context is being provided to the model.
@@ -7855,7 +7855,7 @@ This would give TUI users parity with API/web users who can already view or expo
 
 ---
 
-## #24981 — [FEATURE]: Support explicit proxy configuration in opencode config
+## #24981 — [FEATURE]: Support explicit proxy configuration in teamcode config
 
 📅 `2026-04-29` | ✏️ **zhangmuwuge** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/24981](https://github.com/anomalyco/opencode/issues/24981)
 
@@ -7866,19 +7866,19 @@ This would give TUI users parity with API/web users who can already view or expo
 
 ### Describe the enhancement you want to request
 
-OpenCode currently supports proxy configuration through standard environment variables such as `HTTPS_PROXY`,
+TeamCode currently supports proxy configuration through standard environment variables such as `HTTPS_PROXY`,
   `HTTP_PROXY`, and `NO_PROXY`. This works for simple terminal usage, but it is hard to scope safely when different
   developer tools on the same machine need different proxy routes.
 
-  In my setup, OpenCode needs a dedicated proxy entrypoint, while other tools use another proxy. Using global
+  In my setup, TeamCode needs a dedicated proxy entrypoint, while other tools use another proxy. Using global
   environment variables affects unrelated tools, and using shell wrapper scripts is awkward for Windows, desktop app,
   IDE, and corporate VPN setups.
 
-  I would like OpenCode to support explicit proxy configuration in `opencode.json` / `opencode.jsonc`, for example:
+  I would like TeamCode to support explicit proxy configuration in `teamcode.json` / `teamcode.jsonc`, for example:
 
   ```jsonc
   {
-    "$schema": "https://opencode.ai/config.json",
+    "$schema": "https://teamcode.ai/config.json",
     "network": {
       "proxy": {
         "http": "http://127.0.0.1:7890",
@@ -7894,7 +7894,7 @@ OpenCode currently supports proxy configuration through standard environment var
   - Keep existing environment variable support.
   - Define clear precedence between config-based proxy settings and proxy environment variables.
   - Apply the resolved proxy settings consistently to provider requests, plugin installs, MCP/network requests, and
-    other OpenCode-managed HTTP clients.
+    other TeamCode-managed HTTP clients.
   - Show resolved proxy set
 
 > *[Truncado — 2049 chars totais]*
@@ -7935,19 +7935,19 @@ cheers!
 
 ## What do you want?
 
-Add BRHP to the OpenCode ecosystem plugins list.
+Add BRHP to the TeamCode ecosystem plugins list.
 
 Repository: https://github.com/ZanzyTHEbar/brhp
 
-BRHP is an early OpenCode plugin for structured, persistent planning. It adds `/brhp` commands, local planning-session persistence, bounded planner history, and a TUI sidebar for active planning state.
+BRHP is an early TeamCode plugin for structured, persistent planning. It adds `/brhp` commands, local planning-session persistence, bounded planner history, and a TUI sidebar for active planning state.
 
 ## Why?
 
-BRHP gives planning its own inspectable local state instead of keeping plans only as transient chat notes. It is intended for larger or more constrained OpenCode tasks where users need to resume planning, inspect current state, and keep project instructions in the loop.
+BRHP gives planning its own inspectable local state instead of keeping plans only as transient chat notes. It is intended for larger or more constrained TeamCode tasks where users need to resume planning, inspect current state, and keep project instructions in the loop.
 
 ## Notes
 
-BRHP is not published on npm yet. The README documents local `file://` package loading for both `opencode.json` and `tui.json` until npm publication.
+BRHP is not published on npm yet. The README documents local `file://` package loading for both `teamcode.json` and `tui.json` until npm publication.
 
 ---
 
@@ -7992,7 +7992,7 @@ Related: #19190 asked for broader quota surfaces. This is the smaller prompt-met
 - The signal lives where context usage already appears.
 - A provider-quota shape leaves room for future providers without hardcoding the prompt row to Codex only.
 
-Prototype screenshots: https://github.com/50sotero/opencode-usage-quota#screenshots
+Prototype screenshots: https://github.com/50sotero/teamcode-usage-quota#screenshots
 
 ---
 
@@ -8016,7 +8016,7 @@ A security plugin registers security scanning tools. These should only be visibl
 - AgentConfig.tools only controls execution permission, not LLM context visibility
 - tool.execute.before can block execution but the tools are still visible and suggested by the LLM
 - System prompt injection discourages use but does not hide the tools
-- oh-my-openagent's disabled_tools only filters its own internal tool list, not OpenCode core's plugin tool registry
+- oh-my-openagent's disabled_tools only filters its own internal tool list, not TeamCode core's plugin tool registry
 
 ## Proposed Solution
 
@@ -8040,7 +8040,7 @@ This would allow plugins to dynamically hide tools
 
 ---
 
-## #24950 — [FEATURE]:OpenCode  creates configuration files in every directory where it's launched,can you create a switch to on/off it???
+## #24950 — [FEATURE]:TeamCode  creates configuration files in every directory where it's launched,can you create a switch to on/off it???
 
 📅 `2026-04-29` | ✏️ **smithyyang** | 💬 8 | 🔗 [https://github.com/anomalyco/opencode/issues/24950](https://github.com/anomalyco/opencode/issues/24950)
 
@@ -8052,9 +8052,9 @@ This would allow plugins to dynamically hide tools
 ### Describe the enhancement you want to request
 
 ls -a
-./   .bash_profile  .claude/    .gitmodules  .mcp.json             opencode.json  .ripgreprc  .zprofile
+./   .bash_profile  .claude/    .gitmodules  .mcp.json             teamcode.json  .ripgreprc  .zprofile
 ../  .bashrc        .gitconfig  .idea        oh-my-openagent.json  .profile       .vscode     .zshrc
-just as what you can see, every i launch it ,opencode will create these files ,this is annoying
+just as what you can see, every i launch it ,teamcode will create these files ,this is annoying
 And it seems that , there is no a built-in switch to control it
 
 ---
@@ -8095,15 +8095,15 @@ A new optional `vision_model` config field lets users pin a specific model (e.g.
 
 ### Describe the enhancement you want to request
 
-Please add CrewBee to the OpenCode Ecosystem Projects list.
+Please add CrewBee to the TeamCode Ecosystem Projects list.
 
-CrewBee is an independent Agent Team framework for OpenCode. It helps users define task/project-specific Agent Teams and project them into OpenCode agents.
+CrewBee is an independent Agent Team framework for TeamCode. It helps users define task/project-specific Agent Teams and project them into TeamCode agents.
 
 This is a docs-only ecosystem entry.
 
 Proposed row:
 
-| [CrewBee](https://github.com/CrewBeeLab/CrewBee) | Agent Team framework for designing task-specific teams and projecting them into OpenCode |
+| [CrewBee](https://github.com/CrewBeeLab/CrewBee) | Agent Team framework for designing task-specific teams and projecting them into TeamCode |
 
 PR: #24939
 
@@ -8116,7 +8116,7 @@ PR: #24939
 
 ### Description
 
-Add an interactive ASCII pet companion to the OpenCode TUI sidebar that brings personality and visual feedback to the terminal experience.
+Add an interactive ASCII pet companion to the TeamCode TUI sidebar that brings personality and visual feedback to the terminal experience.
 
 ### Proposed Implementation
 
@@ -8134,7 +8134,7 @@ Add an interactive ASCII pet companion to the OpenCode TUI sidebar that brings p
 - CAVA spawned as child process, parses ASCII output
 - Graceful fallback to simulated spectrum when CAVA unavailable
 
-**Why This Belongs in OpenCode:**
+**Why This Belongs in TeamCode:**
 - Adds personality to terminal experience (similar to Claude Code's startup animation)
 - Provides ambient visual feedback during long-running tasks
 - Audio visualization useful for monitoring system activity
@@ -8145,7 +8145,7 @@ Add an interactive ASCII pet companion to the OpenCode TUI sidebar that brings p
 
 - [x] I have checked this feature doesn't already exist
 - [x] I have built and tested locally
-- [x] This follows OpenCode's plugin architecture
+- [x] This follows TeamCode's plugin architecture
 
 ### Additional Context
 
@@ -8170,7 +8170,7 @@ I can try to file a PR.
 
 ---
 
-## #24915 — [FEATURE]: Edit phone number or other settings in opencode
+## #24915 — [FEATURE]: Edit phone number or other settings in teamcode
 
 📅 `2026-04-29` | ✏️ **Souhib** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/24915](https://github.com/anomalyco/opencode/issues/24915)
 
@@ -8183,14 +8183,14 @@ I can try to file a PR.
 
 Hello guys, I hope you're doing well.
 I checked and I don't think someone mentioned this previously in a ticket, at least I hope I did not create a duplicate
-I want to know if it's possible to add the fact that we can edit our phone number or any other information of our opencode account.
+I want to know if it's possible to add the fact that we can edit our phone number or any other information of our teamcode account.
 Even in the website there is no way of doing that.
 I would personally like to be able to edit my phone number but it's not possible.
 Thanks a lot.
 
 ---
 
-## #24903 — [FEATURE]:app桌面端口增加可手动设置 opencode serve 启动端口和是否需要密码
+## #24903 — [FEATURE]:app桌面端口增加可手动设置 teamcode serve 启动端口和是否需要密码
 
 📅 `2026-04-29` | ✏️ **xiao-peng-16** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/24903](https://github.com/anomalyco/opencode/issues/24903)
 
@@ -8201,7 +8201,7 @@ Thanks a lot.
 
 ### Describe the enhancement you want to request
 
-app桌面端口增加可手动设置 opencode serve 启动的端口和是否需要密码
+app桌面端口增加可手动设置 teamcode serve 启动的端口和是否需要密码
 
 ---
 
@@ -8231,7 +8231,7 @@ app桌面端口增加可手动设置 opencode serve 启动的端口和是否需�
 
 ### Describe the enhancement you want to request
 
-When using opencode, the previous model with small context often compresses the context, and sometimes after compression, the AI forgets too much and becomes foolish; Nowadays, using the deepseek-v4-pro model has quite a large context, with 600K contexts used in daily life. It feels like there is a lot of nonsense and wasted tokens in the context. Using default instructions to compress the context is afraid of compressing too much.
+When using teamcode, the previous model with small context often compresses the context, and sometimes after compression, the AI forgets too much and becomes foolish; Nowadays, using the deepseek-v4-pro model has quite a large context, with 600K contexts used in daily life. It feels like there is a lot of nonsense and wasted tokens in the context. Using default instructions to compress the context is afraid of compressing too much.
 At present, context compression has limited options for users. I would like a plugin that allows users to choose which part of the context to compress:
 Pluggable context management allows users to use commands to track the usage of the current context and the returned context. LLM needs to classify the context based on its content. Users can choose to uninstall or load relevant contexts. The saved context can be used as persistent memory across conversations.
 How feasible is this idea?
@@ -8325,15 +8325,15 @@ Suggested behavior:
 
 ### Describe the enhancement you want to request
 
-I need to update OpenCode via manual downloads. 
+I need to update TeamCode via manual downloads. 
 
-Since OpenCode receives frequent version updates, it is easy to confuse different installation packages after downloading.
+Since TeamCode receives frequent version updates, it is easy to confuse different installation packages after downloading.
 
 Therefore, I suggest adding the version number to the filename of build artifacts.
 
 Example:
 ```
-opencode-v1_14_29-linux-x64-baseline-musl.tar.gz
+teamcode-v1_14_29-linux-x64-baseline-musl.tar.gz
 ```
 
 ---
@@ -8372,7 +8372,7 @@ time, switched via plan change.
 ### Why "Open" as a variant, not a separate plan
 Naming it `Go Open` / `Pro Open` keeps the lineup compact 
 (Free / Go / Pro / Zen, each with optional Open variant) and 
-matches OpenCode's "Open" branding. Users pick at signup; 
+matches TeamCode's "Open" branding. Users pick at signup; 
 switching uses the standard plan-change flow so pricing stays 
 deterministic.
 
@@ -8386,7 +8386,7 @@ deterministic.
 
 ---
 
-## #24878 — [FEATURE]: Add opencode-quota to ecosystem plugins
+## #24878 — [FEATURE]: Add teamcode-quota to ecosystem plugins
 
 📅 `2026-04-29` | ✏️ **slkiser** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/24878](https://github.com/anomalyco/opencode/issues/24878)
 
@@ -8399,16 +8399,16 @@ deterministic.
 
 ### Describe the enhancement
 
-Add `opencode-quota` to the `Plugins` table on the ecosystem docs page.
+Add `teamcode-quota` to the `Plugins` table on the ecosystem docs page.
 
-`opencode-quota` provides provider quota toasts and local token usage reports without making LLM/model API calls. Listing it in the ecosystem docs would make it easier for users to discover a plugin focused on quota visibility and local usage reporting. Works via **toasts**, **TUI sidebar**, and slash commands.
+`teamcode-quota` provides provider quota toasts and local token usage reports without making LLM/model API calls. Listing it in the ecosystem docs would make it easier for users to discover a plugin focused on quota visibility and local usage reporting. Works via **toasts**, **TUI sidebar**, and slash commands.
 
 ### Proposed docs change
 
 Add this plugin entry to `packages/web/src/content/docs/ecosystem.mdx`:
 
-- Plugin: `opencode-quota`
-- URL: https://github.com/slkiser/opencode-quota
+- Plugin: `teamcode-quota`
+- URL: https://github.com/slkiser/teamcode-quota
 - Description: Provider quota toasts and local token usage reports with zero LLM/model API calls
 
 ### Related PR
@@ -8419,29 +8419,29 @@ Implemented in #21905.
 
 ---
 
-## #24874 — [FEATURE]: Support Bearer token authentication for opencode serve
+## #24874 — [FEATURE]: Support Bearer token authentication for teamcode serve
 
 📅 `2026-04-29` | ✏️ **Edison-A-N** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/24874](https://github.com/anomalyco/opencode/issues/24874)
 
 
 ## Problem
 
-Currently `opencode serve` only supports HTTP Basic Auth via `OPENCODE_SERVER_PASSWORD`. This creates friction in common deployment scenarios:
+Currently `teamcode serve` only supports HTTP Basic Auth via `OPENCODE_SERVER_PASSWORD`. This creates friction in common deployment scenarios:
 
 1. **Reverse proxy / API gateway integration** — Most ingress controllers (nginx, Caddy, Traefik, Cloudflare Tunnel) and API gateways use Bearer tokens for upstream authentication. Operators must add a translation layer to convert Bearer → Basic.
 
-2. **Programmatic access** — External tools (CI pipelines, scripts, desktop apps) typically pass `Authorization: Bearer <token>` rather than encoding `username:password` in base64. The current Basic Auth requirement forces each client to know the username convention ("opencode").
+2. **Programmatic access** — External tools (CI pipelines, scripts, desktop apps) typically pass `Authorization: Bearer <token>` rather than encoding `username:password` in base64. The current Basic Auth requirement forces each client to know the username convention ("teamcode").
 
 3. **Credential leakage surface** — Basic Auth embeds the password in every request header as reversible base64, whereas a Bearer token is opaque and easier to rotate/revoke without changing the underlying secret.
 
 Related issues that reflect current auth pain points:
-- #18611 — `opencode attach` hardcodes username "opencode", ignoring `OPENCODE_SERVER_USERNAME`
+- #18611 — `teamcode attach` hardcodes username "teamcode", ignoring `OPENCODE_SERVER_USERNAME`
 - #12805 — Health check endpoint is password-protected (no way to exempt it without disabling all auth)
 - #18325 — Web client Basic Auth bugs
 
 ## Current Implementation
 
-From [`packages/opencode/src/server/middleware.ts`](https://github.com/anomalyco/opencode/blob/9fbeafb/packages/opencode/src/server/middleware.ts#L38-L51):
+From [`packages/teamcode/src/server/middleware.ts`](https://github.com/anomalyco/opencode/blob/9fbeafb/packages/teamcode/src/server/middleware.ts#L38-L51):
 
 ```typescript
 export const AuthMiddleware: MiddlewareHandler = (c, next) => {
@@ -8473,9 +8473,9 @@ It would be very nice to have this model have way better researching capabilitie
 
 ## Problem
 
-When OpenCode loads skills from a project with many Claude Code skills, the system prompt can reach 40KB+, with the skills listing serialized as XML tags (`<available_skills>`, `<skill>`, `<description>`, etc.). For some local Ollama models this XML structure causes them to switch into XML output mode — specifically, models like qwen3-coder and devstral revert to HERMES XML tool-call format instead of JSON, which OpenCode can't parse. Tool invocations then fail silently or log `invalid Invalid Tool`.
+When TeamCode loads skills from a project with many Claude Code skills, the system prompt can reach 40KB+, with the skills listing serialized as XML tags (`<available_skills>`, `<skill>`, `<description>`, etc.). For some local Ollama models this XML structure causes them to switch into XML output mode — specifically, models like qwen3-coder and devstral revert to HERMES XML tool-call format instead of JSON, which TeamCode can't parse. Tool invocations then fail silently or log `invalid Invalid Tool`.
 
-There's currently no way to change this serialization format without patching OpenCode directly.
+There's currently no way to change this serialization format without patching TeamCode directly.
 
 ## Proposed solution
 
@@ -8516,11 +8516,11 @@ Tested with devstral:24b via Ollama, 50 runs each, same system prompt and tool d
 
 ### Describe the enhancement you want to request
 
-Currently, when oc runs inside tmux its being shown as bash, but the tmux window name should be either `OC` or `opencode` 
+Currently, when oc runs inside tmux its being shown as bash, but the tmux window name should be either `OC` or `teamcode` 
 
-So, what we need is that the opencode must emit the window-name escape so the tmux status bar shows `opencode` instead of `bash`
+So, what we need is that the teamcode must emit the window-name escape so the tmux status bar shows `teamcode` instead of `bash`
 
-env: tmux 3.6a, opencode: dev
+env: tmux 3.6a, teamcode: dev
 
 ## Screenshot
 
@@ -8569,7 +8569,7 @@ Especially in multi-tab workflows, it would be much easier to spot when a termin
 
 The color option for Claude Code subagents supports only named colors like: red, blue, green, yellow, purple, orange, pink, or cyan (see [Claude Code docs](https://code.claude.com/docs/en/sub-agents#supported-frontmatter-fields)).
 
-This causes incompatiblity between Claude Code subagents and OpenCode subagents, for example this agent:
+This causes incompatiblity between Claude Code subagents and TeamCode subagents, for example this agent:
 ```
 ---
 name: judge
@@ -8579,18 +8579,18 @@ color: red
 ---
 ```
 
-causes opencode not to start:
+causes teamcode not to start:
 ```
-$ opencode
-Configuration is invalid at ~/.opencode/agents/judge.md
+$ teamcode
+Configuration is invalid at ~/.teamcode/agents/judge.md
 ↳ Invalid string: must match pattern /^#[0-9a-fA-F]{6}$/ color
 ```
 
-OpenCode should also support this color config.
+TeamCode should also support this color config.
 
 ---
 
-## #24796 — [FEATURE]: WSL: OpenCode CLI cannot access Zed DB path from WSL environment
+## #24796 — [FEATURE]: WSL: TeamCode CLI cannot access Zed DB path from WSL environment
 
 📅 `2026-04-28` | ✏️ **Rostov4an1n** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/24796](https://github.com/anomalyco/opencode/issues/24796)
 
@@ -8601,27 +8601,27 @@ OpenCode should also support this color config.
 
 ### Describe the enhancement you want to request
 
-Hi! I ran into an issue with OpenCode CLI when using Zed on Windows with a WSL Remote project.
+Hi! I ran into an issue with TeamCode CLI when using Zed on Windows with a WSL Remote project.
 
 **Environment:**
 * OS: Windows 11
 * Editor: Zed, project opened through WSL Remote
 * Project path inside WSL: `/home/mmaks/Dev/kanban-flow`
-* OpenCode: `1.14.28`
+* TeamCode: `1.14.28`
 * Terminal: WSL Ubuntu
-* Goal: use OpenCode CLI, not ACP / Zed Agent Panel
+* Goal: use TeamCode CLI, not ACP / Zed Agent Panel
 
 ---
 
 ## Problem: Zed DB path resolution fails in WSL
 
-When OpenCode runs inside WSL, `resolveZedDbPath()` only checks Linux/macOS-style paths and does not automatically find the Windows Zed DB under `%LOCALAPPDATA%\Zed\db\0-stable\db.sqlite`. Setting `OPENCODE_ZED_DB` manually works in principle, but reading the live SQLite/WAL DB directly through `/mnt/c/...` can produce SQLite `disk I/O error (10)`. Copying `db.sqlite`, `db.sqlite-wal`, and `db.sqlite-shm` into the WSL filesystem and pointing `OPENCODE_ZED_DB` to that local snapshot works.
+When TeamCode runs inside WSL, `resolveZedDbPath()` only checks Linux/macOS-style paths and does not automatically find the Windows Zed DB under `%LOCALAPPDATA%\Zed\db\0-stable\db.sqlite`. Setting `OPENCODE_ZED_DB` manually works in principle, but reading the live SQLite/WAL DB directly through `/mnt/c/...` can produce SQLite `disk I/O error (10)`. Copying `db.sqlite`, `db.sqlite-wal`, and `db.sqlite-shm` into the WSL filesystem and pointing `OPENCODE_ZED_DB` to that local snapshot works.
 
-Currently, a workaround is to mirror the Zed database in WSL before running OpenCode.
+Currently, a workaround is to mirror the Zed database in WSL before running TeamCode.
 
-It would be great if OpenCode could use a more robust editor bridge for Zed Remote/WSL instead of relying solely on the active editor line in the SQLite database.
+It would be great if TeamCode could use a more robust editor bridge for Zed Remote/WSL instead of relying solely on the active editor line in the SQLite database.
 
-There is also a solution using a wrapper that mirrors the database so that OpenCode can read it in WSL (workaround).
+There is also a solution using a wrapper that mirrors the database so that TeamCode can read it in WSL (workaround).
 
 Add to source
 
@@ -8652,7 +8652,7 @@ For example, in the screenshot below I wanted to run `psql` commands, but these 
 
 <img width="571" height="182" alt="Image" src="https://github.com/user-attachments/assets/599dea2c-0dd6-41be-a46b-9f3f463a8d66" />
 
-It would be useful to be able to edit the pattern in the prompt before confirming, so I can tune it without having to manually open `opencode.json` after the fact. In this case I wanted to be able to allow `rtk psql *` commands only for the duration of the session.
+It would be useful to be able to edit the pattern in the prompt before confirming, so I can tune it without having to manually open `teamcode.json` after the fact. In this case I wanted to be able to allow `rtk psql *` commands only for the duration of the session.
 
 ---
 
@@ -8685,7 +8685,7 @@ Ideally I'd like to be able to just sign up with email. Any chance we could add 
 ### Describe the enhancement you want to request
 
 # Problem
-Single global `opencode.db` causes:
+Single global `teamcode.db` causes:
 - large DB size
 - WAL issues
 - UI slowdowns/freezes
@@ -8693,9 +8693,9 @@ Single global `opencode.db` causes:
 
 # Proposal
 - Use per-project SQLite DB:
-  `~/.local/share/opencode/projects/<project>/opencode.db`
+  `~/.local/share/teamcode/projects/<project>/teamcode.db`
 
-  maybe optionally make option to sync/mirror with project-dir .opencode dir
+  maybe optionally make option to sync/mirror with project-dir .teamcode dir
 
 - Add snapshot support:
   - create/restore DB snapshots (timestamp-based)
@@ -8729,15 +8729,15 @@ Single global `opencode.db` causes:
 
 #### Problem Context
 
-Currently, many enterprise teams and open-source users run OpenCode against self-hosted models (e.g., via vLLM, Ollama, or custom API gateways) rather than public cloud providers. 
+Currently, many enterprise teams and open-source users run TeamCode against self-hosted models (e.g., via vLLM, Ollama, or custom API gateways) rather than public cloud providers. 
 
-During peak usage, these self-hosted endpoints often experience high concurrency. When rate limits are hit or the queue is full, the backend typically responds with an HTTP `429 Too Many Requests`. OpenCode currently handles this via silent retries (Retry-Backoff) or simply hangs with a generic busy spinner. From the user's perspective, the TUI appears "stuck" or "unresponsive," leading to a poor developer experience.
+During peak usage, these self-hosted endpoints often experience high concurrency. When rate limits are hit or the queue is full, the backend typically responds with an HTTP `429 Too Many Requests`. TeamCode currently handles this via silent retries (Retry-Backoff) or simply hangs with a generic busy spinner. From the user's perspective, the TUI appears "stuck" or "unresponsive," leading to a poor developer experience.
 
 #### Proposed Solution
 
 I propose adding a standard extension to the Server-Sent Events (SSE) parsing layer and the TUI to support **Queue Status Rendering**.
 
-Similar to how tools like Trae handle server congestion by displaying *"Server busy, you are number X in the queue"*, OpenCode could parse specific SSE events emitted by intermediate gateways and display them dynamically in the TUI.
+Similar to how tools like Trae handle server congestion by displaying *"Server busy, you are number X in the queue"*, TeamCode could parse specific SSE events emitted by intermediate gateways and display them dynamically in the TUI.
 
 **The Workflow:**
 1. When a user prompt is sent, instead of immediately returning a `429`, the cust
@@ -8794,10 +8794,10 @@ Thi
 
   ### Problem
 
-  The `opencode serve` CLI supports configuring allowed CORS origins via the `--cors` flag:
+  The `teamcode serve` CLI supports configuring allowed CORS origins via the `--cors` flag:
 
 ```bash
-  opencode serve --cors http://localhost:5173 --cors https://app.example.com
+  teamcode serve --cors http://localhost:5173 --cors https://app.example.com
 ```
   However, the SDK's createOpencodeServer function does not expose this option, making it impossible to configure CORS when spawning the server programmatically.
   This blocks browser-based clients from using the SDK to start a local server and connect to it from a different origin.
@@ -8812,7 +8812,7 @@ Thi
 ```
   ### Why This Matters
 
-Projects that embed opencode as a server inside a web or desktop app need to control CORS policy at startup. Without this option, users are forced to either launch
+Projects that embed teamcode as a server inside a web or desktop app need to control CORS policy at startup. Without this option, users are forced to either launch
    the server manually via CLI or patch the process args themselves — both workarounds that defeat the purpose of the SDK.
 
   Proposed API
@@ -8936,7 +8936,7 @@ It's the same no matter how much I drag to resize edges.
 
 Please provide an official Dev Container Feature so it can be installed directly from `devcontainer.json`.
 
-I know there is already an unofficial feature at [zendril/devcontainer-feature-opencode](https://github.com/zendril/devcontainer-feature-opencode), but relying on an unofficial package is risky. It may stop being maintained, fall behind releases, or become compromised, which would leave users stuck. An official feature maintained by anomalyco would be more stable and trustworthy.
+I know there is already an unofficial feature at [zendril/devcontainer-feature-teamcode](https://github.com/zendril/devcontainer-feature-teamcode), but relying on an unofficial package is risky. It may stop being maintained, fall behind releases, or become compromised, which would leave users stuck. An official feature maintained by anomalyco would be more stable and trustworthy.
 
 This is already a common pattern. Anthropic ships an official Claude Code feature at [anthropics/devcontainer-features](https://github.com/anthropics/devcontainer-features), and GitHub ships an official Copilot CLI feature at [devcontainers/features](https://github.com/devcontainers/features)
 
@@ -8945,7 +8945,7 @@ Example:
 // .devcontainer/devcontainer.json
 {
   "features": {
-    "ghcr.io/anomalyco/features/opencode:1": {}
+    "ghcr.io/anomalyco/features/teamcode:1": {}
   }
 }
 ```
@@ -8982,7 +8982,7 @@ maybe we should set varint `default` 's thinking type into
 
 ### Describe the enhancement you want to request
 
-I frequently use the `/review` command to review code written by opencode, but I've been thinking recently about why its reviews often miss issues that copilot can find. So I planned to read the official documentation, but I found that there is no introduction to the review command in the official docs. I searched GitHub and found that it is indeed a preset. Later, I successfully replaced it using the custom command introduced in the official documentation.
+I frequently use the `/review` command to review code written by teamcode, but I've been thinking recently about why its reviews often miss issues that copilot can find. So I planned to read the official documentation, but I found that there is no introduction to the review command in the official docs. I searched GitHub and found that it is indeed a preset. Later, I successfully replaced it using the custom command introduced in the official documentation.
 To achieve a similar effect to the official one, you need to add this header:
 ```
 --- 
@@ -8995,7 +8995,7 @@ subtask: true
 
 I initiated this issue to help people who have similar problems as me. Additionally, I think review should be added to the official documentation, just like init.
 
-https://opencode.ai/docs/tui#commands
+https://teamcode.ai/docs/tui#commands
 
 <img width="1597" height="1254" alt="Image" src="https://github.com/user-attachments/assets/9d00f49e-c34f-40f4-b62c-b6643cd7c411" />
 
@@ -9188,7 +9188,7 @@ Alexander
 
 ---
 
-## #24464 — [FEATURE]: Add opencode-byterover to ecosystem docs
+## #24464 — [FEATURE]: Add teamcode-byterover to ecosystem docs
 
 📅 `2026-04-26` | ✏️ **ian-pascoe** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/24464](https://github.com/anomalyco/opencode/issues/24464)
 
@@ -9199,15 +9199,15 @@ Alexander
 
 ### Describe the enhancement you want to request
 
-Add `opencode-byterover` to the ecosystem docs at https://opencode.ai/docs/ecosystem/.
+Add `teamcode-byterover` to the ecosystem docs at https://teamcode.ai/docs/ecosystem/.
 
-`opencode-byterover` is an OpenCode plugin that connects sessions to ByteRover memory through `@byterover/brv-bridge`, persisting useful session context when sessions become idle or compact and recalling relevant context during system prompt transformation.
+`teamcode-byterover` is an TeamCode plugin that connects sessions to ByteRover memory through `@byterover/brv-bridge`, persisting useful session context when sessions become idle or compact and recalling relevant context during system prompt transformation.
 
-Repository: https://github.com/ian-pascoe/opencode-byterover
+Repository: https://github.com/ian-pascoe/teamcode-byterover
 
 ---
 
-## #24457 — [FEATURE]: Add opencode-adaptive-thinking to ecosystem docs
+## #24457 — [FEATURE]: Add teamcode-adaptive-thinking to ecosystem docs
 
 📅 `2026-04-26` | ✏️ **ian-pascoe** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/24457](https://github.com/anomalyco/opencode/issues/24457)
 
@@ -9218,9 +9218,9 @@ Repository: https://github.com/ian-pascoe/opencode-byterover
 
 ### Describe the enhancement you want to request
 
-Add [opencode-adaptive-thinking](https://github.com/ian-pascoe/opencode-adaptive-thinking) to the Ecosystem docs under Plugins.
+Add [teamcode-adaptive-thinking](https://github.com/ian-pascoe/teamcode-adaptive-thinking) to the Ecosystem docs under Plugins.
 
-It is an OpenCode plugin that lets agents actively adjust model reasoning effort during a session, with configurable system guidance and a tool for switching between valid reasoning-effort variants.
+It is an TeamCode plugin that lets agents actively adjust model reasoning effort during a session, with configurable system guidance and a tool for switching between valid reasoning-effort variants.
 
 ---
 
@@ -9244,7 +9244,7 @@ The two are complementary; neither subsumes the other.
 
 ### Problem
 
-Working on multiple sessions in parallel today means juggling several terminal windows running separate `opencode` instances. The TUI is single-session: switching between sessions only happens via the `DialogSessionList` modal (`<leader>l`), which closes after each pick and gives no visibility on what other sessions are doing in the background.
+Working on multiple sessions in parallel today means juggling several terminal windows running separate `teamcode` instances. The TUI is single-session: switching between sessions only happens via the `DialogSessionList` modal (`<leader>l`), which closes after each pick and gives no visibility on what other sessions are doing in the background.
 
 I keep one session per task/issue and constantly want to (a) glance at whether another session is still working and (b) jump back to it without re-searching the list.
 
@@ -9313,7 +9313,7 @@ The data already exists on every `AssistantMessage` via `message.tokens.input`, 
 
 ---
 
-## #24426 — [FEATURE]: Laxtex rendering in `opencode web` ui
+## #24426 — [FEATURE]: Laxtex rendering in `teamcode web` ui
 
 📅 `2026-04-26` | ✏️ **mbrotos** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/24426](https://github.com/anomalyco/opencode/issues/24426)
 
@@ -9352,7 +9352,7 @@ I'd like to use agent to be triggered in discussion posts and comments.
 
 ## Problem
 
-OpenCode currently lacks a unified color convention for task states. Users working with multiple projects simultaneously cannot identify at a glance:
+TeamCode currently lacks a unified color convention for task states. Users working with multiple projects simultaneously cannot identify at a glance:
 
 1. **Which project is currently executing** (no visual indicator)
 2. **What state a task is in** (no clear color convention)
@@ -9425,7 +9425,7 @@ Related to #18154 (new projects added to bottom instead of top).
 
 ### 2. 🧩 Installed Plugins in Sidebar
 
-There is no dedicated section showing installed OpenCode plugins. A sidebar section should display:
+There is no dedicated section showing installed TeamCode plugins. A sidebar section should display:
 - Plugin name and version
 - Status (enabled / disabled / error)
 - Quick access to enable/disable
@@ -9452,7 +9452,7 @@ This would be consistent with how tools like VS Code handle extensions in their 
 ```
 
 ## Environment
-- OpenCode v0.15.3
+- TeamCode v0.15.3
 - OS: Zori
 
 > *[Truncado — 2124 chars totais]*
@@ -9472,7 +9472,7 @@ This would be consistent with how tools like VS Code handle extensions in their 
 
 i like letting smart models like gpt manage my commits. i have a section on continuous commits in my global `AGENTS.md`.
 
-however opencode currently hard-codes a rule in `packages/opencode/src/tool/bash.txt`:
+however teamcode currently hard-codes a rule in `packages/teamcode/src/tool/bash.txt`:
 ```
 Only create commits when requested by the user. If unclear, ask first.
 ...
@@ -9495,7 +9495,7 @@ please make this configurable. i get the safety aspect and think the current def
 - [x] I have verified this feature I'm about to request hasn't been suggested before.
 
 ### Describe the enhancement you want to request
-I'm using OpenCode on macOS and noticed that the main window (especially in chat/output history) lacks mouse wheel scrolling support. Currently, I have to manually click and drag or use small increments to navigate, which is extremely slow and frustrating when dealing with long outputs or code blocks.
+I'm using TeamCode on macOS and noticed that the main window (especially in chat/output history) lacks mouse wheel scrolling support. Currently, I have to manually click and drag or use small increments to navigate, which is extremely slow and frustrating when dealing with long outputs or code blocks.
 
 **Expected Behavior**
 The application should support standard mouse wheel/trackpad scrolling to allow fast and smooth vertical movement through the content, consistent with other macOS applications.
@@ -9525,11 +9525,11 @@ I've checked existing issues and found some related discussions:
 
 ## Summary
 
-When a user cancels an opencode turn while an MCP tool is running, opencode should notify the MCP server so the server can stop the in-flight tool work.
+When a user cancels an teamcode turn while an MCP tool is running, teamcode should notify the MCP server so the server can stop the in-flight tool work.
 
 ## Problem
 
-Today the local opencode session/tool state can be cancelled, but the MCP tool request itself may keep running on the MCP server. This can leave external work, subprocesses, browser sessions, or other long-running handlers active after the user has cancelled.
+Today the local teamcode session/tool state can be cancelled, but the MCP tool request itself may keep running on the MCP server. This can leave external work, subprocesses, browser sessions, or other long-running handlers active after the user has cancelled.
 
 ## Expected behavior
 
@@ -9544,7 +9544,7 @@ Forward the tool execution abort signal to the MCP SDK request options when call
 
 ## Acceptance criteria
 
-- Cancelling an opencode turn while an MCP tool is running cancels the pending MCP request.
+- Cancelling an teamcode turn while an MCP tool is running cancels the pending MCP request.
 - The MCP server receives a cancellation notification for that request.
 - Existing local cancellation behavior still works.
 
@@ -9561,7 +9561,7 @@ Forward the tool execution abort signal to the MCP SDK request options when call
 
 ### Describe the enhancement you want to request
 
-opencode should allow spawning a remote protocol (eg, ssh shell and using that for the context).
+teamcode should allow spawning a remote protocol (eg, ssh shell and using that for the context).
 
 To get a shell in a specific directory you run `ssh -t xxx.xxx.xxx.xxx "cd /directory_wanted ; bash --login"`;
 
@@ -9569,11 +9569,11 @@ This would pin all interaction via the ssh shell (except coordinating with the A
 
 # Why integral and not a plugin:
 
-I've found myself having to setup a bunch of opencode profiles on different machines all doing similar work. It'd be 100x easier to have a single opencode instance & provider as a platform, to then ssh to. It securely protects the provider connection and leaves no trace that the remote ssh is anything but a normal user.
+I've found myself having to setup a bunch of teamcode profiles on different machines all doing similar work. It'd be 100x easier to have a single teamcode instance & provider as a platform, to then ssh to. It securely protects the provider connection and leaves no trace that the remote ssh is anything but a normal user.
 
 # Why not teach:
 
-I'm aware we can teach the agents how to use ssh (they already do), but fundamentally, with security, you want it to be a hardcode ssh agent that doesn't accidently forget it's suppose to run commands remotely. There's no way some AGENTS.md is going to ensure rm -rf / doesn't accidenly the local system. A pure tunnel into a remote system operated on by opencode.
+I'm aware we can teach the agents how to use ssh (they already do), but fundamentally, with security, you want it to be a hardcode ssh agent that doesn't accidently forget it's suppose to run commands remotely. There's no way some AGENTS.md is going to ensure rm -rf / doesn't accidenly the local system. A pure tunnel into a remote system operated on by teamcode.
 
 # Future effort:
 
@@ -9596,7 +9596,7 @@ As we love modular things, you coul
 
 ## Summary
 
-`model` and `variant/effort` currently have inconsistent persistence behavior in OpenCode session APIs:
+`model` and `variant/effort` currently have inconsistent persistence behavior in TeamCode session APIs:
 1. `POST /session` with `model` is not reliably applied as the session default.
 2. `variant`/`effort` is message-scoped only (one-shot), while `model` can be made persistent.
 3. There is no clean, explicit session config API to atomically read/update both `model` and `variant/effort`.
@@ -9604,7 +9604,7 @@ This forces clients to implement workarounds (empty no-reply messages, local sta
 
 ## Environment
 
-- opencode server versions observed: 1.14.x
+- teamcode server versions observed: 1.14.x
 - Reproduced on both normal port mode and serve mode
 - Client behavior validated via HTTP API (`/session`, `/session/{id}/message`, `/provider`)
 
@@ -9662,7 +9662,7 @@ The Copilot SDK supports two delivery modes:
 
 **Requested feature:**
 
-In OpenCode, when messages are in the queue while the model is processing, allow the user to click on a queued message to force its immediate reading by the model (steering mode). This would convert the message from `enqueue` to `immediate` delivery, injecting it into the current turn instead of waiting for FIFO processing.
+In TeamCode, when messages are in the queue while the model is processing, allow the user to click on a queued message to force its immediate reading by the model (steering mode). This would convert the message from `enqueue` to `immediate` delivery, injecting it into the current turn instead of waiting for FIFO processing.
 
 **Use case:**
 
@@ -9688,11 +9688,11 @@ While the agent is working, I realize it's heading in the wrong direction. I've 
 ### Describe the enhancement you want to request
 
  **Problem:**
-  The Editor Context Protocol automatically attaches the current editor file/selection to every prompt via WebSocket. This works well for a single opencode window, but **breaks se
-  ssion isolation when running multiple opencode windows in parallel**.
+  The Editor Context Protocol automatically attaches the current editor file/selection to every prompt via WebSocket. This works well for a single teamcode window, but **breaks se
+  ssion isolation when running multiple teamcode windows in parallel**.
 
   **Concrete scenario:**
-  I often run 2–3 opencode TUI windows side-by-side for different tasks:
+  I often run 2–3 teamcode TUI windows side-by-side for different tasks:
   - Window A: working on `backend/api.ts`
   - Window B: working on `frontend/page.tsx`
   - Window C: working on `docs/README.md`
@@ -9728,7 +9728,7 @@ While the agent is working, I realize it's heading in the wrong direction. I've 
 
 Azure OpenAI deployments often cannot use the exact base model name as the deployment name. For example, I have an Azure OpenAI resource where the actual deployment is named `gpt-5.4-1`, while the underlying model is `gpt-5.4`.
 
-opencode's Azure provider documentation recommends that the deployment name match the model name. That works when Azure allows it, but it is not always possible in practice.
+teamcode's Azure provider documentation recommends that the deployment name match the model name. That works when Azure allows it, but it is not always possible in practice.
 
 <img width="1136" height="574" alt="Image" src="https://github.com/user-attachments/assets/76c8cf75-681f-42a2-81c1-e198235fe280" />
 
@@ -9755,7 +9755,7 @@ I tried this config:
 
 This successfully sends requests to the Azure deployment `gpt-5.4-1`, so text requests work.
 
-However, model metadata is no longer inherited from the built-in `azure/gpt-5.4` entry. As a result, capabilities such as image/PDF input, limits, costs, and display metadata are lost. For example, image input is rejected by opencode before reaching Azure because the custom model no longer has the `modalities` metadata from the built-in `gpt-5.4` model.
+However, model metadata is no longer inherited from the built-in `azure/gpt-5.4` entry. As a result, capabilities such as image/PDF input, limits, costs, and display metadata are lost. For example, image input is rejected by teamcode before reaching Azure because the custom model no longer has the `modalities` metadata from the built-in `gpt-5.4` model.
 
 ### Current behavior
 
@@ -9765,7 +9765,7 @@ However, model metadata is no longer inherited from the built-in `azure/gpt-5.4`
 
 ---
 
-## #24255 — [FEATURE]: auto-cleanup of large cached legacy opencode binaries
+## #24255 — [FEATURE]: auto-cleanup of large cached legacy teamcode binaries
 
 📅 `2026-04-25` | ✏️ **naranyala** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/24255](https://github.com/anomalyco/opencode/issues/24255)
 
@@ -9776,7 +9776,7 @@ However, model metadata is no longer inherited from the built-in `azure/gpt-5.4`
 
 ### Describe the enhancement you want to request
 
-in case of execute this command `du -ch ~/.bun/install/cache/opencode-*`; my opencode legacy version take my disk usage over ~15GB.
+in case of execute this command `du -ch ~/.bun/install/cache/teamcode-*`; my teamcode legacy version take my disk usage over ~15GB.
 
 is that possible to have auto clean-up legacy binaries, or this just bun javascript issues, idk; because i use bun javascript runtime as my default runtime.
 
@@ -9797,9 +9797,9 @@ thank you.
 
 There is [this](https://github.com/anomalyco/opencode/issues/12018) plugin for shell.env environment variable injection. Great! But that doesn't work for skills (or it does and i don't know how to use it?)
 
-I made a skill (uploads a file to a server) that required an API key. I don't want to put that key in that skill folder. There is too much risk of that accidentally leaking out when i push a project (with skills) to a repository or share in other means. I need to somehow tell opencode "if this skill gets executed, inject these environment variables". That would allow me to only inject these variables when my skill gets executed.
+I made a skill (uploads a file to a server) that required an API key. I don't want to put that key in that skill folder. There is too much risk of that accidentally leaking out when i push a project (with skills) to a repository or share in other means. I need to somehow tell teamcode "if this skill gets executed, inject these environment variables". That would allow me to only inject these variables when my skill gets executed.
 
-Ideally this would just be stored in the opencode config file where you can already specify [skill permissions](https://opencode.ai/docs/permissions/). If it's up to me i'd prefer being able to add skill specific environment details through that config too where i'd add environment variables.
+Ideally this would just be stored in the teamcode config file where you can already specify [skill permissions](https://teamcode.ai/docs/permissions/). If it's up to me i'd prefer being able to add skill specific environment details through that config too where i'd add environment variables.
 
 ---
 
@@ -9830,7 +9830,7 @@ This breaks flow and is error-prone (wrong path, forgotten save step). Interacti
 ### Proposed behavior
 
 - While typing an answer to a `question` prompt, pressing paste (⌘V / Ctrl+V) with an image on the clipboard:
-  1. Writes the image bytes to a temp file (e.g. `$TMPDIR/opencode-clipboard-<timestamp>.<ext>`).
+  1. Writes the image bytes to a temp file (e.g. `$TMPDIR/teamcode-clipboard-<timestamp>.<ext>`).
   2. Inserts the **absolute path** as text at the ca
 
 > *[Truncado — 2485 chars totais]*
@@ -9850,13 +9850,13 @@ edit: kinda, but issue was closed without result, see comment below
 
 ### Problem
 
-The `Toggle MCPs` command is reachable from the command palette and via the `/mcps` slash command, but it is the only entry in that section of `packages/opencode/src/cli/cmd/tui/app.tsx` without a `keybind` property. Because `tui.json` only recognizes identifiers that opencode's source declares, there is currently no way for end users to bind `Toggle MCPs` to a shortcut.
+The `Toggle MCPs` command is reachable from the command palette and via the `/mcps` slash command, but it is the only entry in that section of `packages/teamcode/src/cli/cmd/tui/app.tsx` without a `keybind` property. Because `tui.json` only recognizes identifiers that teamcode's source declares, there is currently no way for end users to bind `Toggle MCPs` to a shortcut.
 
-Tested with opencode `1.14.22`.
+Tested with teamcode `1.14.22`.
 
 ### Evidence
 
-From `packages/opencode/src/cli/cmd/tui/app.tsx` (dev branch):
+From `packages/teamcode/src/cli/cmd/tui/app.tsx` (dev branch):
 
 ```ts
 {
@@ -9896,11 +9896,11 @@ Add a `keybind` property to the `mcp.list` command so users can bind it via `tui
 
 ### Describe the enhancement you want to request
 
-Add a `/uptime` slash command that shows how long the OpenCode process has been running, similar to the UNIX `uptime` command.
+Add a `/uptime` slash command that shows how long the TeamCode process has been running, similar to the UNIX `uptime` command.
 
 When invoked, it displays a toast with the current time and elapsed duration, e.g. `11:23 AM  up 3h 1m 45s`.
 
-Implementation: store `Date.now()` at process startup in `opencode-process.ts`, expose it via the `/global/health` API endpoint (`startTime` field), and register the `/uptime` slash command in the TUI.
+Implementation: store `Date.now()` at process startup in `teamcode-process.ts`, expose it via the `/global/health` API endpoint (`startTime` field), and register the `/uptime` slash command in the TUI.
 
 ---
 
@@ -9970,7 +9970,7 @@ Add an `unarchive` action that restores an archived session to active status and
 
 ### Describe the enhancement you want to request
 
-I would like OpenCode to support `codex` as a first-class provider for Codex-compatible Responses API endpoints.  OpenCode already supports many providers through `models.dev` and generic SDK adapters. In this case, a `models.dev` entry alone is not enough because Codex-compatible gateways expect Codex CLI-style request construction, not only a model list:
+I would like TeamCode to support `codex` as a first-class provider for Codex-compatible Responses API endpoints.  TeamCode already supports many providers through `models.dev` and generic SDK adapters. In this case, a `models.dev` entry alone is not enough because Codex-compatible gateways expect Codex CLI-style request construction, not only a model list:
   - `POST <baseURL>/responses`
   - top-level `instructions` and Responses API `input`
   - `store: false` by default
@@ -9980,7 +9980,7 @@ I would like OpenCode to support `codex` as a first-class provider for Codex-com
   The goal is to let users configure a Codex-compatible API base and use models like:
 
   ```bash
-  opencode -m codex/gpt-5.4
+  teamcode -m codex/gpt-5.4
 ```
 
   without relying on provider-specific proxy hacks or MITM rewriting.
@@ -9990,7 +9990,7 @@ I would like OpenCode to support `codex` as a first-class provider for Codex-com
   - Add codex as a provider id available in auth/config flows.
   - Route codex/* models through a native Responses API transport.
   - Preserve configurable baseURL and API-key auth for user-specified Codex-compatible providers.
-  - Translate OpenCode messages and tool calls to the Codex-compatible Responses protocol.
+  - Translate TeamCode messages and tool calls to the Codex-compatible Responses protocol.
   - Add focused tests for provider loading, request construction, stream parsing, and tool-call handling.
 
 
@@ -10012,7 +10012,7 @@ I am opening this as an issue first because this seems like a core/runtime featu
 
 ## Why this is important to us
 
-We are looking at a large enterprise rollout of OpenCode through a new Enterprise LLM Gateway that uses standard OAuth 2.0 `client_credentials` authentication.
+We are looking at a large enterprise rollout of TeamCode through a new Enterprise LLM Gateway that uses standard OAuth 2.0 `client_credentials` authentication.
 
 Without something built into the provider path, the likely alternative for us is maintaining custom internal plugin/auth workarounds for what is otherwise a standard enterprise gateway pattern. We are hoping a small built-in capability here could avoid that and also help others using similar enterprise gateways.
 
@@ -10085,7 +10085,7 @@ I just installed Agent-Shell for Emacs that allows using Claude Code subscriptio
 
 Anthropic is blocking 3rd-party tools, but only if you hook directly to their API endpoints used by Claude Code. This looks like a way to do this "legally".
 
-ACP is already part of OpenCode, you only need to make it run as a client and spawn `claude-agent-acp` as a subprocess.
+ACP is already part of TeamCode, you only need to make it run as a client and spawn `claude-agent-acp` as a subprocess.
 
 ---
 
@@ -10150,19 +10150,19 @@ Use Cases
 Description:
 
 Problem
-Currently, switching the active LLM model in OpenCode requires either:
+Currently, switching the active LLM model in TeamCode requires either:
 
 Manually clicking through the TUI model selector
 Editing the config file and starting a new session
 There is no way to programmatically switch models at runtime via the plugin system or any scriptable interface.
 
 What's Missing
-Looking at the plugin API (@opencode-ai/plugin):
+Looking at the plugin API (@teamcode-ai/plugin):
 
 The chat.params hook provides model in the input (read-only), while the output only allows modifying temperature, topP, topK, maxOutputTokens. There's no way to change the model.
 The config hook only receives input, with no output to modify the active configuration.
 The client SDK object has no documented method like client.session.setModel() or similar.
-The shell.env hook only affects child process environments, not OpenCode's own model selection.
+The shell.env hook only affects child process environments, not TeamCode's own model selection.
 This makes it impossible to implement model hot-switching as a plugin, which blocks several valuable use cases.
 
 Proposed Enhancement
@@ -10190,7 +10190,7 @@ client.session.setModel() API — Expose a metho
 
 ### Describe the enhancement you want to request
 
-The following are two issues that makes it annoying to use OpenCode. Fixing these would make the tool less painful and more productive. thx
+The following are two issues that makes it annoying to use TeamCode. Fixing these would make the tool less painful and more productive. thx
 
 ## Issue 1: Project selection
 
@@ -10206,7 +10206,7 @@ Request is to make it work like user expects; should be able to click through di
 
 **Problem**
 
-I create different directories for different worktrees, so I can work in parallel. But OpenCode makes it annoying to find and select those worktrees.
+I create different directories for different worktrees, so I can work in parallel. But TeamCode makes it annoying to find and select those worktrees.
 
 I can open a project to a specific Git worktree, but doing this in Web UI is annoying as I have to go look up the name of the worktree dir, open a project, type out the dir name, select the dir. I have to do this for every worktree, for every time I want to make any 
 
@@ -10246,7 +10246,7 @@ Add an Uzbek translation of the README as `README.uz.md`, and register the langu
 
 ### Why
 
-The README is already translated into 22 languages (Turkish, Ukrainian, Vietnamese, Bengali, etc.), but Uzbek is missing. Adding it makes OpenCode more accessible to Uzbek-speaking developers - ~35M native speakers — and stays consistent with the existing i18n pattern in the repo.
+The README is already translated into 22 languages (Turkish, Ukrainian, Vietnamese, Bengali, etc.), but Uzbek is missing. Adding it makes TeamCode more accessible to Uzbek-speaking developers - ~35M native speakers — and stays consistent with the existing i18n pattern in the repo.
 
 ### Scope
 
@@ -10286,7 +10286,7 @@ When asked to create a GitHub issue or GitLab ticket in plan mode, the agent res
 
 > "Plan mode restricts me to read-only operations. Creating a GitHub issue requires running `gh issue create`, which I cannot do in this mode."
 
-This happens because the system prompt (`packages/opencode/src/session/prompt/plan.txt`) states:
+This happens because the system prompt (`packages/teamcode/src/session/prompt/plan.txt`) states:
 
 ```
 STRICTLY FORBIDDEN: ANY file edits, modifications, or system changes.
@@ -10317,14 +10317,14 @@ you MUST NOT make any edits, run an
 
 Hi,
 
-I’m trying to run opencode on an iMac 13,2 with an Intel i7-3770 (Ivy Bridge), which supports AVX but not AVX2.
+I’m trying to run teamcode on an iMac 13,2 with an Intel i7-3770 (Ivy Bridge), which supports AVX but not AVX2.
 Currently, the macOS build requires AVX2 and fails to run on this machine.
 
 Would it be possible to:
 - Provide a macOS build targeting a more compatible baseline (e.g. x86-64 without AVX2), or
 - Offer a separate “legacy CPU” release?
 
-This would allow opencode to run on older but still perfectly usable Macs (Ivy Bridge / Haswell pre-AVX2), which are still quite common especially in patched macOS environments.
+This would allow teamcode to run on older but still perfectly usable Macs (Ivy Bridge / Haswell pre-AVX2), which are still quite common especially in patched macOS environments.
 
 I understand this might have performance implications, but having a compatible build would be very helpful.
 
@@ -10350,7 +10350,7 @@ We expect that in Plan mode, the model will not be informed of unavailable tools
 
 ---
 
-## #23934 — [FEATURE]: Persist OpenCode Web sidebar open-project state outside browser localStorage
+## #23934 — [FEATURE]: Persist TeamCode Web sidebar open-project state outside browser localStorage
 
 📅 `2026-04-23` | ✏️ **sacoscada-rgb** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/23934](https://github.com/anomalyco/opencode/issues/23934)
 
@@ -10358,16 +10358,16 @@ We expect that in Plan mode, the model will not be informed of unavailable tools
 - [x] I have verified this feature I'm about to request hasn't been suggested before.
 
 ### Describe the enhancement you want to request
-Please persist the OpenCode Web left-sidebar open-project list in OpenCode-managed persistent storage instead of only browser localStorage.
+Please persist the TeamCode Web left-sidebar open-project list in TeamCode-managed persistent storage instead of only browser localStorage.
 
-Today the sessions/chats still exist in `opencode.db`, but the sidebar project setup is tied to browser storage for the current origin. In practice that means the setup can appear lost when:
-- `opencode web` starts on a different port
+Today the sessions/chats still exist in `teamcode.db`, but the sidebar project setup is tied to browser storage for the current origin. In practice that means the setup can appear lost when:
+- `teamcode web` starts on a different port
 - browser localStorage/site data is cleared
 - switching between compatible clients/browser contexts
 
 This makes the environment feel reset even though the session data is still present.
 
-A better behavior would be to store the opened sidebar projects in durable OpenCode storage (for example `opencode.db` or another server-side persistent store) and hydrate the web client from there.
+A better behavior would be to store the opened sidebar projects in durable TeamCode storage (for example `teamcode.db` or another server-side persistent store) and hydrate the web client from there.
 
 That would make the sidebar survive restarts, port changes, and browser storage loss, and would make saved sessions much easier to rediscover.
 
@@ -10384,7 +10384,7 @@ That would make the sidebar survive restarts, port changes, and browser storage 
 
 ### Describe the enhancement you want to request
 
-after you connect to a provider, sometimes mistakenly (for example connected to zen instead of go) there is no way to disconnect without getting out of opencode, editing files and hoping it wasn't cached. in my case it tries spawning gpt nano agents as i "have" zen, which fail
+after you connect to a provider, sometimes mistakenly (for example connected to zen instead of go) there is no way to disconnect without getting out of teamcode, editing files and hoping it wasn't cached. in my case it tries spawning gpt nano agents as i "have" zen, which fail
 
 ---
 
@@ -10432,7 +10432,7 @@ TUI toasts emitted via `client.tui.showToast()` (and the underlying `/tui/show-t
 
 ### Use case
 
-The [`opencode-aidevops`](https://github.com/anomalyco/aidevops) plugin renders session-start framework status (version, env, security posture, advisories) as a consolidated TUI toast. Severity is classified per line; variant and duration follow the highest severity present:
+The [`teamcode-aidevops`](https://github.com/anomalyco/aidevops) plugin renders session-start framework status (version, env, security posture, advisories) as a consolidated TUI toast. Severity is classified per line; variant and duration follow the highest severity present:
 
 - error (30s): security advisories
 - warning (15s): pulse-stalled / external contribution alerts
@@ -10496,7 +10496,7 @@ I ask you to add a release branch which will contain the latest release code for
 
 ### Describe the enhancement you want to request
 
-Add Czech localization for the documentation and README so Czech-speaking users can read OpenCode docs in Czech.
+Add Czech localization for the documentation and README so Czech-speaking users can read TeamCode docs in Czech.
 
 The localization should add Czech docs under `/docs/cs`, Czech docs UI strings, and a Czech README while keeping code blocks, commands, config keys, flags, model names, and provider names unchanged.
 
@@ -10610,7 +10610,7 @@ Add a tab bar interface that displays:
 
 Same as https://github.com/anomalyco/opencode/issues/11786, but the bot tells to open a new issue, so here it is.
 
-I use OpenCode desktop, on Linux, and only get sound notification. Most times I work without desktop sound, to avoid disturbing others. A pop-up would be really useful, to know when the agent requires attention or has finished its work.
+I use TeamCode desktop, on Linux, and only get sound notification. Most times I work without desktop sound, to avoid disturbing others. A pop-up would be really useful, to know when the agent requires attention or has finished its work.
 
 ---
 
@@ -10625,7 +10625,7 @@ I use OpenCode desktop, on Linux, and only get sound notification. Most times I 
 
 ### Describe the enhancement you want to request
 
-In opencode web UI's git changes view and folder tree view, audio previewing (including functions like play, pause, showing metadata information and spectrogram) is not supported for now.
+In teamcode web UI's git changes view and folder tree view, audio previewing (including functions like play, pause, showing metadata information and spectrogram) is not supported for now.
 
 This feature could be very useful for AI developers and creators on audio/speech/music.
 
@@ -10657,11 +10657,11 @@ Enable the primary agent and sub-agents to conduct multiple turns of dialogue wi
 
 ### Summary
 
-The `github-copilot` provider plugin ignores user-configured headers (`provider.github-copilot.options.headers` in `opencode.json`) when it fetches the list of available models. The same headers are honoured for chat requests via the plugin's `fetch` wrapper, so the behaviour is inconsistent.
+The `github-copilot` provider plugin ignores user-configured headers (`provider.github-copilot.options.headers` in `teamcode.json`) when it fetches the list of available models. The same headers are honoured for chat requests via the plugin's `fetch` wrapper, so the behaviour is inconsistent.
 
 ### Where
 
-`packages/opencode/src/plugin/github-copilot/copilot.ts`, the `provider.models()` hook constructs its header map from scratch and does not read `provider.options.headers`:
+`packages/teamcode/src/plugin/github-copilot/copilot.ts`, the `provider.models()` hook constructs its header map from scratch and does not read `provider.options.headers`:
 
 ```ts
 async models(provider, ctx) {
@@ -10670,7 +10670,7 @@ async models(provider, ctx) {
     base(auth.enterpriseUrl),
     {
       Authorization: `Bearer ${auth.refresh}`,
-      "User-Agent": `opencode/${InstallationVersion}`,
+      "User-Agent": `teamcode/${InstallationVersion}`,
     },
     provider.models,
   )
@@ -10681,11 +10681,11 @@ By contrast, the `auth.loader().fetch` path does spread `init.headers` into the 
 
 ### Why this matters
 
-Users who configure extra headers in `opencode.json` reasonably expect those headers to apply to all requests the provider makes, including the model discovery call. Today they only apply to chat. This makes the model list returned by `opencode models github-copilot` (and the model picker) inconsistent with the model set actually reachable on chat requests, depending on what the user sets.
+Users who configure extra headers in `teamcode.json` reasonably expect those headers to apply to all requests the provider makes, including the model discovery call. Today they only apply to chat. This makes the model list returned by `teamcode models github-copilot` (and the model picker) inconsistent with the model set actually reachable on chat requests, depending on what the user sets.
 
 ### Reproduction
 
-1. In `~/.config/opencode/opencode.json`:
+1. In `~/.config/teamcode/teamcode.json`:
 
 ```json
 {
@@ -10714,7 +10714,7 @@ Users who configure extra headers in `opencode.json` reasonably expect those hea
 
 Config feature needed
 
-In `opencode.json` substitution with `{file:PATH_TO_FILE}` substitutes ALL file content : It works.
+In `teamcode.json` substitution with `{file:PATH_TO_FILE}` substitutes ALL file content : It works.
 Add a new feature : `{file:PATH_TO_FILE:KEY}` to substitute ONLY the line of the file starting with the KEY
 
 ---
@@ -10727,7 +10727,7 @@ MY_LOGIN=foo.bar
 MY_PASSWORD=bar.foo
 ```
 
-In opencode.json (for example in `mcp` section
+In teamcode.json (for example in `mcp` section
 
 ```JSON
 ...
@@ -10751,7 +10751,7 @@ In opencode.json (for example in `mcp` section
 
 ### Describe the enhancement you want to request
 
-OpenCode is awesome, but we don't have an official plugin marketplace, and the plugin management commands are not well-developed. We need an official plugin marketplace, something like the ClaudeCode Plugin Marketplace. We also need a more user-friendly plugin management command, something like ClaudeCode /plugin /plugins.
+TeamCode is awesome, but we don't have an official plugin marketplace, and the plugin management commands are not well-developed. We need an official plugin marketplace, something like the ClaudeCode Plugin Marketplace. We also need a more user-friendly plugin management command, something like ClaudeCode /plugin /plugins.
 
 ---
 
@@ -10794,7 +10794,7 @@ This would be especially valuable for MCP tools where the content being created 
 
 ### Describe the enhancement you want to request
 
-Currently, when using subagents in OpenCode, there is no visual indication in the TUI prompt footer about how many subagents are active or exist in total. Users have to manually navigate to the subagent view to check this information.
+Currently, when using subagents in TeamCode, there is no visual indication in the TUI prompt footer about how many subagents are active or exist in total. Users have to manually navigate to the subagent view to check this information.
 
 **Proposed enhancement:**
 Add a subagent status indicator to the prompt footer (bottom-right area next to the "commands" hint) that:
@@ -10837,7 +10837,7 @@ This provides at-a-glance awareness of background subagent activity without leav
 
 ## Description
 
-I’d like OpenCode to support a persistent background daemon agent that runs alongside the main agent for a workspace.
+I’d like TeamCode to support a persistent background daemon agent that runs alongside the main agent for a workspace.
 
 The main idea is to introduce a first-class background agent that stays alive during the session and can exchange information with the main agent through both pull and push communication.
 
@@ -10883,7 +10883,7 @@ In that scenario, the daemon agent could continuously maintain per-repo informat
 
 Support duplicate provider config sections so users can define multiple instances of the same provider, especially Azure, with different endpoints, regions, resource hubs, deployments, and API keys. This is needed because Azure OpenAI / Azure AI Foundry model availability is often split across regions and hubs, so a single Azure config is not always sufficient.
 
-It would also be useful if each duplicated provider config could declare a based_on-style identifier pointing to the underlying provider type, for example azure. That way, OpenCoder could still apply default provider logic and default model configuration correctly, while allowing multiple distinct Azure provider instances in one config.
+It would also be useful if each duplicated provider config could declare a based_on-style identifier pointing to the underlying provider type, for example azure. That way, TeamCoder could still apply default provider logic and default model configuration correctly, while allowing multiple distinct Azure provider instances in one config.
 
 This would improve support for real-world Azure setups, reduce config workarounds, and make multi-region / multi-resource deployments much easier to manage.
 
@@ -10892,7 +10892,7 @@ This would improve support for real-world Azure setups, reduce config workaround
 
 <summary>Detailed explanation</summary>
 
-Add support for duplicate provider configuration sections so a single OpenCoder setup can define multiple instances of the same provider, especially for Azure. This would allow users to configure multiple Azure resources, multiple regions, and different API keys under separate entries, rather than being limited to a single Azure provider block.
+Add support for duplicate provider configuration sections so a single TeamCoder setup can define multiple instances of the same provider, especially for Azure. This would allow users to configure multiple Azure resources, multiple regions, and different API keys under separate entries, rather than being limited to a single Azure provider block.
 
 This is particularly important for Azure OpenAI and Azur
 
@@ -10917,7 +10917,7 @@ Add a fourth option next to *Allow once / Allow always / Reject*: **Explain**. P
 
 ### Implementation sketch
 
-UI-only: Explain reuses the reject-with-feedback path with a canned message asking for explanation before retry. Zero backend changes, contained to `packages/opencode/src/cli/cmd/tui/routes/session/permission.tsx`. If the UX warrants it, a non-blocking variant that keeps the permission pending while the agent explains is a natural follow-up.
+UI-only: Explain reuses the reject-with-feedback path with a canned message asking for explanation before retry. Zero backend changes, contained to `packages/teamcode/src/cli/cmd/tui/routes/session/permission.tsx`. If the UX warrants it, a non-blocking variant that keeps the permission pending while the agent explains is a natural follow-up.
 
 Before:
 <img width="2555" height="1438" alt="Image" src="https://github.com/user-attachments/assets/7c1df2a2-4556-4eb4-af42-e2248f29b8e1" />
@@ -11035,7 +11035,7 @@ This guarantees that skills context is always adjacent to the active turn — th
 
 **Is your feature request related to a problem? Please describe.**
 
-Currently, OpenCode only watches and reflects changes for files within the current working directory (CWD). If a file from an external directory is added to the context (via `@`-mention with an absolute path or via MCP), modifications made to that file externally are not reflected in the sidebar UI. The watcher in `file/watcher.ts` is scoped to the project root, so any out-of-tree path in the active context is silently ignored.
+Currently, TeamCode only watches and reflects changes for files within the current working directory (CWD). If a file from an external directory is added to the context (via `@`-mention with an absolute path or via MCP), modifications made to that file externally are not reflected in the sidebar UI. The watcher in `file/watcher.ts` is scoped to the project root, so any out-of-tree path in the active context is silently ignored.
 
 **Describe the solution you'd like**
 
@@ -11069,7 +11069,7 @@ When reviewing a model reply in a session, there is currently no good way to att
 
 If part of the response is wrong, unclear, or worth following up on, the only workaround is to rewrite that context manually in the next prompt. That works for small cases, but it breaks down quickly when there are multiple points to call out or when the feedback needs to stay anchored to a specific reply.
 
-I’d like OpenCode to support comments on model replies in a session.
+I’d like TeamCode to support comments on model replies in a session.
 
 The idea is simple:
 
@@ -11108,7 +11108,7 @@ All of these lose structure and make follow-up less precise.
 
 **Is your feature request related to a problem? Please describe.**
 
-The OpenCode Go service currently only supports the `/v1/chat/completions` endpoint (OpenAI Chat Completions API format).
+The TeamCode Go service currently only supports the `/v1/chat/completions` endpoint (OpenAI Chat Completions API format).
 
 However, the OpenAI Responses API is becoming the new standard for agentic workflows. Some tools (such as Claude Code adapters and other agent frameworks) expect the Responses API format rather than the Chat Completions format.
 
@@ -11116,7 +11116,7 @@ Currently, if I want to use the Go service with a tool that expects Responses AP
 
 **Describe the solution you'd like**
 
-Add `/v1/responses` endpoint support for the Go service (`https://opencode.ai/zen/go/v1/responses`).
+Add `/v1/responses` endpoint support for the Go service (`https://teamcode.ai/zen/go/v1/responses`).
 
 **Why this is feasible**
 
@@ -11131,7 +11131,7 @@ This means the routing logic and handler implementation already exist in the cod
 
 **Additional context**
 
-- Zen service Responses endpoint: `https://opencode.ai/zen/v1/responses`
+- Zen service Responses endpoint: `https://teamcode.ai/zen/v1/responses`
 - Models affected: GLM-5.1, GLM-5, Kimi K2.5, MiniMax M2
 
 > *[Truncado — 1825 chars totais]*
@@ -11179,7 +11179,7 @@ This feature only requires basic arithmetic on token counts. No model inference 
 
 ---
 
-## #23625 — [FEATURE]: Add opencode-moshi-live to ecosystem
+## #23625 — [FEATURE]: Add teamcode-moshi-live to ecosystem
 
 📅 `2026-04-21` | ✏️ **young5lee** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/23625](https://github.com/anomalyco/opencode/issues/23625)
 
@@ -11190,11 +11190,11 @@ This feature only requires basic arithmetic on token counts. No model inference 
 
 ### Describe the enhancement you want to request
 
-Request to add [opencode-moshi-live](https://github.com/young5lee/opencode-moshi-live) to the ecosystem page.
+Request to add [teamcode-moshi-live](https://github.com/young5lee/teamcode-moshi-live) to the ecosystem page.
 
-opencode-moshi-live is a community plugin for Moshi Live Activity and notification updates. It forwards OpenCode session events such as tool activity, permission prompts, reply-needed states, and task completion to Moshi so users can monitor and unblock sessions from the iPhone app.
+teamcode-moshi-live is a community plugin for Moshi Live Activity and notification updates. It forwards TeamCode session events such as tool activity, permission prompts, reply-needed states, and task completion to Moshi so users can monitor and unblock sessions from the iPhone app.
 
-Adding it to the ecosystem page would make the integration easier for OpenCode users to discover.
+Adding it to the ecosystem page would make the integration easier for TeamCode users to discover.
 
 ---
 
@@ -11245,7 +11245,7 @@ backwards compatible, and OpenAI-specific (no over-engineered generic abstractio
 
 ---
 
-## #23587 — [FEATURE]: search bars for open projects + more descriptive text in the box (in opencode desktop)
+## #23587 — [FEATURE]: search bars for open projects + more descriptive text in the box (in teamcode desktop)
 
 📅 `2026-04-20` | ✏️ **matheuspfernandesdev** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/23587](https://github.com/anomalyco/opencode/issues/23587)
 
@@ -11258,7 +11258,7 @@ backwards compatible, and OpenAI-specific (no over-engineered generic abstractio
 
 i think it would be good to have a search bar and for all the opened projects and a more descriptive text (other than just a letter)
 
-Im now up to 20+ folders/projects in opencode, and it starting to look a little confusing 
+Im now up to 20+ folders/projects in teamcode, and it starting to look a little confusing 
 
 <img width="82" height="1008" alt="Image" src="https://github.com/user-attachments/assets/ae34ecbd-271b-440c-b3f5-3b4ce023a864" />
 
@@ -11269,7 +11269,7 @@ Im now up to 20+ folders/projects in opencode, and it starting to look a little 
 📅 `2026-04-20` | ✏️ **vipuljaverioutreach** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/23578](https://github.com/anomalyco/opencode/issues/23578)
 
 
-Add a built-in `/loop` command to OpenCode for automated iterative task execution.
+Add a built-in `/loop` command to TeamCode for automated iterative task execution.
 
 The goal is to support a workflow similar to Claude Code's `/loop`, where the agent can continue working on a task across repeated iterations without the user having to manually re-prompt each time.
 
@@ -11300,7 +11300,7 @@ Expected benefits:
 - Makes long-running and check-back-later workflows much easier
 - Improves support for proactive/autonomous agent usage
 - Reduces repeated manual prompting for monitoring, validation, and follow-up tasks
-- Brings OpenCode closer to expected behavior from other coding agents that already support loop-style execution
+- Brings TeamCode closer to expected behavior from other coding agents that already support loop-style execution
 
 Suggested implementation constraints:
 
@@ -11318,7 +11318,7 @@ Suggested implementation constraints:
 
 ### Question
 
-Hi all. I'm seeing some behaviour that I'm struggling to explain. When I run the example command from [here](https://opencode.ai/docs/cli/): `opencode run "Explain how closures work in JavaScript"`
+Hi all. I'm seeing some behaviour that I'm struggling to explain. When I run the example command from [here](https://teamcode.ai/docs/cli/): `teamcode run "Explain how closures work in JavaScript"`
 
 The UI seems to suggest that took over 20,000 input tokens!? But then I click the UI and it shows 10k - so they don't add up?
 
@@ -11328,11 +11328,11 @@ Where are all of those tokens coming from and how do I lower it?
 
 # Logs
 
-`~/.local/share/opencode/logs/....log`
+`~/.local/share/teamcode/logs/....log`
 
 ```
-INFO  2026-04-20T12:52:15 +351ms service=server-proxy version=1.14.19 args=["run","Explain how closures work in JavaScript"] process_role=main run_id=002e5d19-3523-4a12-b9af-75a2b912ae86 opencode
-ERROR 2026-04-20T12:52:20 +5218ms service=llm providerID=opencode-go modelID=qwen3.5-plus session.id=ses_2550d25e1ffeOMMcu8o5Ce2Ufv small=false agent=build mode=primary error={"error":{"name":"AI_APICallError","url":"https://opencode.ai/zen/go/v1/chat/completions","requestBodyValues":{"model":"qwen3.5-plus","max_tokens":32000,"temperature":0.55,"top_p":1,"messages":[{"role":"system","content":[{"type":"text","text":"You are opencode, an interactive CLI tool that helps users with software engineering tasks. Use the instructions below and the tools available to you to assist the user.\n\nIMPORTANT: You must NEVER generate or guess URLs for the user unless you are confident that the URLs are for helping the 
+INFO  2026-04-20T12:52:15 +351ms service=server-proxy version=1.14.19 args=["run","Explain how closures work in JavaScript"] process_role=main run_id=002e5d19-3523-4a12-b9af-75a2b912ae86 teamcode
+ERROR 2026-04-20T12:52:20 +5218ms service=llm providerID=teamcode-go modelID=qwen3.5-plus session.id=ses_2550d25e1ffeOMMcu8o5Ce2Ufv small=false agent=build mode=primary error={"error":{"name":"AI_APICallError","url":"https://teamcode.ai/zen/go/v1/chat/completions","requestBodyValues":{"model":"qwen3.5-plus","max_tokens":32000,"temperature":0.55,"top_p":1,"messages":[{"role":"system","content":[{"type":"text","text":"You are teamcode, an interactive CLI tool that helps users with software engineering tasks. Use the instructions below and the tools available to you to assist the user.\n\nIMPORTANT: You must NEVER generate or guess URLs for the user unless you are confident that the URLs are for helping the 
 
 > *[Truncado — 3421 chars totais]*
 
@@ -11400,7 +11400,7 @@ This would be a small UI change, but it would significantly improve usability.
 
 ---
 
-## #23544 — [FEATURE]: Add opencode-usage-tracker to ecosystem
+## #23544 — [FEATURE]: Add teamcode-usage-tracker to ecosystem
 
 📅 `2026-04-20` | ✏️ **Dylan-Liew** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/23544](https://github.com/anomalyco/opencode/issues/23544)
 
@@ -11413,16 +11413,16 @@ This would be a small UI change, but it would significantly improve usability.
 
 ### Describe the enhancement you want to request
 
-**Request to add [opencode-usage-tracker](https://github.com/Dylan-Liew/opencode) to the ecosystem page.**
+**Request to add [teamcode-usage-tracker](https://github.com/Dylan-Liew/teamcode) to the ecosystem page.**
 
-Currently, the ecosystem page doesn't list opencode-usage-tracker, making it harder for users to discover this community plugin.
+Currently, the ecosystem page doesn't list teamcode-usage-tracker, making it harder for users to discover this community plugin.
 
-opencode-usage-tracker is a lightweight analytics plugin for OpenCode:
-- **Plugin** (`opencode-usage-tracker`): tracks and summarizes usage metrics during coding sessions
+teamcode-usage-tracker is a lightweight analytics plugin for TeamCode:
+- **Plugin** (`teamcode-usage-tracker`): tracks and summarizes usage metrics during coding sessions
 - Provides insights such as command frequency, session duration, and interaction patterns
 
 Users install it by:
-1. Adding `"opencode-usage-tracker@latest"` to the `plugin` array in `opencode.json`
+1. Adding `"teamcode-usage-tracker@latest"` to the `plugin` array in `teamcode.json`
 
 Adding it to the ecosystem page would help users discover this practical and insightful community extension.
 
@@ -11444,7 +11444,7 @@ Adding it to the ecosystem page would help users discover this practical and ins
 Allow plugins to register custom widgets in the TUI status bar area, enabling use cases like terminal pets, pomodoro timers, build status indicators, etc.
 
 ### Motivation
-OpenCode's plugin system is powerful for backend logic (event hooks, custom tools, env injection), but there is currently **no way for plugins to render custom UI elements** in the TUI.
+TeamCode's plugin system is powerful for backend logic (event hooks, custom tools, env injection), but there is currently **no way for plugins to render custom UI elements** in the TUI.
 
 A common use case is displaying persistent status information — for example:
 - A terminal pet that reacts to coding activity
@@ -11469,10 +11469,10 @@ export const MyPlugin: Plugin = async (ctx) => {
 
 ### Alternatives Considered
 - Running a separate terminal program in a split pane (works but feels disconnected)
-- Modifying OpenCode source directly (not maintainable)
+- Modifying TeamCode source directly (not maintainable)
 
 ### Additional Context
-The Bubble Tea framework (used by OpenCode's TUI) supports composable models, so this could potentially be implemented as a 
+The Bubble Tea framework (used by TeamCode's TUI) supports composable models, so this could potentially be implemented as a 
 
 > *[Truncado — 1669 chars totais]*
 
@@ -11487,7 +11487,7 @@ The Bubble Tea framework (used by OpenCode's TUI) supports composable models, so
 - [x] I have verified this feature I'm about to request hasn't been suggested before.
 
 ## Describe the enhancement you want to request
-`permission.doom_loop` is useful, but the current behavior appears to be hard-coded to trigger when the same tool call repeats 3 times with identical input. It would be helpful to make that repeat threshold configurable in `opencode.json` instead of fixed.
+`permission.doom_loop` is useful, but the current behavior appears to be hard-coded to trigger when the same tool call repeats 3 times with identical input. It would be helpful to make that repeat threshold configurable in `teamcode.json` instead of fixed.
 
 A configurable threshold would let users tune the guard for different workflows:
 - lower values for tighter cost/safety control in autonomous runs
@@ -11496,7 +11496,7 @@ A configurable threshold would let users tune the guard for different workflows:
 A good direction would be to let `permission.doom_loop` accept staged thresholds directly:
 ```json
 {
-  "$schema": "https://opencode.ai/config.json",
+  "$schema": "https://teamcode.ai/config.json",
   "permission": {
     "doom_loop": {
       "4": "ask",
@@ -11527,7 +11527,7 @@ The exact config shape is up to you, but exposing the threshold this way would m
 
 ### Describe the enhancement you want to request
 
-I have a mcp that can understand the image, but now, model can not use it, because the opencode does not provide the full image path.
+I have a mcp that can understand the image, but now, model can not use it, because the teamcode does not provide the full image path.
 
 <img width="924" height="449" alt="Image" src="https://github.com/user-attachments/assets/1b93c147-5147-4fa6-bd1e-f75c03e49973" />
 
@@ -11548,7 +11548,7 @@ Note: the image is in the user's screenshot folder, not in the repo.
 
 Add an optional TLS verification override to the MCP client, allowing it to skip server certificate validation for development and trusted local environments with self-signed certificates. This would align the MCP client with standard behavior available in many TLS-capable tools and clients, including curl, where certificate verification can be explicitly disabled when needed and avoid the (messy) workaround of installing special user certs, or disabling TLS validation for all clients.
 
-Proposed opencode.json config option schema:
+Proposed teamcode.json config option schema:
 ```
 {                                                                                                                                                               
        "mcp": {                                                                                                              
@@ -11585,7 +11585,7 @@ The key integration point is: **after a turn completes, query the COW state and 
 
 ### Why this hook is necessary
 
-opencode's existing plugin hooks don't cover this timing:
+teamcode's existing plugin hooks don't cover this timing:
 
 | Hook | Why it's not sufficient |
 |------|------------------------|
@@ -11641,7 +11641,7 @@ Please update the docs to match the current action interface so the authenticati
 
 ## Describe the enhancement you want to request
 
-The GitHub integration currently appears to keep similar orchestration logic in more than one place, especially `github/index.ts` and `packages/opencode/src/cli/cmd/github.ts`.
+The GitHub integration currently appears to keep similar orchestration logic in more than one place, especially `github/index.ts` and `packages/teamcode/src/cli/cmd/github.ts`.
 
 Both paths handle similar responsibilities such as event parsing, prompt extraction, attachment handling, issue/PR context collection, session execution, and branch/PR orchestration. This increases the chance of behavior drift and makes GitHub-related fixes harder to apply confidently.
 
@@ -11681,7 +11681,7 @@ This would make GitHub runs much easier to understand and debug for both users a
 
 ## Problem
 
-When an MCP server delivers content via the **Prompts** primitive (e.g., user invokes `/my-server:my-prompt`), OpenCode displays the prompt content directly in the conversation UI as a visible user message. The LLM then echoes/repeats the full content before acting on it.
+When an MCP server delivers content via the **Prompts** primitive (e.g., user invokes `/my-server:my-prompt`), TeamCode displays the prompt content directly in the conversation UI as a visible user message. The LLM then echoes/repeats the full content before acting on it.
 
 This breaks the use case of **proprietary/confidential prompt delivery**, where MCP servers need to send instructions to the LLM without exposing the raw content to the end user.
 
@@ -11692,7 +11692,7 @@ MCP Prompt content should be injected as **system-level context** (invisible to 
 ### Current behavior
 
 1. User invokes `/my-server:my-prompt`
-2. OpenCode fetches prompt content from MCP server
+2. TeamCode fetches prompt content from MCP server
 3. **Content is displayed verbatim in the conversation UI** as a user message
 4. LLM echoes/repeats the instructions before executing them
 5. Proprietary content is fully visible to the user
@@ -11721,7 +11721,7 @@ One or more of the following:
 ### Describe the enhancement you want to request
 Please clarify the difference between `ctrl+c`, `/exit`, and `Esc` in the TUI docs.
 
-Right now the docs show that `ctrl+c` is part of `app_exit` and `Esc` is `session_interrupt`, but they do not explain the practical difference between exiting OpenCode and interrupting the current in-progress work.
+Right now the docs show that `ctrl+c` is part of `app_exit` and `Esc` is `session_interrupt`, but they do not explain the practical difference between exiting TeamCode and interrupting the current in-progress work.
 
 In practice this is confusing because reconnecting after `ctrl+c` can still show the current session running, while `/exit` ends that session instead. A short note in `tui.mdx` and `keybinds.mdx` would make this behavior much clearer.
 
@@ -11737,7 +11737,7 @@ In practice this is confusing because reconnecting after `ctrl+c` can still show
 ### Describe the enhancement you want to request
 Please expose minimal execution metadata for tool calls and subagent/task runs to the active agent.
 
-Right now OpenCode clearly has session/message/event data, but the agent still cannot reliably answer questions like:
+Right now TeamCode clearly has session/message/event data, but the agent still cannot reliably answer questions like:
 - did the task stop in the middle?
 - is it still running or just slow?
 - when was the last successful activity?
@@ -11831,7 +11831,7 @@ No way to programmatically start a session with a predefined prompt, let it exec
 ## Proposed
 
 ```bash
-opencode --headless \
+teamcode --headless \
   --prompt "Fix the null pointer exception in src/parser.rs" \
   --max-turns 20 \
   --output-json result.json
@@ -11858,7 +11858,7 @@ Output: structured JSON with outcome, turns, tokens, files_modified, tools_used.
 
 ### Problem Description
 
-OpenCode has a built-in terminal panel powered by ghostty-web with full PTY support. The terminal panel is accessible via `Ctrl+`` and supports:
+TeamCode has a built-in terminal panel powered by ghostty-web with full PTY support. The terminal panel is accessible via `Ctrl+`` and supports:
 - Multiple tabs
 - 10,000 lines of scrollback
 - Themes (light/dark)
@@ -11899,7 +11899,7 @@ This would enable:
 📅 `2026-04-19` | ✏️ **pekg-ai** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/23440](https://github.com/anomalyco/opencode/issues/23440)
 
 
-OpenCode version: 1.14.18
+TeamCode version: 1.14.18
 
 Plugins that push a text part to `output.parts` from inside a `chat.message` hook intermittently crash with:
 
@@ -11944,7 +11944,7 @@ Synchronous pushes appear fine; pushes after an `await` (network fetch here) rac
 
 ### Problem
 
-When OpenCode is installed via **local npm install** (e.g., `npm install opencode-ai` without `-g` flag, common on shared servers where users lack sudo access), the auto-upgrade mechanism fails:
+When TeamCode is installed via **local npm install** (e.g., `npm install teamcode-ai` without `-g` flag, common on shared servers where users lack sudo access), the auto-upgrade mechanism fails:
 
 1. TUI shows upgrade prompt: "A new version is available"
 2. User clicks "Update" button
@@ -11953,7 +11953,7 @@ When OpenCode is installed via **local npm install** (e.g., `npm install opencod
 
 ### Current Behavior
 
-The `opencode upgrade` command assumes global installation:
+The `teamcode upgrade` command assumes global installation:
 - Attempts `npm install -g` → requires sudo
 - Or attempts curl download to `/usr/local/bin` → requires sudo
 - Fails silently without detecting local install context
@@ -11964,16 +11964,16 @@ The `opencode upgrade` command assumes global installation:
 
 | Install Method | Upgrade Strategy |
 |----------------|------------------|
-| `npm install opencode-ai` (local in `node_modules`) | `npm install opencode-ai@latest` in install directory |
-| `npm install -g opencode-ai` | `npm install -g opencode-ai@latest` |
+| `npm install teamcode-ai` (local in `node_modules`) | `npm install teamcode-ai@latest` in install directory |
+| `npm install -g teamcode-ai` | `npm install -g teamcode-ai@latest` |
 | curl script (`/usr/local/bin`) | curl script reinstall |
-| Homebrew | `brew upgrade opencode` |
+| Homebrew | `brew upgrade teamcode` |
 
 ### Implementation Suggestions
 
 1. Detect install location by checking:
    - `process.execPath` or `__dirname` of the running binary
-   - If path contains `node_modules/opencode-ai`, it's a local npm install
+   - If path contains `node_modules/teamcode-ai`, it's a local npm install
 
 2. For local npm installs, run:
    ```bash
@@ -12044,7 +12044,7 @@ Each phase restricts which tools are available:
 
 ---
 
-## #23401 — [FEATURE]: Add opencode-clippy to ecosystem page
+## #23401 — [FEATURE]: Add teamcode-clippy to ecosystem page
 
 📅 `2026-04-19` | ✏️ **huangcheng** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/23401](https://github.com/anomalyco/opencode/issues/23401)
 
@@ -12055,17 +12055,17 @@ Each phase restricts which tools are available:
 
 ### Describe the enhancement you want to request
 
-**Request to add [opencode-clippy](https://github.com/huangcheng/opencode-clippy) to the ecosystem page.**
+**Request to add [teamcode-clippy](https://github.com/huangcheng/teamcode-clippy) to the ecosystem page.**
 
-Currently, the ecosystem page doesn't list opencode-clippy, making it harder for users to discover this community plugin.
+Currently, the ecosystem page doesn't list teamcode-clippy, making it harder for users to discover this community plugin.
 
-opencode-clippy is a Clippy-style assistant plugin for OpenCode:
-- **Plugin** (`opencode-clippy` on npm): displays helpful coding tips during sessions via idle detection
+teamcode-clippy is a Clippy-style assistant plugin for TeamCode:
+- **Plugin** (`teamcode-clippy` on npm): displays helpful coding tips during sessions via idle detection
 - **Desktop companion**: Electron-based floating Clippy character (installed separately from GitHub Releases)
 
 Users install it by:
-1. Downloading the desktop app from [GitHub Releases](https://github.com/huangcheng/opencode-clippy/releases/latest)
-2. Adding `"opencode-clippy@latest"` to the `plugin` array in `opencode.json`
+1. Downloading the desktop app from [GitHub Releases](https://github.com/huangcheng/teamcode-clippy/releases/latest)
+2. Adding `"teamcode-clippy@latest"` to the `plugin` array in `teamcode.json`
 
 Adding it to the ecosystem page would help users discover this fun and useful community extension.
 
@@ -12123,7 +12123,7 @@ text
 
 ## 🔍 Current Implementation
 
-**File**: `packages/opencode/src/tool/todo.ts`
+**File**: `packages/teamcode/src/tool/todo.ts`
 
 ```ts
 // Always calls full replacement
@@ -12153,7 +12153,7 @@ todowrite({ todos
 
 ### Describe the enhancement you want to request
 
-Can the GUI support one OpenCode server per project? My testing revealed that using one OpenCode server for multiple projects performs significantly worse than having one OpenCode server per project.
+Can the GUI support one TeamCode server per project? My testing revealed that using one TeamCode server for multiple projects performs significantly worse than having one TeamCode server per project.
 
 ---
 
@@ -12164,14 +12164,14 @@ Can the GUI support one OpenCode server per project? My testing revealed that us
 
 ## Problem / 问题描述
 
-As a Gemini Ultra subscriber using Ubuntu, I want to configure custom API endpoints (for third-party proxies) and use Gemini's native capabilities in OpenCode. Currently, I have to manually edit JSON/TOML files via terminal, which breaks the GUI workflow.
+As a Gemini Ultra subscriber using Ubuntu, I want to configure custom API endpoints (for third-party proxies) and use Gemini's native capabilities in TeamCode. Currently, I have to manually edit JSON/TOML files via terminal, which breaks the GUI workflow.
 
 ## Proposed Solution / 建议方案
 
 ### 1. Native Gemini Integration
 - First-class support for Gemini API with optimized Agent mode
 - Leverage Gemini Ultra's full potential (1M context, reasoning capabilities)
-- System-level features comparable to gemini-cli but with OpenCode's GUI
+- System-level features comparable to gemini-cli but with TeamCode's GUI
 
 ### 2. Visual API Configuration
 - GUI for adding custom OpenAI/Anthropic-compatible endpoints
@@ -12205,7 +12205,7 @@ As a Gemini Ultra subscriber using Ubuntu, I want to configure custom API endpoi
 
 ### Describe the enhancement
 
-Currently, the /skills command in OpenCode lists all available skills alphabetically. When users have many skills (e.g., 30+), it becomes difficult to find a specific skill.
+Currently, the /skills command in TeamCode lists all available skills alphabetically. When users have many skills (e.g., 30+), it becomes difficult to find a specific skill.
 
 **Current behavior:**
 - Skills listed in flat alphabetical order (e.g., accessibility, agent-eval, api-design...)
@@ -12259,7 +12259,7 @@ This could read category from:
 
 **Related:** #2177, #15220
 
-Add a `/cd` slash command that allows changing the working directory at runtime without restarting OpenCode. This is a common workflow need when navigating between projects or worktrees mid-conversation.
+Add a `/cd` slash command that allows changing the working directory at runtime without restarting TeamCode. This is a common workflow need when navigating between projects or worktrees mid-conversation.
 
 #### Proposed behavior
 
@@ -12271,7 +12271,7 @@ Add a `/cd` slash command that allows changing the working directory at runtime 
 
 #### Why this is useful
 
-Users frequently need to navigate between related projects, monorepo packages, or git worktrees during a single session. Currently the only option is to quit and restart OpenCode in the new directory. A lightweight `/cd` command avoids losing conversation context.
+Users frequently need to navigate between related projects, monorepo packages, or git worktrees during a single session. Currently the only option is to quit and restart TeamCode in the new directory. A lightweight `/cd` command avoids losing conversation context.
 
 #### Implementation approach
 
@@ -12334,7 +12334,7 @@ This builds upon the cursor-based pagination API from #8535, which provides the 
 
 ### Describe the enhancement you want to request
 
-I spent the last week working on improvements of the agentic orchestrator, and was able to find major improvements, severely limiting (compared to Claude code 2.1.92, at the very least by a 10x magnitude) the amount of tokens consumed. I am currently working on implementing my changes in cheetahclaws, but would also be very pleased to contribute to opencode afterwards. Here is a link to my repository, the readme covers the reasoning behind the main ideas: https://github.com/Simon-Free/bouzecode. Here is another discussion i had where some further clarifications were made: https://github.com/SafeRL-Lab/cheetahclaws/issues/43. I would be very happy to answer any other questions !
+I spent the last week working on improvements of the agentic orchestrator, and was able to find major improvements, severely limiting (compared to Claude code 2.1.92, at the very least by a 10x magnitude) the amount of tokens consumed. I am currently working on implementing my changes in cheetahclaws, but would also be very pleased to contribute to teamcode afterwards. Here is a link to my repository, the readme covers the reasoning behind the main ideas: https://github.com/Simon-Free/bouzecode. Here is another discussion i had where some further clarifications were made: https://github.com/SafeRL-Lab/cheetahclaws/issues/43. I would be very happy to answer any other questions !
 
 ---
 
@@ -12349,18 +12349,18 @@ I spent the last week working on improvements of the agentic orchestrator, and w
 
 ### Describe the enhancement you want to request
 
-When connecting OpenCode to LM Studio, it currently fetches a hardcoded list of models from models.dev instead of querying the local LM Studio server's /v1/models endpoint.
+When connecting TeamCode to LM Studio, it currently fetches a hardcoded list of models from models.dev instead of querying the local LM Studio server's /v1/models endpoint.
 Other tools like the "Continue" VS Code extension handle this by using an AUTODETECT model value (or similar logic) to dynamically query available models on the provider side.
 This means users have to manually update their config every time they switch or download a new model in LM Studio.
 Steps to Reproduce:
 1. Install and start LM Studio with Local Server enabled (default port 1234).
 2. Load any model in LM Studio.
-3. Connect OpenCode to the lmstudio provider via /connect.
-4. Run /models inside OpenCode.
+3. Connect TeamCode to the lmstudio provider via /connect.
+4. Run /models inside TeamCode.
 Current Behavior:
-OpenCode shows a hardcoded list from models.dev (e.g., gpt-oss, qwen3) instead of the models actually loaded in LM Studio.
+TeamCode shows a hardcoded list from models.dev (e.g., gpt-oss, qwen3) instead of the models actually loaded in LM Studio.
 Expected Behavior:
-OpenCode should query http://127.0.0.1:1234/v1/models and display the available local models dynamically, similar to how it works for Ollama or when using "AUTODETECT" logic.
+TeamCode should query http://127.0.0.1:1234/v1/models and display the available local models dynamically, similar to how it works for Ollama or when using "AUTODETECT" logic.
 
 ---
 
@@ -12375,11 +12375,11 @@ OpenCode should query http://127.0.0.1:1234/v1/models and display the available 
 
 ### Describe the enhancement you want to request
 
-Currently when run `opencode github run` via `anomalyco/opencode@v1.4.3` it gives this error:
+Currently when run `teamcode github run` via `anomalyco/opencode@v1.4.3` it gives this error:
 
 > Unsupported event type: push
 
-I want to create few CI small tests using opencode, but it seems it's not supported yet.
+I want to create few CI small tests using teamcode, but it seems it's not supported yet.
 
 ---
 
@@ -12394,7 +12394,7 @@ I want to create few CI small tests using opencode, but it seems it's not suppor
 
 ### Describe the enhancement you want to request
 
-So you know how sometimes you want to reload the opencode config (like `source ~/.bashrc`) but you have to completely restart the app so you lose your progress (unless you `/share`, but that takes a lot of time). I think it would be productive to add the feature so it reloads the `~/.config/opencode/opencode.json` without needing to restart. Or you can like `/reload all` to reload every config, or `/reload <config name>` to reload a specific config (or just `/reload` to reload universal config). I think it could be useful.
+So you know how sometimes you want to reload the teamcode config (like `source ~/.bashrc`) but you have to completely restart the app so you lose your progress (unless you `/share`, but that takes a lot of time). I think it would be productive to add the feature so it reloads the `~/.config/teamcode/teamcode.json` without needing to restart. Or you can like `/reload all` to reload every config, or `/reload <config name>` to reload a specific config (or just `/reload` to reload universal config). I think it could be useful.
 
 ---
 
@@ -12411,7 +12411,7 @@ Anthropic's API natively supports `defer_loading: true` on tool definitions ([do
 - Discovered tools are injected inline as `tool_reference` blocks
 - **Prompt caching is preserved** — the prefix is untouched
 
-opencode currently has no way to pass `defer_loading: true` through to the Anthropic API, neither from config nor from the `tool.definition` plugin hook.
+teamcode currently has no way to pass `defer_loading: true` through to the Anthropic API, neither from config nor from the `tool.definition` plugin hook.
 
 ## Proposed solution
 
@@ -12431,7 +12431,7 @@ Add `deferLoading?: boolean` to the `tool.definition` hook output:
 
 ### Option B: Config-level setting
 
-Allow per-tool or per-MCP-server `deferLoading` in `opencode.jsonc` (similar to what the [fork](https://github.com/famitzsy8/opencode-tool-search-tool) implements):
+Allow per-tool or per-MCP-server `deferLoading` in `teamcode.jsonc` (similar to what the [fork](https://github.com/famitzsy8/teamcode-tool-search-tool) implements):
 
 ```jsonc
 {
@@ -12466,7 +12466,7 @@ Config sets defaults, hook allows plugin overrides.
 
 ## Problem
 
-The `tool.definition` hook allows plugins to modify tool descriptions and parameters, but cannot remove tools from the LLM's tool list entirely. This means deferred/lazy tool loading plugins (like [opencode-tool-search](https://github.com/M0Rf30/opencode-tool-search)) must still send stub entries for every deferred tool, wasting ~10-20 tokens per tool per turn.
+The `tool.definition` hook allows plugins to modify tool descriptions and parameters, but cannot remove tools from the LLM's tool list entirely. This means deferred/lazy tool loading plugins (like [teamcode-tool-search](https://github.com/M0Rf30/teamcode-tool-search)) must still send stub entries for every deferred tool, wasting ~10-20 tokens per tool per turn.
 
 With 180+ tools, that's ~2,000-3,600 tokens of overhead per turn that could be eliminated.
 
@@ -12495,7 +12495,7 @@ if hookOutput.Hidden {
 
 ## Why this matters
 
-- The [famitzsy8/opencode-tool-search-tool](https://github.com/famitzsy8/opencode-tool-search-tool) fork proves this pattern works by modifying `prompt.ts` → `resolveTools()` to filter deferred tools. This proposal brings the same capability to the plugin API.
+- The [famitzsy8/teamcode-tool-search-tool](https://github.com/famitzsy8/teamcode-tool-search-tool) fork proves this pattern works by modifying `prompt.ts` → `resolveTools()` to filter deferred tools. This proposal brings the same capability to the plugin API.
 - Anthropic's native `defer_loading: true` API already supports this pattern server-side. This hook enhancement would let plugins implement equivalent behavior client-side.
 - Multiple community PRs (#8771, #12520) and issues (#86
 
@@ -12503,7 +12503,7 @@ if hookOutput.Hidden {
 
 ---
 
-## #23292 — [FEATURE]: Hoping that opencode go has a unified interface that can support the Anthropic API and the OpenAI compatible API.
+## #23292 — [FEATURE]: Hoping that teamcode go has a unified interface that can support the Anthropic API and the OpenAI compatible API.
 
 📅 `2026-04-18` | ✏️ **river-walras** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/23292](https://github.com/anomalyco/opencode/issues/23292)
 
@@ -12529,7 +12529,7 @@ The GLM models only support an OpenAI-compatible API. I hope for support for the
 
 ### Describe the enhancement you want to request
 
-OpenCode Desktop app - When running some long task on Laptop in my case Mac OS on MBP, and me as a user walk away from laptop till tasks are running, the laptop is entering in to the sleep mode which interrupt the tasks execution, but UI still showing as task is running. Only way to check as execution was stop is through monitoring the requests to llm provider, and reset task manually by Press stop button and ask agent to continue. 
+TeamCode Desktop app - When running some long task on Laptop in my case Mac OS on MBP, and me as a user walk away from laptop till tasks are running, the laptop is entering in to the sleep mode which interrupt the tasks execution, but UI still showing as task is running. Only way to check as execution was stop is through monitoring the requests to llm provider, and reset task manually by Press stop button and ask agent to continue. 
 
 It would be nice if App will be able to recovery its current workflow without manual actions.
 
@@ -12559,11 +12559,11 @@ This makes it impossible to:
 ## Workaround (inadequate)
 Currently users must:
 1. Know the session ID in advance
-2. Manually check file system: `~/.local/share/opencode/storage/session/global/`
-3. Start session via CLI: `opencode --session ses_xxx`
+2. Manually check file system: `~/.local/share/teamcode/storage/session/global/`
+3. Start session via CLI: `teamcode --session ses_xxx`
 This is a poor UX for such a fundamental feature. The data exists, users just can't access it through the UI.
 ## Environment
-- OpenCode version: latest
+- TeamCode version: latest
 - OS: Windows/macOS/Linux
 ---
 
@@ -12629,8 +12629,8 @@ When no thread is running, the folder reference could be displayed at the bottom
 - [x] I have verified this feature I'm about to request hasn't been suggested before.
 
 ### Describe the enhancement you want to request
-`opencode` looks for a `themes` folder in `~/.config/opencode/themes` (or `$XDG_CONFIG_HOME/opencode/themes`).
-I suggest `opencode` uses `$OPENCODE_CONFIG_DIR` instead of `~/.config/opencode`, so that custom themes reside together with the rest of the configuration files.
+`teamcode` looks for a `themes` folder in `~/.config/teamcode/themes` (or `$XDG_CONFIG_HOME/teamcode/themes`).
+I suggest `teamcode` uses `$OPENCODE_CONFIG_DIR` instead of `~/.config/teamcode`, so that custom themes reside together with the rest of the configuration files.
 
 ---
 
@@ -12645,7 +12645,7 @@ I suggest `opencode` uses `$OPENCODE_CONFIG_DIR` instead of `~/.config/opencode`
 
 ### Describe the enhancement you want to request
 
-Please add crypto support for payment of opencode go.
+Please add crypto support for payment of teamcode go.
 
 ---
 
@@ -12668,7 +12668,7 @@ I don't share the screenshot because if you edit the prompt, it looks like one.
 
 This is a common pattern I do. I type a prompt and then want to correct it to add something more.
 
-The way it works in OpenCode is that when you have multiple prompts and information that you interrupted.
+The way it works in TeamCode is that when you have multiple prompts and information that you interrupted.
 
 <img width="1073" height="1019" alt="Image" src="https://github.com/user-attachments/assets/9c4b3601-102d-4ad1-94c7-6d37e70484e1" />
 
@@ -12693,7 +12693,7 @@ Related to #13003 (narrower scope — cached count only, no new UI elements).
 
 
 - [x] I have verified this feature I'm about to request hasn't been suggested before.
-Bedrock prompt caching works but there is no way to configure the cache TTL from opencode. This adds a `cache_point_ttl` option to the Bedrock provider in `opencode.json`, accepting `5m` or `1h`. Tested on Haiku 4.5, Sonnet 4.5/4.6, Opus 4.5/4.6.
+Bedrock prompt caching works but there is no way to configure the cache TTL from teamcode. This adds a `cache_point_ttl` option to the Bedrock provider in `teamcode.json`, accepting `5m` or `1h`. Tested on Haiku 4.5, Sonnet 4.5/4.6, Opus 4.5/4.6.
 
 ---
 
@@ -12733,7 +12733,7 @@ Claude Code has this new feature:
 
 > [Advisor strategy (public beta)](https://claude.com/blog/the-advisor-strategy): Pair Opus as an advisor with Sonnet or Haiku as an executor to bring near Opus-level intelligence to your agents while keeping costs near Sonnet.
 
-Would it be possible to have that in OpenCode ?
+Would it be possible to have that in TeamCode ?
 
 ---
 
@@ -12781,27 +12781,27 @@ A developer working on a project with separate backend, frontend, and shared lib
 
 ## Problem
 
-OpenCode hardcodes skill discovery across 6 directories (3 global + 3 project-level):
+TeamCode hardcodes skill discovery across 6 directories (3 global + 3 project-level):
 
-- `~/.config/opencode/skills/`
+- `~/.config/teamcode/skills/`
 - `~/.claude/skills/`
 - `~/.agents/skills/`
-- `.opencode/skills/`
+- `.teamcode/skills/`
 - `.claude/skills/`
 - `.agents/skills/`
 
-There is no way to restrict which directories are scanned. Users who share skill files across tools (e.g., Claude Code + OpenCode) via hard links end up with identical skills in 3 global directories. OpenCode correctly deduplicates them, but scanning and deduplicating ~43 files across 3 directories adds **~5 seconds** to startup time.
+There is no way to restrict which directories are scanned. Users who share skill files across tools (e.g., Claude Code + TeamCode) via hard links end up with identical skills in 3 global directories. TeamCode correctly deduplicates them, but scanning and deduplicating ~43 files across 3 directories adds **~5 seconds** to startup time.
 
 Reference from startup log:
 ```
 WARN  service=skill name=frontend-design existing=~/.claude/skills/... duplicate=~/.agents/skills/... duplicate skill name
-WARN  service=skill name=frontend-design existing=~/.agents/skills/... duplicate=~/.config/opencode/skills/... duplicate skill name
+WARN  service=skill name=frontend-design existing=~/.agents/skills/... duplicate=~/.config/teamcode/skills/... duplicate skill name
 INFO  service=skill count=15 init  # 5+ seconds after first scan started
 ```
 
 ## Proposed Solution
 
-Add a `skills.directories` config option to `opencode.json` that lets users specify which directories to scan, replacing the hardcoded defaults:
+Add a `skills.directories` config option to `teamcode.json` that lets users specify which directories to scan, replacing the hardcoded defaults:
 
 ```json
 {
@@ -12834,7 +12834,7 @@ This would also complement the existing `skills.paths` (which adds additional pa
 
 ### Describe the enhancement you want to request
 
-When OpenCode spawns subagents, it would be helpful to show the model used by each subagent in the session UI. This allows users to quickly see which model each (sub)agent is running on when reviewing plans, subtasks or session trees.
+When TeamCode spawns subagents, it would be helpful to show the model used by each subagent in the session UI. This allows users to quickly see which model each (sub)agent is running on when reviewing plans, subtasks or session trees.
 
 **Example:**
 - Plan — GPT-5.4
@@ -12867,7 +12867,7 @@ I am not requesting to show whether each agent receives the model by inheritance
 
 ### Describe the enhancement you want to request
 
-when use seve mode,  we call opencode by api, so doesn't need to generate title , 
+when use seve mode,  we call teamcode by api, so doesn't need to generate title , 
 
 the small model call is wasting token, 
 
@@ -12882,10 +12882,10 @@ hope to support disable generate title by small_model
 
 ## Problem
 
-OpenCode currently hardcodes git commit/PR workflow instructions (~1,300 tokens per turn) into the Bash tool's description template. These instructions are **always injected** with no way to disable them.
+TeamCode currently hardcodes git commit/PR workflow instructions (~1,300 tokens per turn) into the Bash tool's description template. These instructions are **always injected** with no way to disable them.
 
 For users who:
-- Have their own git workflow instructions via plugins (e.g., oh-my-opencode's `git-master` skill)
+- Have their own git workflow instructions via plugins (e.g., oh-my-teamcode's `git-master` skill)
 - Use custom AGENTS.md/CLAUDE.md rules for git behavior
 - Want to maximize context window for complex tasks
 
@@ -12938,25 +12938,25 @@ Add an `includeG
 
 ## Describe the enhancement you want to request
 
-This is a low-maintenance integration proposal — sharing a community integration file that users can opt into, no code change required on OpenCode's side.
+This is a low-maintenance integration proposal — sharing a community integration file that users can opt into, no code change required on TeamCode's side.
 
 ### What
 
 [PaperClaw](https://www.npmjs.com/package/paperclaw) is an MIT-licensed npm CLI + MCP server that runs a pipeline `register → arXiv research → tribunal exam → sandboxed code execution → write → publish` on the open p2pclaw.com/silicon mesh, returning a peer-reviewed paper + PDF (orange A4 template, score breakdown, judges panel).
 
-### Why it fits OpenCode users
+### Why it fits TeamCode users
 
-Scientific users and researchers can type `/paper <topic>` in their OpenCode session and have the agent drive the full pipeline to produce a peer-reviewed paper. OpenCode already has the tool-execution primitives this needs; no new code.
+Scientific users and researchers can type `/paper <topic>` in their TeamCode session and have the agent drive the full pipeline to produce a peer-reviewed paper. TeamCode already has the tool-execution primitives this needs; no new code.
 
 ### Proposed deliverable
 
-- Add a one-page doc (or a link from README.md) to the community-integrations section pointing to:  https://github.com/Agnuxo1/OpenCLAW-P2P/blob/main/paperclaw/integrations/opencode/paperclaw-prompt.md
-- That file contains the opt-in custom-instructions preset users can paste into OpenCode.
+- Add a one-page doc (or a link from README.md) to the community-integrations section pointing to:  https://github.com/Agnuxo1/OpenCLAW-P2P/blob/main/paperclaw/integrations/teamcode/paperclaw-prompt.md
+- That file contains the opt-in custom-instructions preset users can paste into TeamCode.
 
 ### Benefits
 
 - Zero maintenance burden — PaperClaw is maintained upstream.
-- Brings scientific-paper generation to OpenCode without changes to the core.
+- Brings scientific-paper generation to TeamCode without changes to the core.
 - Mirrors how Cursor, Aider, Continue, Cline, and Zed already list community in
 
 > *[Truncado — 1810 chars totais]*
@@ -13050,7 +13050,7 @@ Pre-allocate the assistant message ID before detaching the async work, and retur
 
 Looking at the current code:
 
-- `createUserMessage()` runs before the LLM loop ([prompt.ts#L1283](https://github.com/anomalyco/opencode/blob/9640d889baa58fa01ed612a6372ba77462f79d9f/packages/opencode/s
+- `createUserMessage()` runs before the LLM loop ([prompt.ts#L1283](https://github.com/anomalyco/opencode/blob/9640d889baa58fa01ed612a6372ba77462f79d9f/packages/teamcode/s
 
 > *[Truncado — 3912 chars totais]*
 
@@ -13067,7 +13067,7 @@ Looking at the current code:
 
 ### Describe the enhancement you want to request
 
-The OpenCode Desktop app (Tauri) cannot connect to an `opencode serve` instance behind a reverse proxy with TLS when the certificate is signed by a private/internal CA (e.g., Caddy's `tls internal`, corporate CAs, self-signed certs).
+The TeamCode Desktop app (Tauri) cannot connect to an `teamcode serve` instance behind a reverse proxy with TLS when the certificate is signed by a private/internal CA (e.g., Caddy's `tls internal`, corporate CAs, self-signed certs).
 
 #### Problem
 
@@ -13076,17 +13076,17 @@ The desktop app uses `reqwest` with `rustls-tls` for its health check and Tauri'
 - `NODE_EXTRA_CA_CERTS` (Node.js-specific, irrelevant to Rust)
 - `SSL_CERT_FILE` / `SSL_CERT_DIR`
 
-This means there is no way to connect the desktop app to a serve instance behind TLS with a private CA, even though the TUI (`opencode attach`) supports this via `NODE_EXTRA_CA_CERTS`.
+This means there is no way to connect the desktop app to a serve instance behind TLS with a private CA, even though the TUI (`teamcode attach`) supports this via `NODE_EXTRA_CA_CERTS`.
 
 #### Use case
 
-Running `opencode serve` on a remote host behind a Caddy reverse proxy with `tls internal` for encrypted traffic on an internal network:
+Running `teamcode serve` on a remote host behind a Caddy reverse proxy with `tls internal` for encrypted traffic on an internal network:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ Remote Host                                                 │
 │                                                             │
-│   opencode serve (:4097)  ◄──  Caddy reverse proxy (:4448)  │
+│   teamcode serve (:4097)  ◄──  Caddy reverse proxy (:4448)  │
 │        HTTP                      TLS (internal CA)          │
 └──────────────────────────────
 
@@ -13148,13 +13148,13 @@ This command complements — not replaces — the existing `copy` command.
 
 The `mcp-servers.mdx` docs page already documents Sentry, Context7, and Grep as example MCP servers, and explicitly invites PRs for more: _"You can submit a PR if you want to document other servers."_
 
-[Last9](https://last9.io) provides a hosted MCP server that gives OpenCode access to production observability data — logs, traces, metrics, exceptions, and alerts — via OAuth. This lets developers debug production issues without leaving the terminal.
+[Last9](https://last9.io) provides a hosted MCP server that gives TeamCode access to production observability data — logs, traces, metrics, exceptions, and alerts — via OAuth. This lets developers debug production issues without leaving the terminal.
 
 **Proposed addition** — a `### Last9` section under Examples:
 
-```json title="opencode.json"
+```json title="teamcode.json"
 {
-  "$schema": "https://opencode.ai/config.json",
+  "$schema": "https://teamcode.ai/config.json",
   "mcp": {
     "last9": {
       "type": "remote",
@@ -13165,7 +13165,7 @@ The `mcp-servers.mdx` docs page already documents Sentry, Context7, and Grep as 
 }
 ```
 
-After adding, authenticate with `opencode mcp auth last9`, then use it:
+After adding, authenticate with `teamcode mcp auth last9`, then use it:
 
 ```
 Why is payment-service throwing 500s right now? use last9
@@ -13212,7 +13212,7 @@ Across 4 systematic test passes:
 📅 `2026-04-16` | ✏️ **gggtttfff** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/22829](https://github.com/anomalyco/opencode/issues/22829)
 
 
-I'm a Windows user with a small SSD (C drive) and a large HDD (D drive). OpenCode desktop app stores all data in %LOCALAPPDATA%\opencode\data\ on my C drive, which is filling up my system disk.
+I'm a Windows user with a small SSD (C drive) and a large HDD (D drive). TeamCode desktop app stores all data in %LOCALAPPDATA%\teamcode\data\ on my C drive, which is filling up my system disk.
 
 Current problems:
 
@@ -13239,7 +13239,7 @@ This is essential for Windows users with limited C drive space. Most desktop app
 
 ## Problem
 
-When using a non-multimodal LLM provider (e.g., text-only models) in OpenCode, sending an image attachment results in the model being unable to understand or process the image. There is no automatic fallback mechanism to:
+When using a non-multimodal LLM provider (e.g., text-only models) in TeamCode, sending an image attachment results in the model being unable to understand or process the image. There is no automatic fallback mechanism to:
 
 1. Detect that the current model does not support image input
 2. Automatically route the image to a configured multimodal model for transcription
@@ -13254,7 +13254,7 @@ When using a non-multimodal LLM provider (e.g., text-only models) in OpenCode, s
 
 ## Expected Behavior
 
-When a non-multimodal model receives an image, OpenCode should:
+When a non-multimodal model receives an image, TeamCode should:
 
 1. Detect the model's `modalities` do not include `image` input
 2. Use a separately configured **image caption model** (multimodal model) to describe the image
@@ -13263,7 +13263,7 @@ When a non-multimodal model receives an image, OpenCode should:
 
 ## Suggested Configuration
 
-Add a new top-level config option in `opencode.json`:
+Add a new top-level config option in `teamcode.json`:
 
 ```json
 {
@@ -13293,7 +13293,7 @@ Or within the provider's model definition, allow marking a model as the image tr
 Anyone else noticing Opus 4.6 reasoning feels shallower these past weeks? Hallucinations, made-up commits, edits without reading the file first… it’s not just you.
 Boris Cherny (Claude Code lead at Anthropic) confirmed it publicly: since Feb 9 they enabled adaptive thinking by default, and on March 3 they dropped default effort from high to medium. He admitted that on some turns adaptive thinking is allocating zero reasoning tokens, which explains a lot of what we’re seeing.
 The official fix in Claude Code is an env var: CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1.
-Problem is OpenCode doesn’t expose that variable. Has anyone figured out how to replicate this here? I’m thinking maybe forcing thinking: { type: "enabled", budget_tokens: N } in the request, or pinning effort: "high" / "max" somewhere in the config, but I haven’t found a clean way to do it.
+Problem is TeamCode doesn’t expose that variable. Has anyone figured out how to replicate this here? I’m thinking maybe forcing thinking: { type: "enabled", budget_tokens: N } in the request, or pinning effort: "high" / "max" somewhere in the config, but I haven’t found a clean way to do it.
 If anyone already cracked this, would really appreciate a pointer
 
 ---
@@ -13313,7 +13313,7 @@ If anyone already cracked this, would really appreciate a pointer
 
 ---
 
-## #22787 — [FEATURE]: `--mcp` flag for `opencode run` to ensure specific MCP servers are connected
+## #22787 — [FEATURE]: `--mcp` flag for `teamcode run` to ensure specific MCP servers are connected
 
 📅 `2026-04-16` | ✏️ **Edison-A-N** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/22787](https://github.com/anomalyco/opencode/issues/22787)
 
@@ -13324,19 +13324,19 @@ If anyone already cracked this, would really appreciate a pointer
 
 ### Describe the enhancement you want to request
 
-**Problem**: When using `opencode run` from other AI agents or automation scripts, there's no way to ensure specific MCP servers are connected for that run. Some MCPs may be configured with `enabled: false` or disconnected, but the calling agent needs them for the task.
+**Problem**: When using `teamcode run` from other AI agents or automation scripts, there's no way to ensure specific MCP servers are connected for that run. Some MCPs may be configured with `enabled: false` or disconnected, but the calling agent needs them for the task.
 
-**Use case**: An outer agent orchestrates `opencode run` to perform tasks that require specific MCP tools (e.g., `opencode run --mcp docs,github "search the docs and create an issue"`). Without this flag, the outer agent has no way to guarantee the needed MCPs are active.
+**Use case**: An outer agent orchestrates `teamcode run` to perform tasks that require specific MCP tools (e.g., `teamcode run --mcp docs,github "search the docs and create an issue"`). Without this flag, the outer agent has no way to guarantee the needed MCPs are active.
 
-**Proposed solution**: Add a `--mcp <name,...>` flag to `opencode run` that ensures the listed MCP servers are connected before the prompt is sent. For each name in the list, call `sdk.client.mcp.connect({ name })` — the same path the TUI uses when a user presses Space to toggle an MCP on.
+**Proposed solution**: Add a `--mcp <name,...>` flag to `teamcode run` that ensures the listed MCP servers are connected before the prompt is sent. For each name in the list, call `sdk.client.mcp.connect({ name })` — the same path the TUI uses when a user presses Space to toggle an MCP on.
 
 ```bash
-opencode run --mcp docs,github "search the docs and create an issue"
+teamcode run --mcp docs,github "search the docs and create an issue"
 ```
 
 MCPs not in the list are left as-is (not disconnected). This just ensures the specified ones are up.
 
-**Why it belongs in OpenCode**: The `run` command already supports per-run overrides for `--model` and `--agent`. Adding `--mcp` follows the same pattern. The internal machinery (`MCP.connect`) already exists and is used by the TUI toggle. This is a thin CLI surface over existing functionality.
+**Why it belongs in TeamCode**: The `run` command already supports per-run overrides for `--model` and `--agent`. Adding `--mcp` follows the same pattern. The internal machinery (`MCP.connect`) already exists and is used by the TUI toggle. This is a thin CLI surface over existing functionality.
 
 *
 
@@ -13365,11 +13365,11 @@ The `Z` suffix means this timestamp is in UTC (GMT+0). However, the "last modifi
 
 `New session - 2026-04-15T11:20:00`
 
-The fix would be in `packages/opencode/src/session/session.ts`, replacing `new Date().toISOString()` with a local time formatter. Happy to submit a PR if this direction sounds good.
+The fix would be in `packages/teamcode/src/session/session.ts`, replacing `new Date().toISOString()` with a local time formatter. Happy to submit a PR if this direction sounds good.
 
 ---
 
-## #22658 — [FEATURE]: (Web UX) Update browser tab title While OpenCode Is Processing
+## #22658 — [FEATURE]: (Web UX) Update browser tab title While TeamCode Is Processing
 
 📅 `2026-04-15` | ✏️ **J43fura** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/22658](https://github.com/anomalyco/opencode/issues/22658)
 
@@ -13380,11 +13380,11 @@ The fix would be in `packages/opencode/src/session/session.ts`, replacing `new D
 
 ### Describe the enhancement you want to request
 
-Currently, there is no visual feedback in the browser tab when OpenCode is actively processing a request. 
-This would be very useful for `opencode web` users
+Currently, there is no visual feedback in the browser tab when TeamCode is actively processing a request. 
+This would be very useful for `teamcode web` users
 
 Proposed improvement:
-Dynamically update document.title while OpenCode is “thinking” (e.g., prefix with 🔵 or similar indicator), and restore it once the response is complete.
+Dynamically update document.title while TeamCode is “thinking” (e.g., prefix with 🔵 or similar indicator), and restore it once the response is complete.
 
 Example:
 
@@ -13406,7 +13406,7 @@ Processing:
 
 ### Describe the enhancement you want to request
 
-Since `OPENCODE_DISABLE_LSP_DOWNLOAD` can disable downloading the LSP package, and opencode already automatically downloads formatters like Prettier, it would be helpful to provide an environment option such as `OPENCODE_DISABLE_FORMATTER_DOWNLOAD` to prevent formatter downloads as well.
+Since `OPENCODE_DISABLE_LSP_DOWNLOAD` can disable downloading the LSP package, and teamcode already automatically downloads formatters like Prettier, it would be helpful to provide an environment option such as `OPENCODE_DISABLE_FORMATTER_DOWNLOAD` to prevent formatter downloads as well.
 
 ---
 
@@ -13421,7 +13421,7 @@ Since `OPENCODE_DISABLE_LSP_DOWNLOAD` can disable downloading the LSP package, a
 
 ### Describe the enhancement you want to request
 
-There are already broader truncation issues, but this seems like a separate output-rendering problem. Long-running tools that emit carriage-return based progress updates (for example tqdm) are currently expanded into many lines, eventually collapsing into .... Once that happens, the latest progress line is no longer visible, so you cannot monitor the running process. Could opencode detect repeated CR/progress-style updates, compact older ones, and keep only the most recent status line visible?
+There are already broader truncation issues, but this seems like a separate output-rendering problem. Long-running tools that emit carriage-return based progress updates (for example tqdm) are currently expanded into many lines, eventually collapsing into .... Once that happens, the latest progress line is no longer visible, so you cannot monitor the running process. Could teamcode detect repeated CR/progress-style updates, compact older ones, and keep only the most recent status line visible?
 
 ---
 
@@ -13443,7 +13443,7 @@ Tell the AI something else
 
 Desired behavior:
 
-If Accept plan is selected, OpenCode should continue by switching to Build mode and start implementation.
+If Accept plan is selected, TeamCode should continue by switching to Build mode and start implementation.
 
 If Tell the AI something else is selected, the user should be able to immediately send additional guidance, corrections, or changes before implementation starts.
 
@@ -13517,7 +13517,7 @@ could you guys start up an official copr repo so we could easily install and get
 
 #### Context
 
-I'm building a TDD state machine as an OpenCode custom tool (`.opencode/tools/tdd-checkpoint.ts`). The tool tracks Red/Green/Refactor phases and validates that an agent follows the correct operation sequence. During the RED phase, the agent should only be writing test files — not production code.
+I'm building a TDD state machine as an TeamCode custom tool (`.teamcode/tools/tdd-checkpoint.ts`). The tool tracks Red/Green/Refactor phases and validates that an agent follows the correct operation sequence. During the RED phase, the agent should only be writing test files — not production code.
 
 The problem: the agent eventually stops calling the checkpoint tool and writes production files directly. Advisory feedback from a custom tool isn't sufficient to enforce TDD discipline because the model treats the tool as optional and reaches for Edit/Write directly.
 
@@ -13711,7 +13711,7 @@ const filepaths = ["bar/foo", "fo
 
 ### Describe the enhancement you want to request
 
-It would be great if new models were not automatically activated in OpenCode Desktop, and possibly also in CLI, provided that the behavior is identical there, so that you only ever see the models that you have manually activated for this view in the productive model selection. Otherwise, models that you don't actually want to work with keep popping up there.
+It would be great if new models were not automatically activated in TeamCode Desktop, and possibly also in CLI, provided that the behavior is identical there, so that you only ever see the models that you have manually activated for this view in the productive model selection. Otherwise, models that you don't actually want to work with keep popping up there.
 
 Reopen: https://github.com/anomalyco/opencode/issues/13164
 
@@ -13724,30 +13724,30 @@ Reopen: https://github.com/anomalyco/opencode/issues/13164
 
 ## Describe the enhancement you want to request
 
-Currently, opencode's plugin system does not properly support installing plugins from remote git URLs using bun.
+Currently, teamcode's plugin system does not properly support installing plugins from remote git URLs using bun.
 
 ### Problem
 
-When specifying a plugin with a git remote URL in `opencode.json`:
+When specifying a plugin with a git remote URL in `teamcode.json`:
 
 ```json
 {
-  "plugin": ["opencode-dynamic-context-pruning@git+https://github.com/Opencode-DCP/opencode-dynamic-context-pruning.git#98601123483bd9325d5ec5d1c3942e7e19019606"]
+  "plugin": ["teamcode-dynamic-context-pruning@git+https://github.com/Opencode-DCP/teamcode-dynamic-context-pruning.git#98601123483bd9325d5ec5d1c3942e7e19019606"]
 }
 ```
 
 The installation fails because:
 
 1. The `npa` (npm-package-arg) library correctly parses the spec as type `git` with `saveSpec` set to `git+https://...`
-2. However, in `resolvePluginTarget()` at `packages/opencode/src/plugin/shared.ts:210`, the code uses the full spec (including the package name prefix) instead of just the `saveSpec`
-3. Bun then receives `opencode-dynamic-context-pruning@git+https://...` which is not a valid bun dependency format
+2. However, in `resolvePluginTarget()` at `packages/teamcode/src/plugin/shared.ts:210`, the code uses the full spec (including the package name prefix) instead of just the `saveSpec`
+3. Bun then receives `teamcode-dynamic-context-pruning@git+https://...` which is not a valid bun dependency format
 
 ### Expected behavior
 
 Plugins should be installable via remote git URLs using the same format that `bun add` supports:
 
 ```bash
-bun add git+https://github.com/Opencode-DCP/opencode-dynamic-context-pruning.git#98601123483bd9325d5ec5d1c3942e7e19019606
+bun add git+https://github.com/Opencode-DCP/teamcode-dynamic-context-pruning.git#98601123483bd9325d5ec5d1c3942e7e19019606
 ```
 
 ### Proposed fix
@@ -13789,7 +13789,7 @@ I think that Claude Code does that.
 
 ---
 
-## #22409 — [FEATURE]: API Usage view in opencode TUI
+## #22409 — [FEATURE]: API Usage view in teamcode TUI
 
 📅 `2026-04-14` | ✏️ **Taanviir** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/22409](https://github.com/anomalyco/opencode/issues/22409)
 
@@ -13800,7 +13800,7 @@ I think that Claude Code does that.
 
 ### Describe the enhancement you want to request
 
-I use my Gitub Copilot key in opencode TUI, it would be helpful to see the amount of usage left in the TUI itself instead of having to go into github copilot settings each time
+I use my Gitub Copilot key in teamcode TUI, it would be helpful to see the amount of usage left in the TUI itself instead of having to go into github copilot settings each time
 
 ---
 
@@ -13899,9 +13899,9 @@ Related to #19469 and #7006 but distinct, those wire the permission.ask hook to 
 
 ### Describe the enhancement you want to request
 
-I have developed a browser extension [OpenEyes](https://github.com/gaardhus/OpenEyes), that allows to user to select a browser element and send a screenshot along with some other metadata to an active OpenCode session.
+I have developed a browser extension [OpenEyes](https://github.com/gaardhus/OpenEyes), that allows to user to select a browser element and send a screenshot along with some other metadata to an active TeamCode session.
 
-However, when I currently start the OpenCode cli, a new session is not created before _after_ I have send the first message. This means that in order for my extension to work, I currently have a send a dummy message (i.e. "hello") to have a new session created, which I can then select and inject the message generated by my extension in.
+However, when I currently start the TeamCode cli, a new session is not created before _after_ I have send the first message. This means that in order for my extension to work, I currently have a send a dummy message (i.e. "hello") to have a new session created, which I can then select and inject the message generated by my extension in.
 It would be nice if a new session was created automatically, or maybe through a flag?
 
 These issues are somewhat related, though they are about specifying the session_id at startup time, I just want to be able to retrieve it: 
@@ -13936,9 +13936,9 @@ In the new desktop app, a loading bar appears at the top while the AI model is r
 
 ### Describe the enhancement you want to request
 
-Currently custom tool handling (.opencode/tools) cannot handle:
+Currently custom tool handling (.teamcode/tools) cannot handle:
 
-a) Symbolic Links   (Currently reports Unable to find "@opencode-ai/plugin" reported in numerous issues)
+a) Symbolic Links   (Currently reports Unable to find "@teamcode-ai/plugin" reported in numerous issues)
 b) Sub-Directories  (Silently ignores them)
 
 Various issue reports highlight other parts of the system struggling with symbolic links and unintuitive, or simply broken directory handling. 
@@ -14027,7 +14027,7 @@ Right now the execution model feels too opaque, which makes the experience harde
 
 ## Summary
 
-Track which skills are used in each session. Every time a skill is invoked, increment its counter in a local JSON file (`~/.config/opencode/skills/usage.json`).
+Track which skills are used in each session. Every time a skill is invoked, increment its counter in a local JSON file (`~/.config/teamcode/skills/usage.json`).
 
 ## Why This Helps
 
@@ -14060,11 +14060,11 @@ JSON file is:
 - **Silent failures** - If it breaks, the CLI keeps working
 - **Privacy** - Stays local, no telemetry sent anywhere
 
-## My OpenCode Manager App
+## My TeamCode Manager App
 
-I built a personal JavaFX desktop app for managing OpenCode skills:
+I built a personal JavaFX desktop app for managing TeamCode skills:
 
-**https://github.com/zokan121522/OpenCodeManager-app**
+**https://github.com/zokan121522/TeamCodeManager-app**
 
 Features:
 - Browse and edit skills with markdown preview
@@ -14093,7 +14093,7 @@ Currently the timeout for tool execution is a single global value. Some models a
 
 ## Suggested Fix
 
-Per-model timeout configuration in `opencode.json`, per-model permission controls for tool access, and wildcard glob support in model ID matching to configure groups of models at once.
+Per-model timeout configuration in `teamcode.json`, per-model permission controls for tool access, and wildcard glob support in model ID matching to configure groups of models at once.
 
 - [x] I've verified this doesn't already exist
 
@@ -14132,7 +14132,7 @@ I already have a local prototype for this, but wanted to check if this direction
 
 ## Problem
 
-OpenCode bundles `chrome-devtools` and `morphllm-fast-apply` as **default/hardcoded MCP servers**. They are spawned on every session startup even when the user's `opencode.json` contains no reference to them. There is currently **no supported configuration mechanism** to disable them.
+TeamCode bundles `chrome-devtools` and `morphllm-fast-apply` as **default/hardcoded MCP servers**. They are spawned on every session startup even when the user's `teamcode.json` contains no reference to them. There is currently **no supported configuration mechanism** to disable them.
 
 This forces all users to pay the token and process overhead for tools they may never use.
 
@@ -14158,7 +14158,7 @@ This PR was merged. It does not describe how a user *adds* chrome-devtools; it d
 
 Issue [#1591](https://github.com/anomalyco/opencode/issues/1591) (closed) requested MorphLLM integration as a first-class editing engine, and later issue [#16632](https://github.com/anomalyco/opencode/issues/16632) (closed) updated the ecosystem docs to point users to the Morph plugin. The tool is surfaced automatically without explicit user configuration.
 
-### 3. `opencode.j
+### 3. `teamcode.j
 
 > *[Truncado — 5534 chars totais]*
 
@@ -14298,7 +14298,7 @@ When the `webfetch` tool fetches a URL that returns `401` or `403` with a `WWW-A
 
 Instead, support [RFC 9728](https://www.rfc-editor.org/rfc/rfc9728.html) and [RFC 8414](https://www.rfc-editor.org/rfc/rfc8414.html) — sending the user through an OAuth flow. This allows Opencode users to easily access resources protected behind auth (ex: internal tools, APIs, or anything you might give your agent a URL to, that is behind auth.
 
-OpenCode already implements this discovery flow for MCP servers — as it is required by the MCP specification. But `webfetch` doesn't benefit from it.
+TeamCode already implements this discovery flow for MCP servers — as it is required by the MCP specification. But `webfetch` doesn't benefit from it.
 
 ### What this adds
 
@@ -14333,7 +14333,7 @@ Since both behavior make sense, it would be nice to have an option to configure 
 
 ---
 
-## #22073 — [FEATURE]: add `--no-color` to `opencode run`
+## #22073 — [FEATURE]: add `--no-color` to `teamcode run`
 
 📅 `2026-04-11` | ✏️ **ucirello** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/22073](https://github.com/anomalyco/opencode/issues/22073)
 
@@ -14344,7 +14344,7 @@ Since both behavior make sense, it would be nice to have an option to configure 
 
 ### Describe the enhancement you want to request
 
-I would like to be able to pipe the output of `opencode run` into logs, but free of the ANSI terminal modifiers that change colors; a simple plain text output format.
+I would like to be able to pipe the output of `teamcode run` into logs, but free of the ANSI terminal modifiers that change colors; a simple plain text output format.
 
 ---
 
@@ -14407,7 +14407,7 @@ The agent should then continue processing to update the todo statuses before the
 
 ---
 
-## #22037 — [FEATURE]: Please add the date to the request timestamp in desktop opencode for mac. it would be very helpful to have an accurate timeline.
+## #22037 — [FEATURE]: Please add the date to the request timestamp in desktop teamcode for mac. it would be very helpful to have an accurate timeline.
 
 📅 `2026-04-11` | ✏️ **abaile3312-dotcom** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/22037](https://github.com/anomalyco/opencode/issues/22037)
 
@@ -14418,7 +14418,7 @@ The agent should then continue processing to update the todo statuses before the
 
 ### Describe the enhancement you want to request
 
-When I hover over a request in opencode on mac, it shows some info including the time of the request but it is missing the date. It would be very helpful to have the date along with that timestamp. There's plenty of room for it. The info doesn't even extend half the message field space.
+When I hover over a request in teamcode on mac, it shows some info including the time of the request but it is missing the date. It would be very helpful to have the date along with that timestamp. There's plenty of room for it. The info doesn't even extend half the message field space.
 
 ---
 
@@ -14450,7 +14450,7 @@ Maybe unrelated: Reference the issue I found #141 which notes "Injection occurs 
 
 ### Describe the enhancement you want to request
 
-Currently opencode uses .gitignore to filter files in autocomplete/file selection (when typing @filename). This is useful for excluding build artifacts, node_modules, etc.
+Currently teamcode uses .gitignore to filter files in autocomplete/file selection (when typing @filename). This is useful for excluding build artifacts, node_modules, etc.
 However, there's no way to disable this behavior when users want to access .gitignored files. For example, if a user has .md files in .gitignore, they cannot see them in autocomplete.
 **Request:** Add a config option to disable .gitignore filtering in file autocomplete, so that all files in the project directory are visible regardless of .gitignore rules.
 Something like:
@@ -14476,7 +14476,7 @@ Or a global option to disable gitignore for all file operations.
 ### Describe the enhancement you want to request
 
 ## Problem
-On OpenCode Desktop (Linux Mint/Cinnamon), the top progress animation (blueish  line running left to right) and  GIF to the left of session name remain animated even when idle.
+On TeamCode Desktop (Linux Mint/Cinnamon), the top progress animation (blueish  line running left to right) and  GIF to the left of session name remain animated even when idle.
 
 ## Impact
 This is visually disruptive and reduces focus during long sessions.
@@ -14494,7 +14494,7 @@ Please add settings such as:
 - OS: Linux Mint
 - Desktop: Cinnamon
 - Display: Wayland/X11
-- OpenCode Desktop version:  v1.4.3
+- TeamCode Desktop version:  v1.4.3
 
 ---
 
@@ -14525,9 +14525,9 @@ This feature is very important. Cursor also has it.
 
 ### Describe the enhancement you want to request
 
-I am using stylix to configure a custom theme for my whole setup based on a palette. I also created one for opencode and it works in the TUI, but I am not able to enable or see it in the web interface.
+I am using stylix to configure a custom theme for my whole setup based on a palette. I also created one for teamcode and it works in the TUI, but I am not able to enable or see it in the web interface.
 
-I haven't found any obvious documentation regarding this in the [web](https://opencode.ai/docs/web/) or [themes](https://opencode.ai/docs/themes/) section.
+I haven't found any obvious documentation regarding this in the [web](https://teamcode.ai/docs/web/) or [themes](https://teamcode.ai/docs/themes/) section.
 
 ---
 
@@ -14542,11 +14542,11 @@ I haven't found any obvious documentation regarding this in the [web](https://op
 
 **Problem:**
 
-When working on complex coding tasks in OpenCode, I often need Opus-level intelligence for planning and decision-making, but running Opus for the entire conversation is expensive. Anthropic recently released an "Advisor Tool" that solves this perfectly - it lets Sonnet consult Opus mid-conversation for strategic guidance, giving near-Opus quality at mostly-Sonnet cost.
+When working on complex coding tasks in TeamCode, I often need Opus-level intelligence for planning and decision-making, but running Opus for the entire conversation is expensive. Anthropic recently released an "Advisor Tool" that solves this perfectly - it lets Sonnet consult Opus mid-conversation for strategic guidance, giving near-Opus quality at mostly-Sonnet cost.
 
 **What I want:**
 
-I'd like OpenCode to support Anthropic's Advisor Tool so I can:
+I'd like TeamCode to support Anthropic's Advisor Tool so I can:
 - Use Sonnet as my main model (keeps costs down, maintains access to all tools/files)
 - Have Sonnet automatically consult Opus when it needs strategic guidance
 - Get better results on complex tasks without paying for full Opus usage
@@ -14574,11 +14574,11 @@ The advisor tool is a server-side Anthropic feature (similar to their bash or we
 
 **Describe the enhancement you want to request**
 
-When users pass `--model free` to `opencode run` or the TUI, the CLI should randomly select from available free models on the opencode provider. Combined with `--variant any`, it should also randomly choose a variant for the selected model.
+When users pass `--model free` to `teamcode run` or the TUI, the CLI should randomly select from available free models on the teamcode provider. Combined with `--variant any`, it should also randomly choose a variant for the selected model.
 
 Useful for exploration, testing, and cost-free experimentation across the model catalog.
 
-Adds `Provider.resolveSelection()` which filters for opencode provider models with zero cost and a recognized listing name, picks one at random, and optionally picks a random variant.
+Adds `Provider.resolveSelection()` which filters for teamcode provider models with zero cost and a recognized listing name, picks one at random, and optionally picks a random variant.
 
 ---
 
@@ -14597,14 +14597,14 @@ Every time when I see "Update available" toast, I want to know what's new in the
 
 ---
 
-## #21842 — [FEATURE]: Add opencode-bmad-workflow plugin to ecosystem — BMAD workflows for epic, feature, sprint and code review
+## #21842 — [FEATURE]: Add teamcode-bmad-workflow plugin to ecosystem — BMAD workflows for epic, feature, sprint and code review
 
 📅 `2026-04-10` | ✏️ **Alex-stack-cell** | 💬 8 | 🔗 [https://github.com/anomalyco/opencode/issues/21842](https://github.com/anomalyco/opencode/issues/21842)
 
 
 ## Problem or need being solved
 
-There is no built-in way to run structured BMAD product workflows (epic definition, feature PRD, sprint planning, code review) directly inside opencode. Users who follow BMAD methodology have to switch between tools and manage documentation manually.
+There is no built-in way to run structured BMAD product workflows (epic definition, feature PRD, sprint planning, code review) directly inside teamcode. Users who follow BMAD methodology have to switch between tools and manage documentation manually.
 
 ## Proposed solution
 
@@ -14622,13 +14622,13 @@ Two modes available:
 - **Plugin tools** (`workflow_*`) — fully automated
 - **Slash commands** (`/workflow-*`) — interactive, with validation checkpoints at each step
 
-Models are not hardcoded — agents inherit the global model from `opencode.json`, with an optional `model:` override per agent.
+Models are not hardcoded — agents inherit the global model from `teamcode.json`, with an optional `model:` override per agent.
 
-**Repo:** https://github.com/Alex-stack-cell/opencode-bmad-workflow
+**Repo:** https://github.com/Alex-stack-cell/teamcode-bmad-workflow
 
 ## Verification
 
-- [x] I have checked that this feature doesn't already exist in opencode
+- [x] I have checked that this feature doesn't already exist in teamcode
 
 ---
 
@@ -14658,7 +14658,7 @@ Models are not hardcoded — agents inherit the global model from `opencode.json
 
 ### Describe the enhancement you want to request
 
-skills are also constantly updated and upgraded. It is hoped that the skills equipped in opencode can be automatically updated to the latest version.
+skills are also constantly updated and upgraded. It is hoped that the skills equipped in teamcode can be automatically updated to the latest version.
 skills也是会不断更新升级的，希望能将opencode所装备的skills自动更新为最新版本
 
 ---
@@ -14678,7 +14678,7 @@ Add three new server API endpoints: `/tool` (inject external tool results), `/st
 
 - **POST /session/:id/tool** — Injects an external tool call + result into a session. Uses the `external` flag on `ToolPart` to mark results as externally produced. Depends on the `external` flag PR.
 - **POST /session/:id/status** — Appends a status/progress message to a session. Useful for plugins to report progress of long-running operations.
-- **POST /session/:id/exec** — Executes a registered tool by name with given arguments, returning the result. Enables plugins to invoke opencode's built-in tools programmatically.
+- **POST /session/:id/exec** — Executes a registered tool by name with given arguments, returning the result. Enables plugins to invoke teamcode's built-in tools programmatically.
 
 Part of the plugin primitives work tracked in #20018 (split from #21687).
 
@@ -14697,7 +14697,7 @@ Add a new `bash.commands` plugin hook that lets plugins register CLI commands wh
 
 ## More detail
 
-Plugins may provide CLI tools (via PATH injection) that are long-running by design (e.g. a plugin CLI that communicates with the opencode server to perform multi-step operations). These commands get killed by the bash tool's timeout.
+Plugins may provide CLI tools (via PATH injection) that are long-running by design (e.g. a plugin CLI that communicates with the teamcode server to perform multi-step operations). These commands get killed by the bash tool's timeout.
 
 The `bash.commands` hook lets plugins declare command names that should bypass the timeout. The bash tool checks if the command being executed starts with any registered command name and skips the timeout if so.
 
@@ -14714,15 +14714,15 @@ Part of the plugin primitives work tracked in #20018 (split from #21687).
 
 ## TL;DR
 
-Expose a `startServer()` function on `PluginInput` so plugins can programmatically start the opencode HTTP server on demand.
+Expose a `startServer()` function on `PluginInput` so plugins can programmatically start the teamcode HTTP server on demand.
 
 ## More detail
 
-Plugins that need to interact with the opencode server API (e.g. to inject tool results or report status) currently have no way to ensure the server is running. The server is normally only started when the TUI or `server` CLI command is used.
+Plugins that need to interact with the teamcode server API (e.g. to inject tool results or report status) currently have no way to ensure the server is running. The server is normally only started when the TUI or `server` CLI command is used.
 
 Adding `startServer()` to `PluginInput` lets plugins lazily start the server when they need it. The function is idempotent — calling it multiple times returns the same server instance.
 
-The type is also exported from the `@opencode/plugin` package.
+The type is also exported from the `@teamcode/plugin` package.
 
 Part of the plugin primitives work tracked in #20018 (split from #21687).
 
@@ -14825,7 +14825,7 @@ Implement a **session summarization + new session creation** flow:
 
 Please allow opening skills search popup with a keybind.
 
-At least https://opencode.ai/docs/keybinds/ does not list skills as possible option for something to add a keybind for.
+At least https://teamcode.ai/docs/keybinds/ does not list skills as possible option for something to add a keybind for.
 
 ---
 
@@ -14843,7 +14843,7 @@ At least https://opencode.ai/docs/keybinds/ does not list skills as possible opt
 Allow plugins to inject arbitrary environment variables into bash commands.
 
 ### Use Case
-My use case is in a plugin I use I can inject env vars (like `AGENT_MODE`, `AGENT_ID`) into bash commands via an optional `env` parameter on the bash tool. There are many plugins which want to do things like this, this would let any of them do it without requiring weird hacks or special extra features added to opencode.
+My use case is in a plugin I use I can inject env vars (like `AGENT_MODE`, `AGENT_ID`) into bash commands via an optional `env` parameter on the bash tool. There are many plugins which want to do things like this, this would let any of them do it without requiring weird hacks or special extra features added to teamcode.
 
 This would allow a plugin to address #9292 and #15739, among others.
 
@@ -14871,7 +14871,7 @@ The current workaround is to modify the command whenever a bash command is made 
 
 Please expose a way to store more session-level data through the SDK.
 
-Today `client.session.update(...)` lets us update the session title, but not add something like a `description` or a small metadata field. We need a small amount of extra session-level data stored in OpenCode itself instead of a separate plugin store.
+Today `client.session.update(...)` lets us update the session title, but not add something like a `description` or a small metadata field. We need a small amount of extra session-level data stored in TeamCode itself instead of a separate plugin store.
 
 At minimum, a `description` field on sessions would solve this. A generic metadata storage field would also work.
 
@@ -14889,9 +14889,9 @@ At minimum, a `description` field on sessions would solve this. A generic metada
 ### Describe the enhancement you want to request
 
 ### 1. The Problem / Motivation
-I am recently migrating to OpenCode from Cursor, and while I am really enjoying the OpenCode experience, there is one critical workflow feature I deeply miss: a dedicated **"Ask" Agent**. 
+I am recently migrating to TeamCode from Cursor, and while I am really enjoying the TeamCode experience, there is one critical workflow feature I deeply miss: a dedicated **"Ask" Agent**. 
 
-I know OpenCode already has an excellent **"Plan"** agent, but I often find myself needing to deeply analyze the existing code and brainstorm approaches *before* I actually know what to ask the Plan agent to do. Currently, this initial discovery phase feels fragmented. I need a safe, read-only environment to explore the codebase so I can formulate a clear, accurate request for the Plan agent.
+I know TeamCode already has an excellent **"Plan"** agent, but I often find myself needing to deeply analyze the existing code and brainstorm approaches *before* I actually know what to ask the Plan agent to do. Currently, this initial discovery phase feels fragmented. I need a safe, read-only environment to explore the codebase so I can formulate a clear, accurate request for the Plan agent.
 
 ### 2. Feature Description
 I propose implementing a new built-in primary agent called **"Ask"**. 
@@ -14960,28 +14960,28 @@ Before sending a message containing an image that exceeds 2000px when the sessio
 
 ---
 
-## #21690 — [FEATURE] Add Quartaly as a recognized provider in opencode models list
+## #21690 — [FEATURE] Add Quartaly as a recognized provider in teamcode models list
 
 📅 `2026-04-09` | ✏️ **clawdiobotelho** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/21690](https://github.com/anomalyco/opencode/issues/21690)
 
 
-Currently Quartaly API models are not showing in the `opencode models` list. Quartaly provides a OpenAI-compatible and Anthropic-compatible API at `https://api.quatarly.cloud` with various models including claude-opus-4-6-thinking, claude-sonnet-4-6-thinking, gpt-5.4, gemini-3.1-pro, etc.
+Currently Quartaly API models are not showing in the `teamcode models` list. Quartaly provides a OpenAI-compatible and Anthropic-compatible API at `https://api.quatarly.cloud` with various models including claude-opus-4-6-thinking, claude-sonnet-4-6-thinking, gpt-5.4, gemini-3.1-pro, etc.
 
 ## Root Cause
-The ProviderID schema is hardcoded in the opencode binary and only includes a fixed set of providers:
+The ProviderID schema is hardcoded in the teamcode binary and only includes a fixed set of providers:
 ```
 openrouter, anthropic, openai, google, google-vertex, github-copilot, amazon-bedrock, azure, mistral, gitlab
 ```
 
-Any custom provider (like quartaly) that isn't in this list won't be shown in `opencode models`, even when credentials are configured in auth.json.
+Any custom provider (like quartaly) that isn't in this list won't be shown in `teamcode models`, even when credentials are configured in auth.json.
 
 ## Current workaround
-Custom providers can be configured in `~/.openclaw/agents/main/agent/models.json` for the openclaw agent, but this doesn't affect the opencode model selector `/models`.
+Custom providers can be configured in `~/.openclaw/agents/main/agent/models.json` for the openclaw agent, but this doesn't affect the teamcode model selector `/models`.
 
 ## Request
 Add `quartaly` to the list of recognized ProviderIDs so that:
 1. The quartaly API credentials stored in `auth.json` are picked up
-2. Quartaly models appear in `opencode models` output
+2. Quartaly models appear in `teamcode models` output
 3. Users can select Quartaly models via the model selector UI
 
 ## API Details
@@ -15037,7 +15037,7 @@ I'm happy to implement this feature myself. Happy to discuss the approach before
 
 ### Describe the enhancement you want to request
 
-Using OpenCode + Sonnet, I regularly find the agent requesting access to `/tmp` to perform an experiment. I'd feel safer if it only requested access to `/tmp/opencode/some-current-session-id`, as this would limit any blast radius.
+Using TeamCode + Sonnet, I regularly find the agent requesting access to `/tmp` to perform an experiment. I'd feel safer if it only requested access to `/tmp/teamcode/some-current-session-id`, as this would limit any blast radius.
 
 ---
 
@@ -15060,23 +15060,23 @@ Coming from Claude Code, really miss the "-w" flag that lets you work on isolate
 - Both maintain separate context, history, and file state
 - No need for multiple terminal windows
 
-**Current friction in OpenCode:**
+**Current friction in TeamCode:**
 To work on two different branches/features in parallel, have to either:
-1. Open multiple terminal tabs with separate "opencode /path/to/project" processes
-2. Set up "opencode serve" on different ports and attach (overkill for quick tasks)
+1. Open multiple terminal tabs with separate "teamcode /path/to/project" processes
+2. Set up "teamcode serve" on different ports and attach (overkill for quick tasks)
 
 **Proposed solution:**
 Add a "-w, --workspace" flag that creates/switches between named isolated contexts:
 
 ```bash
 # Create or switch to workspace
-opencode -w feature-branch-name
+teamcode -w feature-branch-name
 
 # List workspaces
-opencode -w --list
+teamcode -w --list
 
 # Switch context
-opencode -w another-feature
+teamcode -w another-feature
 ```
 
 **Why this matters:**
@@ -15102,7 +15102,7 @@ opencode -w another-feature
 
 Add Hebrew (he) localization with RTL layout support
 
-opencode currently ships with 17 languages but no Hebrew or RTL support. The app already uses CSS logical properties in many places, so RTL adaptation is feasible.
+teamcode currently ships with 17 languages but no Hebrew or RTL support. The app already uses CSS logical properties in many places, so RTL adaptation is feasible.
 
 Would the maintainers be open to a PR adding:
 
@@ -15128,7 +15128,7 @@ If yes, I have a branch ready and will link it after approval.
 
 ### Describe the enhancement you want to request
 
-I hope the auto dream and auto memory features can be compatible with opencode because it is very good for memory context.
+I hope the auto dream and auto memory features can be compatible with teamcode because it is very good for memory context.
 
 ---
 
@@ -15147,15 +15147,15 @@ It appears Microsoft Entra authentication with the Azure AI Foundry is not suppo
 
 A customer of ours deployed Anthropic models in an Azure AI Foundry with a custom base URL and provided instructions only for Anthropic CLI. The existing provider relies on an API key, but the customer expressly does not want to provide one to strengthen security and enforces Entra authentication using the Azure CLI instead.
 
-These are the steps they document (not using OpenCode):
+These are the steps they document (not using TeamCode):
 1. `export ANTHROPIC_FOUNDRY_BASE_URL=https://their-custom-domain.azure-api.net/ai/anthropic`
 2. `export CLAUDE_CODE_USE_FOUNDRY="1"`
 3. `az login` to sign in to Azure using Entra Authentication (OAuth).
 4. `claude run`
 
-Steps 1, 2 and 4 appear already possible with OpenCode (https://github.com/anomalyco/opencode/issues/4474#issuecomment-3560959500), but for 3 an API key is expected by OpenCode instead.
+Steps 1, 2 and 4 appear already possible with TeamCode (https://github.com/anomalyco/opencode/issues/4474#issuecomment-3560959500), but for 3 an API key is expected by TeamCode instead.
 
-They also mention the Azure CLI session can expire every so often (10 hours in their case), in which case `az logout` followed by `az login` is required - mentioning it as reauthenticating might be relevant for OpenCode also.
+They also mention the Azure CLI session can expire every so often (10 hours in their case), in which case `az logout` followed by `az login` is required - mentioning it as reauthenticating might be relevant for TeamCode also.
 
 ---
 
@@ -15204,7 +15204,7 @@ LOC count of current directory / project
 
 ---
 
-## #21630 — [FEATURE]: x-opencode-session equivalent for non-opencode providers
+## #21630 — [FEATURE]: x-teamcode-session equivalent for non-teamcode providers
 
 📅 `2026-04-09` | ✏️ **peersky** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/21630](https://github.com/anomalyco/opencode/issues/21630)
 
@@ -15218,7 +15218,7 @@ LOC count of current directory / project
 maybe duplicate of https://github.com/anomalyco/opencode/issues/20847, im not sure. 
 
 Basically - provide session identifiers for a stateful LLM providers to work efficiently with session identifiers. 
-Currenly this exists in `x-opencode-session` but requires to have `opencode-*` provider prefix. In theory one could just rename his custom provider to `opencode-<whatever>` to workaround this, however if my case a requests API is required and there is no other way to get it for custom model unless you specify non-`opencode-` prefix to enable defaulting in responses. 
+Currenly this exists in `x-teamcode-session` but requires to have `teamcode-*` provider prefix. In theory one could just rename his custom provider to `teamcode-<whatever>` to workaround this, however if my case a requests API is required and there is no other way to get it for custom model unless you specify non-`teamcode-` prefix to enable defaulting in responses. 
 
 
 That said, only workaround to use responses API + have session persistence involves hashing session by message history, which has own complexities to consider.
@@ -15239,7 +15239,7 @@ That said, only workaround to use responses API + have session persistence invol
 ## Feature Request: Add option to delete conversations from RECENTS list
 
 ### Problem
-In OpenCode 0.3.6, there is no way to delete individual conversations or clear the RECENTS list. Users have no control over their conversation history in the UI.
+In TeamCode 0.3.6, there is no way to delete individual conversations or clear the RECENTS list. Users have no control over their conversation history in the UI.
 
 ### Use Case
 - Users want to maintain privacy by removing old/unwanted conversations
@@ -15307,7 +15307,7 @@ This would be a documentation-only addition.
 
 ## Problem
 
-Currently, OpenCode sessions are a flat list with no way to organize or track their status. When working on multiple tasks across sessions, there's no way to mark sessions as "todo", "in progress", "done", "needs review", etc.
+Currently, TeamCode sessions are a flat list with no way to organize or track their status. When working on multiple tasks across sessions, there's no way to mark sessions as "todo", "in progress", "done", "needs review", etc.
 
 Existing issues like #18071 and #18564 address *task-level* todo lists within sessions, but this is about **session-level status management** — treating each AI session itself as a trackable work item.
 
@@ -15342,9 +15342,9 @@ Add session statuses and organization. For reference, [Craft Agent](https://agen
 
 ### Describe the enhancement you want to request
 
-`@ai-sdk/amazon-bedrock` supports AWS Bedrock Guardrails via a per-request `providerOptions.bedrock.guardrailConfig` parameter, but **opencode does not expose any way to configure it**. The only `amazon-bedrock` provider options documented/accepted by opencode are `region`, `profile`, and `endpoint`.
+`@ai-sdk/amazon-bedrock` supports AWS Bedrock Guardrails via a per-request `providerOptions.bedrock.guardrailConfig` parameter, but **teamcode does not expose any way to configure it**. The only `amazon-bedrock` provider options documented/accepted by teamcode are `region`, `profile`, and `endpoint`.
 
-This makes opencode incompatible with any AWS environment where the IAM policy granting Bedrock access includes a `bedrock:GuardrailIdentifier` condition — a common enterprise security pattern used to enforce that all model invocations pass through a configured guardrail.
+This makes teamcode incompatible with any AWS environment where the IAM policy granting Bedrock access includes a `bedrock:GuardrailIdentifier` condition — a common enterprise security pattern used to enforce that all model invocations pass through a configured guardrail.
 
 ## Example blocking IAM policy
 ```json
@@ -15359,7 +15359,7 @@ This makes opencode incompatible with any AWS environment where the IAM policy g
   }
 }
 ```
-With this policy, every `InvokeModel*` request must include a `guardrailIdentifier` in the request body. Since opencode never sets `providerOptions.bedrock.guardrailConfig`, requests are rejected with `AccessDeniedException` — even though the principal has the matching resource permission.
+With this policy, every `InvokeModel*` request must include a `guardrailIdentifier` in the request body. Since teamcode never sets `providerOptions.bedrock.guardrailConfig`, requests are rejected with `AccessDeniedException` — even though the principal has the matching resource permission.
 
 ## Upstream SDK shape (`@ai-sdk/amazon-bedrock`)
 Per-request option:
@@ -15377,7 +15377,7 @@ provide
 
 ## Problem
 
-When OpenCode shows inline image previews in the chat, it displays just the filename (e.g., `filename.png`) without any surrounding trigger words like "analyze", "screenshot", "describe", or "look at".
+When TeamCode shows inline image previews in the chat, it displays just the filename (e.g., `filename.png`) without any surrounding trigger words like "analyze", "screenshot", "describe", or "look at".
 
 Skills like `vision-analysis` are configured to auto-activate when the message contains these trigger words. However, since inline images only show the filename without any such context words, the skill never auto-activates.
 
@@ -15392,7 +15392,7 @@ Skills with text trigger patterns should be able to auto-activate even when the 
 
 User sends: "[inline image: screenshot.png]"
 
-OpenCode displays: Just `screenshot.png` with no trigger words
+TeamCode displays: Just `screenshot.png` with no trigger words
 
 Agent receives: No trigger words in the text portion → vision-analysis skill doesn't activate
 
@@ -15444,7 +15444,7 @@ In v1.4.0, the auto-accept permissions button was moved from the session-level U
 
 ---
 
-## #21576 — [FEATURE]: Add @thiagos1lva/opencode-token-usage-chart to ecosystem plugins list
+## #21576 — [FEATURE]: Add @thiagos1lva/teamcode-token-usage-chart to ecosystem plugins list
 
 📅 `2026-04-08` | ✏️ **ThiagoS1lva** | 💬 1 | 🔗 [https://github.com/anomalyco/opencode/issues/21576](https://github.com/anomalyco/opencode/issues/21576)
 
@@ -15455,11 +15455,11 @@ In v1.4.0, the auto-accept permissions button was moved from the session-level U
 
 ### Describe the enhancement you want to request
 
-Please add @thiagos1lva/opencode-token-usage-chart to the Ecosystem > Plugins table in docs, with repository link and short description.
+Please add @thiagos1lva/teamcode-token-usage-chart to the Ecosystem > Plugins table in docs, with repository link and short description.
 
 ---
 
-## #21526 — [FEATURE]: Add opencode-usage-dashboard to ecosystem plugins
+## #21526 — [FEATURE]: Add teamcode-usage-dashboard to ecosystem plugins
 
 📅 `2026-04-08` | ✏️ **cosmiclasagnadev** | 💬 0 | 🔗 [https://github.com/anomalyco/opencode/issues/21526](https://github.com/anomalyco/opencode/issues/21526)
 
@@ -15470,7 +15470,7 @@ Please add @thiagos1lva/opencode-token-usage-chart to the Ecosystem > Plugins ta
 
 ### Describe the enhancement you want to request
 
-Add opencode-usage-dashboard project to ecosystem: https://github.com/cosmiclasagnadev/opencode-usage
+Add teamcode-usage-dashboard project to ecosystem: https://github.com/cosmiclasagnadev/teamcode-usage
 
 For displaying local usage stats among providers/models
 
@@ -15514,18 +15514,18 @@ The only remaining user action is to abort the main session entirely, losing all
 
 ### Description
 
-OpenCode's MCP stdio transport is broken for local MCP servers that expect proper sequential JSON-RPC messages with flush. Requests appear to be batched or not properly flushed, causing authentication to never reach the API.
+TeamCode's MCP stdio transport is broken for local MCP servers that expect proper sequential JSON-RPC messages with flush. Requests appear to be batched or not properly flushed, causing authentication to never reach the API.
 
 ### Environment
 
-- **OpenCode version:** v1.4.0
+- **TeamCode version:** v1.4.0
 - **Platform:** macOS (Apple Silicon)
 - **Node/Bun runtime:** Bun
 
 ### Repro Steps
 
 1. Set up a local MCP server using stdio transport (e.g., minimax-coding-plan-mcp)
-2. Configure it in opencode as a local MCP server  
+2. Configure it in teamcode as a local MCP server  
 3. Call any tool via the MCP server
 4. Tool returns "login fail" error from the MCP server
 
@@ -15534,11 +15534,11 @@ OpenCode's MCP stdio transport is broken for local MCP servers that expect prope
 - MCP server starts, initialize handshake completes successfully
 - tools/list returns tools correctly
 - Calling any tool returns "login fail" from the MCP server
-- No useful error logs in OpenCode
+- No useful error logs in TeamCode
 
 ### Expected Behavior
 
-- Tools should work via OpenCode's MCP client the same way they work via direct subprocess call
+- Tools should work via TeamCode's MCP client the same way they work via direct subprocess call
 
 ### Root Cause
 
@@ -15549,11 +15549,11 @@ uvx minimax-coding-plan-mcp
 # understand_image returns correct analysis
 ```
 
-**Verified broken via OpenCode:**
-- Same MCP server + OpenCode's MCP tool dispatch → "login fail"
+**Verified broken via TeamCode:**
+- Same MCP server + TeamCode's MCP tool dispatch → "login fail"
 - Token Plan quota: 174/1500 (plenty of room)
 
-The bug is in OpenCode's MCP client stdio transport layer. OpenCode likely:
+The bug is in TeamCode's MCP client stdio transport layer. TeamCode likely:
 - Batches messages without flushing
 - Sends malformed JSON-RPC requests
 - Or fails to parse responses properly
@@ -15583,7 +15583,7 @@ Today, users who prefer Qwen-based coding workflows often rely on generic provid
 
 Requested outcome:
 - First-class provider profile/preset for Qwen Code CLI-style usage
-- Consistent tool-calling and permission flow with current OpenCode UX
+- Consistent tool-calling and permission flow with current TeamCode UX
 - Clear setup docs and diagnostics for auth/model/tool compatibility
 - Smooth model/variant switching without custom hacks
 
@@ -15597,12 +15597,12 @@ Requested outcome:
 
 - A documented setup path for Qwen Code CLI integration
 - Reliable tool invocation behavior equivalent to existing first-class CLI integrations
-- Works in TUI/Desktop with standard OpenCode permission and session flows
+- Works in TUI/Desktop with standard TeamCode permission and session flows
 - Clear error messages for unsupported model/tool combinations
 
 ### Additional context
 
-I already use OpenCode Desktop/TUI as my main coding interface. The goal is workflow parity: same permissions/tools/session beh
+I already use TeamCode Desktop/TUI as my main coding interface. The goal is workflow parity: same permissions/tools/session beh
 
 > *[Truncado — 1725 chars totais]*
 
@@ -15638,7 +15638,7 @@ Related / possible overlaps: #20849, #19215, #12661
 
 ### Describe the enhancement you want to request
 
-I'd like OpenCode to unify checklist todo state and delegated subagent state into one task model.
+I'd like TeamCode to unify checklist todo state and delegated subagent state into one task model.
 
 Today:
 
@@ -15743,7 +15743,7 @@ need support svn, just like git
 
 ### Describe the enhancement you want to request
 
-We were making multiplayer collab in opencode for a use case, I was building this as a proof of concept to show what's possible for multiple people working in the same session with Chat features via live web socket connections, this proved out to be useful to code reviews and multiple other planning and discussion related stuff, also useful for teaching people.
+We were making multiplayer collab in teamcode for a use case, I was building this as a proof of concept to show what's possible for multiple people working in the same session with Chat features via live web socket connections, this proved out to be useful to code reviews and multiple other planning and discussion related stuff, also useful for teaching people.
 
 using web sockets to broadcast presence data between peers in the same session:
 
@@ -15752,7 +15752,7 @@ using web sockets to broadcast presence data between peers in the same session:
 - Display name
 - Mouse position
 
-I have checked other issues and haven't found anything related to what I was working on. Forked out opencode to work on this POC.
+I have checked other issues and haven't found anything related to what I was working on. Forked out teamcode to work on this POC.
 
 ---
 
@@ -15768,7 +15768,7 @@ I have checked other issues and haven't found anything related to what I was wor
 ### Describe the enhancement you want to request
 
 ## Summary
-Currently, reasoning effort (variants like low/medium/high) must be manually switched by the user. It would be great if OpenCode could automatically select the appropriate reasoning effort based on the complexity of the task.
+Currently, reasoning effort (variants like low/medium/high) must be manually switched by the user. It would be great if TeamCode could automatically select the appropriate reasoning effort based on the complexity of the task.
 ## Problem
 In v1.4.0, GitHub Copilot Anthropic models moved from a hardcoded `thinking_budget: 4000` to user-selectable `reasoningEffort` variants. This is a great improvement, but users now have to manually switch between variants depending on the task.
 - Simple tasks (file search, small edits) waste tokens on `high`
@@ -15794,7 +15794,7 @@ Automatically classify the task complexity and select the reasoning effort:
 📅 `2026-04-08` | ✏️ **christian-taillon** | 💬 2 | 🔗 [https://github.com/anomalyco/opencode/issues/21435](https://github.com/anomalyco/opencode/issues/21435)
 
 
-When using `opencode server` on one machine and `opencode attach` from another device, it is difficult to tell which system the current session is connected to.
+When using `teamcode server` on one machine and `teamcode attach` from another device, it is difficult to tell which system the current session is connected to.
 
 Today the UI shows the path, but not whether the session is local vs remote, or which host it is attached to. In practice this makes remote sessions easy to confuse, especially when multiple machines use similar directory layouts.
 
@@ -15822,7 +15822,7 @@ This would make remote sessions much easier and safer to identify at a glance.
 
 ### Describe the enhancement you want to request
 
-When a user asks OpenCode to file an issue against any repo, the agent should first understand that repo's issue requirements and follow them — before submitting anything. This includes searching for duplicates, respecting content/length policies, following template structure, and offering smart alternatives when a duplicate exists.
+When a user asks TeamCode to file an issue against any repo, the agent should first understand that repo's issue requirements and follow them — before submitting anything. This includes searching for duplicates, respecting content/length policies, following template structure, and offering smart alternatives when a duplicate exists.
 
 This builds on #15079 (template structural compliance) but covers the broader pre-submission workflow that template compliance alone doesn't address.
 
@@ -15834,7 +15834,7 @@ This builds on #15079 (template structural compliance) but covers the broader pr
 4. Respect content policies — sufficient detail without exceeding length/formatting rules
 5. Present the draft for user review before submission
 
-**Real example:** I asked OpenCode to file a feature request on this repo. The compliance bot flagged it as too long and gave a 2-hour fix-or-close deadline. The agent had no awareness of content policies or acceptable 
+**Real example:** I asked TeamCode to file a feature request on this repo. The compliance bot flagged it as too long and gave a 2-hour fix-or-close deadline. The agent had no awareness of content policies or acceptable 
 
 > *[Truncado — 2112 chars totais]*
 
@@ -15851,7 +15851,7 @@ This builds on #15079 (template structural compliance) but covers the broader pr
 
 ### Describe the enhancement you want to request
 
-When a user wants to file an issue from within an OpenCode session — for any repository, not just OpenCode's own — OpenCode should offer to generate a structured context report from the current session, present it for user review and approval, and then attach the approved content to the issue body before submission. This is equally useful whether the user is filing a bug against OpenCode itself, a feature request for aws-cli, a regression report for Next.js, or an issue in their own team's private repo.
+When a user wants to file an issue from within an TeamCode session — for any repository, not just TeamCode's own — TeamCode should offer to generate a structured context report from the current session, present it for user review and approval, and then attach the approved content to the issue body before submission. This is equally useful whether the user is filing a bug against TeamCode itself, a feature request for aws-cli, a regression report for Next.js, or an issue in their own team's private repo.
 
 **Current behavior:**
 
@@ -15859,8 +15859,8 @@ When a user wants to file an issue, they must manually reconstruct relevant cont
 
 **Desired behavior:**
 
-1. When the user initiates issue filing (via a slash command, `gh issue create`, or a future built-in mechanism), OpenCode prompts: *"Would you like me to generate a context report for this issue?"*
-2. Based on the issue type, OpenCode generates a tailored report from session cont
+1. When the user initiates issue filing (via a slash command, `gh issue create`, or a future built-in mechanism), TeamCode prompts: *"Would you like me to generate a context report for this issue?"*
+2. Based on the issue type, TeamCode generates a tailored report from session cont
 
 > *[Truncado — 7482 chars totais]*
 
@@ -15883,7 +15883,7 @@ While working with agents, sometimes you come across knowledge that is more rele
 
 ---
 
-## #21396 — [FEATURE]: adding local OLLAMA model to opencode natively
+## #21396 — [FEATURE]: adding local OLLAMA model to teamcode natively
 
 📅 `2026-04-07` | ✏️ **alexandre-leng** | 💬 8 | 🔗 [https://github.com/anomalyco/opencode/issues/21396](https://github.com/anomalyco/opencode/issues/21396)
 
@@ -15896,7 +15896,7 @@ While working with agents, sometimes you come across knowledge that is more rele
 
 Hi,
 
-It would be very valuable to provide a for opencode a  more seamless and native integration with ollama. At the moment, using Ollama with opencode requires manual configuration, such as setting up custom endpoints or relying on intermediary tools, which adds unnecessary friction to the developer experience.
+It would be very valuable to provide a for teamcode a  more seamless and native integration with ollama. At the moment, using Ollama with teamcode requires manual configuration, such as setting up custom endpoints or relying on intermediary tools, which adds unnecessary friction to the developer experience.
 
 ---
 
@@ -15924,7 +15924,7 @@ This line breaks YAML
 
 ```
 
-We should add a feature to OpenCode where it will warn you when it finds an invalid `SKILL.md`
+We should add a feature to TeamCode where it will warn you when it finds an invalid `SKILL.md`
 
 ---
 
@@ -15941,22 +15941,22 @@ We should add a feature to OpenCode where it will warn you when it finds an inva
 
 ## Summary
 
-Add support for defining **custom project servers** (e.g., Vite, Next.js, custom scripts) in the OpenCode project configuration, with the ability to **auto-start them when the project opens** and manage them through a unified server panel.
+Add support for defining **custom project servers** (e.g., Vite, Next.js, custom scripts) in the TeamCode project configuration, with the ability to **auto-start them when the project opens** and manage them through a unified server panel.
 
 ## Problem Statement
 
 When working on a project that requires a dev server (Vite, Next.js, etc.), developers currently must:
 
-1. Open OpenCode for the project
+1. Open TeamCode for the project
 2. Manually open a separate terminal
 3. Run `pnpm dev` (or similar)
 4. Find the URL and open in browser
 
-This breaks the flow of starting a coding session and means the dev server state is completely disconnected from the OpenCode workspace.
+This breaks the flow of starting a coding session and means the dev server state is completely disconnected from the TeamCode workspace.
 
 ## Proposed Solution
 
-Add a `servers` configuration array to `opencode.json` that lets projects define auto-managed servers:
+Add a `servers` configuration array to `teamcode.json` that lets projects define auto-managed servers:
 
 ```jsonc
 {
@@ -15975,7 +15975,7 @@ Add a `servers` configuration array to `opencode.json` that lets projects define
 
 ### Behavior
 
-- **`startOn: "project.open"`**: When OpenCode opens a project, automatically run the server command in the background and make it accessible from a "Servers" panel in the UI
+- **`startOn: "project.open"`**: When TeamCode opens a project, automatically run the server command in the background and make it accessible from a "Servers" panel in the UI
 - **`startOn: "manual"`**: Show the server in the Servers panel but don't auto-start it
 - **Ser
 
@@ -15994,7 +15994,7 @@ Add a `servers` configuration array to `opencode.json` that lets projects define
 
 ### Describe the enhancement you want to request
 
-The `/fork` command currently doesn't have an entry on https://opencode.ai/docs/tui#commands
+The `/fork` command currently doesn't have an entry on https://teamcode.ai/docs/tui#commands
 
 I'd love to be able to link to it in the course I'm working on.
 
@@ -16032,7 +16032,7 @@ Relates to #6636, which describes a similar issue with subagent model state affe
 
 ## Describe the enhancement you want to request
 
-I was profiling why a fresh OpenCode session starts at ~40K tokens. I downloaded all 16 tool .txt files from `packages/opencode/src/tool/` and measured them.
+I was profiling why a fresh TeamCode session starts at ~40K tokens. I downloaded all 16 tool .txt files from `packages/teamcode/src/tool/` and measured them.
 
 **bash.txt is 9,288 characters (~2,654 tokens). But 63% of it has nothing to do with running bash commands.** The git commit workflow and PR creation instructions account for 5,874 characters (~1,678 tokens) — those are procedural guides, not bash execution semantics.
 
@@ -16072,17 +16072,17 @@ The input field always displays placeholder text. There is no configuration opti
 Add an `input_placeholder` property to the `tui.json` configuration:
 ```json
 {
-  "$schema": "https://opencode.ai/tui.json",
+  "$schema": "https://teamcode.ai/tui.json",
   "input_placeholder": false
 }
 Or alternatively, allow setting it to a custom string or empty string:
 {
-  "$schema": "https://opencode.ai/tui.json",
+  "$schema": "https://teamcode.ai/tui.json",
   "input_placeholder": ""
 }
 Use case
 - Users who prefer a cleaner input area
-- Users who already know how to use OpenCode and don't need the hints
+- Users who already know how to use TeamCode and don't need the hints
 - Consistency with other UI customization options like tips
 
 ---
@@ -16100,7 +16100,7 @@ Use case
 
 KAT-Coder-Pro V2 is a model by Kwaipilot without reasoning showing very strong coding performance against even reasoning models and being much faster.
 
-It would be a great addition to OpenCode as a model focused on coding only.
+It would be a great addition to TeamCode as a model focused on coding only.
 
 ---
 
@@ -16115,6 +16115,6 @@ It would be a great addition to OpenCode as a model focused on coding only.
 
 ### Describe the enhancement you want to request
 
-opencode has the capability to import a session via its CLI tool, but it can't be done via api.
+teamcode has the capability to import a session via its CLI tool, but it can't be done via api.
 
 ---
