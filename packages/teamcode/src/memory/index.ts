@@ -84,7 +84,7 @@ export interface Interface {
   readonly remove: (key: string) => Effect.Effect<boolean>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/SharedMemory") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/SharedMemory") {}
 
 // ---------------------------------------------------------------------------
 // Layer

@@ -5,7 +5,7 @@ import { InstanceRef, WorkspaceRef } from "./instance-ref"
 import { registerDisposer } from "./instance-registry"
 import { WorkspaceContext } from "@/control-plane/workspace-context"
 
-const TypeId = "~opencode/InstanceState"
+const TypeId = "~teamcode/InstanceState"
 
 export interface InstanceState<A, E = never, R = never> {
   readonly [TypeId]: typeof TypeId

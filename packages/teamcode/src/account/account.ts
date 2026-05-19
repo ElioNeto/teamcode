@@ -131,7 +131,7 @@ class TokenRefreshRequest extends Schema.Class<TokenRefreshRequest>("TokenRefres
   client_id: Schema.String,
 }) {}
 
-const clientId = "opencode-cli"
+const clientId = "teamcode-cli"
 const eagerRefreshThreshold = Duration.minutes(5)
 const eagerRefreshThresholdMs = Duration.toMillis(eagerRefreshThreshold)
 
@@ -179,7 +179,7 @@ export interface Interface {
   readonly poll: (input: Login) => Effect.Effect<PollResult, AccountError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Account") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/Account") {}
 
 export const layer: Layer.Layer<Service, never, AccountRepo.Service | HttpClient.HttpClient> = Layer.effect(
   Service,

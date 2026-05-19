@@ -55,7 +55,7 @@ export interface Interface {
   readonly waitForDependencies: () => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/TuiConfig") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/TuiConfig") {}
 
 function pluginScope(file: string, ctx: { directory: string }): ConfigPlugin.Scope {
   if (Filesystem.contains(ctx.directory, file)) return "local"
@@ -226,10 +226,10 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
   // 4. `.opencode` directories (and OPENCODE_CONFIG_DIR) discovered while
   // walking up the tree. Also returned below so callers can install plugin
   // dependencies from each location.
-  const dirs = unique(directories).filter((dir) => dir.endsWith(".opencode") || dir === Flag.OPENCODE_CONFIG_DIR)
+  const dirs = unique(directories).filter((dir) => dir.endsWith(".teamcode") || dir === Flag.OPENCODE_CONFIG_DIR)
 
   for (const dir of dirs) {
-    if (!dir.endsWith(".opencode") && dir !== Flag.OPENCODE_CONFIG_DIR) continue
+    if (!dir.endsWith(".teamcode") && dir !== Flag.OPENCODE_CONFIG_DIR) continue
     for (const file of ConfigPaths.fileInDirectory(dir, "tui")) {
       yield* mergeFile(acc, file)
     }
@@ -250,7 +250,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
       notifications: acc.result.attention?.notifications ?? true,
       sound: acc.result.attention?.sound ?? true,
       volume: acc.result.attention?.volume ?? 0.4,
-      sound_pack: acc.result.attention?.sound_pack ?? "opencode.default",
+      sound_pack: acc.result.attention?.sound_pack ?? "teamcode.default",
       sounds: acc.result.attention?.sounds ?? {},
     },
     keybinds: createBindingLookup(TuiKeybind.toBindingConfig(parsedKeybinds), {

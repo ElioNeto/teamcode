@@ -174,7 +174,7 @@ export interface Interface {
   readonly isSandbox: (directory: string) => Effect.Effect<boolean, never>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Sandbox") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/Sandbox") {}
 
 // ---------------------------------------------------------------------------
 // Layer

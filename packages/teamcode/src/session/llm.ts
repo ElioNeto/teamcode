@@ -54,7 +54,7 @@ export interface Interface {
   readonly stream: (input: StreamInput) => Stream.Stream<Event, unknown>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/LLM") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/LLM") {}
 
 const live: Layer.Layer<
   Service,
@@ -366,7 +366,7 @@ const live: Layer.Layer<
             : {
                 "x-session-affinity": input.sessionID,
                 ...(input.parentSessionID ? { "x-parent-session-id": input.parentSessionID } : {}),
-                "User-Agent": `opencode/${InstallationVersion}`,
+                "User-Agent": `teamcode/${InstallationVersion}`,
               }),
           ...input.model.headers,
           ...headers,

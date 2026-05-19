@@ -42,7 +42,7 @@ export const AttachCommand = cmd({
       .option("username", {
         alias: ["u"],
         type: "string",
-        describe: "basic auth username (defaults to OPENCODE_SERVER_USERNAME or 'opencode')",
+        describe: "basic auth username (defaults to OPENCODE_SERVER_USERNAME or 'teamcode')",
       }),
   handler: async (args) => {
     const unguard = win32InstallCtrlCGuard()

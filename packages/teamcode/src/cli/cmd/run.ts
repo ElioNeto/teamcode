@@ -200,7 +200,7 @@ export const RunCommand = effectCmd({
       .option("username", {
         alias: ["u"],
         type: "string",
-        describe: "basic auth username (defaults to OPENCODE_SERVER_USERNAME or 'opencode')",
+        describe: "basic auth username (defaults to OPENCODE_SERVER_USERNAME or 'teamcode')",
       })
       .option("dir", {
         type: "string",
@@ -870,7 +870,7 @@ export const RunCommand = effectCmd({
         return Server.Default().app.fetch(request)
       }) as typeof globalThis.fetch
       const sdk = createOpencodeClient({
-        baseUrl: "http://opencode.internal",
+        baseUrl: "http://teamcode.internal",
         fetch: fetchFn,
         directory,
       })

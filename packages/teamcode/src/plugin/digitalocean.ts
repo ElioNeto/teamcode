@@ -14,7 +14,7 @@ const OAUTH_PORT = 1456
 const OAUTH_REDIRECT_PATH = "/auth/callback"
 const OAUTH_TOKEN_PATH = "/auth/token"
 const ROUTER_REFRESH_INTERVAL_MS = 5 * 60 * 1000
-const MAK_NAME_PREFIX = "opencode-oauth"
+const MAK_NAME_PREFIX = "teamcode-oauth"
 
 interface ImplicitTokenPayload {
   access_token: string
@@ -233,7 +233,7 @@ async function createModelAccessKey(bearer: string): Promise<ApiKeyInfo> {
     headers: {
       Authorization: `Bearer ${bearer}`,
       "Content-Type": "application/json",
-      "User-Agent": `opencode/${InstallationVersion}`,
+      "User-Agent": `teamcode/${InstallationVersion}`,
     },
     body: JSON.stringify({ name }),
   })
@@ -253,7 +253,7 @@ async function listRouters(
     headers: {
       Authorization: `Bearer ${bearer}`,
       Accept: "application/json",
-      "User-Agent": `opencode/${InstallationVersion}`,
+      "User-Agent": `teamcode/${InstallationVersion}`,
     },
     signal: AbortSignal.timeout(10_000),
   }).catch(() => undefined)

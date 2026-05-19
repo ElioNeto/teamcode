@@ -180,10 +180,10 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
 
   if (method !== "curl" && method !== "unknown") {
     const cmds: Record<string, string[]> = {
-      npm: ["npm", "uninstall", "-g", "opencode-ai"],
-      pnpm: ["pnpm", "uninstall", "-g", "opencode-ai"],
-      bun: ["bun", "remove", "-g", "opencode-ai"],
-      yarn: ["yarn", "global", "remove", "opencode-ai"],
+      npm: ["npm", "uninstall", "-g", "teamcode-ai"],
+      pnpm: ["pnpm", "uninstall", "-g", "teamcode-ai"],
+      bun: ["bun", "remove", "-g", "teamcode-ai"],
+      yarn: ["yarn", "global", "remove", "teamcode-ai"],
       brew: ["brew", "uninstall", "teamcode"],
       choco: ["choco", "uninstall", "teamcode"],
       scoop: ["scoop", "uninstall", "teamcode"],
@@ -215,7 +215,7 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
     prompts.log.info(`  rm "${targets.binary}"`)
 
     const binDir = path.dirname(targets.binary)
-    if (binDir.includes(".opencode")) {
+    if (binDir.includes(".teamcode")) {
       prompts.log.info(`  rmdir "${binDir}" 2>/dev/null`)
     }
   }
@@ -298,7 +298,7 @@ async function cleanShellConfig(file: string) {
 
     if (
       (trimmed.startsWith("export PATH=") && trimmed.includes(".opencode/bin")) ||
-      (trimmed.startsWith("fish_add_path") && trimmed.includes(".opencode"))
+      (trimmed.startsWith("fish_add_path") && trimmed.includes(".teamcode"))
     ) {
       continue
     }

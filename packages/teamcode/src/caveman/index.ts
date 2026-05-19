@@ -208,7 +208,7 @@ export interface Interface {
   readonly countTokens: (text: string) => number
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Caveman") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/Caveman") {}
 
 export const layer = Layer.effect(
   Service,

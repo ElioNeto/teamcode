@@ -124,7 +124,7 @@ export interface Interface {
   readonly removeSandbox: (id: ProjectID, directory: string) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Project") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/Project") {}
 
 type GitResult = { code: number; text: string; stderr: string }
 
@@ -183,7 +183,7 @@ export const layer: Layer.Layer<
     const scope = yield* Scope.Scope
 
     const readCachedProjectId = Effect.fnUntraced(function* (dir: string) {
-      return yield* fs.readFileString(pathSvc.join(dir, "opencode")).pipe(
+      return yield* fs.readFileString(pathSvc.join(dir, "teamcode")).pipe(
         Effect.map((x) => x.trim()),
         Effect.map((x) => ProjectID.make(x)),
         Effect.catch(() => Effect.void),
@@ -250,7 +250,7 @@ export const layer: Layer.Layer<
 
           id = roots[0] ? ProjectID.make(roots[0]) : undefined
           if (id) {
-            yield* fs.writeFileString(pathSvc.join(common, "opencode"), id).pipe(Effect.ignore)
+            yield* fs.writeFileString(pathSvc.join(common, "teamcode"), id).pipe(Effect.ignore)
           }
         }
 

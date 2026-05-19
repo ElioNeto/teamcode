@@ -225,7 +225,7 @@ export const ReadTool = Tool.define(
       if (process.platform === "win32") {
         filepath = AppFileSystem.normalizePath(filepath)
       }
-      const worktreeOpencodeDir = path.join(instance.worktree, ".opencode")
+      const worktreeOpencodeDir = path.join(instance.worktree, ".teamcode")
       const isInOpencodeDir = AppFileSystem.contains(worktreeOpencodeDir, filepath)
       if (
         !AppFileSystem.contains(instance.directory, filepath) &&

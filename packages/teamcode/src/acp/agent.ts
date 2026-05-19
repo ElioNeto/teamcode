@@ -160,7 +160,7 @@ export class Agent implements ACPAgent {
     {
       description: "Run `opencode auth login` in the terminal",
       name: "Login with opencode",
-      id: "opencode-login",
+      id: "teamcode-login",
     },
   ]
 
@@ -524,7 +524,7 @@ export class Agent implements ACPAgent {
 
     const methods = this.authMethods.map((m) => {
       // If client supports terminal-auth capability, enhance the method with terminal metadata.
-      if (params.clientCapabilities?._meta?.["terminal-auth"] === true && m.id === "opencode-login") {
+      if (params.clientCapabilities?._meta?.["terminal-auth"] === true && m.id === "teamcode-login") {
         return {
           ...m,
           _meta: {
@@ -579,7 +579,7 @@ export class Agent implements ACPAgent {
     // For terminal-auth, authentication is implicit — the user is already
     // authenticated by having access to the local machine. No remote token
     // exchange is needed.
-    if (method === "opencode-login") {
+    if (method === "teamcode-login") {
       return
     }
 

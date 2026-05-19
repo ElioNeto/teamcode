@@ -57,7 +57,7 @@ import { RuntimeFlags } from "@/effect/runtime-flags"
 const log = Log.create({ service: "tool.registry" })
 
 export function webSearchEnabled(providerID: ProviderID, flags = { exa: false, parallel: false }) {
-  return providerID === ProviderID.opencode || flags.exa || flags.parallel
+  return providerID === ProviderID.teamcode || flags.exa || flags.parallel
 }
 
 type TaskDef = Tool.InferDef<typeof TaskTool>
@@ -77,7 +77,7 @@ export interface Interface {
   readonly tools: (model: { providerID: ProviderID; modelID: ModelID; agent: Agent.Info }) => Effect.Effect<Tool.Def[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/ToolRegistry") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/ToolRegistry") {}
 
 export const layer: Layer.Layer<
   Service,

@@ -129,7 +129,7 @@ export function evaluate(permission: string, pattern: string, ...rulesets: Rules
   return evalRule(permission, pattern, ...rulesets)
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Permission") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/Permission") {}
 
 export const layer = Layer.effect(
   Service,

@@ -398,10 +398,10 @@ export const McpLogoutCommand = effectCmd({
 
 async function resolveConfigPath(baseDir: string, global = false) {
   // Check for existing config files (prefer .jsonc over .json, check .opencode/ subdirectory too)
-  const candidates = [path.join(baseDir, "opencode.json"), path.join(baseDir, "opencode.jsonc")]
+  const candidates = [path.join(baseDir, "teamcode.json"), path.join(baseDir, "teamcode.jsonc")]
 
   if (!global) {
-    candidates.push(path.join(baseDir, ".opencode", "opencode.json"), path.join(baseDir, ".opencode", "opencode.jsonc"))
+    candidates.push(path.join(baseDir, ".teamcode", "teamcode.json"), path.join(baseDir, ".teamcode", "teamcode.jsonc"))
   }
 
   for (const candidate of candidates) {
@@ -682,7 +682,7 @@ export const McpDebugCommand = effectCmd({
             params: {
               protocolVersion: "2024-11-05",
               capabilities: {},
-              clientInfo: { name: "opencode-debug", version: InstallationVersion },
+              clientInfo: { name: "teamcode-debug", version: InstallationVersion },
             },
             id: 1,
           }),
@@ -725,7 +725,7 @@ export const McpDebugCommand = effectCmd({
 
           try {
             const client = new Client({
-              name: "opencode-debug",
+              name: "teamcode-debug",
               version: InstallationVersion,
             })
             await client.connect(transport)

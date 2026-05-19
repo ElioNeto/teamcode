@@ -48,7 +48,7 @@ export interface Interface {
   readonly reset: () => void
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Observability") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/Observability") {}
 
 // ---------------------------------------------------------------------------
 // Layer

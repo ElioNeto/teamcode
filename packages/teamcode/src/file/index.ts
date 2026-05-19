@@ -324,7 +324,7 @@ export interface Interface {
   }) => Effect.Effect<string[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/File") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/File") {}
 
 export const layer = Layer.effect(
   Service,

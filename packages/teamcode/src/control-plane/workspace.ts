@@ -164,7 +164,7 @@ export interface Interface {
   readonly startWorkspaceSyncing: (projectID: ProjectID) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Workspace") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/Workspace") {}
 
 export const layer = Layer.effect(
   Service,

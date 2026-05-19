@@ -10,7 +10,7 @@ export class InstanceContextMiddleware extends HttpApiMiddleware.Service<
   {
     requires: WorkspaceRouteContext
   }
->()("@opencode/ExperimentalHttpApiInstanceContext") {}
+>()("@teamcode/ExperimentalHttpApiInstanceContext") {}
 
 function decode(input: string): string {
   // Only decode if the string contains percent-encoded sequences.

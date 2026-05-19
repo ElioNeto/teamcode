@@ -62,7 +62,7 @@ export interface Interface {
   readonly files: () => Effect.Effect<readonly string[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/SwarmIssue") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/SwarmIssue") {}
 
 // ---------------------------------------------------------------------------
 // Errors

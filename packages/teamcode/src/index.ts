@@ -39,7 +39,7 @@ import { PluginCommand } from "./cli/cmd/plug"
 import { CavemanCompressCommand } from "./cli/cmd/caveman-compress"
 import { Heap } from "./cli/heap"
 import { drizzle } from "drizzle-orm/bun-sqlite"
-import { ensureProcessMetadata } from "@teamcode-ai/core/util/opencode-process"
+import { ensureProcessMetadata } from "@teamcode-ai/core/util/teamcode-process"
 import { isRecord } from "@/util/record"
 
 const processMetadata = ensureProcessMetadata("main")

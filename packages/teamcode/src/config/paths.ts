@@ -21,7 +21,7 @@ export interface Interface {
   readonly directories: (directory: string, worktree?: string) => Effect.Effect<string[], never, never>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/ConfigPaths") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/ConfigPaths") {}
 
 export const layer = Layer.effect(
   Service,
@@ -46,13 +46,13 @@ export const layer = Layer.effect(
         Global.Path.config,
         ...(!flags.disableProjectConfig
           ? yield* afs.up({
-              targets: [".opencode"],
+              targets: [".teamcode"],
               start: directory,
               stop: worktree,
             }).pipe(Effect.orDie)
           : []),
         ...(yield* afs.up({
-          targets: [".opencode"],
+          targets: [".teamcode"],
           start: Global.Path.home,
           stop: Global.Path.home,
         }).pipe(Effect.orDie)),
@@ -87,13 +87,13 @@ export const directories = Effect.fn("ConfigPaths.directories")(function* (direc
     Global.Path.config,
     ...(!Flag.OPENCODE_DISABLE_PROJECT_CONFIG
       ? yield* afs.up({
-          targets: [".opencode"],
+          targets: [".teamcode"],
           start: directory,
           stop: worktree,
         })
       : []),
     ...(yield* afs.up({
-      targets: [".opencode"],
+      targets: [".teamcode"],
       start: Global.Path.home,
       stop: Global.Path.home,
     })),

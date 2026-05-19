@@ -19,7 +19,7 @@ import {
   OPENCODE_RUN_ID,
   ensureRunID,
   sanitizedProcessEnv,
-} from "@teamcode-ai/core/util/opencode-process"
+} from "@teamcode-ai/core/util/teamcode-process"
 import { validateSession } from "./validate-session"
 
 declare global {
@@ -205,7 +205,7 @@ export const TuiThreadCommand = cmd({
             events: undefined,
           }
         : {
-            url: "http://opencode.internal",
+            url: "http://teamcode.internal",
             fetch: createWorkerFetch(client),
             events: createEventSource(client),
           }

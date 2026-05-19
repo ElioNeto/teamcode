@@ -9,7 +9,7 @@ import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner
 import { CrossSpawnSpawner } from "@teamcode-ai/core/cross-spawn-spawner"
 import { Global } from "@teamcode-ai/core/global"
 import * as Log from "@teamcode-ai/core/util/log"
-import { sanitizedProcessEnv } from "@teamcode-ai/core/util/opencode-process"
+import { sanitizedProcessEnv } from "@teamcode-ai/core/util/teamcode-process"
 import { which } from "@/util/which"
 import { NonNegativeInt } from "@teamcode-ai/core/schema"
 
@@ -139,7 +139,7 @@ export interface Interface {
   readonly search: (input: SearchInput) => Effect.Effect<SearchResult, PlatformError | Error>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Ripgrep") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/Ripgrep") {}
 
 function env() {
   const env = sanitizedProcessEnv()
@@ -436,7 +436,7 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | ChildPro
 
         const root: Node = { name: "", children: new Map() }
         for (const file of list) {
-          if (file.includes(".opencode")) continue
+          if (file.includes(".teamcode")) continue
           const parts = file.split(path.sep)
           if (parts.length < 2) continue
           let node = root

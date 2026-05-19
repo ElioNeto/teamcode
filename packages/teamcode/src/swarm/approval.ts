@@ -92,7 +92,7 @@ export interface Interface {
   readonly pending: () => Effect.Effect<readonly ApprovalRequest[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/SwarmApproval") {}
+export class Service extends Context.Service<Service, Interface>()("@teamcode/SwarmApproval") {}
 
 // ---------------------------------------------------------------------------
 // Layer
