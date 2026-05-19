@@ -94,6 +94,7 @@ Em 2026-05-19, todas as issues extraídas do upstream foram revisadas e adaptada
 | `0e968b7` | - | Wire Observability.layer in BootstrapLayer and HTTP server routes |
 | `daed6d9` | Crítico/Alta/Média | 16 bugs fixados em batch (#28037, #27946, #27831, #27902, #27922, #28033, #27987, #26642, #27392, #28052, #27931, #27968, #26709, #26603, #26815, #27923) |
 | `4dde2ef` | Uncategorized | 4 bugs fixados (#26852, #25918, #24447, #26855) |
+| `bcb10f5` | Crítico/Alta/Média | 14 bugs fixados (#26106, #26156, #27645, #27620, #27528, #27283, #27286, #28063, #27052, #27284, #26766, #26460, #26780, #27532) |
 
 ## Conclusão
 
@@ -105,45 +106,55 @@ Em 2026-05-19, todas as issues extraídas do upstream foram revisadas e adaptada
 - **1 concluída** (I-07): Process API implementada e `Bun.$` eliminado do código-fonte
 
 ### Issues Upstream Aplicáveis (fixadas)
-- **51 bugs corrigidos** no código-fonte do `teamcode` (31 anteriores + 20 novos nesta sessão):
+- **65 bugs corrigidos** no código-fonte do `teamcode` (31 anteriores + 34 novos):
 
-**Sessão atual (2026-05-19) — 20 novos bugs fixados:**
+**Sessão 2026-05-19 — 34 novos bugs fixados em 3 batches:**
 
-🔴 Críticos (2):
-| Issue | Descrição | Commit |
-|-------|-----------|--------|
-| #27946 | `[MaxDepth]` placeholders em schemas de ferramentas → `{}` | `daed6d9` |
-| #28037 | Plugin permission replies dropped (memoMaps separados) → memoMap compartilhado | `daed6d9` |
+Batch 1 (`daed6d9`) — 16 bugs:
+| Issue | Descrição |
+|-------|-----------|
+| #28037 | Plugin permission replies dropped (memoMaps separados) → memoMap compartilhado |
+| #27946 | `[MaxDepth]` placeholders → `{}` em tool schemas |
+| #27831 | Subagent description marcdown sobrescrita → merge corrigido |
+| #27902 | kimi-for-coding 429 → KimiCLI/1.5 User-Agent |
+| #27922 | TUI ESC não cancela sessão → bypass dialog.stack |
+| #28033 | Snapshot ignore() silencia erros → log + empty set |
+| #27987 | Reasoning cycles fragmentados → reset lastReasoningPart |
+| #26642 | Binários sem extensão → magic-byte fallback |
+| #27392 | PWD estaleiado → process.cwd() |
+| #28052 | Subagent allow sobrescrito por deny → merge reordenado |
+| #27931 | Static assets sem Cache-Control → headers adicionados |
+| #27968 | Paste badge invisível → foreground fixo |
+| #26709 | Duplicate skill warning falso → early return |
+| #26603 | ACP tool_call_update title → part.tool |
+| #26815 | tmux OSC-52 → DCS passthrough corrigido |
+| #27923 | pluginAutoInstall sem efeito → flag checada |
 
-🟠 Alta (5):
-| Issue | Descrição | Commit |
-|-------|-----------|--------|
-| #27922 | TUI: ESC não cancela sessão com dialog aberto → bypass dialog.stack | `daed6d9` |
-| #27902 | kimi-for-coding 429 por falta de User-Agent → KimiCLI/1.5 | `daed6d9` |
-| #27831 | Subagent description de markdown sobrescrita → merge corrigido | `daed6d9` |
-| #26852 | Stale env var bloqueia lock file → probe de conectividade | `4dde2ef` |
-| #25918 | tool.execute.after declarado mas nunca invocado → trigger adicionado | `4dde2ef` |
+Batch 2 (`4dde2ef`) — 4 bugs:
+| Issue | Descrição |
+|-------|-----------|
+| #26852 | Stale env var bloqueia lock file → probe de conectividade |
+| #25918 | tool.execute.after nunca invocado → trigger adicionado |
+| #24447 | TaskTool resultado vazio → metadados no result |
+| #26855 | run --format json sem step_finish → pendingSteps tracker |
 
-🟡 Média (8):
-| Issue | Descrição | Commit |
-|-------|-----------|--------|
-| #28033 | Snapshot ignore() silencia erros do git → log + empty set | `daed6d9` |
-| #27987 | Reasoning cycles fragmentados → reset lastReasoningPart | `daed6d9` |
-| #26642 | Binários sem extensão não detectados → magic-byte fallback | `daed6d9` |
-| #27392 | PWD estaleiado sobrepõe cwd real → process.cwd() | `daed6d9` |
-| #28052 | Subagent permissões allow sobrescritas por deny → merge reordenado | `daed6d9` |
-| #27931 | Static assets sem Cache-Control → headers adicionados | `daed6d9` |
-| #27968 | Paste badge invisível em temas transparentes → foreground fixo | `daed6d9` |
-| #26855 | run --format json sem step_finish → pendingSteps tracker | `4dde2ef` |
-
-🟢 Baixa (5):
-| Issue | Descrição | Commit |
-|-------|-----------|--------|
-| #26709 | Duplicate skill warning falso positivo → early return | `daed6d9` |
-| #26603 | ACP tool_call_update title errado → part.tool | `daed6d9` |
-| #26815 | OSC-52 tmux sem DCS passthrough → sequence corrigida | `daed6d9` |
-| #27923 | pluginAutoInstall config sem efeito → flag checada no npm install | `daed6d9` |
-| #24447 | TaskTool resultado vazio sem diagnóstico → metadados no result | `4dde2ef` |
+Batch 3 (`bcb10f5`) — 14 bugs:
+| Issue | Descrição |
+|-------|-----------|
+| #26106 | image_url content type sem suporte → schema adicionado |
+| #26156 | Kimi/Moonshot annotations crash → campo optional |
+| #27645 | ACP session model ignorado → fallback session.model |
+| #27620 | Child sessions invisíveis → removido roots:true |
+| #27528 | ACP slash cmd não reconhecido → fallthrough p/ texto |
+| #27283 | Remote workspace 503 sem retry → retry loop 5x |
+| #27286 | Session list filtrada silenciosamente → indicador visual |
+| #28063 | /compact Next Steps obsoletos → reconciliação adicionada |
+| #27052 | Desktop CORS private network → header adicionado |
+| #27284 | Workspace errors engolidos → log propagado |
+| #26766 | Legacy TUI keys quebram config → normalizeLoadedConfig |
+| #26460 | Prompt caching excluía openai-compatible → guard removido |
+| #26780 | Ollama imagens descartadas → inferImageCapability |
+| #27532 | generate.txt commentary errado → texto corrigido |
 
 **Sessões anteriores — 31 bugs:**
 - 6 críticos (#26075, #25392, #27559, #27657, #27456)
@@ -161,4 +172,5 @@ Em 2026-05-19, todas as issues extraídas do upstream foram revisadas e adaptada
 |--------|-----------|
 | `0e968b7` | Wire Observability.layer + export ModelFilteringPlugin + fix type deps |
 | `daed6d9` | 16 bugs fixados (memoMap, tool schemas, agent descriptions, TUI ESC, etc.) |
-| `4dde2ef` | 4 bugs fixados (editor probe, plugin hook, TaskTool diag, step_finish) |
+| `4dde2ef` | 4 bugs fixados (editor probe, plugin hook, TaskTask diag, step_finish) |
+| `bcb10f5` | 14 bugs fixados (image_url, annotations, ACP model, child sessions, etc.) |
