@@ -57,6 +57,7 @@
 | `b55d065` | Alta | #27796, #27519, #27620, #27035, #27831, #27650, #27922 (7 bugs) |
 | `9a2abf5` | Média | #28033, #27987, #27886, #27392, #27058 (5 bugs) |
 | `8644abc` | Uncategorized | #27908 — plugin spinner non-TTY (1 bug) |
+| `8318a98` | Rebrand | opencode → teamcode (138 arquivos, 208 alterações) |
 
 ## Conclusão
 
