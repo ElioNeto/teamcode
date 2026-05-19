@@ -3,7 +3,6 @@ import { writeHeapSnapshot } from "node:v8"
 import { Effect } from "effect"
 import { Global } from "@teamcode-ai/core/global"
 import * as Log from "@teamcode-ai/core/util/log"
-import { AppRuntime } from "@/effect/app-runtime"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 
 const log = Log.create({ service: "heap" })
@@ -15,7 +14,9 @@ let lock = false
 let armed = true
 
 export async function start() {
-  const { autoHeapSnapshot } = await AppRuntime.runPromise(RuntimeFlags.Service.useSync((f) => f))
+  const { autoHeapSnapshot } = Effect.runSync(
+    RuntimeFlags.Service.useSync((f) => f).pipe(Effect.provide(RuntimeFlags.defaultLayer)),
+  )
   if (!autoHeapSnapshot) return
   if (timer) return
 

@@ -2,11 +2,12 @@ import { Effect } from "effect"
 import { Installation } from "@/installation"
 import { InstallationVersion } from "@teamcode-ai/core/installation/version"
 import { GlobalBus } from "@/bus/global"
-import { AppRuntime } from "@/effect/app-runtime"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 
 export async function upgrade(autoupdate: boolean | "notify" | undefined) {
-  const flags = await AppRuntime.runPromise(RuntimeFlags.Service.useSync((flags) => flags))
+  const flags = Effect.runSync(
+    RuntimeFlags.Service.useSync((flags) => flags).pipe(Effect.provide(RuntimeFlags.defaultLayer)),
+  )
   if (autoupdate === false || flags.disableAutoupdate) return
   const method = await Installation.method()
   const latest = await Installation.latest(method).catch(() => {})

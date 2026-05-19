@@ -104,8 +104,8 @@ const cli = yargs(args)
     describe: "enable caveman mode — agent speak with few token",
     type: "string",
     coerce: (val: string | boolean | undefined) => {
-      if (val === false || val === undefined) return undefined
-      if (val === true || val === "" || val === "full") return "full"
+      if (val === false) return undefined
+      if (val === true || val === "" || val === "full" || val === undefined) return "full"
       if (val === "lite" || val === "ultra") return val
       return "full"
     },
