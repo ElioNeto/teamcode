@@ -120,6 +120,9 @@ export const layer = Layer.effect(
         currentText: undefined,
         reasoningMap: {},
       }
+      // Track last ended reasoning part for providers that send multiple
+      // reasoning-start/reasoning-end cycles (e.g. chenbei proxy).
+      let lastReasoningPart: MessageV2.ReasoningPart | undefined
       let aborted = false
       const slog = log.clone().tag("session.id", input.sessionID).tag("messageID", input.assistantMessage.id)
 
@@ -218,6 +221,13 @@ export const layer = Layer.effect(
             return
 
           case "reasoning-start":
+            // Some providers (e.g. chenbei proxy) split reasoning across
+            // multiple start/end cycles. Reuse the last ended part.
+            if (lastReasoningPart) {
+              ctx.reasoningMap[value.id] = lastReasoningPart
+              lastReasoningPart = undefined
+              return
+            }
             if (value.id in ctx.reasoningMap) return
             // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
             if (flags.experimentalEventSystem) {
@@ -254,6 +264,9 @@ export const layer = Layer.effect(
 
           case "reasoning-end":
             if (!(value.id in ctx.reasoningMap)) return
+            // Save the ended part so it can be reused if the provider sends
+            // another start cycle for the same reasoning chunk.
+            lastReasoningPart = { ...ctx.reasoningMap[value.id] }
             // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
             if (flags.experimentalEventSystem) {
               yield* events.publish(SessionEvent.Reasoning.Ended, {
