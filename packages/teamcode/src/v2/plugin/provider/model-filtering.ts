@@ -6,6 +6,9 @@ import { extraPluginRegistrations } from "@teamcode-ai/core/location-layer"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Config } from "@/config/config"
 
+// Provider IDs used for gpt-5-chat-latest filtering
+const WELL_KNOWN_PROVIDERS = ["openai", "github-copilot", "openrouter"] as const
+
 /**
  * Convenience effect that reads application-layer services (RuntimeFlags, Config,
  * PluginV2) and registers the model-filtering hooks via `extraPluginRegistrations`.
@@ -25,11 +28,25 @@ export const setupModelFiltering = Effect.gen(function* () {
 })
 
 /**
+ * Returns true for models IDs that are chat-latest aliases with special handling
+ * in built-in providers. These aliases are filtered out because custom providers
+ * are the only valid use case.
+ */
+function isChatLatestAlias(modelID: string, providerID: string): boolean {
+  return (
+    (modelID === "gpt-5-chat-latest" &&
+      (providerID === "openai" || providerID === "github-copilot" || providerID === "openrouter")) ||
+    (providerID === "openrouter" && modelID === "openai/gpt-5-chat")
+  )
+}
+
+/**
  * Registers the model.update hook that filters models by:
- * 1. Alpha/experimental status (unless enableExperimentalModels is set)
- * 2. Deprecated status
- * 3. Config whitelist
- * 4. Config blacklist
+ * 1. gpt-5-chat-latest / openai/gpt-5-chat aliases for well-known providers
+ * 2. Alpha/experimental status (unless enableExperimentalModels is set)
+ * 3. Deprecated status
+ * 4. Config whitelist
+ * 5. Config blacklist
  *
  * The hook runs inside PluginV2's `model.update` event, called from
  * catalog.model.update(). By setting `evt.cancel = true`, the model is
@@ -44,6 +61,12 @@ export const ModelFilteringPlugin = PluginV2.define({
 
     return {
       "model.update": Effect.fn(function* (evt: PluginV2.Hooks["model.update"]) {
+        // 0. gpt-5-chat-latest / openai/gpt-5-chat filtering
+        if (isChatLatestAlias(evt.model.id, evt.model.providerID)) {
+          evt.cancel = true
+          return
+        }
+
         // 1. Alpha / experimental filtering
         if (evt.model.status === "alpha" && !flags.enableExperimentalModels) {
           evt.cancel = true
@@ -89,6 +112,12 @@ function registerFilteringHooks(
     id: PluginV2.ID.make("model-filtering"),
     effect: Effect.succeed({
       "model.update": Effect.fn(function* (evt: PluginV2.Hooks["model.update"]) {
+        // 0. gpt-5-chat-latest / openai/gpt-5-chat filtering
+        if (isChatLatestAlias(evt.model.id, evt.model.providerID)) {
+          evt.cancel = true
+          return
+        }
+
         // 1. Alpha / experimental filtering
         if (evt.model.status === "alpha" && !runtimeFlags.enableExperimentalModels) {
           evt.cancel = true

@@ -55,8 +55,8 @@ Keep entries checked only when v2 has equivalent behavior or when the item is in
 - [x] Deprecated model filtering.
 - [x] Config whitelist filtering.
 - [x] Config blacklist filtering.
-- [ ] `gpt-5-chat-latest` filtering.
-- [ ] OpenRouter `openai/gpt-5-chat` filtering.
+- [x] `gpt-5-chat-latest` filtering.
+- [x] OpenRouter `openai/gpt-5-chat` filtering.
 
 ## Default Models
 
