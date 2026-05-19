@@ -1,8 +1,8 @@
 # Unported Provider Logic Checklist
 
-This tracks legacy provider behavior from `packages/teamcode/src/provider/provider.ts` that still needs to be ported into the v2 provider plugins. The target directory is `packages/teamcode/src/v2/plugin/provider/` (currently absent).
+This tracks legacy provider behavior from `packages/teamcode/src/provider/provider.ts` that still needs to be ported into the v2 provider plugins. The target directory is `packages/teamcode/src/v2/plugin/provider/`.
 
-> **Status (2026-05-18):** No v2 provider plugin implementations exist yet. The v2 directory only contains `session.ts` and this checklist. HTTP API v2 endpoints (`GET /api/provider`, `GET /api/provider/:providerID`) exist in `src/server/routes/instance/httpapi/groups/v2/` but serve as a read-only view, not the runtime provider layer.
+> **Status (2026-05-18):** The first v2 provider parity plugin (`model-filtering`) has been implemented. It reads runtime flags and config at boot time and registers a `model.update` hook that filters alpha, deprecated, whitelisted, and blacklisted models.
 
 Keep entries checked only when v2 has equivalent behavior or when the item is intentionally skipped.
 
@@ -51,10 +51,10 @@ Keep entries checked only when v2 has equivalent behavior or when the item is in
 
 ## Model Filtering
 
-- [ ] Experimental alpha model filtering.
-- [ ] Deprecated model filtering.
-- [ ] Config whitelist filtering.
-- [ ] Config blacklist filtering.
+- [x] Experimental alpha model filtering.
+- [x] Deprecated model filtering.
+- [x] Config whitelist filtering.
+- [x] Config blacklist filtering.
 - [ ] `gpt-5-chat-latest` filtering.
 - [ ] OpenRouter `openai/gpt-5-chat` filtering.
 

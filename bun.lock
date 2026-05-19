@@ -390,6 +390,17 @@
         "typescript": "catalog:",
       },
     },
+    "packages/server": {
+      "name": "@teamcode-ai/server",
+      "version": "1.15.4",
+      "dependencies": {
+        "effect": "catalog:",
+      },
+      "devDependencies": {
+        "@tsconfig/bun": "catalog:",
+        "@types/bun": "catalog:",
+      },
+    },
     "packages/slack": {
       "name": "@teamcode-ai/slack",
       "version": "1.15.4",
@@ -454,6 +465,7 @@
         "@teamcode-ai/plugin": "workspace:*",
         "@teamcode-ai/script": "workspace:*",
         "@teamcode-ai/sdk": "workspace:*",
+        "@teamcode-ai/server": "workspace:*",
         "@teamcode-ai/ui": "workspace:*",
         "@zip.js/zip.js": "2.7.62",
         "ai": "catalog:",
@@ -514,6 +526,7 @@
         "@standard-schema/spec": "1.0.0",
         "@teamcode-ai/core": "workspace:*",
         "@teamcode-ai/script": "workspace:*",
+        "@teamcode-ai/server": "workspace:*",
         "@tsconfig/bun": "catalog:",
         "@types/babel__core": "7.20.5",
         "@types/bun": "catalog:",
@@ -1831,6 +1844,8 @@
     "@teamcode-ai/script": ["@teamcode-ai/script@workspace:packages/script"],
 
     "@teamcode-ai/sdk": ["@teamcode-ai/sdk@workspace:packages/sdk/js"],
+
+    "@teamcode-ai/server": ["@teamcode-ai/server@workspace:packages/server"],
 
     "@teamcode-ai/slack": ["@teamcode-ai/slack@workspace:packages/slack"],
 

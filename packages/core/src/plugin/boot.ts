@@ -1,6 +1,6 @@
 export * as PluginBoot from "./boot"
 
-import { Context, Deferred, Effect, Layer } from "effect"
+import { Context, Deferred, Effect, Layer, Option } from "effect"
 import { AuthV2 } from "../auth"
 import { Catalog } from "../catalog"
 import { Npm } from "../npm"
@@ -10,10 +10,16 @@ import { EnvPlugin } from "./env"
 import { ModelsDevPlugin } from "./models-dev"
 import { ProviderPlugins } from "./provider"
 
-type Plugin = {
+export type Plugin = {
   id: PluginV2.ID
   effect: Effect.Effect<PluginV2.HookFunctions | void, never, Catalog.Service | AuthV2.Service | Npm.Service>
 }
+
+/**
+ * Context tag for extra plugin registrations that run before ModelsDevPlugin.
+ * Host applications (e.g. teamcode) can provide additional plugins here.
+ */
+export const ExtraPlugins = Context.Service<Effect.Effect<void, never, never>[]>("@opencode/v2/PluginBoot/ExtraPlugins")
 
 export interface Interface {
   readonly wait: () => Effect.Effect<void>
@@ -48,6 +54,16 @@ export const layer: Layer.Layer<Service, never, Catalog.Service | PluginV2.Servi
         for (const item of ProviderPlugins) {
           yield* add(item)
         }
+
+        // Run extra plugin registrations (e.g. model-filtering) before loading models
+        const ctx = yield* Effect.context()
+        const extraPlugins = Context.getOption(ctx, ExtraPlugins).pipe(
+          Option.getOrElse(() => []),
+        )
+        for (const item of extraPlugins) {
+          yield* item
+        }
+
         yield* add(ModelsDevPlugin)
       }).pipe(Effect.withSpan("PluginBoot.boot"))
 

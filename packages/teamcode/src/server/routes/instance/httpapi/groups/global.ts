@@ -4,12 +4,8 @@ import { SyncEvent } from "@/sync"
 import "@/server/event"
 import { Schema } from "effect"
 import { HttpApi, HttpApiEndpoint, HttpApiError, HttpApiGroup, OpenApi } from "effect/unstable/httpapi"
+import { HealthContract } from "@teamcode-ai/server"
 import { described } from "./metadata"
-
-const GlobalHealth = Schema.Struct({
-  healthy: Schema.Literal(true),
-  version: Schema.String,
-})
 
 const GlobalEventSchema = Schema.Struct({
   directory: Schema.String,
@@ -45,7 +41,7 @@ export const GlobalApi = HttpApi.make("global").add(
   HttpApiGroup.make("global")
     .add(
       HttpApiEndpoint.get("health", GlobalPaths.health, {
-        success: described(GlobalHealth, "Health information"),
+        success: described(HealthContract.GlobalHealth, "Health information"),
       }).annotateMerge(
         OpenApi.annotations({
           identifier: "global.health",
