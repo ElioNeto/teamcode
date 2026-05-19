@@ -74,10 +74,13 @@ export function createPlugTask(input: PlugInput, dep: PlugDeps = defaultPlugDeps
 
   return async (ctx: PlugCtx) => {
     const install = dep.spinner()
-    install.start("Installing plugin package...")
+    const isTTY = process.stdout.isTTY
+    // Skip spinner animation in non-TTY environments (CI, piped output)
+    // to avoid printing escape sequences as garbage text.
+    if (isTTY) install.start("Installing plugin package...")
     const target = await installPlugin(mod, dep)
     if (!target.ok) {
-      install.stop("Install failed", 1)
+      if (isTTY) install.stop("Install failed", 1)
       dep.log.error(`Could not install "${mod}"`)
       const hit = cause(target.error) ?? target.error
       if (hit instanceof Process.RunFailedError) {
@@ -99,7 +102,7 @@ export function createPlugTask(input: PlugInput, dep: PlugDeps = defaultPlugDeps
       }
       return false
     }
-    install.stop("Plugin package ready")
+    if (isTTY) install.stop("Plugin package ready")
 
     const inspect = dep.spinner()
     inspect.start("Reading plugin manifest...")
