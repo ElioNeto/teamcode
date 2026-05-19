@@ -89,6 +89,7 @@
   "devDependencies": {
     "@actions/artifact": "5.0.1",
     "@tsconfig/bun": "catalog:",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/mime-types": "3.0.1",
     "@typescript/native-preview": "catalog:",
     "glob": "13.0.5",

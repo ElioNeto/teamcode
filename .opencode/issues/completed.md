@@ -64,6 +64,7 @@
 | `8fe7368` | - | Resolve pre-existing type errors (middleware combine, TypeScript strictness) |
 | `c5b623f` | I-17 | Add gpt-5-chat-latest / openai/gpt-5-chat model filtering (#27) |
 | `3e71d66` | I-14 | Extract EventApi and WorkspaceRoutingQuery to packages/server (#24) |
+| `2401b6a` | - | Fix TUI log leaks — remove console.log/error in plugin/runtime, app, prompt |
 
 ## Conclusão
 
