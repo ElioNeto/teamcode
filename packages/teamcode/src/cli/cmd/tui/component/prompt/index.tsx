@@ -472,7 +472,6 @@ export function Prompt(props: PromptProps) {
         enabled: status().type !== "idle",
         run: () => {
           if (auto()?.visible) return
-          if (!input.focused) return
           // TODO: this should be its own command
           if (store.mode === "shell") {
             setStore("mode", "normal")
@@ -638,9 +637,15 @@ export function Prompt(props: PromptProps) {
       "prompt.stash",
       "prompt.stash.pop",
       "prompt.stash.list",
-      "session.interrupt",
       "workspace.set",
     ]),
+  }))
+
+  // Interrupt must be able to fire even when a dialog is open (dialog.stack.length > 0)
+  // so it bypasses command.matcher. Only gate on session activity.
+  useBindings(() => ({
+    enabled: status().type !== "idle" && !props.disabled,
+    bindings: tuiConfig.keybinds.gather("prompt.palette", ["session.interrupt"]),
   }))
 
   const ref: PromptRef = {

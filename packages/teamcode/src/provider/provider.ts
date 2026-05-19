@@ -828,6 +828,15 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
           },
         },
       }),
+    "kimi-for-coding": () =>
+      Effect.succeed({
+        autoload: false,
+        options: {
+          headers: {
+            "User-Agent": "KimiCLI/1.5",
+          },
+        },
+      }),
     kilo: () =>
       Effect.succeed({
         autoload: false,

@@ -393,7 +393,7 @@ export class Agent implements ACPAgent {
                     status: "completed",
                     kind,
                     content,
-                    title: part.state.title,
+                    title: part.tool,
                     rawInput: part.state.input,
                     rawOutput: completedToolRawOutput(part),
                   },
@@ -403,16 +403,16 @@ export class Agent implements ACPAgent {
                 })
               return
             }
-            case "error":
-              this.toolStarts.delete(part.callID)
-              this.shellSnapshots.delete(part.callID)
-              await this.connection
-                .sessionUpdate({
-                  sessionId,
-                  update: {
-                    sessionUpdate: "tool_call_update",
-                    toolCallId: part.callID,
-                    status: "failed",
+          case "error":
+            this.toolStarts.delete(part.callID)
+            this.shellSnapshots.delete(part.callID)
+            await this.connection
+              .sessionUpdate({
+                sessionId,
+                update: {
+                  sessionUpdate: "tool_call_update",
+                  toolCallId: part.callID,
+                  status: "failed",
                     kind: toToolKind(part.tool),
                     title: part.tool,
                     rawInput: part.state.input,
@@ -899,7 +899,7 @@ export class Agent implements ACPAgent {
                   status: "completed",
                   kind,
                   content,
-                  title: part.state.title,
+                  title: part.tool,
                   rawInput: part.state.input,
                   rawOutput: completedToolRawOutput(part),
                 },

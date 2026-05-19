@@ -136,7 +136,7 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
               },
             )
             if (check.code !== 0 && check.code !== 1) {
-              log.warn("git check-ignore failed, treating all files as non-ignored", { code: check.code, stderr: check.stderr.slice(0, 500) })
+              log.error("git check-ignore failed", { code: check.code, stderr: check.stderr.slice(0, 500) })
               return new Set<string>()
             }
             return new Set(check.text.split("\0").filter(Boolean))

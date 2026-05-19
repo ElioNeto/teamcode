@@ -294,7 +294,7 @@ export const layer = Layer.effect(
           if (value.model) item.model = Provider.parseModel(value.model)
           item.variant = value.variant ?? item.variant
           item.prompt = value.prompt ?? item.prompt
-          item.description = value.description ?? item.description
+          if (value.description !== undefined) item.description = value.description
           item.temperature = value.temperature ?? item.temperature
           item.topP = value.top_p ?? item.topP
           item.mode = value.mode ?? item.mode

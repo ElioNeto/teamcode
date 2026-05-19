@@ -141,6 +141,11 @@ function inlineLocalReferences(value: unknown, definitions?: JsonObject, seen = 
         )
       }
     }
+    // Circular reference detected — omit the field rather than emitting an
+    // unresolvable $ref that some LLM providers cannot handle.
+    if (name && seen.has(name)) {
+      return {}
+    }
   }
 
   return Object.fromEntries(

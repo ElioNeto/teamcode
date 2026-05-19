@@ -773,7 +773,7 @@ function getSyntaxRules(theme: Theme) {
     {
       scope: ["extmark.paste"],
       style: {
-        foreground: theme.background,
+        foreground: theme.text,
         background: theme.warning,
         bold: true,
       },

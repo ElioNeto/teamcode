@@ -57,6 +57,15 @@ function embeddedUIResponse(file: string, body: Uint8Array) {
   const headers = new Headers({ "content-type": mime })
   if (mime.startsWith("text/html")) {
     headers.set("content-security-policy", cspForHtml(new TextDecoder().decode(body)))
+    headers.set("cache-control", "no-cache")
+  } else if (
+    mime.startsWith("text/javascript") ||
+    mime.startsWith("text/css") ||
+    mime.startsWith("application/javascript") ||
+    mime.startsWith("font/") ||
+    mime.startsWith("application/font-")
+  ) {
+    headers.set("cache-control", "public, max-age=31536000, immutable")
   }
   return HttpServerResponse.raw(body, { headers })
 }
@@ -96,6 +105,7 @@ export function serveUIEffect(
     if (response.headers["content-type"]?.includes("text/html")) {
       const body = yield* response.text
       headers.set("Content-Security-Policy", cspForHtml(body))
+      headers.set("Cache-Control", "no-cache")
       return HttpServerResponse.text(body, { status: response.status, headers })
     }
 

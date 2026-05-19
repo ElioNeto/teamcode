@@ -746,6 +746,7 @@ export const layer = Layer.effect(
           yield* Effect.gen(function* () {
             ctx.currentText = undefined
             ctx.reasoningMap = {}
+            lastReasoningPart = undefined
             const stream = llm.stream(streamInput)
 
             yield* stream.pipe(

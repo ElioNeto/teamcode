@@ -525,6 +525,19 @@ export const layer = Layer.effect(
       const exists = yield* appFs.existsSafe(full)
       if (!exists) return { type: "text" as const, content: "" }
 
+      // Magic-byte binary detection fallback for extension-less files:
+      // files without known extensions (e.g. no-suffix executables) are not
+      // caught by isBinaryByExtension. Read the first 512 bytes and check for
+      // a null byte, which is a reliable binary indicator.
+      if (!knownText && !isBinaryByExtension(file)) {
+        const sample = yield* Effect.promise(() =>
+          Bun.file(full).slice(0, 512).arrayBuffer().then((b) => new Uint8Array(b)),
+        ).pipe(Effect.catch(() => Effect.succeed(new Uint8Array())))
+        if (sample.length > 0 && sample.includes(0)) {
+          return { type: "binary" as const, content: "" }
+        }
+      }
+
       const mimeType = AppFileSystem.mimeType(full)
       const encode = knownText ? false : shouldEncode(mimeType)
 

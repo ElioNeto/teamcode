@@ -114,6 +114,7 @@ const add = Effect.fnUntraced(function* (state: State, match: string, bus: Bus.I
   if (!isSkillFrontmatter(md.data)) return
 
   if (state.skills[md.data.name]) {
+    if (state.skills[md.data.name].location === match) return
     log.warn("duplicate skill name", {
       name: md.data.name,
       existing: state.skills[md.data.name].location,

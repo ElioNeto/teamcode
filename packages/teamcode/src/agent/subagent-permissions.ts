@@ -24,6 +24,9 @@ export function deriveSubagentSessionPermission(input: {
   const parentAgentDenies =
     input.parentAgent?.permission.filter((rule) => rule.action === "deny") ?? []
   return [
+    // Subagent's own explicit rules come first so "allow" rules take
+    // precedence over inherited parent denies (first-match-wins).
+    ...input.subagent.permission,
     ...parentAgentDenies,
     ...input.parentSessionPermission.filter(
       (rule) => rule.permission === "external_directory" || rule.action === "deny",

@@ -12,7 +12,7 @@ describe("tui thread", () => {
 
     try {
       await fs.symlink(tmp.path, link, type)
-      expect(resolveThreadDirectory(project, link, tmp.path)).toBe(tmp.path)
+      expect(resolveThreadDirectory(project, link)).toBe(tmp.path)
     } finally {
       await fs.rm(link, { recursive: true, force: true }).catch(() => undefined)
     }
