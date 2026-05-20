@@ -95,6 +95,7 @@ Em 2026-05-19, todas as issues extraídas do upstream foram revisadas e adaptada
 | `daed6d9` | Crítico/Alta/Média | 16 bugs fixados em batch (#28037, #27946, #27831, #27902, #27922, #28033, #27987, #26642, #27392, #28052, #27931, #27968, #26709, #26603, #26815, #27923) |
 | `4dde2ef` | Uncategorized | 4 bugs fixados (#26852, #25918, #24447, #26855) |
 | `bcb10f5` | Crítico/Alta/Média | 14 bugs fixados (#26106, #26156, #27645, #27620, #27528, #27283, #27286, #28063, #27052, #27284, #26766, #26460, #26780, #27532) |
+| `312062e` | Crítico/Alta/Média | 12 bugs fixados (#22678, #22198, #21472, #22061, #23040, #23325, #25774, #25764, #25913, #25713, #25353, #26129) |
 
 ## Conclusão
 
@@ -106,9 +107,9 @@ Em 2026-05-19, todas as issues extraídas do upstream foram revisadas e adaptada
 - **1 concluída** (I-07): Process API implementada e `Bun.$` eliminado do código-fonte
 
 ### Issues Upstream Aplicáveis (fixadas)
-- **65 bugs corrigidos** no código-fonte do `teamcode` (31 anteriores + 34 novos):
+- **77 bugs corrigidos** no código-fonte do `teamcode` (31 anteriores + 46 novos):
 
-**Sessão 2026-05-19 — 34 novos bugs fixados em 3 batches:**
+**Sessão 2026-05-19 — 46 novos bugs fixados em 4 batches:**
 
 Batch 1 (`daed6d9`) — 16 bugs:
 | Issue | Descrição |
@@ -164,6 +165,7 @@ Batch 3 (`bcb10f5`) — 14 bugs:
 
 ### Adaptação das Issues Upstream para TeamCode
 - **129 itens movidos** para `not-planned.md` (37 perguntas + 5 docs + 87 de uncategorized)
+- **FAQ adicionado** em `faq.md` com respostas para 124 perguntas frequentes
 - **~1.513 bugs/features adaptados** com substituição de referências (OpenCode→TeamCode, etc.)
 - **3 arquivos removidos**: `questions.md`, `docs.md` (conteúdo em not-planned.md)
 
@@ -174,3 +176,6 @@ Batch 3 (`bcb10f5`) — 14 bugs:
 | `daed6d9` | 16 bugs fixados (memoMap, tool schemas, agent descriptions, TUI ESC, etc.) |
 | `4dde2ef` | 4 bugs fixados (editor probe, plugin hook, TaskTask diag, step_finish) |
 | `bcb10f5` | 14 bugs fixados (image_url, annotations, ACP model, child sessions, etc.) |
+| `312062e` | 12 bugs fixados (init, SSE, Arborist proxy, tool init, drafts, etc.) |
+| `5bb05d8` | FAQ: 124 perguntas respondidas |
+| `36ece8a` | Type error fixes for Effect v4 API compat |
