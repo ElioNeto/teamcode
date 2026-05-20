@@ -16,7 +16,7 @@ const _logout = action(async () => {
       delete val.account?.[current]
       const first = Object.keys(val.account ?? {})[0]
       val.current = first
-      event!.locals.actor = undefined
+      ;(event as { locals: Record<string, unknown> }).locals.actor = undefined
       return val
     })
 }, "auth.logout")

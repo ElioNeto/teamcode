@@ -41,8 +41,9 @@ export const getActor = async (workspace?: string): Promise<Actor.Info> => {
   "use server"
   const evt = getRequestEvent()
   if (!evt) throw new Error("No request event")
-  if (evt.locals.actor) return evt.locals.actor
-  evt.locals.actor = (async () => {
+  const locals = (evt as { locals: Record<string, unknown> }).locals
+  if (locals.actor) return locals.actor as Actor.Info
+  locals.actor = (async () => {
     const auth = await useAuthSession()
     if (!workspace) {
       const account = auth.data.account ?? {}
@@ -112,5 +113,5 @@ export const getActor = async (workspace?: string): Promise<Actor.Info> => {
     }
     throw redirect("/auth/authorize")
   })()
-  return evt.locals.actor
+  return locals.actor as Promise<Actor.Info>
 }
