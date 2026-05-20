@@ -172,9 +172,7 @@ if (!skipInstall) {
   await $`bun install --os="*" --cpu="*" @parcel/watcher@${pkg.dependencies["@parcel/watcher"]}`
 }
 for (const item of targets) {
-  const name = [
-    pkg.name,
-    // changing to win32 flags npm for some reason
+  const suffix = [
     item.os === "win32" ? "windows" : item.os,
     item.arch,
     item.avx2 === false ? "baseline" : undefined,
@@ -182,6 +180,8 @@ for (const item of targets) {
   ]
     .filter(Boolean)
     .join("-")
+  const name = `${pkg.name}-${suffix}`
+  const scopedName = `@teamcode-ai/${suffix}`
   console.log(`building ${name}`)
   await $`mkdir -p dist/${name}/bin`
 
@@ -242,7 +242,7 @@ for (const item of targets) {
   await Bun.file(`dist/${name}/package.json`).write(
     JSON.stringify(
       {
-        name,
+        name: scopedName,
         version: Script.version,
         preferUnplugged: true,
         os: [item.os],
@@ -252,6 +252,7 @@ for (const item of targets) {
       2,
     ),
   )
+  binaries[scopedName] = Script.version
   binaries[name] = Script.version
 }
 

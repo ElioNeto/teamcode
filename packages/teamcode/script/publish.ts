@@ -31,79 +31,59 @@ for (const filepath of new Bun.Glob("*/package.json").scanSync({ cwd: "./dist" }
 console.log("binaries", binaries)
 const version = Object.values(binaries)[0]
 
+// Publish scoped binary packages and meta-package to npm
+const publish = async (dir: string, name: string, ver: string) => {
+  if (process.platform !== "win32") await $`chmod -R 755 .`.cwd(dir)
+  const result = await $`npm view ${name}@${ver} version`.nothrow()
+  if (result.exitCode === 0) {
+    console.log(`already published ${name}@${ver}`)
+    return
+  }
+  await $`bun pm pack`.cwd(dir)
+  await $`npm publish *.tgz --access public --tag ${Script.channel}`.cwd(dir)
+}
+
+// Publish each binary package (scoped names, e.g., @teamcode-ai/linux-x64)
+for (const [scopedName, ver] of Object.entries(binaries).filter(([k]) => k.startsWith("@"))) {
+  const dirName = Object.entries(binaries).find(([, v]) => v === ver && !k.startsWith("@"))?.[0]
+  if (!dirName) continue
+  await publish(`./dist/${dirName}`, scopedName, ver)
+}
+
+// Create and publish the meta-package teamcode-ai under @teamcode-ai scope
 await $`mkdir -p ./dist/${pkg.name}`
 await $`mkdir -p ./dist/${pkg.name}/bin`
 await $`cp ./script/postinstall.mjs ./dist/${pkg.name}/postinstall.mjs`
 await Bun.file(`./dist/${pkg.name}/LICENSE`).write(await Bun.file("../../LICENSE").text())
-await Bun.file(`./dist/${pkg.name}/bin/${pkg.name}.exe`).write(
-  [
-    `echo "Error: ${pkg.name}-ai's postinstall script was not run." >&2`,
-    'echo "" >&2',
-    'echo "This occurs when using --ignore-scripts during installation, or when using a" >&2',
-    'echo "package manager like pnpm that does not run postinstall scripts by default." >&2',
-    'echo "" >&2',
-    'echo "To fix this, run the postinstall script manually:" >&2',
-    `echo "  cd node_modules/${pkg.name}-ai && node postinstall.mjs" >&2`,
-    'echo "" >&2',
-    `echo "Or reinstall ${pkg.name}-ai without the --ignore-scripts flag." >&2`,
-    "exit 1",
-    "",
-  ].join("\n"),
-)
+
+const scopedBinaries: Record<string, string> = {}
+for (const [k, v] of Object.entries(binaries)) {
+  if (k.startsWith("@")) scopedBinaries[k] = v
+}
 
 await Bun.file(`./dist/${pkg.name}/package.json`).write(
-  JSON.stringify(
-    {
-      name: pkg.name + "-ai",
-      bin: {
-        [pkg.name]: `./bin/${pkg.name}.exe`,
-      },
-      scripts: {
-        postinstall: "node ./postinstall.mjs",
-      },
-      version: version,
-      license: pkg.license,
-      os: ["darwin", "linux", "win32"],
-      cpu: ["arm64", "x64"],
-      optionalDependencies: binaries,
-    },
-    null,
-    2,
-  ),
+  JSON.stringify({
+    name: `@teamcode-ai/${pkg.name}`,
+    version,
+    bin: { [pkg.name]: `./bin/${pkg.name}.exe` },
+    scripts: { postinstall: "node ./postinstall.mjs" },
+    license: pkg.license,
+    os: ["darwin", "linux", "win32"],
+    cpu: ["arm64", "x64"],
+    optionalDependencies: scopedBinaries,
+  }),
 )
+await $`cp ../../LICENSE ./dist/${pkg.name}/`.nothrow()
+// Create stub .exe for postinstall instruction
+await Bun.file(`./dist/${pkg.name}/bin/${pkg.name}.exe`).write(
+  `echo "Error: ${pkg.name} postinstall failed" && exit 1`,
+)
+await publish(`./dist/${pkg.name}`, `@teamcode-ai/${pkg.name}`, version)
 
-// Create archives and upload all to GitHub Release
+// Also upload archives to GitHub Release for direct download
 const ghRepo = process.env.GH_REPO
-const upload = (pattern: string) => $`gh release upload "v${version}" ${pattern} --clobber --repo ${ghRepo}`.nothrow()
-
-const linuxArchs = ["arm64", "x64", "x64-baseline", "arm64-musl", "x64-musl", "x64-baseline-musl"]
-const macArchs = ["arm64", "x64", "x64-baseline"]
-const winArchs = ["arm64", "x64", "x64-baseline"]
-
-for (const dirName of [...linuxArchs.map((a) => `teamcode-linux-${a}`), ...macArchs.map((a) => `teamcode-darwin-${a}`), ...winArchs.map((a) => `teamcode-windows-${a}`)]) {
-  const isWindows = dirName.includes("windows")
-  const binaryName = isWindows ? "teamcode.exe" : "teamcode"
-  const binPath = `./dist/${dirName}/bin/${binaryName}`
-  const binExists = await Bun.file(binPath).exists()
-  if (!binExists) continue
-
-  const isZip = dirName.includes("darwin") || isWindows
-  const archiveName = `${dirName}.${isZip ? "zip" : "tar.gz"}`
-
-  if (isZip) {
-    // macOS or Windows - create zip
-    await $`cd ./dist/${dirName}/bin && zip ../../../${archiveName} ${binaryName}`.nothrow()
-  } else {
-    // Linux - create tar.gz
-    await $`tar -czf ./dist/${archiveName} -C ./dist/${dirName}/bin teamcode`.nothrow()
-  }
-  await upload(`./dist/${archiveName}`)
+if (ghRepo) {
+  const upload = (pattern: string) => $`gh release upload "v${version}" ${pattern} --clobber --repo ${ghRepo}`.nothrow()
+  for await (const file of new Bun.Glob("./dist/*.zip").scan()) await upload(file)
+  for await (const file of new Bun.Glob("./dist/*.tar.gz").scan()) await upload(file)
 }
-
-// Also upload any pre-built archives in dist
-for (const dirName of Object.keys(binaries)) {
-  await upload(`./dist/${dirName}/*.tgz`)
-  await upload(`./dist/${dirName}/*.tar.gz`)
-  await upload(`./dist/${dirName}/*.zip`)
-}
-await upload(`./dist/${pkg.name}/*.tgz`)
