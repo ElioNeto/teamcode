@@ -1416,7 +1416,7 @@ PART_MAPPING["text"] = function TextPartDisplay(props) {
   const part = () => props.part as TextPart
   const interrupted = createMemo(
     () =>
-      props.message.role === "assistant" && (props.message as AssistantMessage).error?.name === "MessageAbortedError",
+      props.message.role === "assistant" && ((props.message as AssistantMessage).error as { name?: string })?.name === "MessageAbortedError",
   )
 
   const model = createMemo(() => {

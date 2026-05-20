@@ -288,14 +288,19 @@ export function SessionTurn(
     { equals: same },
   )
 
-  const interrupted = createMemo(() => assistantMessages().some((m) => m.error?.name === "MessageAbortedError"))
+  const interrupted = createMemo(() =>
+    assistantMessages().some((m) => (m.error as { name?: string })?.name === "MessageAbortedError"),
+  )
   const divider = createMemo(() => {
     if (compaction()) return i18n.t("ui.messagePart.compaction")
     if (interrupted()) return i18n.t("ui.message.interrupted")
     return ""
   })
   const error = createMemo(
-    () => assistantMessages().find((m) => m.error && m.error.name !== "MessageAbortedError")?.error,
+    () =>
+      assistantMessages().find(
+        (m) => m.error && (m.error as { name?: string }).name !== "MessageAbortedError",
+      )?.error,
   )
   const showAssistantCopyPartID = createMemo(() => {
     const messages = assistantMessages()
@@ -315,7 +320,7 @@ export function SessionTurn(
     return undefined
   })
   const errorText = createMemo(() => {
-    const msg = error()?.data?.message
+    const msg = (error() as { data?: { message?: string } })?.data?.message
     if (typeof msg === "string") return unwrap(msg)
     if (msg === undefined || msg === null) return ""
     // oxlint-disable-next-line no-base-to-string -- msg is unknown from error data, coercion is intentional
