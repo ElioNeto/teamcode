@@ -3,12 +3,8 @@ run-name: "${{ format('release {0}', inputs.bump) }}"
 
 on:
   push:
-    branches:
-      - ci
-      - dev
-      - beta
-      - fix/npm-native-binary-install
-      - snapshot-*
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       bump:
@@ -55,13 +51,28 @@ jobs:
 
       - id: version
         run: |
-          ./script/version.ts
+          if [[ -n "${{ inputs.version }}" ]]; then
+            VERSION="${{ inputs.version }}"
+          elif [[ -n "${{ inputs.bump }}" ]]; then
+            ./script/version.ts
+            exit 0
+          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+            # Extract version from tag (e.g., v1.2.3 -> 1.2.3)
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            echo "No version input or tag provided"
+            exit 1
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "release=true" >> $GITHUB_OUTPUT
+          echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+          echo "repo=${{ github.repository }}" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ steps.committer.outputs.token }}
           TEAMCODE_BUMP: ${{ inputs.bump }}
           TEAMCODE_VERSION: ${{ inputs.version }}
           TEAMCODE_API_KEY: ${{ secrets.TEAMCODE_API_KEY }}
-          GH_REPO: ${{ (github.ref_name == 'beta' && 'teamcode/teamcode-beta') || github.repository }}
+          GH_REPO: ${{ github.repository }}
     outputs:
       version: ${{ steps.version.outputs.version }}
       release: ${{ steps.version.outputs.release }}
@@ -89,7 +100,7 @@ jobs:
       - name: Build
         id: build
         run: |
-          ./packages/teamcode/script/build.ts ${{ (github.ref_name == 'beta' && '--sourcemaps') || '' }}
+          ./packages/teamcode/script/build.ts ${{ (startsWith(github.ref_name, 'v') && contains(github.ref_name, '-') && '--sourcemaps') || '' }}
         env:
           TEAMCODE_VERSION: ${{ needs.version.outputs.version }}
           TEAMCODE_RELEASE: ${{ needs.version.outputs.release }}
@@ -311,7 +322,7 @@ jobs:
         working-directory: packages/desktop
         env:
           TEAMCODE_VERSION: ${{ needs.version.outputs.version }}
-          TEAMCODE_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
+          TEAMCODE_CHANNEL: ${{ (startsWith(github.ref_name, 'v') && contains(github.ref_name, '-') && 'beta') || 'prod' }}
           TEAMCODE_CLI_ARTIFACT: ${{ (runner.os == 'Windows' && 'teamcode-cli-windows') || 'teamcode-cli' }}
           RUST_TARGET: ${{ matrix.settings.target }}
           GH_TOKEN: ${{ github.token }}
@@ -321,13 +332,13 @@ jobs:
         run: bun run build
         working-directory: packages/desktop
         env:
-          TEAMCODE_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
+          TEAMCODE_CHANNEL: ${{ (startsWith(github.ref_name, 'v') && contains(github.ref_name, '-') && 'beta') || 'prod' }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ vars.WEB_SENTRY_PROJECT }}
           SENTRY_RELEASE: desktop@${{ needs.version.outputs.version }}
           VITE_SENTRY_DSN: ${{ vars.WEB_SENTRY_DSN }}
-          VITE_SENTRY_ENVIRONMENT: ${{ (github.ref_name == 'beta' && 'beta') || 'production' }}
+          VITE_SENTRY_ENVIRONMENT: ${{ (startsWith(github.ref_name, 'v') && contains(github.ref_name, '-') && 'beta') || 'production' }}
           VITE_SENTRY_RELEASE: desktop@${{ needs.version.outputs.version }}
 
       - name: Package and publish
@@ -336,7 +347,7 @@ jobs:
         working-directory: packages/desktop
         timeout-minutes: 60
         env:
-          TEAMCODE_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
+          TEAMCODE_CHANNEL: ${{ (startsWith(github.ref_name, 'v') && contains(github.ref_name, '-') && 'beta') || 'prod' }}
           GH_TOKEN: ${{ steps.committer.outputs.token }}
           CSC_LINK: ${{ secrets.APPLE_CERTIFICATE }}
           CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -350,53 +361,7 @@ jobs:
         working-directory: packages/desktop
         timeout-minutes: 60
         env:
-          TEAMCODE_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
-
-      - name: Create and upload macOS .app.tar.gz
-        if: runner.os == 'macOS' && needs.version.outputs.release
-        working-directory: packages/desktop/dist
-        env:
-          GH_TOKEN: ${{ steps.committer.outputs.token }}
-        run: |
-          if [[ "${{ matrix.settings.target }}" == "x86_64-apple-darwin" ]]; then
-            APP_DIR="mac"
-            OUT_NAME="teamcode-desktop-mac-x64.app.tar.gz"
-          elif [[ "${{ matrix.settings.target }}" == "aarch64-apple-darwin" ]]; then
-            APP_DIR="mac-arm64"
-            OUT_NAME="teamcode-desktop-mac-arm64.app.tar.gz"
-          else
-            echo "Unknown macOS target: ${{ matrix.settings.target }}"
-            exit 1
-          fi
-          APP_PATH=$(find "$APP_DIR" -maxdepth 1 -name "*.app" -type d | head -1)
-          if [ -z "$APP_PATH" ]; then
-            echo "No .app bundle found in $APP_DIR"
-            exit 1
-          fi
-          tar -czf "$OUT_NAME" -C "$(dirname "$APP_PATH")" "$(basename "$APP_PATH")"
-          gh release upload "v${{ needs.version.outputs.version }}" "$OUT_NAME" --clobber --repo "${{ needs.version.outputs.repo }}"
-
-      - name: Verify signed Windows Electron artifacts
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $files = @()
-          $files += Get-ChildItem "${{ github.workspace }}\packages\desktop\dist\*.exe" | Select-Object -ExpandProperty FullName
-          $files += Get-ChildItem "${{ github.workspace }}\packages\desktop\dist\*unpacked\*.exe" | Select-Object -ExpandProperty FullName
-          $files += Get-ChildItem "${{ github.workspace }}\packages\desktop\dist\*unpacked\resources\teamcode-cli.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
-
-          foreach ($file in $files | Select-Object -Unique) {
-            $sig = Get-AuthenticodeSignature $file
-            if ($sig.Status -ne "Valid") {
-              throw "Invalid signature for ${file}: $($sig.Status)"
-            }
-          }
-
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: teamcode-desktop-${{ matrix.settings.target }}
-          path: packages/desktop/dist/*
-
+          TEAMCODE_CHANNEL: ${{ (startsWith(github.ref_name, 'v') && contains(github.ref_name, '-') && 'beta') || 'prod' }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: needs.version.outputs.release
         with:
