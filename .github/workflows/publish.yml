@@ -62,7 +62,9 @@ jobs:
 
       # ── Publish @teamcode-ai/* packages to npm ──────────────
       - name: Publish npm packages
-        run: ./script/publish.ts
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          ./script/publish.ts
         env:
           OPENCODE_VERSION: ${{ steps.version.outputs.version }}
           OPENCODE_RELEASE: true
@@ -70,6 +72,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          BUN_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # ── Publish VS Code extension ────────────────────────────
       - name: Publish VS Code extension
