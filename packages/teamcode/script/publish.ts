@@ -22,11 +22,11 @@ const publish = async (dir: string, name: string, ver: string) => {
     console.log(`already published ${name}@${ver}`)
     return
   }
-  const tgzPath = `${dir}/${name.replace("@", "").replace("/", "-")}-${ver}.tgz`
+  const absDir = `${process.cwd()}/${dir}`
   // npm pack creates the tgz in the package dir
-  await $`cd ${dir} && npm pack --ignore-workspaces 2>/dev/null`
-  // Publish with explicit path to avoid workspace resolution
-  await $`npm publish ${tgzPath} --access public --tag ${Script.channel} --ignore-workspaces`.cwd(dir)
+  await $`cd ${absDir} && npm pack 2>/dev/null`
+  const tgzName = `${name.replace("@", "").replace("/", "-")}-${ver}.tgz`
+  await $`npm publish ${absDir}/${tgzName} --access public --tag ${Script.channel}`.cwd(absDir)
 }
 
 // Publish each binary package (scoped names, e.g., @teamcode-ai/linux-x64)
