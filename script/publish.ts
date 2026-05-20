@@ -52,9 +52,9 @@ await $`bun ./packages/sdk/js/script/publish.ts`
 console.log("\n=== plugin ===\n")
 await $`bun ./packages/plugin/script/publish.ts`
 
-if (Script.release) {
-  await $`bun ./packages/desktop/scripts/finalize-latest-json.ts`
-  await $`bun ./packages/desktop/scripts/finalize-latest-yml.ts`
+if (Script.release && process.env.LATEST_YML_DIR) {
+  await $`bun ./packages/desktop/scripts/finalize-latest-json.ts`.nothrow()
+  await $`bun ./packages/desktop/scripts/finalize-latest-yml.ts`.nothrow()
 }
 
 if (Script.release && !Script.preview) {
