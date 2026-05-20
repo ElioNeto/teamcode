@@ -22,11 +22,8 @@ const publish = async (dir: string, name: string, ver: string) => {
     console.log(`already published ${name}@${ver}`)
     return
   }
-  const absDir = `${process.cwd()}/${dir}`
-  // npm pack creates the tgz in the package dir
-  await $`cd ${absDir} && npm pack 2>/dev/null`
-  const tgzName = `${name.replace("@", "").replace("/", "-")}-${ver}.tgz`
-  await $`npm publish ${absDir}/${tgzName} --access public --tag ${Script.channel}`.cwd(absDir)
+  // bun publish reads NPM_TOKEN or BUN_AUTH_TOKEN env var
+  await $`bun publish --access public --tag ${Script.channel}`.cwd(dir)
 }
 
 // Publish each binary package (scoped names, e.g., @teamcode-ai/linux-x64)
