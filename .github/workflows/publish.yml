@@ -28,7 +28,7 @@ permissions:
   packages: write
 
 env:
-  TEAMCODE_VERSION: ${{ inputs.version || '' }}
+  OPENCODE_VERSION: ${{ inputs.version || '' }}
 
 jobs:
   release:
@@ -74,9 +74,9 @@ jobs:
           echo "repo=${{ github.repository }}" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ steps.committer.outputs.token }}
-          TEAMCODE_BUMP: ${{ inputs.bump }}
-          TEAMCODE_VERSION: ${{ inputs.version }}
-          TEAMCODE_API_KEY: ${{ secrets.TEAMCODE_API_KEY }}
+          OPENCODE_BUMP: ${{ inputs.bump }}
+          OPENCODE_VERSION: ${{ inputs.version }}
+          OPENCODE_RELEASE: true
 
       # ── Build CLI binary ───────────────────────────────────────
       - name: Build CLI
@@ -85,16 +85,16 @@ jobs:
         run: |
           ./packages/teamcode/script/build.ts ${{ (startsWith(github.ref_name, 'v') && contains(github.ref_name, '-') && '--sourcemaps') || '' }}
         env:
-          TEAMCODE_VERSION: ${{ steps.version.outputs.version }}
-          TEAMCODE_RELEASE: ${{ steps.version.outputs.release }}
+          OPENCODE_VERSION: ${{ steps.version.outputs.version }}
+          OPENCODE_RELEASE: ${{ steps.version.outputs.release }}
           GH_TOKEN: ${{ steps.committer.outputs.token }}
 
       # ── Publish to npm, Docker, AUR, Homebrew ──────────────────
       - name: Publish
         run: ./script/publish.ts
         env:
-          TEAMCODE_VERSION: ${{ steps.version.outputs.version }}
-          TEAMCODE_RELEASE: ${{ steps.version.outputs.release }}
+          OPENCODE_VERSION: ${{ steps.version.outputs.version }}
+          OPENCODE_RELEASE: ${{ steps.version.outputs.release }}
           GITHUB_TOKEN: ${{ steps.committer.outputs.token }}
           GH_REPO: ${{ github.repository }}
           NPM_CONFIG_PROVENANCE: false
