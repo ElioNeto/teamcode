@@ -22,8 +22,8 @@ const publish = async (dir: string, name: string, ver: string) => {
     console.log(`already published ${name}@${ver}`)
     return
   }
-  await $`bun pm pack`.cwd(dir)
-  await $`npm publish *.tgz --access public --tag ${Script.channel}`.cwd(dir)
+  // Use bun publish which handles npm auth via ~/.npmrc
+  await $`bun publish --access public --tag ${Script.channel}`.cwd(dir)
 }
 
 // Publish each binary package (scoped names, e.g., @teamcode-ai/linux-x64)
