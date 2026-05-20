@@ -37,6 +37,7 @@ import { Database } from "@/storage/db"
 import { errorMessage } from "./util/error"
 import { PluginCommand } from "./cli/cmd/plug"
 import { CavemanCompressCommand } from "./cli/cmd/caveman-compress"
+import { KillCommand } from "./cli/cmd/kill"
 import { Heap } from "./cli/heap"
 import { drizzle } from "drizzle-orm/bun-sqlite"
 import { ensureProcessMetadata } from "@teamcode-ai/core/util/teamcode-process"
@@ -208,6 +209,7 @@ const cli = yargs(args)
   .command(SessionCommand)
   .command(PluginCommand)
   .command(CavemanCompressCommand)
+  .command(KillCommand)
   .command(DbCommand)
   .fail((msg, err) => {
     if (

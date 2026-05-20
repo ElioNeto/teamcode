@@ -357,26 +357,46 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
   createEffect(() => {
     if (!terminalTitleEnabled() || Flag.OPENCODE_DISABLE_TERMINAL_TITLE) return
 
+    let base: string
     if (route.data.type === "home") {
-      renderer.setTerminalTitle("TeamCode")
-      return
-    }
-
-    if (route.data.type === "session") {
+      base = "TeamCode"
+    } else if (route.data.type === "session") {
       const session = sync.session.get(route.data.sessionID)
       if (!session || SessionApi.isDefaultTitle(session.title)) {
-        renderer.setTerminalTitle("TeamCode")
-        return
+        base = "TeamCode"
+      } else {
+        const title = session.title.length > 40 ? session.title.slice(0, 37) + "..." : session.title
+        const branch = sync.data.vcs?.branch
+        base = branch ? `TC | ${title}@${branch}` : `TC | ${title}`
       }
+    } else if (route.data.type === "plugin") {
+      base = `TC | ${route.data.id}`
+    } else {
+      base = "TeamCode"
+    }
 
-      const title = session.title.length > 40 ? session.title.slice(0, 37) + "..." : session.title
-      renderer.setTerminalTitle(`TC | ${title}`)
+    // Animated spinner while agent is working in the current session
+    const working =
+      route.data.type === "session" &&
+      sync.data.session_status[route.data.sessionID]?.type !== undefined &&
+      sync.data.session_status[route.data.sessionID]?.type !== "idle"
+
+    if (!working) {
+      renderer.setTerminalTitle(base)
       return
     }
 
-    if (route.data.type === "plugin") {
-      renderer.setTerminalTitle(`TC | ${route.data.id}`)
-    }
+    const SPINNER = ["◐", "◓", "◑", "◒"]
+    let frame = 0
+    renderer.setTerminalTitle(`${SPINNER[0]} ${base}`)
+    const interval = setInterval(() => {
+      frame = (frame + 1) % SPINNER.length
+      renderer.setTerminalTitle(`${SPINNER[frame]} ${base}`)
+    }, 300)
+    onCleanup(() => {
+      clearInterval(interval)
+      renderer.setTerminalTitle(base)
+    })
   })
 
   const args = useArgs()

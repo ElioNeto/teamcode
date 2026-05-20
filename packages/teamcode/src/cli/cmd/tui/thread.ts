@@ -146,7 +146,7 @@ export const TuiThreadCommand = cmd({
       try {
         instanceLock = await Flock.acquire(`tui:${cwd}`, {
           staleMs: 30_000,
-          timeoutMs: 2_000,
+          timeoutMs: 35_000,
         })
       } catch {
         UI.error("TeamCode is already running in this directory.")
@@ -187,6 +187,12 @@ export const TuiThreadCommand = cmd({
       process.on("uncaughtException", error)
       process.on("unhandledRejection", error)
       process.on("SIGUSR2", reload)
+      process.on("SIGINT", () => {
+        stop().finally(() => process.exit(0))
+      })
+      process.on("SIGTERM", () => {
+        stop().finally(() => process.exit(0))
+      })
 
       let stopped = false
       const stop = async () => {
@@ -194,6 +200,8 @@ export const TuiThreadCommand = cmd({
         stopped = true
         process.off("uncaughtException", error)
         process.off("unhandledRejection", error)
+        process.off("SIGINT", stop)
+        process.off("SIGTERM", stop)
         process.off("SIGUSR2", reload)
         await withTimeout(client.call("shutdown", undefined), 5000).catch((error) => {
           Log.Default.warn("worker shutdown failed", {

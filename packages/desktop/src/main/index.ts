@@ -194,12 +194,28 @@ const main = Effect.gen(function* () {
     emitDeepLinks([url])
   })
 
+  app.on("window-all-closed", () => {
+    // On Windows/Linux, closing all windows should quit the app.
+    // On macOS the app stays in the dock by convention.
+    if (process.platform !== "darwin") {
+      app.quit()
+    }
+  })
+
   app.on("before-quit", () => {
+    // Attempt graceful stop — if the sidecar doesn't finish within the
+    // timeout, the will-quit handler below force-kills it.
     void killSidecar()
   })
 
   app.on("will-quit", () => {
-    void killSidecar()
+    // Force-kill immediately (no graceful timeout) so the sidecar does
+    // not outlive the main process regardless of how Electron handles
+    // utility process lifecycle on the current platform.
+    if (!server) return
+    const current = server
+    server = null
+    current.kill()
   })
 
   for (const signal of ["SIGINT", "SIGTERM"] as const) {
