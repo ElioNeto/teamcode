@@ -465,16 +465,13 @@ export const layer = Layer.effect(
       const gitignore = path.join(dir, ".gitignore")
       const hasIgnore = yield* fs.existsSafe(gitignore)
       if (!hasIgnore) {
-        yield* fs
-          .writeFileString(
+        yield* Effect.catch(
+          fs.writeFileString(
             gitignore,
             ["node_modules", "package.json", "package-lock.json", "bun.lock", ".gitignore"].join("\n"),
-          )
-          .pipe(
-            // OPENCODE_CONFIG_DIR may point to a read-only directory. Swallow
-            // write errors so startup does not crash on EACCES or EROFS.
-            Effect.catch(() => Effect.void),
-          )
+          ),
+          () => Effect.void,
+        )
       }
     })
 

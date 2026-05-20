@@ -692,12 +692,12 @@ export function Prompt(props: PromptProps) {
     // Restore per-session draft if available
     const sessionID = props.sessionID
     const draft = sessionID ? sessionDrafts.get(sessionID) : undefined
-    if (draft && draft.prompt.input) {
+    if (draft && draft.prompt.input && sessionID) {
       input.setText(draft.prompt.input)
       setStore("prompt", draft.prompt)
       restoreExtmarksFromParts(draft.prompt.parts)
       input.cursorOffset = draft.cursor
-      sessionDrafts.delete(sessionID)
+      if (sessionID) sessionDrafts.delete(sessionID)
       return
     }
     if (saved && saved.prompt.input) {

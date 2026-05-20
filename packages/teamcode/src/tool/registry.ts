@@ -230,10 +230,7 @@ export const layer: Layer.Layer<
             log.warn("tool initialization failed, skipping", { tool: "shell", error: String(error) })
             return Effect.succeed(undefined)
           })),
-          read: Tool.init(read).pipe(Effect.catch((error) => {
-            log.warn("tool initialization failed, skipping", { tool: "read", error: String(error) })
-            return Effect.succeed(undefined)
-          })),
+          read: Tool.init(read),
           glob: Tool.init(globtool).pipe(Effect.catch((error) => {
             log.warn("tool initialization failed, skipping", { tool: "glob", error: String(error) })
             return Effect.succeed(undefined)
@@ -250,10 +247,7 @@ export const layer: Layer.Layer<
             log.warn("tool initialization failed, skipping", { tool: "write", error: String(error) })
             return Effect.succeed(undefined)
           })),
-          task: Tool.init(task).pipe(Effect.catch((error) => {
-            log.warn("tool initialization failed, skipping", { tool: "task", error: String(error) })
-            return Effect.succeed(undefined)
-          })),
+          task: Tool.init(task),
           task_status: Tool.init(taskStatus).pipe(Effect.catch((error) => {
             log.warn("tool initialization failed, skipping", { tool: "task_status", error: String(error) })
             return Effect.succeed(undefined)
@@ -321,7 +315,7 @@ export const layer: Layer.Layer<
             tool.patch,
             ...(flags.experimentalLspTool && tool.lsp ? [tool.lsp] : []),
             ...(flags.experimentalPlanMode && flags.client === "cli" && tool.plan ? [tool.plan] : []),
-          ].filter(<T>(x: T): x is NonNullable<T> => x != null),
+          ].filter(<T>(x: T): x is NonNullable<T> => x != null) as Tool.Def[],
           task: tool.task,
           read: tool.read,
         }
