@@ -47,12 +47,10 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Setup git committer
-        id: committer
-        uses: ./.github/actions/setup-git-committer
-        with:
-          teamcode-app-id: ${{ vars.TEAMCODE_APP_ID }}
-          teamcode-app-secret: ${{ secrets.TEAMCODE_APP_SECRET }}
+      - name: Configure git user
+        run: |
+          git config --global user.name "teamcode-bot"
+          git config --global user.email "teamcode-bot@users.noreply.github.com"
 
       # ── Determine version ──────────────────────────────────────
       - id: version
@@ -60,8 +58,11 @@ jobs:
           if [[ -n "${{ inputs.version }}" ]]; then
             VERSION="${{ inputs.version }}"
           elif [[ -n "${{ inputs.bump }}" ]]; then
-            ./script/version.ts
-            exit 0
+            VERSION=$(npm view teamcode-ai version | awk -F. -v bump="${{ inputs.bump }}" '{
+              if (bump == "major") print $1+1 ".0.0"
+              else if (bump == "minor") print $1 "." $2+1 ".0"
+              else print $1 "." $2 "." $3+1
+            }')
           elif [[ "${{ github.ref_type }}" == "tag" ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
           else
@@ -73,10 +74,8 @@ jobs:
           echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
           echo "repo=${{ github.repository }}" >> $GITHUB_OUTPUT
         env:
-          GH_TOKEN: ${{ steps.committer.outputs.token }}
           OPENCODE_BUMP: ${{ inputs.bump }}
           OPENCODE_VERSION: ${{ inputs.version }}
-          OPENCODE_RELEASE: true
 
       # ── Build CLI binary ───────────────────────────────────────
       - name: Build CLI
@@ -87,14 +86,14 @@ jobs:
         env:
           OPENCODE_VERSION: ${{ steps.version.outputs.version }}
           OPENCODE_RELEASE: ${{ steps.version.outputs.release }}
-          GH_TOKEN: ${{ steps.committer.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
 
-      # ── Publish to npm, Docker, AUR, Homebrew ──────────────────
+      # ── Publish to npm, GitHub Release ─────────────────────────
       - name: Publish
         run: ./script/publish.ts
         env:
           OPENCODE_VERSION: ${{ steps.version.outputs.version }}
           OPENCODE_RELEASE: ${{ steps.version.outputs.release }}
-          GITHUB_TOKEN: ${{ steps.committer.outputs.token }}
+          GITHUB_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           NPM_CONFIG_PROVENANCE: false
