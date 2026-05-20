@@ -27,11 +27,16 @@ const publish = async (dir: string, name: string, ver: string) => {
 }
 
 // Publish each binary package (scoped names, e.g., @teamcode-ai/linux-x64)
-const scopedEntries = Object.entries(binaries).filter(([k]) => k.startsWith("@"))
-for (const [scopedName, ver] of scopedEntries) {
-  const dirEntry = Object.entries(binaries).find(([k, v]) => v === ver && !k.startsWith("@"))
-  if (!dirEntry) continue
-  await publish(`./dist/${dirEntry[0]}`, scopedName, ver)
+for (const [scopedName, ver] of Object.entries(binaries).filter(([k]) => k.startsWith("@"))) {
+  // Derive directory name from scoped name: @teamcode-ai/linux-x64 -> teamcode-linux-x64
+  const suffix = scopedName.replace("@teamcode-ai/", "")
+  const dirName = `${pkg.name}-${suffix}`
+  const dirExists = await Bun.file(`./dist/${dirName}/package.json`).exists()
+  if (!dirExists) {
+    console.log(`skip ${scopedName} — directory ${dirName} not found`)
+    continue
+  }
+  await publish(`./dist/${dirName}`, scopedName, ver)
 }
 
 // Create and publish the meta-package teamcode-ai under @teamcode-ai scope
