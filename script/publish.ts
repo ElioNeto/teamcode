@@ -36,7 +36,8 @@ async function prepareReleaseFiles() {
 }
 
 if (Script.release && !Script.preview) {
-  await $`git fetch origin --tags`
+  // --force ensures local tags are overwritten by remote (avoids "would clobber existing tag")
+  await $`git fetch origin --tags --force`
   await $`git switch --detach`
 }
 

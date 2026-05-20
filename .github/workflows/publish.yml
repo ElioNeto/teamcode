@@ -77,6 +77,18 @@ jobs:
           OPENCODE_BUMP: ${{ inputs.bump }}
           OPENCODE_VERSION: ${{ inputs.version }}
 
+      # ── GitHub Release ────────────────────────────────────────
+      - name: Create GitHub Release
+        continue-on-error: true
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --draft \
+            --title "v${{ steps.version.outputs.version }}" \
+            --repo "${{ github.repository }}" \
+            --notes "Release v${{ steps.version.outputs.version }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       # ── Build CLI binary ───────────────────────────────────────
       - name: Build CLI
         id: build
