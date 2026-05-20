@@ -76,39 +76,34 @@ await Bun.file(`./dist/${pkg.name}/package.json`).write(
 const ghRepo = process.env.GH_REPO
 const upload = (pattern: string) => $`gh release upload "v${version}" ${pattern} --clobber --repo ${ghRepo}`.nothrow()
 
-// Create tar.gz for Linux and zip for macOS/Windows
-for (const [dirName, ext, cmd] of [
-  ["teamcode-linux-arm64", "tar.gz", `tar -czf`],
-  ["teamcode-linux-x64", "tar.gz", `tar -czf`],
-  ["teamcode-linux-x64-baseline", "tar.gz", `tar -czf`],
-  ["teamcode-linux-arm64-musl", "tar.gz", `tar -czf`],
-  ["teamcode-linux-x64-musl", "tar.gz", `tar -czf`],
-  ["teamcode-linux-x64-baseline-musl", "tar.gz", `tar -czf`],
-  ["teamcode-darwin-arm64", "zip", `cd ./dist/${dirName}/bin && zip`],
-  ["teamcode-darwin-x64", "zip", `cd ./dist/${dirName}/bin && zip`],
-  ["teamcode-darwin-x64-baseline", "zip", `cd ./dist/${dirName}/bin && zip`],
-  ["teamcode-windows-arm64", "zip", `cd ./dist/${dirName}/bin && zip`],
-  ["teamcode-windows-x64", "zip", `cd ./dist/${dirName}/bin && zip`],
-  ["teamcode-windows-x64-baseline", "zip", `cd ./dist/${dirName}/bin && zip`],
-] as const) {
-  const binPath = `./dist/${dirName}/bin/teamcode${ext === "zip" && dirName.includes("windows") ? ".exe" : ""}`
+const linuxArchs = ["arm64", "x64", "x64-baseline", "arm64-musl", "x64-musl", "x64-baseline-musl"]
+const macArchs = ["arm64", "x64", "x64-baseline"]
+const winArchs = ["arm64", "x64", "x64-baseline"]
+
+for (const dirName of [...linuxArchs.map((a) => `teamcode-linux-${a}`), ...macArchs.map((a) => `teamcode-darwin-${a}`), ...winArchs.map((a) => `teamcode-windows-${a}`)]) {
+  const isWindows = dirName.includes("windows")
+  const binaryName = isWindows ? "teamcode.exe" : "teamcode"
+  const binPath = `./dist/${dirName}/bin/${binaryName}`
   const binExists = await Bun.file(binPath).exists()
   if (!binExists) continue
 
-  const archiveName = `${dirName}.${ext}`
-  if (ext === "tar.gz") {
-    await $`tar -czf ./dist/${archiveName} -C ./dist/${dirName}/bin teamcode`.nothrow()
+  const isZip = dirName.includes("darwin") || isWindows
+  const archiveName = `${dirName}.${isZip ? "zip" : "tar.gz"}`
+
+  if (isZip) {
+    // macOS or Windows - create zip
+    await $`cd ./dist/${dirName}/bin && zip ../../../${archiveName} ${binaryName}`.nothrow()
   } else {
-    const bin = dirName.includes("windows") ? "teamcode.exe" : "teamcode"
-    await $`cd ./dist/${dirName}/bin && zip ../../../${archiveName} ${bin}`.nothrow()
+    // Linux - create tar.gz
+    await $`tar -czf ./dist/${archiveName} -C ./dist/${dirName}/bin teamcode`.nothrow()
   }
   await upload(`./dist/${archiveName}`)
 }
 
-// Also upload any pre-built .tgz from bun pm pack (but don't fail if none exist)
+// Also upload any pre-built archives in dist
 for (const dirName of Object.keys(binaries)) {
-  for (const f of ["tgz", "tar.gz", "zip"]) {
-    await upload(`./dist/${dirName}/*.${f}`)
-  }
+  await upload(`./dist/${dirName}/*.tgz`)
+  await upload(`./dist/${dirName}/*.tar.gz`)
+  await upload(`./dist/${dirName}/*.zip`)
 }
 await upload(`./dist/${pkg.name}/*.tgz`)
