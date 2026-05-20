@@ -53,6 +53,13 @@ function eventResponse() {
       Stream.map(eventData),
       Stream.pipeThroughChannel(Sse.encode()),
       Stream.encodeText,
+      // When the HTTP connection is broken (client disconnect), the next write
+      // will fail and the stream will halt. Catch all errors to trigger cleanup
+      // and prevent SSE connections from accumulating in CLOSE_WAIT.
+      Stream.catch((error) => {
+        log.info("global event stream write error, closing connection", { error: String(error) })
+        return Stream.empty
+      }),
       Stream.ensuring(Effect.sync(() => log.info("global event disconnected"))),
     ),
     {

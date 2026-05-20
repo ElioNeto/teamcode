@@ -1,6 +1,6 @@
 import { Bus } from "@/bus"
 import * as Log from "@teamcode-ai/core/util/log"
-import { Effect } from "effect"
+import { Effect, Duration } from "effect"
 import * as Stream from "effect/Stream"
 import { HttpServerResponse } from "effect/unstable/http"
 import { HttpApiBuilder } from "effect/unstable/httpapi"
@@ -39,6 +39,13 @@ function eventResponse(bus: Bus.Interface) {
         Stream.map(eventData),
         Stream.pipeThroughChannel(Sse.encode()),
         Stream.encodeText,
+        // When the HTTP connection is broken (client disconnect), the next write
+        // will fail and the stream will halt. Catch all errors to trigger cleanup
+        // and prevent SSE connections from accumulating in CLOSE_WAIT.
+        Stream.catch((error) => {
+          log.info("event stream write error, closing connection", { error: String(error) })
+          return Stream.empty
+        }),
         Stream.ensuring(Effect.sync(() => log.info("event disconnected"))),
       ),
       {

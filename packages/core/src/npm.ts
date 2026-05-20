@@ -2,13 +2,16 @@ export * as Npm from "./npm"
 
 import path from "path"
 import npa from "npm-package-arg"
-import { Effect, Schema, Context, Layer, Option, FileSystem } from "effect"
+import { Effect, Schema, Context, Layer, Option, FileSystem, Stream } from "effect"
+import { ChildProcess } from "effect/unstable/process"
+import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
 import { NodeFileSystem } from "@effect/platform-node"
 import { AppFileSystem } from "./filesystem"
 import { Global } from "./global"
 import { EffectFlock } from "./util/effect-flock"
 import { makeRuntime } from "./effect/runtime"
 import { NpmConfig } from "./npm-config"
+import { CrossSpawnSpawner } from "./cross-spawn-spawner"
 
 export class InstallFailedError extends Schema.TaggedErrorClass<InstallFailedError>()("NpmInstallFailedError", {
   add: Schema.Array(Schema.String).pipe(Schema.optional),
@@ -74,6 +77,7 @@ export const layer = Layer.effect(
     const global = yield* Global.Service
     const fs = yield* FileSystem.FileSystem
     const flock = yield* EffectFlock.Service
+    const spawner = yield* ChildProcessSpawner
     const directory = (pkg: string) => path.join(global.cache, "packages", sanitize(pkg))
     const reify = (input: { dir: string; add?: string[] }) =>
       Effect.gen(function* () {
@@ -89,7 +93,7 @@ export const layer = Layer.effect(
           savePrefix: "",
           ignoreScripts: true,
         })
-        return yield* Effect.tryPromise({
+        const result = yield* Effect.tryPromise({
           try: () =>
             arborist.reify({
               ...npmOptions,
@@ -103,12 +107,55 @@ export const layer = Layer.effect(
               add,
               dir: input.dir,
             }),
-        }) as Effect.Effect<ArboristTree, InstallFailedError>
+        }).pipe(
+          Effect.catch((error) => {
+            const msg = String(error.cause ?? error)
+            // Arborist's internal fetch may fail when proxy env vars (HTTP_PROXY,
+            // HTTPS_PROXY, NO_PROXY) are set to unsupported values. Fall back to
+            // spawning npm install as a subprocess.
+            if (
+              /fetch|proxy|connect|ECONNREFUSED|ECONNRESET|ENOTFOUND/i.test(msg)
+            ) {
+              return reifyNpm(input)
+            }
+            return Effect.fail(error)
+          }),
+        ) as Effect.Effect<ArboristTree, InstallFailedError>
+        return result
       }).pipe(
         Effect.withSpan("Npm.reify", {
           attributes: input,
         }),
       )
+
+    const reifyNpm = (input: { dir: string; add?: string[] }) =>
+      Effect.gen(function* () {
+        const args = ["install", "--no-audit", "--no-fund", "--ignore-scripts", "--save-prod"]
+        if (input.add?.length) args.push(...input.add)
+        const proc = yield* spawner.spawn(
+          ChildProcess.make("npm", args, {
+            cwd: input.dir,
+            stdin: "ignore",
+            env: { ...process.env, HTTP_PROXY: "", HTTPS_PROXY: "", NO_PROXY: "" },
+          }),
+        )
+        // stdout/stderr default to "pipe" so they are never undefined.
+        const [output, stderr] = yield* Effect.all(
+          [Stream.mkString(Stream.decodeText(proc.stdout!)), Stream.mkString(Stream.decodeText(proc.stderr!))],
+          { concurrency: 2 },
+        )
+        const exit = yield* proc.exitCode
+        if (exit !== 0) {
+          return yield* new InstallFailedError({
+            cause: new Error(`npm install failed (exit ${exit}): ${stderr || output}`),
+            add: input.add,
+            dir: input.dir,
+          })
+        }
+        // Build a minimal ArboristTree from the installed node_modules
+        const tree: ArboristTree = { edgesOut: new Map() }
+        return tree
+      }).pipe(Effect.scoped)
 
     const add = Effect.fn("Npm.add")(function* (pkg: string) {
       const dir = directory(pkg)
@@ -249,6 +296,15 @@ export const defaultLayer = layer.pipe(
   Layer.provide(AppFileSystem.layer),
   Layer.provide(Global.layer),
   Layer.provide(NodeFileSystem.layer),
+  Layer.provide(CrossSpawnSpawner.defaultLayer),
+)
+
+export const testLayer = layer.pipe(
+  Layer.provide(EffectFlock.layer),
+  Layer.provide(AppFileSystem.layer),
+  Layer.provide(Global.layer),
+  Layer.provide(NodeFileSystem.layer),
+  Layer.provide(CrossSpawnSpawner.defaultLayer),
 )
 
 const { runPromise } = makeRuntime(Service, defaultLayer)

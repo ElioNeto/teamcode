@@ -222,32 +222,89 @@ export const layer: Layer.Layer<
         const questionEnabled = ["app", "cli", "desktop"].includes(flags.client) || flags.enableQuestionTool
 
         const tool = yield* Effect.all({
-          invalid: Tool.init(invalid),
-          shell: Tool.init(shell),
-          read: Tool.init(read),
-          glob: Tool.init(globtool),
-          grep: Tool.init(greptool),
-          edit: Tool.init(edit),
-          write: Tool.init(writetool),
-          task: Tool.init(task),
-          task_status: Tool.init(taskStatus),
-          fetch: Tool.init(webfetch),
-          todo: Tool.init(todo),
-          search: Tool.init(websearch),
-          repo_clone: Tool.init(repoClone),
-          repo_overview: Tool.init(repoOverview),
-          skill: Tool.init(skilltool),
-          patch: Tool.init(patchtool),
-          question: Tool.init(question),
-          lsp: Tool.init(lsptool),
-          plan: Tool.init(plan),
+          invalid: Tool.init(invalid).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "invalid", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          shell: Tool.init(shell).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "shell", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          read: Tool.init(read).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "read", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          glob: Tool.init(globtool).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "glob", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          grep: Tool.init(greptool).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "grep", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          edit: Tool.init(edit).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "edit", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          write: Tool.init(writetool).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "write", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          task: Tool.init(task).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "task", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          task_status: Tool.init(taskStatus).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "task_status", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          fetch: Tool.init(webfetch).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "fetch", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          todo: Tool.init(todo).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "todo", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          search: Tool.init(websearch).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "search", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          repo_clone: Tool.init(repoClone).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "repo_clone", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          repo_overview: Tool.init(repoOverview).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "repo_overview", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          skill: Tool.init(skilltool).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "skill", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          patch: Tool.init(patchtool).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "patch", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          question: Tool.init(question).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "question", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          lsp: Tool.init(lsptool).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "lsp", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          plan: Tool.init(plan).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "plan", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
         })
 
         return {
           custom,
           builtin: [
             tool.invalid,
-            ...(questionEnabled ? [tool.question] : []),
+            ...(questionEnabled && tool.question ? [tool.question] : []),
             tool.shell,
             tool.read,
             tool.glob,
@@ -255,16 +312,16 @@ export const layer: Layer.Layer<
             tool.edit,
             tool.write,
             tool.task,
-            ...(flags.experimentalBackgroundSubagents ? [tool.task_status] : []),
+            ...(flags.experimentalBackgroundSubagents && tool.task_status ? [tool.task_status] : []),
             tool.fetch,
             tool.todo,
             tool.search,
-            ...(flags.experimentalScout ? [tool.repo_clone, tool.repo_overview] : []),
+            ...(flags.experimentalScout ? [tool.repo_clone, tool.repo_overview].filter(Boolean) : []),
             tool.skill,
             tool.patch,
-            ...(flags.experimentalLspTool ? [tool.lsp] : []),
-            ...(flags.experimentalPlanMode && flags.client === "cli" ? [tool.plan] : []),
-          ],
+            ...(flags.experimentalLspTool && tool.lsp ? [tool.lsp] : []),
+            ...(flags.experimentalPlanMode && flags.client === "cli" && tool.plan ? [tool.plan] : []),
+          ].filter(<T>(x: T): x is NonNullable<T> => x != null),
           task: tool.task,
           read: tool.read,
         }

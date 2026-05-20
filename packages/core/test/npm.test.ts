@@ -6,6 +6,7 @@ import { Effect, Layer, Option } from "effect"
 import { AppFileSystem } from "@teamcode-ai/core/filesystem"
 import { Global } from "@teamcode-ai/core/global"
 import { Npm } from "@teamcode-ai/core/npm"
+import { CrossSpawnSpawner } from "@teamcode-ai/core/cross-spawn-spawner"
 import { EffectFlock } from "@teamcode-ai/core/util/effect-flock"
 import { tmpdir } from "./fixture/tmpdir"
 
@@ -26,6 +27,7 @@ const npmLayer = (cache: string) =>
     Layer.provide(AppFileSystem.layer),
     Layer.provide(Global.layerWith({ cache, state: path.join(cache, "state") })),
     Layer.provide(NodeFileSystem.layer),
+    Layer.provide(CrossSpawnSpawner.defaultLayer),
   )
 
 describe("Npm.sanitize", () => {

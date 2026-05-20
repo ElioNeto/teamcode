@@ -69,7 +69,7 @@ function message(providerID: ProviderID, e: APICallError) {
     try {
       const body = JSON.parse(e.responseBody)
       // try to extract common error message fields
-      const errMsg = body.message || body.error || body.error?.message
+      const errMsg = body.error?.message || body.message || body.error
       if (errMsg && typeof errMsg === "string") {
         return `${msg}: ${errMsg}`
       }

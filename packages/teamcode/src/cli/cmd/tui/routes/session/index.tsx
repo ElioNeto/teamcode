@@ -1079,7 +1079,7 @@ export function Session() {
     bindings: tuiConfig.keybinds.gather("session", sessionBindingCommands),
   }))
 
-  // Git panel keybindings
+  // Git panel close keybinding (ESC)
   useBindings(() => ({
     enabled: gitPanelOpen() && dialog.stack.length === 0 && !renderer.getSelection()?.getSelectedText(),
     bindings: [

@@ -1180,6 +1180,22 @@ export function fromError(
         metadata: parsed.metadata,
       }))
     case e instanceof Error:
+      try {
+        const parsed = ProviderError.parseStreamError(e)
+        if (parsed) {
+          if (parsed.type === "context_overflow") {
+            return toObj(new ContextOverflowError({
+              message: parsed.message,
+              responseBody: parsed.responseBody,
+            }))
+          }
+          return toObj(new APIError({
+            message: parsed.message,
+            isRetryable: parsed.isRetryable,
+            responseBody: parsed.responseBody,
+          }))
+        }
+      } catch {}
       return toObj(new NamedError.Unknown({ message: errorMessage(e) }))
     default:
       try {

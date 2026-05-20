@@ -132,6 +132,10 @@ function formatEditorContext(selection: EditorSelection) {
   return `<system-reminder>${ranges.join("\n")} This may or may not be relevant to the current task.</system-reminder>\n`
 }
 
+// Per-session draft buffer: snapshots prompt text before switching sessions
+// so the user's unsent input is restored when returning to a previous session.
+const sessionDrafts = new Map<string, { prompt: PromptInfo; cursor: number }>()
+
 let stashed: { prompt: PromptInfo; cursor: number } | undefined
 
 export function Prompt(props: PromptProps) {
@@ -685,6 +689,17 @@ export function Prompt(props: PromptProps) {
     const saved = stashed
     stashed = undefined
     if (store.prompt.input) return
+    // Restore per-session draft if available
+    const sessionID = props.sessionID
+    const draft = sessionID ? sessionDrafts.get(sessionID) : undefined
+    if (draft && draft.prompt.input) {
+      input.setText(draft.prompt.input)
+      setStore("prompt", draft.prompt)
+      restoreExtmarksFromParts(draft.prompt.parts)
+      input.cursorOffset = draft.cursor
+      sessionDrafts.delete(sessionID)
+      return
+    }
     if (saved && saved.prompt.input) {
       input.setText(saved.prompt.input)
       setStore("prompt", saved.prompt)
@@ -695,7 +710,9 @@ export function Prompt(props: PromptProps) {
 
   onCleanup(() => {
     if (store.prompt.input) {
-      stashed = { prompt: unwrap(store.prompt), cursor: input.cursorOffset }
+      const snapshot = { prompt: unwrap(store.prompt), cursor: input.cursorOffset }
+      stashed = snapshot
+      if (props.sessionID) sessionDrafts.set(props.sessionID, snapshot)
     }
     setInputTarget(undefined)
     props.ref?.(undefined)

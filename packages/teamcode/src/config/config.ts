@@ -471,10 +471,9 @@ export const layer = Layer.effect(
             ["node_modules", "package.json", "package-lock.json", "bun.lock", ".gitignore"].join("\n"),
           )
           .pipe(
-            Effect.catchIf(
-              (e) => e.reason._tag === "PermissionDenied",
-              () => Effect.void,
-            ),
+            // OPENCODE_CONFIG_DIR may point to a read-only directory. Swallow
+            // write errors so startup does not crash on EACCES or EROFS.
+            Effect.catch(() => Effect.void),
           )
       }
     })

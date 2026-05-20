@@ -57,7 +57,7 @@ Exclude:
 - long tutorials or exhaustive file trees
 - obvious language conventions
 - speculative claims or anything you could not verify
-- content better stored in another file referenced via `opencode.json` `instructions`
+- content better stored in a separate file referenced via the `instructions` field in `opencode.json` (always use array format: `"instructions": ["./AGENTS.md"]`, never a plain string)
 
 When in doubt, omit.
 

@@ -3,7 +3,7 @@ import path from "path"
 function sliceAfterMatch(filePath: string, searchRoots: string[]) {
   const normalizedPath = filePath.replaceAll("\\", "/")
   for (const searchRoot of searchRoots) {
-    const index = normalizedPath.indexOf(searchRoot)
+    const index = normalizedPath.lastIndexOf(searchRoot)
     if (index === -1) continue
     return normalizedPath.slice(index + searchRoot.length)
   }
