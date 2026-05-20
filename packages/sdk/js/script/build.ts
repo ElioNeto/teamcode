@@ -9,7 +9,7 @@ import path from "path"
 
 import { createClient } from "@hey-api/openapi-ts"
 
-const opencode = path.resolve(dir, "../../opencode")
+const opencode = path.resolve(dir, "../../teamcode")
 
 await $`bun dev generate > ${dir}/openapi.json`.cwd(opencode)
 
@@ -43,5 +43,5 @@ await createClient({
 await $`bun prettier --write src/gen`
 await $`bun prettier --write src/v2`
 await $`rm -rf dist`
-await $`bun tsc`
+await $`bun tsc --composite false`
 await $`rm openapi.json`

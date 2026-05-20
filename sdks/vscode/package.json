@@ -2,7 +2,7 @@
   "name": "teamcode",
   "displayName": "teamcode",
   "description": "teamcode for VS Code",
-  "version": "1.15.4",
+  "version": "1.0.0",
   "publisher": "sst-dev",
   "repository": {
     "type": "git",

@@ -5,6 +5,12 @@ export type ClientOptions = {
 }
 
 export type Event =
+  | EventTuiPromptAppend
+  | EventTuiCommandExecute
+  | EventTuiToastShow1
+  | EventTuiSessionSelect
+  | EventServerConnected
+  | EventGlobalDisposed
   | EventServerInstanceDisposed
   | EventFileEdited
   | EventFileWatcherUpdated
@@ -21,10 +27,6 @@ export type Event =
   | EventTodoUpdated
   | EventSessionStatus
   | EventSessionIdle
-  | EventTuiPromptAppend
-  | EventTuiCommandExecute
-  | EventTuiToastShow1
-  | EventTuiSessionSelect
   | EventMcpToolsChanged
   | EventMcpBrowserOpenFailed
   | EventCommandExecuted
@@ -75,8 +77,6 @@ export type Event =
   | EventSessionNextCompactionStarted
   | EventSessionNextCompactionDelta
   | EventSessionNextCompactionEnded
-  | EventServerConnected
-  | EventGlobalDisposed
   | EventCatalogModelUpdated
 
 export type OAuth = {
@@ -104,6 +104,63 @@ export type WellKnownAuth = {
 
 export type Auth = OAuth | ApiAuth | WellKnownAuth
 
+export type EventTuiPromptAppend = {
+  id: string
+  type: "tui.prompt.append"
+  properties: {
+    text: string
+  }
+}
+
+export type EventTuiCommandExecute = {
+  id: string
+  type: "tui.command.execute"
+  properties: {
+    command:
+      | "session.list"
+      | "session.new"
+      | "session.share"
+      | "session.interrupt"
+      | "session.compact"
+      | "session.undo"
+      | "session.redo"
+      | "session.page.up"
+      | "session.page.down"
+      | "session.line.up"
+      | "session.line.down"
+      | "session.half.page.up"
+      | "session.half.page.down"
+      | "session.first"
+      | "session.last"
+      | "prompt.clear"
+      | "prompt.submit"
+      | "agent.cycle"
+      | string
+  }
+}
+
+export type EventTuiToastShow = {
+  id: string
+  type: "tui.toast.show"
+  properties: {
+    title?: string
+    message: string
+    variant: "info" | "success" | "warning" | "error"
+    duration?: number
+  }
+}
+
+export type EventTuiSessionSelect = {
+  id: string
+  type: "tui.session.select"
+  properties: {
+    /**
+     * Session ID to navigate to
+     */
+    sessionID: string
+  }
+}
+
 export type PermissionRequest = {
   id: string
   sessionID: string
@@ -128,11 +185,9 @@ export type SnapshotFileDiff = {
 }
 
 export type ProviderAuthError = {
-  name: "ProviderAuthError"
-  data: {
-    providerID: string
-    message: string
-  }
+  _tag: "ProviderAuthError"
+  providerID: string
+  message: string
 }
 
 export type UnknownError = {
@@ -143,48 +198,37 @@ export type UnknownError = {
 }
 
 export type MessageOutputLengthError = {
-  name: "MessageOutputLengthError"
-  data: {
-    [key: string]: unknown
-  }
+  _tag: "MessageOutputLengthError"
 }
 
 export type MessageAbortedError = {
-  name: "MessageAbortedError"
-  data: {
-    message: string
-  }
+  _tag: "MessageAbortedError"
+  message: string
 }
 
 export type StructuredOutputError = {
-  name: "StructuredOutputError"
-  data: {
-    message: string
-    retries: number
-  }
+  _tag: "StructuredOutputError"
+  message: string
+  retries: number
 }
 
 export type ContextOverflowError = {
-  name: "ContextOverflowError"
-  data: {
-    message: string
-    responseBody?: string
-  }
+  _tag: "ContextOverflowError"
+  message: string
+  responseBody?: string
 }
 
 export type ApiError = {
-  name: "APIError"
-  data: {
-    message: string
-    statusCode?: number
-    isRetryable: boolean
-    responseHeaders?: {
-      [key: string]: string
-    }
-    responseBody?: string
-    metadata?: {
-      [key: string]: string
-    }
+  _tag: "APIError"
+  message: string
+  statusCode?: number
+  isRetryable: boolean
+  responseHeaders?: {
+    [key: string]: string
+  }
+  responseBody?: string
+  metadata?: {
+    [key: string]: string
   }
 }
 
@@ -280,61 +324,6 @@ export type SessionStatus =
   | {
       type: "busy"
     }
-
-export type EventTuiPromptAppend = {
-  id: string
-  type: "tui.prompt.append"
-  properties: {
-    text: string
-  }
-}
-
-export type EventTuiCommandExecute = {
-  id: string
-  type: "tui.command.execute"
-  properties: {
-    command:
-      | "session.list"
-      | "session.new"
-      | "session.share"
-      | "session.interrupt"
-      | "session.compact"
-      | "session.page.up"
-      | "session.page.down"
-      | "session.line.up"
-      | "session.line.down"
-      | "session.half.page.up"
-      | "session.half.page.down"
-      | "session.first"
-      | "session.last"
-      | "prompt.clear"
-      | "prompt.submit"
-      | "agent.cycle"
-      | string
-  }
-}
-
-export type EventTuiToastShow = {
-  id: string
-  type: "tui.toast.show"
-  properties: {
-    title?: string
-    message: string
-    variant: "info" | "success" | "warning" | "error"
-    duration?: number
-  }
-}
-
-export type EventTuiSessionSelect = {
-  id: string
-  type: "tui.session.select"
-  properties: {
-    /**
-     * Session ID to navigate to
-     */
-    sessionID: string
-  }
-}
 
 export type Project = {
   id: string
@@ -451,6 +440,9 @@ export type AssistantMessage = {
   structured?: unknown
   variant?: string
   finish?: string
+  responseHeaders?: {
+    [key: string]: string
+  }
 }
 
 export type Message = UserMessage | AssistantMessage
@@ -704,6 +696,16 @@ export type CompactionPart = {
   tail_start_id?: string
 }
 
+export type ImageUrlPart = {
+  id: string
+  sessionID: string
+  messageID: string
+  type: "image_url"
+  image_url: {
+    url: string
+  }
+}
+
 export type Part =
   | TextPart
   | SubtaskPart
@@ -717,6 +719,7 @@ export type Part =
   | AgentPart
   | RetryPart
   | CompactionPart
+  | ImageUrlPart
 
 export type PermissionAction = "allow" | "deny" | "ask"
 
@@ -790,6 +793,12 @@ export type GlobalEvent = {
   project?: string
   workspace?: string
   payload:
+    | EventTuiPromptAppend
+    | EventTuiCommandExecute
+    | EventTuiToastShow
+    | EventTuiSessionSelect
+    | EventServerConnected
+    | EventGlobalDisposed
     | EventServerInstanceDisposed
     | EventFileEdited
     | EventFileWatcherUpdated
@@ -806,10 +815,6 @@ export type GlobalEvent = {
     | EventTodoUpdated
     | EventSessionStatus
     | EventSessionIdle
-    | EventTuiPromptAppend
-    | EventTuiCommandExecute
-    | EventTuiToastShow
-    | EventTuiSessionSelect
     | EventMcpToolsChanged
     | EventMcpBrowserOpenFailed
     | EventCommandExecuted
@@ -860,8 +865,6 @@ export type GlobalEvent = {
     | EventSessionNextCompactionStarted
     | EventSessionNextCompactionDelta
     | EventSessionNextCompactionEnded
-    | EventServerConnected
-    | EventGlobalDisposed
     | EventCatalogModelUpdated
     | SyncEventMessageUpdated
     | SyncEventMessageRemoved
@@ -1108,6 +1111,9 @@ export type McpLocalConfig = {
   environment?: {
     [key: string]: string
   }
+  env?: {
+    [key: string]: string
+  }
   enabled?: boolean
   timeout?: number
 }
@@ -1155,6 +1161,11 @@ export type AttachmentConfig = {
   image?: ImageAttachmentConfig
 }
 
+export type CavemanConfig = {
+  enabled?: boolean
+  level?: "lite" | "full" | "ultra"
+}
+
 export type Config = {
   $schema?: string
   shell?: string
@@ -1162,7 +1173,7 @@ export type Config = {
   server?: ServerConfig
   command?: {
     [key: string]: {
-      template: string
+      template?: string
       description?: string
       agent?: string
       model?: string
@@ -1277,6 +1288,7 @@ export type Config = {
     max_lines?: number
     max_bytes?: number
   }
+  caveman?: CavemanConfig
   compaction?: {
     auto?: boolean
     prune?: boolean
@@ -1818,6 +1830,8 @@ export type EventTuiCommandExecute2 = {
       | "session.share"
       | "session.interrupt"
       | "session.compact"
+      | "session.undo"
+      | "session.redo"
       | "session.page.up"
       | "session.page.down"
       | "session.line.up"
@@ -2400,6 +2414,22 @@ export type SyncEventSessionNextCompactionEnded = {
     sessionID: string
     text: string
     include?: string
+  }
+}
+
+export type EventServerConnected = {
+  id: string
+  type: "server.connected"
+  properties: {
+    [key: string]: unknown
+  }
+}
+
+export type EventGlobalDisposed = {
+  id: string
+  type: "global.disposed"
+  properties: {
+    [key: string]: unknown
   }
 }
 
@@ -3126,22 +3156,6 @@ export type EventSessionNextCompactionEnded = {
     sessionID: string
     text: string
     include?: string
-  }
-}
-
-export type EventServerConnected = {
-  id: string
-  type: "server.connected"
-  properties: {
-    [key: string]: unknown
-  }
-}
-
-export type EventGlobalDisposed = {
-  id: string
-  type: "global.disposed"
-  properties: {
-    [key: string]: unknown
   }
 }
 
