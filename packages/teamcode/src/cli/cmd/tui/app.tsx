@@ -858,7 +858,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
 
   event.on("session.error", (evt) => {
     const error = evt.properties.error
-    if (error && typeof error === "object" && error.name === "MessageAbortedError") return
+    if (error && typeof error === "object" && (error as { name?: string }).name === "MessageAbortedError") return
     const message = errorMessage(error)
 
     toast.show({

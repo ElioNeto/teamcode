@@ -18,8 +18,8 @@ function notify(api: TuiPluginApi, sessionID: string | undefined, message: strin
 }
 
 function sessionErrorMessage(error: SessionError) {
-  if (error?.name === "MessageAbortedError") return "Session aborted"
-  const data = error?.data
+  if ((error as { name?: string })?.name === "MessageAbortedError") return "Session aborted"
+  const data = (error as { data?: unknown })?.data
   if (data && typeof data === "object" && "message" in data && data.message === "SSE read timed out") {
     return "Model stopped responding"
   }

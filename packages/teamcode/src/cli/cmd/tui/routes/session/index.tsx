@@ -1510,7 +1510,7 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
           </text>
         </box>
       </Show>
-      <Show when={props.message.error && props.message.error.name !== "MessageAbortedError"}>
+      <Show when={props.message.error && (props.message.error as { name?: string }).name !== "MessageAbortedError"}>
         <box
           border={["left"]}
           paddingTop={1}
@@ -1521,17 +1521,17 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
           customBorderChars={SplitBorder.customBorderChars}
           borderColor={theme.error}
         >
-          <text fg={theme.textMuted}>{props.message.error?.data.message}</text>
+          <text fg={theme.textMuted}>{(props.message.error as { data?: { message?: string } })?.data?.message}</text>
         </box>
       </Show>
       <Switch>
-        <Match when={props.last || final() || props.message.error?.name === "MessageAbortedError"}>
+        <Match when={props.last || final() || (props.message.error as { name?: string })?.name === "MessageAbortedError"}>
           <box paddingLeft={3}>
             <text marginTop={1}>
               <span
                 style={{
                   fg:
-                    props.message.error?.name === "MessageAbortedError"
+                    (props.message.error as { name?: string })?.name === "MessageAbortedError"
                       ? theme.textMuted
                       : local.agent.color(props.message.agent),
                 }}
@@ -1543,7 +1543,7 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
               <Show when={duration()}>
                 <span style={{ fg: theme.textMuted }}> · {Locale.duration(duration())}</span>
               </Show>
-              <Show when={props.message.error?.name === "MessageAbortedError"}>
+              <Show when={(props.message.error as { name?: string })?.name === "MessageAbortedError"}>
                 <span style={{ fg: theme.textMuted }}> · interrupted</span>
               </Show>
             </text>

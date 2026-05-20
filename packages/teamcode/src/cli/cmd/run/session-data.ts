@@ -155,6 +155,8 @@ export function formatError(error: {
   data?: {
     message?: string
   }
+  _tag?: string
+  [key: string]: unknown
 }): string {
   if (error.data?.message) {
     return error.data.message
@@ -171,8 +173,8 @@ export function formatError(error: {
   return "unknown error"
 }
 
-function isAbort(error: { name?: string } | undefined): boolean {
-  return error?.name === "MessageAbortedError"
+function isAbort(error: { name?: string; _tag?: string; [key: string]: unknown } | undefined): boolean {
+  return (error as { name?: string })?.name === "MessageAbortedError"
 }
 
 function msgErr(id: string): string {
