@@ -87,6 +87,7 @@ jobs:
           OPENCODE_VERSION: ${{ steps.version.outputs.version }}
           OPENCODE_RELEASE: ${{ steps.version.outputs.release }}
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
 
       # ── Publish to npm, GitHub Release ─────────────────────────
       - name: Publish

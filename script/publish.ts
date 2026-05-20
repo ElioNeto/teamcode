@@ -60,13 +60,21 @@ if (Script.release && !Script.preview) {
   await $`git commit -am "release: ${tag}"`
   await $`git tag -d ${tag}`.nothrow()
   await $`git tag ${tag}`
-  await $`git push origin refs/tags/${tag} --force-with-lease --no-verify`
+  // If the CI was triggered by this tag, it already exists on the remote.
+  // Use --force to ensure we overwrite it with the version-bumped commit.
+  const tagPush = await $`git push origin refs/tags/${tag} --force --no-verify`.nothrow()
+  if (tagPush.exitCode !== 0) {
+    // Tag already exists at remote — skip pushing (CI was triggered by this tag)
+    console.log(`tag ${tag} already exists on remote, skipping tag push`)
+  }
   await new Promise((resolve) => setTimeout(resolve, 5_000))
   await $`git fetch origin`
-  await $`git checkout -B dev origin/dev`
-  await prepareReleaseFiles()
-  await $`git commit -am "sync release versions for ${tag}"`
-  await $`git push origin HEAD:dev --no-verify`
+  await $`git checkout -B dev origin/dev`.nothrow()
+  if ((await $`git rev-parse --verify origin/dev`.nothrow()).exitCode === 0) {
+    await prepareReleaseFiles()
+    await $`git commit -am "sync release versions for ${tag}"`.nothrow()
+    await $`git push origin HEAD:dev --no-verify`.nothrow()
+  }
 }
 
 if (Script.release) {
