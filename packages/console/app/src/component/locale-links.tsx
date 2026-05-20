@@ -10,7 +10,7 @@ function skip(path: string) {
   if (!evt) return false
 
   const key = "__locale_links_seen"
-  const locals = (evt as { locals: Record<string, unknown> }).locals
+  const locals = (evt as unknown as { locals: Record<string, unknown> }).locals
   const seen = locals[key] instanceof Set ? (locals[key] as Set<string>) : new Set<string>()
   locals[key] = seen
   if (seen.has(path)) return true
