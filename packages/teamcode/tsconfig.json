@@ -4,14 +4,29 @@
   "compilerOptions": {
     "jsx": "preserve",
     "jsxImportSource": "@opentui/solid",
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "types": [],
     "noUncheckedIndexedAccess": false,
-    "customConditions": ["browser"],
+    "customConditions": [
+      "browser"
+    ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@tui/*": ["./src/cli/cmd/tui/*"],
-      "@test/*": ["./test/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@tui/*": [
+        "./src/cli/cmd/tui/*"
+      ],
+      "@test/*": [
+        "./test/*"
+      ]
     }
-  }
+  },
+  "exclude": [
+    "script"
+  ]
 }
