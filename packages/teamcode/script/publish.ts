@@ -22,8 +22,14 @@ const publish = async (dir: string, name: string, ver: string) => {
     console.log(`already published ${name}@${ver}`)
     return
   }
-  // bun publish reads NPM_TOKEN or BUN_AUTH_TOKEN env var
-  await $`bun publish --access public --tag ${Script.channel}`.cwd(dir)
+  // Write .npmrc in the package dir so the publish subprocess finds it
+  const token = process.env.NPM_TOKEN || process.env.BUN_AUTH_TOKEN || ""
+  await Bun.write(`${dir}/.npmrc`, `//registry.npmjs.org/:_authToken=${token}\n`)
+  try {
+    await $`bun publish --access public --tag ${Script.channel}`.cwd(dir)
+  } finally {
+    await $`rm -f ${dir}/.npmrc`.nothrow()
+  }
 }
 
 // Publish each binary package (scoped names, e.g., @teamcode-ai/linux-x64)
