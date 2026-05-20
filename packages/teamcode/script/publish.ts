@@ -22,8 +22,11 @@ const publish = async (dir: string, name: string, ver: string) => {
     console.log(`already published ${name}@${ver}`)
     return
   }
-  // Use bun publish which handles npm auth via ~/.npmrc
-  await $`bun publish --access public --tag ${Script.channel}`.cwd(dir)
+  const tgzPath = `${dir}/${name.replace("@", "").replace("/", "-")}-${ver}.tgz`
+  // npm pack creates the tgz in the package dir
+  await $`cd ${dir} && npm pack --ignore-workspaces 2>/dev/null`
+  // Publish with explicit path to avoid workspace resolution
+  await $`npm publish ${tgzPath} --access public --tag ${Script.channel} --ignore-workspaces`.cwd(dir)
 }
 
 // Publish each binary package (scoped names, e.g., @teamcode-ai/linux-x64)
