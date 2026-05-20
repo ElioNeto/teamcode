@@ -30,12 +30,6 @@ jobs:
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
-      - name: Configure npm auth
-        run: |
-          if [[ -n "${{ secrets.NPM_TOKEN }}" ]]; then
-            echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-            echo "prefix=/mnt/data/npm-global" >> ~/.npmrc
-          fi
 
       - name: Configure git user
         run: |
@@ -59,8 +53,7 @@ jobs:
 
       # ── Build CLI binary ───────────────────────────────────────
       - name: Build CLI
-        run: |
-          ./packages/teamcode/script/build.ts
+        run: ./packages/teamcode/script/build.ts
         env:
           OPENCODE_VERSION: ${{ steps.version.outputs.version }}
           OPENCODE_RELEASE: true
@@ -76,6 +69,7 @@ jobs:
           OPENCODE_CHANNEL: latest
           GITHUB_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # ── Publish VS Code extension ────────────────────────────
       - name: Publish VS Code extension
