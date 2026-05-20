@@ -114,7 +114,7 @@ describe("plugin.install.concurrent", () => {
   test("preserves updates when existing config uses .json", async () => {
     await using tmp = await tmpdir()
     const target = await plugin(tmp.path, ["server"])
-    const cfg = path.join(tmp.path, ".opencode", "opencode.json")
+    const cfg = path.join(tmp.path, ".opencode", "teamcode.json")
     await fs.mkdir(path.dirname(cfg), { recursive: true })
     await Bun.write(cfg, JSON.stringify({ plugin: ["seed@1.0.0"] }, null, 2))
 
