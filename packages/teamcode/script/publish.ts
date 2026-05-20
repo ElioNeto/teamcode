@@ -7,22 +7,6 @@ import { fileURLToPath } from "url"
 const dir = fileURLToPath(new URL("..", import.meta.url))
 process.chdir(dir)
 
-async function published(name: string, version: string) {
-  return (await $`npm view ${name}@${version} version`.nothrow()).exitCode === 0
-}
-
-async function publish(dir: string, name: string, version: string) {
-  // GitHub artifact downloads can drop the executable bit, and Docker uses the
-  // unpacked dist binaries directly rather than the published tarball.
-  if (process.platform !== "win32") await $`chmod -R 755 .`.cwd(dir)
-  if (await published(name, version)) {
-    console.log(`already published ${name}@${version}`)
-    return
-  }
-  await $`bun pm pack`.cwd(dir)
-  await $`npm publish *.tgz --access public --tag ${Script.channel}`.cwd(dir)
-}
-
 const binaries: Record<string, string> = {}
 for (const filepath of new Bun.Glob("*/package.json").scanSync({ cwd: "./dist" })) {
   const pkg = await Bun.file(`./dist/${filepath}`).json()
@@ -31,7 +15,6 @@ for (const filepath of new Bun.Glob("*/package.json").scanSync({ cwd: "./dist" }
 console.log("binaries", binaries)
 const version = Object.values(binaries)[0]
 
-// Publish scoped binary packages and meta-package to npm
 const publish = async (dir: string, name: string, ver: string) => {
   if (process.platform !== "win32") await $`chmod -R 755 .`.cwd(dir)
   const result = await $`npm view ${name}@${ver} version`.nothrow()
@@ -44,10 +27,11 @@ const publish = async (dir: string, name: string, ver: string) => {
 }
 
 // Publish each binary package (scoped names, e.g., @teamcode-ai/linux-x64)
-for (const [scopedName, ver] of Object.entries(binaries).filter(([k]) => k.startsWith("@"))) {
-  const dirName = Object.entries(binaries).find(([, v]) => v === ver && !k.startsWith("@"))?.[0]
-  if (!dirName) continue
-  await publish(`./dist/${dirName}`, scopedName, ver)
+const scopedEntries = Object.entries(binaries).filter(([k]) => k.startsWith("@"))
+for (const [scopedName, ver] of scopedEntries) {
+  const dirEntry = Object.entries(binaries).find(([k, v]) => v === ver && !k.startsWith("@"))
+  if (!dirEntry) continue
+  await publish(`./dist/${dirEntry[0]}`, scopedName, ver)
 }
 
 // Create and publish the meta-package teamcode-ai under @teamcode-ai scope
