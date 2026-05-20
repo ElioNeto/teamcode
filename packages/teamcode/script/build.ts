@@ -257,7 +257,7 @@ for (const item of targets) {
 }
 
 if (Script.release) {
-  for (const key of Object.keys(binaries)) {
+  for (const key of Object.keys(binaries).filter((k) => !k.startsWith("@"))) {
     if (key.includes("linux")) {
       await $`tar -czf ../../${key}.tar.gz *`.cwd(`dist/${key}/bin`).nothrow()
     } else {
