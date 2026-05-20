@@ -51,6 +51,16 @@ jobs:
         env:
           VERSION: ${{ inputs.version || '' }}
 
+      # ── Build CLI binary ───────────────────────────────────────
+      - name: Build CLI
+        run: |
+          ./packages/teamcode/script/build.ts
+        env:
+          OPENCODE_VERSION: ${{ steps.version.outputs.version }}
+          OPENCODE_RELEASE: true
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+
       # ── Publish @teamcode-ai/* packages to npm ──────────────
       - name: Publish npm packages
         run: ./script/publish.ts
