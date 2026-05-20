@@ -104,7 +104,7 @@ export const EditTool = Tool.define(
                     diff,
                   },
                 })
-                yield* afs.writeWithDirs(filePath, Bom.join(contentNew, desiredBom))
+                yield* afs.writeWithDirs(filePath, Bom.join(contentNew, desiredBom), 0o644)
                 if (yield* format.file(filePath)) {
                   contentNew = yield* Bom.syncFile(afs, filePath, desiredBom)
                 }
@@ -682,15 +682,17 @@ export function replace(content: string, oldString: string, newString: string, r
     throw new Error("No changes to apply: oldString and newString are identical.")
   }
 
-  // If oldString itself appears in multiple locations, fail early —
-  // fuzzy replacers would only make the match less accurate.
-  const exactFirst = content.indexOf(oldString)
-  if (exactFirst !== -1) {
-    const exactLast = content.lastIndexOf(oldString)
-    if (exactFirst !== exactLast) {
-      throw new Error(
-        "Found multiple matches for oldString. Provide more surrounding context to make the match unique.",
-      )
+  // If oldString itself appears in multiple locations and replaceAll is not set,
+  // fail early — fuzzy replacers would only make the match less accurate.
+  if (!replaceAll) {
+    const exactFirst = content.indexOf(oldString)
+    if (exactFirst !== -1) {
+      const exactLast = content.lastIndexOf(oldString)
+      if (exactFirst !== exactLast) {
+        throw new Error(
+          "Found multiple matches for oldString. Provide more surrounding context to make the match unique.",
+        )
+      }
     }
   }
 

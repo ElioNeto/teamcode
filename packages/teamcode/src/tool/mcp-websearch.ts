@@ -23,30 +23,29 @@ const McpResult = Schema.Struct({
 
 const decode = Schema.decodeUnknownEffect(Schema.fromJsonString(McpResult))
 
-const parsePayload = (payload: string) =>
+const parsePayload = (payload: string): Effect.Effect<string | undefined> =>
   Effect.gen(function* () {
     const trimmed = payload.trim()
-    if (!trimmed.startsWith("{")) {
-      // Non-JSON response likely indicates an error page or proxy issue
-      const snippet = trimmed.slice(0, 200).replace(/\s+/g, " ").trim()
-      return `[Web search API returned non-JSON response: ${snippet}]`
-    }
+    if (!trimmed.startsWith("{")) return undefined
     const data = yield* Effect.match(decode(trimmed), {
       onSuccess: (data) => data,
       onFailure: () => undefined,
     })
-    if (!data) return `[Web search API returned unexpected response format]`
+    if (!data) return undefined
     return data.result.content.find((item) => item.text)?.text
   })
 
 export const parseResponse = Effect.fn("McpWebSearch.parseResponse")(function* (body: string) {
   const trimmed = body.trim()
-  const direct = trimmed ? yield* parsePayload(trimmed) : undefined
-  if (direct) return direct
+  if (trimmed.startsWith("{")) {
+    const direct = yield* parsePayload(trimmed)
+    if (direct) return direct
+  }
 
   for (const line of body.split("\n")) {
-    if (!line.startsWith("data: ")) continue
-    const data = yield* parsePayload(line.substring(6))
+    const dataLine = line.startsWith("data: ") ? line.substring(6) : null
+    if (!dataLine) continue
+    const data = yield* parsePayload(dataLine)
     if (data) return data
   }
 
@@ -54,8 +53,14 @@ export const parseResponse = Effect.fn("McpWebSearch.parseResponse")(function* (
   if (!trimmed) return "[Web search API returned empty response]"
 
   // Last resort: return the response as-is so the user sees something
+  // Check if it looks like an error page or proxy issue (non-JSON)
+  if (!trimmed.startsWith("{")) {
+    const snippet = trimmed.slice(0, 200).replace(/\s+/g, " ").trim()
+    return `[Web search API returned non-JSON response: ${snippet}]`
+  }
+
   const snippet = trimmed.slice(0, 500).replace(/\s+/g, " ").trim()
-  return `[Web search API returned unparseable response: ${snippet}]`
+  return `[Web search API returned unexpected response format: ${snippet}]`
 })
 
 export const SearchArgs = Schema.Struct({

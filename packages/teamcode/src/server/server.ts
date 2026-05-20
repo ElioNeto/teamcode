@@ -2,7 +2,7 @@ import "./init-projectors"
 
 import { NodeHttpServer } from "@effect/platform-node"
 import * as Log from "@teamcode-ai/core/util/log"
-import { ConfigProvider, Context, Duration, Effect, Exit, Layer, Scope } from "effect"
+import { ConfigProvider, Context, Duration, Effect, Exit, Layer, Option, Scope } from "effect"
 import { memoMap } from "@teamcode-ai/core/effect/memo-map"
 import { HttpRouter, HttpServer } from "effect/unstable/http"
 import { OpenApi } from "effect/unstable/httpapi"
@@ -13,6 +13,7 @@ import { disposeMiddleware } from "./routes/instance/httpapi/lifecycle"
 import { WebSocketTracker } from "./routes/instance/httpapi/websocket-tracker"
 import { PublicApi } from "./routes/instance/httpapi/public"
 import type { CorsOptions } from "./cors"
+import { ServerAuth } from "./auth"
 import { InstanceLayer } from "@/project/instance-layer"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { lazy } from "@/util/lazy"
@@ -39,6 +40,8 @@ type ListenOptions = CorsOptions & {
   hostname: string
   mdns?: boolean
   mdnsDomain?: string
+  username?: string
+  password?: string
 }
 type ListenerState = {
   scope: Scope.Scope
@@ -136,6 +139,11 @@ const listenEffect: (opts: ListenOptions) => Effect.Effect<EffectListener, unkno
 )
 
 function listenerLayer(opts: ListenOptions, port: number) {
+  const authConfig = ServerAuth.Config.layer({
+    password: opts.password ? Option.some(opts.password) : Option.none(),
+    username: opts.username ?? "teamcode",
+  })
+
   return HttpRouter.serve(HttpApiApp.createRoutes(opts), {
     middleware: disposeMiddleware,
     disableLogger: true,
@@ -145,6 +153,7 @@ function listenerLayer(opts: ListenOptions, port: number) {
     Layer.provideMerge(serverLayer({ port, hostname: opts.hostname })),
     Layer.provideMerge(RuntimeFlags.defaultLayer),
     Layer.provideMerge(InstanceLayer.layer),
+    Layer.provide(authConfig),
     // Install a fresh `ConfigProvider` per listener so `Config.string(...)`
     // reads reflect the current `process.env`. Effect's default
     // `ConfigProvider` snapshots `process.env` on first read and caches the

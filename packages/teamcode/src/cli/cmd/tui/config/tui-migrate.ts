@@ -140,10 +140,12 @@ const readRuntimeFlags = () =>
 async function opencodeFiles(input: { directories: string[]; cwd: string }) {
   const files = [
     ...ConfigPaths.fileInDirectory(Global.Path.config, "teamcode"),
-    ...(await Filesystem.findUp(["teamcode.json", "teamcode.jsonc"], input.cwd, undefined, { rootFirst: true })),
+    ...ConfigPaths.fileInDirectory(Global.Path.config, "opencode"),
+    ...(await Filesystem.findUp(["teamcode.json", "teamcode.jsonc", "opencode.json", "opencode.jsonc"], input.cwd, undefined, { rootFirst: true })),
   ]
   for (const dir of unique(input.directories)) {
     files.push(...ConfigPaths.fileInDirectory(dir, "teamcode"))
+    files.push(...ConfigPaths.fileInDirectory(dir, "opencode"))
   }
   const flags = readRuntimeFlags()
   if (flags.config) files.push(flags.config)

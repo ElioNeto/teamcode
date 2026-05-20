@@ -212,11 +212,13 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
     yield* mergeFile(acc, file)
   }
 
-  // 2. Explicit OPENCODE_TUI_CONFIG override, if set.
-  if (flags.tuiConfig) {
-    const configFile = flags.tuiConfig
-    yield* mergeFile(acc, configFile)
-    log.debug("loaded custom tui config", { path: configFile })
+  // 2. Explicit OPENCODE_TUI_CONFIG / TEAMCODE_TUI_CONFIG override, if set.
+  // Read both from RuntimeFlags (Effect config system) and directly from process.env
+  // as a fallback for environments where RuntimeFlags is cached from an outer scope.
+  const tuiConfigFile = flags.tuiConfig || process.env.OPENCODE_TUI_CONFIG || process.env.TEAMCODE_TUI_CONFIG
+  if (tuiConfigFile) {
+    yield* mergeFile(acc, tuiConfigFile)
+    log.debug("loaded custom tui config", { path: tuiConfigFile })
   }
 
   // 3. Project tui files, applied root-first so the closest file wins.
@@ -302,7 +304,7 @@ export const layer = Layer.effect(
 )
 
 export const defaultLayer = layer.pipe(
-  Layer.provide(RuntimeFlags.layer()),
+  Layer.provide(RuntimeFlags.defaultLayer),
   Layer.provide(Npm.defaultLayer),
   Layer.provide(AppFileSystem.defaultLayer),
 )

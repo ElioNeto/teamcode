@@ -93,13 +93,17 @@ export async function tmpdir<T>(options?: TmpDirOptions<T>) {
     await $`git commit --allow-empty -m "root commit ${dirpath}"`.cwd(dirpath).quiet()
   }
   if (options?.config) {
-    await Bun.write(
-      path.join(dirpath, "opencode.json"),
-      JSON.stringify({
-        $schema: "https://opencode.ai/config.json",
-        ...options.config,
-      }),
-    )
+      await Bun.write(
+        path.join(dirpath, "teamcode.json"),
+        JSON.stringify(
+          {
+            $schema: "https://opencode.ai/config.json",
+            ...options.config,
+          },
+          null,
+          2,
+        ),
+      )
   }
   const realpath = sanitizePath(await fs.realpath(dirpath))
   const extra = await options?.init?.(realpath)
@@ -148,7 +152,7 @@ export function tmpdirScoped(options?: { git?: boolean; config?: Partial<Config.
     if (options?.config) {
       yield* Effect.promise(() =>
         fs.writeFile(
-          path.join(dir, "opencode.json"),
+          path.join(dir, "teamcode.json"),
           JSON.stringify({ $schema: "https://opencode.ai/config.json", ...options.config }),
         ),
       )

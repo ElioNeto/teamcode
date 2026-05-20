@@ -21,6 +21,7 @@ import {
   sanitizedProcessEnv,
 } from "@teamcode-ai/core/util/teamcode-process"
 import { validateSession } from "./validate-session"
+import { Flock } from "@teamcode-ai/core/util/flock"
 
 declare global {
   const OPENCODE_WORKER_PATH: string
@@ -138,6 +139,22 @@ export const TuiThreadCommand = cmd({
         return
       }
       const cwd = Filesystem.resolve(process.cwd())
+
+      // Acquire a per-directory instance lock to prevent multiple TUI instances
+      // from running in the same project simultaneously.
+      let instanceLock: Flock.Lease | undefined
+      try {
+        instanceLock = await Flock.acquire(`tui:${cwd}`, {
+          staleMs: 30_000,
+          timeoutMs: 2_000,
+        })
+      } catch {
+        UI.error("TeamCode is already running in this directory.")
+        UI.error("Close the existing instance or run in a different directory.")
+        process.exitCode = 1
+        return
+      }
+
       const env = sanitizedProcessEnv({
         [OPENCODE_PROCESS_ROLE]: "worker",
         [OPENCODE_RUN_ID]: ensureRunID(),
@@ -184,6 +201,7 @@ export const TuiThreadCommand = cmd({
           })
         })
         worker.terminate()
+        instanceLock?.release().catch(() => {})
       }
 
       const prompt = await input(args.prompt)
@@ -219,6 +237,7 @@ export const TuiThreadCommand = cmd({
         })
       } catch (error) {
         UI.error(errorMessage(error))
+        instanceLock?.release().catch(() => {})
         process.exitCode = 1
         return
       }
