@@ -98,8 +98,15 @@ async function packAndPublish(dir: string, pkgName: string) {
     if (FORCE) {
       console.log(`  🚀 Publishing ${pkg.name}@${pkg.version}...`)
       const channel = process.env.NPM_CHANNEL ?? "latest"
-      await $`npm publish ${tgz} --tag ${channel} --access public`.cwd(dir)
-      console.log(`  ✅ Published ${pkg.name}@${pkg.version}`)
+      const otp = process.env.NPM_OTP ? `--otp ${process.env.NPM_OTP}` : ""
+      const result = await $`npm publish ${tgz} --tag ${channel} --access public ${otp}`.cwd(dir).nothrow()
+      if (result.exitCode === 0) {
+        console.log(`  ✅ Published ${pkg.name}@${pkg.version}`)
+      } else {
+        console.log(`  ❌ Failed to publish ${pkg.name}@${pkg.version}`)
+        console.log(`     ${result.stderr.toString().split("\n").slice(-3).join("\n").trim()}`)
+        console.log(`     If 2FA is required, set NPM_OTP=<one-time-password>`)
+      }
     } else {
       const cmd = `npm publish ${tgz} --tag latest --access public`
       console.log(`  🔍 Dry run — run this to publish:`)
