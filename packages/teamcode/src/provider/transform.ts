@@ -393,21 +393,11 @@ function unsupportedParts(msgs: ModelMessage[], model: Provider.Model): ModelMes
   return msgs.map((msg) => {
     if (msg.role !== "user" || !Array.isArray(msg.content)) return msg
 
-    const filtered = msg.content.map((part) => {
-      if (part.type !== "file" && part.type !== "image") return part
-
-      // Check for empty base64 image data
-      if (part.type === "image") {
-        const imageStr = String(part.image)
-        if (imageStr.startsWith("data:")) {
-          const match = imageStr.match(/^data:([^;]+);base64,(.*)$/)
-          if (match && (!match[2] || match[2].length === 0)) {
-            return {
-              type: "text" as const,
-              text: "ERROR: Image file is empty or corrupted. Please provide a valid image.",
-            }
-          }
-        }
+    const filtered: (typeof msg.content)[number][] = []
+    for (const part of msg.content) {
+      if (part.type !== "file" && part.type !== "image") {
+        filtered.push(part)
+        continue
       }
 
       const mime =
@@ -427,17 +417,19 @@ function unsupportedParts(msgs: ModelMessage[], model: Provider.Model): ModelMes
               return ""
             })()
           : (part.mediaType ?? "")
-      const filename = part.type === "file" ? part.filename : undefined
-      const modality = mimeToModality(mime)
-      if (!modality) return part
-      if (model.capabilities.input[modality]) return part
 
-      const name = filename ? `"${filename}"` : modality
-      return {
-        type: "text" as const,
-        text: `ERROR: Cannot read ${name} (this model does not support ${modality} input). Inform the user.`,
+      // Empty or unsupported data: silently drop, same as unsupported modality
+      if (mime === "") continue
+
+      const modality = mimeToModality(mime)
+      if (!modality || model.capabilities.input[modality]) {
+        filtered.push(part)
+        continue
       }
-    })
+
+      // Silently drop unsupported parts (e.g., image pasted to non-vision model)
+      // instead of injecting error text that confuses the model and user.
+    }
 
     return { ...msg, content: filtered }
   })
