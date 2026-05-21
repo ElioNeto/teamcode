@@ -52,19 +52,17 @@ function app(serverPath: ServerPath, input?: { password?: string; username?: str
   Flag.TEAMCODE_SERVER_USERNAME = input?.username
   if (serverPath === "default") return Server.Default().app
 
-  const handler = HttpRouter.toWebHandler(
-    HttpApiApp.routes.pipe(
-      Layer.provide(
-        ConfigProvider.layer(
-          ConfigProvider.fromUnknown({
-            TEAMCODE_SERVER_PASSWORD: input?.password,
-            TEAMCODE_SERVER_USERNAME: input?.username,
-          }),
-        ),
-      ),
-    ),
-    { disableLogger: true },
-  ).handler
+  const overrides: Record<string, string> = {}
+  if (input?.password !== undefined) overrides.TEAMCODE_SERVER_PASSWORD = input.password
+  if (input?.username !== undefined) overrides.TEAMCODE_SERVER_USERNAME = input.username
+  const configuredRoutes =
+    Object.keys(overrides).length > 0
+      ? HttpApiApp.routes.pipe(
+          Layer.provide(ConfigProvider.layer(ConfigProvider.fromUnknown(overrides))),
+        )
+      : HttpApiApp.routes
+
+  const handler = HttpRouter.toWebHandler(configuredRoutes, { disableLogger: true }).handler
   return {
     fetch: (request: Request) => handler(request, HttpApiApp.context),
     request(input: string | URL | Request, init?: RequestInit) {

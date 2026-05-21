@@ -326,7 +326,7 @@ describe("httpapi query schema drift", () => {
     "vcs diff accepts directory and workspace",
     withTmp({ config: { formatter: false, lsp: false } }, (tmp) =>
       Effect.gen(function* () {
-        const url = `/vcs/diff?mode=working&${routingParams(tmp.path)}`
+        const url = `/vcs/diff?mode=git&${routingParams(tmp.path)}`
         const response = yield* request(url)
         expectNotSchemaRejection(response.status, url)
       }),

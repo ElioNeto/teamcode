@@ -1,6 +1,6 @@
 import { Effect } from "effect"
 import { HttpRouter, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
-import { isAllowedCorsOrigin, type CorsOptions } from "@/server/cors"
+import { CorsConfig, isAllowedCorsOrigin, type CorsOptions } from "@/server/cors"
 
 // effect-smol's HttpMiddleware.cors builds OPTIONS preflight responses by
 // spreading allowOrigin() and allowHeaders() into the same record. Both set
@@ -69,15 +69,21 @@ export function makeCorsLayer(corsOptions?: CorsOptions) {
       Effect.gen(function* () {
         const request = yield* HttpServerRequest.HttpServerRequest
 
+        // Read dynamic CORS config from the context reference. This ensures requests
+        // served via a memoMap-cached layer still pick up the correct per-listener
+        // CORS options even when the closure-captured value belongs to a different
+        // listener instance.
+        const opts = yield* CorsConfig
+
         // Always handle OPTIONS preflight here — return 204 regardless of origin
         // so browsers receive a valid preflight response. Only echo the origin
         // back when it's explicitly allowed.
         if (request.method === "OPTIONS") {
-          return corsPreflightResponse(request.headers["origin"], request, corsOptions)
+          return corsPreflightResponse(request.headers["origin"], request, opts)
         }
 
         const origin = request.headers["origin"]
-        if (!origin || !isAllowedCorsOrigin(origin, corsOptions)) return yield* effect
+        if (!origin || !isAllowedCorsOrigin(origin, opts)) return yield* effect
 
         const response = yield* effect
 
