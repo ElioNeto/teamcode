@@ -514,6 +514,7 @@ export const dict = {
   "session.files.all": "Alle filer",
   "session.files.empty": "Ingen filer",
   "session.files.binaryContent": "Binær fil (indhold kan ikke vises)",
+  "session.files.refresh": "Opdater fil",
   "session.messages.renderEarlier": "Vis tidligere beskeder",
   "session.messages.loadingEarlier": "Indlæser tidligere beskeder...",
   "session.messages.loadEarlier": "Indlæs tidligere beskeder",

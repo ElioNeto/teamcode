@@ -515,6 +515,7 @@ export const dict = {
   "session.files.all": "所有文件",
   "session.files.empty": "无文件",
   "session.files.binaryContent": "二进制文件（无法显示内容）",
+  "session.files.refresh": "刷新文件",
   "session.messages.renderEarlier": "显示更早的消息",
   "session.messages.loadingEarlier": "正在加载更早的消息...",
   "session.messages.loadEarlier": "加载更早的消息",

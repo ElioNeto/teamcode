@@ -510,6 +510,7 @@ export const dict = {
   "session.files.all": "所有檔案",
   "session.files.empty": "沒有檔案",
   "session.files.binaryContent": "二進位檔案（無法顯示內容）",
+  "session.files.refresh": "重新整理檔案",
   "session.messages.renderEarlier": "顯示更早的訊息",
   "session.messages.loadingEarlier": "正在載入更早的訊息...",
   "session.messages.loadEarlier": "載入更早的訊息",

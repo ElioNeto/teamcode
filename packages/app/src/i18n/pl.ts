@@ -463,6 +463,7 @@ export const dict = {
   "session.files.all": "Wszystkie pliki",
   "session.files.empty": "Brak plików",
   "session.files.binaryContent": "Plik binarny (zawartość nie może być wyświetlona)",
+  "session.files.refresh": "Odśwież plik",
   "session.messages.renderEarlier": "Renderuj wcześniejsze wiadomości",
   "session.messages.loadingEarlier": "Ładowanie wcześniejszych wiadomości...",
   "session.messages.loadEarlier": "Załaduj wcześniejsze wiadomości",

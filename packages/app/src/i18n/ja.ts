@@ -462,6 +462,7 @@ export const dict = {
   "session.files.all": "すべてのファイル",
   "session.files.empty": "ファイルなし",
   "session.files.binaryContent": "バイナリファイル（内容を表示できません）",
+  "session.files.refresh": "ファイルを更新",
   "session.messages.renderEarlier": "以前のメッセージを表示",
   "session.messages.loadingEarlier": "以前のメッセージを読み込み中...",
   "session.messages.loadEarlier": "以前のメッセージを読み込む",
