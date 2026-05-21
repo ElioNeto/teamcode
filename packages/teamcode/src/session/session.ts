@@ -196,11 +196,18 @@ const Time = Schema.Struct({
   archived: optionalOmitUndefined(ArchivedTimestamp),
 })
 
+const TodoSchema = Schema.Struct({
+  content: Schema.String,
+  status: Schema.String,
+  priority: Schema.String,
+})
+
 const Revert = Schema.Struct({
   messageID: MessageID,
   partID: optionalOmitUndefined(PartID),
   snapshot: optionalOmitUndefined(Schema.String),
   diff: optionalOmitUndefined(Schema.String),
+  todos: optionalOmitUndefined(Schema.Array(TodoSchema)),
 })
 
 const Model = Schema.Struct({
