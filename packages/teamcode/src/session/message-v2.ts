@@ -1123,8 +1123,20 @@ export function fromError(
 ): NonNullable<Assistant["error"]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toObj = (err: any) => {
-    const { _tag: name, ...data } = err
-    return { name, data }
+    if (err._tag) {
+      // TaggedErrorClass instances (APIError, ContextOverflowError, AbortedError, AuthError).
+      // Exclude `_tag` (used as the output `name`) and `name` (duplicated from
+      // _tag by the constructor) from the data payload so the outer shape is
+      // { name: "...", data: { message, ... } } without a redundant name key.
+      const data: Record<string, unknown> = {}
+      for (const key of Object.keys(err)) {
+        if (key === "_tag" || key === "name") continue
+        if (err[key] !== undefined) data[key] = err[key]
+      }
+      return { name: err._tag, data }
+    }
+    // NamedError instances (NamedError.Unknown)
+    return { name: err.name, data: err.data }
   }
 
   switch (true) {
@@ -1143,7 +1155,7 @@ export function fromError(
       ((e as SystemError).cause as { code?: string })?.code === "ECONNRESET":
     case e instanceof TypeError &&
       typeof e.message === "string" &&
-      /ECONNRESET|connection.reset|socket.closed|socket hang.up|connection closed/i.test(e.message):
+      /ECONNRESET|connection (reset|closed|terminated|was closed)|socket (.+ )?closed|socket (hang|reset|interrupt)|interrupted|connection was (reset|closed)|read ECONNRESET|closed unexpectedly/i.test(e.message):
       const connErr = e as SystemError & { cause?: { code?: string } }
       return toObj(new APIError({
         message: "Connection reset by server",

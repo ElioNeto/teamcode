@@ -342,25 +342,33 @@ function applyCaching(msgs: ModelMessage[], model: Provider.Model): ModelMessage
   const system = msgs.filter((msg) => msg.role === "system").slice(0, 2)
   const final = msgs.filter((msg) => msg.role !== "system").slice(-2)
 
-  const providerOptions = {
-    anthropic: {
-      cacheControl: { type: "ephemeral" },
-    },
-    openrouter: {
-      cacheControl: { type: "ephemeral" },
-    },
-    bedrock: {
-      cachePoint: { type: "default" },
-    },
-    openaiCompatible: {
-      cache_control: { type: "ephemeral" },
-    },
-    copilot: {
-      copilot_cache_control: { type: "ephemeral" },
-    },
-    alibaba: {
-      cacheControl: { type: "ephemeral" },
-    },
+  // Build cache-control provider options for the model's own SDK key only.
+  // Setting cache options for every possible provider pollutes content part
+  // providerOptions with irrelevant keys and breaks tests that assert exact
+  // content shapes (e.g. DeepSeek tool-call parts).
+  const sdk = sdkKey(model.api.npm) ?? model.providerID
+  const providerOptions: Record<string, unknown> = {}
+  if (sdk === "anthropic" || model.providerID === "anthropic" || model.providerID.includes("bedrock")) {
+    providerOptions.anthropic = { cacheControl: { type: "ephemeral" } }
+  }
+  if (sdk === "openrouter") {
+    providerOptions.openrouter = { cacheControl: { type: "ephemeral" } }
+  }
+  if (sdk === "bedrock") {
+    providerOptions.bedrock = { cachePoint: { type: "default" } }
+  }
+  if (sdk === "openaiCompatible" || sdk === "openai-compatible") {
+    providerOptions.openaiCompatible = { cache_control: { type: "ephemeral" } }
+  }
+  if (sdk === "copilot") {
+    providerOptions.copilot = { copilot_cache_control: { type: "ephemeral" } }
+  }
+  if (sdk === "alibaba") {
+    providerOptions.alibaba = { cacheControl: { type: "ephemeral" } }
+  }
+  // Fallback for unknown SDKs — use openaiCompatible cache control.
+  if (Object.keys(providerOptions).length === 0) {
+    providerOptions.openaiCompatible = { cache_control: { type: "ephemeral" } }
   }
 
   for (const msg of unique([...system, ...final])) {
@@ -378,12 +386,12 @@ function applyCaching(msgs: ModelMessage[], model: Provider.Model): ModelMessage
         lastContent.type !== "tool-approval-request" &&
         lastContent.type !== "tool-approval-response"
       ) {
-        lastContent.providerOptions = mergeDeep(lastContent.providerOptions ?? {}, providerOptions)
+        lastContent.providerOptions = mergeDeep(lastContent.providerOptions ?? {}, providerOptions) as typeof lastContent.providerOptions
         continue
       }
     }
 
-    msg.providerOptions = mergeDeep(msg.providerOptions ?? {}, providerOptions)
+    msg.providerOptions = mergeDeep(msg.providerOptions ?? {}, providerOptions) as typeof msg.providerOptions
   }
 
   return msgs

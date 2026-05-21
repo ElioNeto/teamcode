@@ -36,56 +36,54 @@ export const corsVaryFix = HttpRouter.middleware(
 // 2. Adds CORS headers to responses when the request origin is allowed
 // 3. Returns 204 for OPTIONS preflight requests
 // 4. Fixes the Vary header to include both Origin and Access-Control-Request-Headers
-export const corsLayer = HttpRouter.middleware<{ handles: unknown }>()(
-  Effect.gen(function* () {
-    const corsOptions = yield* CorsConfig
+//
+// Uses global middleware so it intercepts ALL requests including OPTIONS preflight
+// on routes that may not be explicitly defined for that method.
+export const corsLayer = HttpRouter.middleware(
+  (effect) =>
+    Effect.gen(function* () {
+      const corsOptions = yield* CorsConfig
+      const request = yield* HttpServerRequest.HttpServerRequest
 
-    return (effect) =>
-      Effect.gen(function* () {
-        const request = yield* HttpServerRequest.HttpServerRequest
-        const response = yield* effect
+      const origin = request.headers["origin"]
+      if (!origin || !isAllowedCorsOrigin(origin, corsOptions)) return yield* effect
 
-        const origin = request.headers["origin"]
-        if (!origin || !isAllowedCorsOrigin(origin, corsOptions)) return response
-
-        // Build CORS response headers
+      // Return 204 for OPTIONS preflight BEFORE running the actual handler.
+      // This prevents handler errors from blocking CORS preflight responses.
+      if (request.method === "OPTIONS") {
         const corsHeaders: Record<string, string> = {
           "access-control-allow-origin": origin,
           "access-control-allow-credentials": "true",
+          "access-control-allow-methods": "GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS",
         }
+        const reqHeaders = request.headers["access-control-request-headers"]
+        if (reqHeaders) corsHeaders["access-control-allow-headers"] = reqHeaders
+        return HttpServerResponse.empty({ status: 204, headers: corsHeaders })
+      }
 
-        if (request.method === "OPTIONS") {
-          corsHeaders["access-control-allow-methods"] = "GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS"
-          const reqHeaders = request.headers["access-control-request-headers"]
-          if (reqHeaders) corsHeaders["access-control-allow-headers"] = reqHeaders
-        }
+      const response = yield* effect
 
-        // Set CORS headers on response
-        let newResponse = response
-        for (const [key, value] of Object.entries(corsHeaders)) {
-          newResponse = HttpServerResponse.setHeader(newResponse, key, value)
-        }
+      // Build and set CORS response headers
+      let newResponse = HttpServerResponse.setHeader(response, "access-control-allow-origin", origin)
+      newResponse = HttpServerResponse.setHeader(newResponse, "access-control-allow-credentials", "true")
 
-        // Fix Vary header - merge with existing
-        const isPreflight = request.method === "OPTIONS"
-        const requestAcrh = isPreflight ? request.headers["access-control-request-headers"] : undefined
-        const varyValues = ["Origin"]
-        if (requestAcrh) varyValues.push("Access-Control-Request-Headers")
+      // Fix Vary header - merge with existing
+      const requestAcrh = request.headers["access-control-request-headers"]
+      const varyValues = ["Origin"]
+      if (requestAcrh) varyValues.push("Access-Control-Request-Headers")
 
-        const existingVary = newResponse.headers["vary"]
-        const existingTokens = existingVary ? existingVary.split(",").map((s) => s.trim().toLowerCase()) : []
-        const needed = varyValues.filter((v) => !existingTokens.includes(v.toLowerCase()) && !existingTokens.includes("*"))
-        if (needed.length > 0) {
-          newResponse = HttpServerResponse.setHeader(
-            newResponse,
-            "vary",
-            existingVary ? `${existingVary}, ${needed.join(", ")}` : needed.join(", "),
-          )
-        }
+      const existingVary = newResponse.headers["vary"]
+      const existingTokens = existingVary ? existingVary.split(",").map((s) => s.trim().toLowerCase()) : []
+      const needed = varyValues.filter((v) => !existingTokens.includes(v.toLowerCase()) && !existingTokens.includes("*"))
+      if (needed.length > 0) {
+        newResponse = HttpServerResponse.setHeader(
+          newResponse,
+          "vary",
+          existingVary ? `${existingVary}, ${needed.join(", ")}` : needed.join(", "),
+        )
+      }
 
-        if (isPreflight) return HttpServerResponse.empty({ status: 204 })
-
-        return newResponse
-      })
-  }),
-).layer
+      return newResponse
+    }),
+  { global: true },
+)

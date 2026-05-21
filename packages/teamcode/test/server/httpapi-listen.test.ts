@@ -69,8 +69,8 @@ async function requestTicket(
     method: "POST",
     headers: {
       authorization: authorization(),
-      "x-opencode-directory": dir,
-      ...(options?.ticketHeader === false ? {} : { "x-opencode-ticket": "1" }),
+      "x-teamcode-directory": dir,
+      ...(options?.ticketHeader === false ? {} : { "x-teamcode-ticket": "1" }),
       ...(options?.origin ? { origin: options.origin } : {}),
     },
   })
@@ -89,7 +89,7 @@ async function createCat(listener: Awaited<ReturnType<typeof startListener>>, di
     method: "POST",
     headers: {
       authorization: authorization(),
-      "x-opencode-directory": dir,
+      "x-teamcode-directory": dir,
       "content-type": "application/json",
     },
     body: JSON.stringify({ command: "/bin/cat", title: "listen-smoke" }),
@@ -174,7 +174,7 @@ describe("HttpApi Server.listen", () => {
     let stopped = false
     try {
       const response = await fetch(new URL(PtyPaths.shells, listener.url), {
-        headers: { authorization: authorization(), "x-opencode-directory": tmp.path },
+        headers: { authorization: authorization(), "x-teamcode-directory": tmp.path },
       })
       expect(response.status).toBe(200)
       expect(await response.json()).toEqual(
@@ -375,7 +375,7 @@ describe("HttpApi Server.listen", () => {
       // Mint without directory — server uses its own cwd, can't find the PTY.
       const ambiguous = await fetch(new URL(PtyPaths.connectToken.replace(":ptyID", info.id), listener.url), {
         method: "POST",
-        headers: { authorization: authorization(), "x-opencode-ticket": "1" },
+        headers: { authorization: authorization(), "x-teamcode-ticket": "1" },
       })
       expect(ambiguous.status).toBe(404)
 
@@ -387,7 +387,7 @@ describe("HttpApi Server.listen", () => {
         ),
         {
           method: "POST",
-          headers: { authorization: authorization(), "x-opencode-ticket": "1" },
+          headers: { authorization: authorization(), "x-teamcode-ticket": "1" },
         },
       )
       expect(scoped.status).toBe(200)

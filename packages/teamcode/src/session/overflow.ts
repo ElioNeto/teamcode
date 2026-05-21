@@ -8,7 +8,7 @@ export function usable(input: { cfg: Config.Info; model: Provider.Model; outputT
   if (context === 0) return 0
 
   const outputReserve = input.cfg.compaction?.reserved ?? ProviderTransform.maxOutputTokens(input.model, input.outputTokenMax)
-  return input.model.limit.input
+  return input.model.limit.input !== undefined
     ? Math.max(0, input.model.limit.input - outputReserve)
     : Math.max(0, context - outputReserve)
 }
