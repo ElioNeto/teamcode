@@ -594,11 +594,26 @@ export const layer = Layer.effect(
               if (result.mcpClient) {
                 s.clients[key] = result.mcpClient
                 s.defs[key] = result.defs!
+                const transport = result.mcpClient.transport
                 const pid =
-                  result.mcpClient.transport instanceof StdioClientTransport
-                    ? result.mcpClient.transport.pid
-                    : undefined
+                  transport instanceof StdioClientTransport ? transport.pid : undefined
                 if (typeof pid === "number") s.processes.set(key, pid)
+                // Monitor local MCP transport for unexpected disconnection
+                // (e.g., child process killed externally by taskkill).
+                if (transport instanceof StdioClientTransport) {
+                  transport.onclose = () => {
+                    if (s.clients[key] === result.mcpClient) {
+                      s.status[key] = { status: "failed", error: "Connection closed" }
+                      log.warn("mcp transport closed unexpectedly", { key })
+                    }
+                  }
+                  transport.onerror = (error) => {
+                    if (s.clients[key] === result.mcpClient) {
+                      s.status[key] = { status: "failed", error: error.message }
+                      log.warn("mcp transport error", { key, error: error.message })
+                    }
+                  }
+                }
                 watch(s, key, result.mcpClient, bridge, mcp.timeout)
               }
             }),

@@ -774,7 +774,7 @@ export const RunCommand = effectCmd({
           const events = await client.event.subscribe()
           const loopPromise = loop(client, events).catch((e) => {
             console.error(e)
-            process.exit(1)
+            process.exitCode = 1
           })
 
           if (args.command) {

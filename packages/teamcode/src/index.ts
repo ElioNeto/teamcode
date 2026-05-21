@@ -277,15 +277,12 @@ try {
   }
   process.exitCode = 1
 } finally {
-  // Use exitCode + natural drain instead of process.exit() so pending I/O
-  // (e.g. process.stdout.write to a pipe) has a chance to flush before the
-  // process terminates. This fixes a regression where `opencode run` spawned
-  // via execvp (no shell) produced 0 bytes on stdout because process.exit()
-  // killed the process before buffered writes reached the pipe.
+  // Set the exit code but let the event loop drain naturally instead of
+  // forcing process.exit(). This prevents the parent shell (PowerShell on
+  // Windows) from terminating when the Node.js process calls exit().
   //
-  // The setTimeout fallback ensures the process still exits even if MCP or
-  // other subprocesses keep the event loop alive past the timeout.
-  const code = process.exitCode || 0
-  setTimeout(() => process.exit(code), 2000).unref()
-  process.exitCode = code
+  // Letting Node exit naturally after the event loop drains still flushes
+  // buffered I/O (stdout pipes, etc.) before termination, preserving the
+  // fix for the execvp regression.
+  process.exitCode = process.exitCode || 0
 }
