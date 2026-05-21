@@ -749,7 +749,7 @@ export const layer: Layer.Layer<
       yield* patch(input.sessionID, { title: input.title })
     })
 
-    const setArchived = Effect.fn("Session.setArchived")(function* (input: { sessionID: SessionID; time?: number }) {
+    const setArchived = Effect.fn("Session.setArchived")(function* (input: { sessionID: SessionID; time?: number | null }) {
       yield* patch(input.sessionID, { time: { archived: input.time } })
     })
 
