@@ -562,13 +562,17 @@ export const ShellTool = Tool.define(
             return Effect.sync(() => ctx.abort.removeEventListener("abort", handler))
           })
 
-          const timeout = Effect.sleep(`${input.timeout + 100} millis`)
-
-          const exit = yield* Effect.raceAll([
-            handle.exitCode.pipe(Effect.map((code) => ({ kind: "exit" as const, code }))),
-            abort.pipe(Effect.map(() => ({ kind: "abort" as const, code: null }))),
-            timeout.pipe(Effect.map(() => ({ kind: "timeout" as const, code: null }))),
-          ])
+          const exit = yield* (input.timeout === Infinity
+            ? Effect.raceAll([
+                handle.exitCode.pipe(Effect.map((code) => ({ kind: "exit" as const, code }))),
+                abort.pipe(Effect.map(() => ({ kind: "abort" as const, code: null }))),
+              ])
+            : Effect.raceAll([
+                handle.exitCode.pipe(Effect.map((code) => ({ kind: "exit" as const, code }))),
+                abort.pipe(Effect.map(() => ({ kind: "abort" as const, code: null }))),
+                Effect.sleep(`${input.timeout + 100} millis`).pipe(Effect.map(() => ({ kind: "timeout" as const, code: null }))),
+              ])
+          )
 
           if (exit.kind === "abort") {
             aborted = true
@@ -638,10 +642,7 @@ export const ShellTool = Tool.define(
               const cwd = params.workdir
                 ? yield* resolvePath(params.workdir, instanceCtx.directory, shell)
                 : instanceCtx.directory
-              if (params.timeout !== undefined && params.timeout < 0) {
-                throw new Error(`Invalid timeout value: ${params.timeout}. Timeout must be a positive number.`)
-              }
-              const timeout = params.timeout ?? defaultTimeout
+              const timeout = params.timeout === -1 ? Infinity : (params.timeout ?? defaultTimeout)
               const ps = Shell.ps(shell)
               yield* Effect.scoped(
                 Effect.gen(function* () {
