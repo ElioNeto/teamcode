@@ -72,7 +72,7 @@ export const useSessionCommands = (actions: SessionCommandContext) => {
   const closableTab = tabState.closableTab
   const shown = () =>
     platform.platform !== "desktop" ||
-    import.meta.env.VITE_OPENCODE_CHANNEL !== "beta" ||
+    import.meta.env.VITE_TEAMCODE_CHANNEL !== "beta" ||
     settings.general.showFileTree()
 
   const messages = () => {

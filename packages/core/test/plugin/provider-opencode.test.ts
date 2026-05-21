@@ -13,7 +13,7 @@ const locationLayer = Layer.succeed(Location.Service, Location.Service.of({ dire
 
 describe("OpencodePlugin", () => {
   it.effect("uses a public key and cancels paid models without credentials", () =>
-    withEnv({ OPENCODE_API_KEY: undefined }, () =>
+    withEnv({ TEAMCODE_API_KEY: undefined }, () =>
       Effect.gen(function* () {
         const plugin = yield* PluginV2.Service
         yield* plugin.add(OpencodePlugin)
@@ -30,7 +30,7 @@ describe("OpencodePlugin", () => {
   )
 
   it.effect("keeps free models without credentials", () =>
-    withEnv({ OPENCODE_API_KEY: undefined }, () =>
+    withEnv({ TEAMCODE_API_KEY: undefined }, () =>
       Effect.gen(function* () {
         const plugin = yield* PluginV2.Service
         yield* plugin.add(OpencodePlugin)
@@ -46,7 +46,7 @@ describe("OpencodePlugin", () => {
   )
 
   it.effect("treats output-only cost as free without credentials", () =>
-    withEnv({ OPENCODE_API_KEY: undefined }, () =>
+    withEnv({ TEAMCODE_API_KEY: undefined }, () =>
       Effect.gen(function* () {
         const plugin = yield* PluginV2.Service
         yield* plugin.add(OpencodePlugin)
@@ -61,8 +61,8 @@ describe("OpencodePlugin", () => {
     ),
   )
 
-  it.effect("uses OPENCODE_API_KEY as credentials", () =>
-    withEnv({ OPENCODE_API_KEY: "secret" }, () =>
+  it.effect("uses TEAMCODE_API_KEY as credentials", () =>
+    withEnv({ TEAMCODE_API_KEY: "secret" }, () =>
       Effect.gen(function* () {
         const plugin = yield* PluginV2.Service
         yield* plugin.add(OpencodePlugin)
@@ -79,14 +79,14 @@ describe("OpencodePlugin", () => {
   )
 
   it.effect("uses configured provider env vars as credentials", () =>
-    withEnv({ OPENCODE_API_KEY: undefined, CUSTOM_OPENCODE_API_KEY: "secret" }, () =>
+    withEnv({ TEAMCODE_API_KEY: undefined, CUSTOM_TEAMCODE_API_KEY: "secret" }, () =>
       Effect.gen(function* () {
         const plugin = yield* PluginV2.Service
         yield* plugin.add(OpencodePlugin)
         const updated = yield* plugin.trigger(
           "provider.update",
           {},
-          { provider: provider("opencode", { env: ["CUSTOM_OPENCODE_API_KEY"] }), cancel: false },
+          { provider: provider("opencode", { env: ["CUSTOM_TEAMCODE_API_KEY"] }), cancel: false },
         )
         const paid = yield* plugin.trigger(
           "model.update",
@@ -100,7 +100,7 @@ describe("OpencodePlugin", () => {
   )
 
   it.effect("uses configured apiKey as credentials", () =>
-    withEnv({ OPENCODE_API_KEY: undefined }, () =>
+    withEnv({ TEAMCODE_API_KEY: undefined }, () =>
       Effect.gen(function* () {
         const plugin = yield* PluginV2.Service
         yield* plugin.add(OpencodePlugin)
@@ -133,7 +133,7 @@ describe("OpencodePlugin", () => {
   )
 
   it.effect("uses auth-enabled providers as credentials", () =>
-    withEnv({ OPENCODE_API_KEY: undefined }, () =>
+    withEnv({ TEAMCODE_API_KEY: undefined }, () =>
       Effect.gen(function* () {
         const plugin = yield* PluginV2.Service
         yield* plugin.add(OpencodePlugin)
@@ -154,7 +154,7 @@ describe("OpencodePlugin", () => {
   )
 
   it.effect("ignores non-opencode providers and models", () =>
-    withEnv({ OPENCODE_API_KEY: undefined }, () =>
+    withEnv({ TEAMCODE_API_KEY: undefined }, () =>
       Effect.gen(function* () {
         const plugin = yield* PluginV2.Service
         yield* plugin.add(OpencodePlugin)

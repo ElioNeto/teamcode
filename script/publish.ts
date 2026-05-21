@@ -9,8 +9,8 @@
  *   4. @teamcode-ai/{linux,darwin,windows}-*  — platform binaries
  *
  * Expects env vars:
- *   OPENCODE_VERSION  - version to publish (e.g. "1.0.0")
- *   OPENCODE_RELEASE  - "true" if this is a real release
+ *   TEAMCODE_VERSION  - version to publish (e.g. "1.0.0")
+ *   TEAMCODE_RELEASE  - "true" if this is a real release
  *   GH_REPO           - "owner/repo" for GitHub Release uploads
  *   GITHUB_TOKEN      - GitHub token for uploads
  */
@@ -21,8 +21,8 @@ import { fileURLToPath } from "url"
 const dir = fileURLToPath(new URL("..", import.meta.url))
 process.chdir(dir)
 
-const version = process.env.OPENCODE_VERSION
-if (!version) throw new Error("OPENCODE_VERSION is required")
+const version = process.env.TEAMCODE_VERSION
+if (!version) throw new Error("TEAMCODE_VERSION is required")
 
 console.log(`\n=== publishing v${version} ===\n`)
 

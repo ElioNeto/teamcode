@@ -34,8 +34,8 @@ const it = testEffect(
 )
 
 const original = {
-  OPENCODE_SERVER_PASSWORD: Flag.OPENCODE_SERVER_PASSWORD,
-  OPENCODE_SERVER_USERNAME: Flag.OPENCODE_SERVER_USERNAME,
+  TEAMCODE_SERVER_PASSWORD: Flag.TEAMCODE_SERVER_PASSWORD,
+  TEAMCODE_SERVER_USERNAME: Flag.TEAMCODE_SERVER_USERNAME,
 }
 
 type ServerPath = "default" | "raw"
@@ -48,8 +48,8 @@ type TestServices = AppFileSystem.Service | ChildProcessSpawner.ChildProcessSpaw
 type TestScope = Scope.Scope | TestServices
 
 function app(serverPath: ServerPath, input?: { password?: string; username?: string }) {
-  Flag.OPENCODE_SERVER_PASSWORD = input?.password
-  Flag.OPENCODE_SERVER_USERNAME = input?.username
+  Flag.TEAMCODE_SERVER_PASSWORD = input?.password
+  Flag.TEAMCODE_SERVER_USERNAME = input?.username
   if (serverPath === "default") return Server.Default().app
 
   const handler = HttpRouter.toWebHandler(
@@ -57,8 +57,8 @@ function app(serverPath: ServerPath, input?: { password?: string; username?: str
       Layer.provide(
         ConfigProvider.layer(
           ConfigProvider.fromUnknown({
-            OPENCODE_SERVER_PASSWORD: input?.password,
-            OPENCODE_SERVER_USERNAME: input?.username,
+            TEAMCODE_SERVER_PASSWORD: input?.password,
+            TEAMCODE_SERVER_USERNAME: input?.username,
           }),
         ),
       ),
@@ -360,8 +360,8 @@ function seedMessage(directory: string, sessionID: string) {
 }
 
 afterEach(async () => {
-  Flag.OPENCODE_SERVER_PASSWORD = original.OPENCODE_SERVER_PASSWORD
-  Flag.OPENCODE_SERVER_USERNAME = original.OPENCODE_SERVER_USERNAME
+  Flag.TEAMCODE_SERVER_PASSWORD = original.TEAMCODE_SERVER_PASSWORD
+  Flag.TEAMCODE_SERVER_USERNAME = original.TEAMCODE_SERVER_USERNAME
   await disposeAllInstances()
   await resetDatabase()
 })

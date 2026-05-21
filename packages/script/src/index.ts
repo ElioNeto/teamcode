@@ -18,21 +18,21 @@ if (!semver.satisfies(process.versions.bun, expectedBunVersionRange)) {
 }
 
 const env = {
-  OPENCODE_CHANNEL: process.env["OPENCODE_CHANNEL"],
-  OPENCODE_BUMP: process.env["OPENCODE_BUMP"],
-  OPENCODE_VERSION: process.env["OPENCODE_VERSION"],
-  OPENCODE_RELEASE: process.env["OPENCODE_RELEASE"],
+  TEAMCODE_CHANNEL: process.env["TEAMCODE_CHANNEL"],
+  TEAMCODE_BUMP: process.env["TEAMCODE_BUMP"],
+  TEAMCODE_VERSION: process.env["TEAMCODE_VERSION"],
+  TEAMCODE_RELEASE: process.env["TEAMCODE_RELEASE"],
 }
 const CHANNEL = await (async () => {
-  if (env.OPENCODE_CHANNEL) return env.OPENCODE_CHANNEL
-  if (env.OPENCODE_BUMP) return "latest"
-  if (env.OPENCODE_VERSION && !env.OPENCODE_VERSION.startsWith("0.0.0-")) return "latest"
+  if (env.TEAMCODE_CHANNEL) return env.TEAMCODE_CHANNEL
+  if (env.TEAMCODE_BUMP) return "latest"
+  if (env.TEAMCODE_VERSION && !env.TEAMCODE_VERSION.startsWith("0.0.0-")) return "latest"
   return await $`git branch --show-current`.text().then((x) => x.trim())
 })()
 const IS_PREVIEW = CHANNEL !== "latest"
 
 const VERSION = await (async () => {
-  if (env.OPENCODE_VERSION) return env.OPENCODE_VERSION
+  if (env.TEAMCODE_VERSION) return env.TEAMCODE_VERSION
   if (IS_PREVIEW) return `0.0.0-${CHANNEL}-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "")}`
   const npmName = "teamcode-ai"
   const version = await fetch(`https://registry.npmjs.org/${npmName}/latest`)
@@ -49,7 +49,7 @@ const VERSION = await (async () => {
       return pkg.version
     })
   const [major, minor, patch] = version.split(".").map((x: string) => Number(x) || 0)
-  const t = env.OPENCODE_BUMP?.toLowerCase()
+  const t = env.TEAMCODE_BUMP?.toLowerCase()
   if (t === "major") return `${major + 1}.0.0`
   if (t === "minor") return `${major}.${minor + 1}.0`
   return `${major}.${minor}.${patch + 1}`
@@ -79,7 +79,7 @@ export const Script = {
     return IS_PREVIEW
   },
   get release(): boolean {
-    return !!env.OPENCODE_RELEASE
+    return !!env.TEAMCODE_RELEASE
   },
   get team() {
     return team

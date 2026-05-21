@@ -355,7 +355,7 @@ describe("provider HttpApi", () => {
       const instance = yield* TestInstance
       yield* writeFunctionOptionsPlugin(instance.directory)
       yield* setEnvScoped(
-        "OPENCODE_AUTH_CONTENT",
+        "TEAMCODE_AUTH_CONTENT",
         JSON.stringify({
           google: { type: "oauth", refresh: "dummy", access: "dummy", expires: 9999999999999 },
         }),

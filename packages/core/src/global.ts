@@ -13,10 +13,8 @@ const config = path.join(xdgConfig!, app)
 const state = path.join(xdgState!, app)
 const tmp = path.join(os.tmpdir(), app)
 
-const home = process.env.TEAMCODE_TEST_HOME ?? process.env.OPENCODE_TEST_HOME ?? os.homedir()
-
 export const Path = {
-  home,
+  get home() { return process.env.TEAMCODE_TEST_HOME ?? process.env.HOME ?? os.homedir() },
   data,
   bin: path.join(cache, "bin"),
   log: path.join(data, "log"),
@@ -58,7 +56,7 @@ export function make(input: Partial<Interface> = {}): Interface {
     home: Path.home,
     data: Path.data,
     cache: Path.cache,
-    config: Flag.OPENCODE_CONFIG_DIR ?? Path.config,
+    config: Flag.TEAMCODE_CONFIG_DIR ?? Path.config,
     state: Path.state,
     tmp: Path.tmp,
     bin: Path.bin,

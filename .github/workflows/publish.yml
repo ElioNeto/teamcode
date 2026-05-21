@@ -55,8 +55,8 @@ jobs:
       - name: Build CLI
         run: ./packages/teamcode/script/build.ts
         env:
-          OPENCODE_VERSION: ${{ steps.version.outputs.version }}
-          OPENCODE_RELEASE: true
+          TEAMCODE_VERSION: ${{ steps.version.outputs.version }}
+          TEAMCODE_RELEASE: true
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
 
@@ -66,9 +66,9 @@ jobs:
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
           ./script/publish.ts
         env:
-          OPENCODE_VERSION: ${{ steps.version.outputs.version }}
-          OPENCODE_RELEASE: true
-          OPENCODE_CHANNEL: latest
+          TEAMCODE_VERSION: ${{ steps.version.outputs.version }}
+          TEAMCODE_RELEASE: true
+          TEAMCODE_CHANNEL: latest
           GITHUB_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

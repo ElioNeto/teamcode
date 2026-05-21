@@ -99,15 +99,15 @@ const glob = (p: string) =>
 const githubBase = <A, E, R>(url: string, self: Effect.Effect<A, E, R>) =>
   Effect.acquireUseRelease(
     Effect.sync(() => {
-      const previous = process.env.OPENCODE_REPO_CLONE_GITHUB_BASE_URL
-      process.env.OPENCODE_REPO_CLONE_GITHUB_BASE_URL = url
+      const previous = process.env.TEAMCODE_REPO_CLONE_GITHUB_BASE_URL
+      process.env.TEAMCODE_REPO_CLONE_GITHUB_BASE_URL = url
       return previous
     }),
     () => self,
     (previous) =>
       Effect.sync(() => {
-        if (previous) process.env.OPENCODE_REPO_CLONE_GITHUB_BASE_URL = previous
-        else delete process.env.OPENCODE_REPO_CLONE_GITHUB_BASE_URL
+        if (previous) process.env.TEAMCODE_REPO_CLONE_GITHUB_BASE_URL = previous
+        else delete process.env.TEAMCODE_REPO_CLONE_GITHUB_BASE_URL
       }),
   )
 const git = Effect.fn("ReadToolTest.git")(function* (cwd: string, args: string[]) {
@@ -461,7 +461,7 @@ describe("tool.read truncation", () => {
 
       const result = yield* exec(dir, { filePath: path.join(dir, "empty.txt") })
       expect(result.metadata.truncated).toBe(false)
-      expect(result.output).toContain("End of file - total 0 lines")
+      expect(result.output).toContain("(File is empty)")
     }),
   )
 

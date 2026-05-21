@@ -33,6 +33,7 @@ export const layer = Layer.effect(
       directory: string,
       worktree?: string,
     ) {
+      if (flags.disableProjectConfig) return []
       return (yield* afs.up({
         targets: [`${name}.jsonc`, `${name}.json`],
         start: directory,
@@ -45,13 +46,13 @@ export const layer = Layer.effect(
         Global.Path.config,
         ...(!flags.disableProjectConfig
           ? yield* afs.up({
-              targets: [".teamcode"],
+              targets: [".opencode", ".teamcode"],
               start: directory,
               stop: worktree,
             }).pipe(Effect.orDie)
           : []),
         ...(yield* afs.up({
-          targets: [".teamcode"],
+          targets: [".opencode", ".teamcode"],
           start: Global.Path.home,
           stop: Global.Path.home,
         }).pipe(Effect.orDie)),
@@ -73,6 +74,8 @@ export const files = Effect.fn("ConfigPaths.projectFiles")(function* (
   worktree?: string,
 ) {
   const afs = yield* AppFileSystem.Service
+  const flags = yield* RuntimeFlags.Service
+  if (flags.disableProjectConfig) return []
   return (yield* afs.up({
     targets: [`${name}.jsonc`, `${name}.json`],
     start: directory,
@@ -87,13 +90,13 @@ export const directories = Effect.fn("ConfigPaths.directories")(function* (direc
     Global.Path.config,
     ...(!flags.disableProjectConfig
       ? yield* afs.up({
-          targets: [".teamcode"],
+          targets: [".opencode", ".teamcode"],
           start: directory,
           stop: worktree,
         })
       : []),
     ...(yield* afs.up({
-      targets: [".teamcode"],
+      targets: [".opencode", ".teamcode"],
       start: Global.Path.home,
       stop: Global.Path.home,
     })),

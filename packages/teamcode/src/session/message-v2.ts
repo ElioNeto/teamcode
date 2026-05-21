@@ -1138,13 +1138,20 @@ export function fromError(
         message: e.message,
       }))
     case (e as SystemError)?.code === "ECONNRESET":
+    case (e as SystemError)?.cause &&
+      typeof (e as SystemError).cause === "object" &&
+      ((e as SystemError).cause as { code?: string })?.code === "ECONNRESET":
+    case e instanceof TypeError &&
+      typeof e.message === "string" &&
+      /ECONNRESET|connection.reset|socket.closed|socket hang.up|connection closed/i.test(e.message):
+      const connErr = e as SystemError & { cause?: { code?: string } }
       return toObj(new APIError({
         message: "Connection reset by server",
         isRetryable: true,
         metadata: {
-          code: (e as SystemError).code ?? "",
-          syscall: (e as SystemError).syscall ?? "",
-          message: (e as SystemError).message ?? "",
+          code: connErr.code ?? connErr.cause?.code ?? "",
+          syscall: connErr.syscall ?? "",
+          message: connErr.message ?? "",
         },
       }))
     case e instanceof Error && (e as FetchDecompressionError).code === "ZlibError":

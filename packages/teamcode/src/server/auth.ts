@@ -17,11 +17,9 @@ export type DecodedCredentials = {
 
 export class Config extends ConfigService.Service<Config>()("@teamcode/ServerAuthConfig", {
   password: EffectConfig.string("TEAMCODE_SERVER_PASSWORD").pipe(
-    EffectConfig.orElse(() => EffectConfig.string("OPENCODE_SERVER_PASSWORD")),
     EffectConfig.option,
   ),
   username: EffectConfig.string("TEAMCODE_SERVER_USERNAME").pipe(
-    EffectConfig.orElse(() => EffectConfig.string("OPENCODE_SERVER_USERNAME")),
     EffectConfig.withDefault("teamcode"),
   ),
 }) {}

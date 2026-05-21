@@ -15,8 +15,8 @@ import { win32DisableProcessedInput, win32InstallCtrlCGuard } from "./win32"
 import { writeHeapSnapshot } from "v8"
 import { TuiConfig } from "./config/tui"
 import {
-  OPENCODE_PROCESS_ROLE,
-  OPENCODE_RUN_ID,
+  TEAMCODE_PROCESS_ROLE,
+  TEAMCODE_RUN_ID,
   ensureRunID,
   sanitizedProcessEnv,
 } from "@teamcode-ai/core/util/teamcode-process"
@@ -24,7 +24,7 @@ import { validateSession } from "./validate-session"
 import { Flock } from "@teamcode-ai/core/util/flock"
 
 declare global {
-  const OPENCODE_WORKER_PATH: string
+  const TEAMCODE_WORKER_PATH: string
 }
 
 type RpcClient = ReturnType<typeof Rpc.client<typeof rpc>>
@@ -58,7 +58,7 @@ function createEventSource(client: RpcClient): EventSource {
 }
 
 async function target() {
-  if (typeof OPENCODE_WORKER_PATH !== "undefined") return OPENCODE_WORKER_PATH
+  if (typeof TEAMCODE_WORKER_PATH !== "undefined") return TEAMCODE_WORKER_PATH
   const dist = new URL("./cli/cmd/tui/worker.js", import.meta.url)
   if (await Filesystem.exists(fileURLToPath(dist))) return dist
   return new URL("./worker.ts", import.meta.url)
@@ -156,8 +156,8 @@ export const TuiThreadCommand = cmd({
       }
 
       const env = sanitizedProcessEnv({
-        [OPENCODE_PROCESS_ROLE]: "worker",
-        [OPENCODE_RUN_ID]: ensureRunID(),
+        [TEAMCODE_PROCESS_ROLE]: "worker",
+        [TEAMCODE_RUN_ID]: ensureRunID(),
       })
 
       const worker = new Worker(file, {

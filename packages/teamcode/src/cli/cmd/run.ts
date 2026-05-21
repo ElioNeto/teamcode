@@ -195,12 +195,12 @@ export const RunCommand = effectCmd({
       .option("password", {
         alias: ["p"],
         type: "string",
-        describe: "basic auth password (defaults to OPENCODE_SERVER_PASSWORD)",
+        describe: "basic auth password (defaults to TEAMCODE_SERVER_PASSWORD)",
       })
       .option("username", {
         alias: ["u"],
         type: "string",
-        describe: "basic auth username (defaults to OPENCODE_SERVER_USERNAME or 'teamcode')",
+        describe: "basic auth username (defaults to TEAMCODE_SERVER_USERNAME or 'teamcode')",
       })
       .option("dir", {
         type: "string",
@@ -257,7 +257,6 @@ export const RunCommand = effectCmd({
       const rawMessage = args.msg ?? [...args.message, ...(args["--"] || [])].join(" ")
       if (args.caveman) {
         process.env.TEAMCODE_CAVEMAN = args.caveman as string
-        process.env.OPENCODE_CAVEMAN = args.caveman as string
       }
       const thinking = args.interactive ? (args.thinking ?? true) : (args.thinking ?? false)
       const die = (message: string): never => {

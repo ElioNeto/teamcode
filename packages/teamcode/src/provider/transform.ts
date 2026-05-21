@@ -418,6 +418,21 @@ function unsupportedParts(msgs: ModelMessage[], model: Provider.Model): ModelMes
             })()
           : (part.mediaType ?? "")
 
+      // Replace empty base64 images with error text
+      if (part.type === "image") {
+        const img = String(part.image)
+        if (img.startsWith("data:") && img.includes("base64,")) {
+          const base64Data = img.slice(img.indexOf("base64,") + "base64,".length)
+          if (base64Data.trim() === "") {
+            filtered.push({
+              type: "text",
+              text: "ERROR: Image file is empty or corrupted. Please provide a valid image.",
+            })
+            continue
+          }
+        }
+      }
+
       // Empty or unsupported data: silently drop, same as unsupported modality
       if (mime === "") continue
 

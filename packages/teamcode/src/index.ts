@@ -114,12 +114,10 @@ const cli = yargs(args)
   .middleware(async (opts) => {
     if (opts.pure) {
       process.env.TEAMCODE_PURE = "1"
-      process.env.OPENCODE_PURE = "1"
     }
 
     if (opts.caveman) {
       process.env.TEAMCODE_CAVEMAN = opts.caveman as string
-      process.env.OPENCODE_CAVEMAN = opts.caveman as string
     }
 
     await Log.init({
@@ -136,9 +134,7 @@ const cli = yargs(args)
 
     process.env.AGENT = "1"
     process.env.TEAMCODE = "1"
-    process.env.OPENCODE = "1"
     process.env.TEAMCODE_PID = String(process.pid)
-    process.env.OPENCODE_PID = String(process.pid)
 
     Log.Default.info("teamcode", {
       version: InstallationVersion,

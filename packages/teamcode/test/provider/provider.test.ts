@@ -1721,7 +1721,7 @@ test("ModelNotFoundError suggests catalog models for unloaded providers", async 
   await withTestInstance({
     directory: tmp.path,
     fn: async (ctx) => {
-      remove(ctx, "OPENCODE_API_KEY")
+      remove(ctx, "TEAMCODE_API_KEY")
       try {
         await getModel(ProviderID.teamcode, ModelID.make("claude-haiku-fake-model"), ctx)
         throw new Error("expected model lookup to fail")

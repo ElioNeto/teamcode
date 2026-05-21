@@ -119,7 +119,7 @@ describe("containsPath", () => {
   )
 
   it.instance(
-    "returns true for path inside worktree but outside directory (monorepo subdirectory scenario)",
+    "returns false for path outside directory even if inside worktree (monorepo subdirectory scenario)",
     () =>
       Effect.gen(function* () {
         const test = yield* TestInstance
@@ -127,12 +127,14 @@ describe("containsPath", () => {
         yield* Effect.promise(() => fs.mkdir(subdir, { recursive: true }))
         const ctx = { ...(yield* InstanceState.context), directory: subdir }
 
-        // .opencode at worktree root, but we're running from packages/lib
-        expect(containsPath(path.join(test.directory, ".opencode", "state"), ctx)).toBe(true)
-        // sibling package should also be accessible
-        expect(containsPath(path.join(test.directory, "packages", "other", "file.ts"), ctx)).toBe(true)
-        // worktree root itself
-        expect(containsPath(test.directory, ctx)).toBe(true)
+        // .opencode at worktree root, but we're running from packages/lib - outside directory
+        expect(containsPath(path.join(test.directory, ".opencode", "state"), ctx)).toBe(false)
+        // sibling package should also be inaccessible
+        expect(containsPath(path.join(test.directory, "packages", "other", "file.ts"), ctx)).toBe(false)
+        // worktree root itself - outside directory
+        expect(containsPath(test.directory, ctx)).toBe(false)
+        // inside directory should work
+        expect(containsPath(path.join(subdir, "file.ts"), ctx)).toBe(true)
       }),
     { git: true },
   )
