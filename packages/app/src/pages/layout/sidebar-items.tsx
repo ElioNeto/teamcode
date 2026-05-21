@@ -89,10 +89,12 @@ export type SessionItemProps = {
   showTooltip?: boolean
   showChild?: boolean
   level?: number
+  archived?: boolean
   sidebarExpanded: Accessor<boolean>
   clearHoverProjectSoon: () => void
   prefetchSession: (session: Session, priority?: "high" | "low") => void
   archiveSession: (session: Session) => Promise<void>
+  unarchiveSession?: (session: Session) => Promise<void>
 }
 
 const SessionRow = (props: {
@@ -100,6 +102,7 @@ const SessionRow = (props: {
   slug: string
   mobile?: boolean
   dense?: boolean
+  archived?: boolean
   tint: Accessor<string | undefined>
   isWorking: Accessor<boolean>
   hasPermissions: Accessor<boolean>
@@ -116,6 +119,9 @@ const SessionRow = (props: {
     <A
       href={`/${props.slug}/session/${props.session.id}`}
       class={`flex items-center gap-2 min-w-0 w-full text-left focus:outline-none ${props.dense ? "py-0.5" : "py-1"}`}
+      classList={{
+        "opacity-50": !!props.archived,
+      }}
       onPointerDown={props.warmPress}
       onFocus={props.warmFocus}
       onClick={() => {
@@ -123,7 +129,7 @@ const SessionRow = (props: {
         props.clearHoverProjectSoon()
       }}
     >
-      <Show when={props.isWorking() || props.hasPermissions() || props.hasError() || props.unseenCount() > 0}>
+      <Show when={!props.archived && (props.isWorking() || props.hasPermissions() || props.hasError() || props.unseenCount() > 0)}>
         <div
           class="shrink-0 size-6 flex items-center justify-center"
           style={{ color: props.tint() ?? "var(--icon-interactive-base)" }}
@@ -144,7 +150,14 @@ const SessionRow = (props: {
           </Switch>
         </div>
       </Show>
-      <span class="text-14-regular text-text-strong min-w-0 flex-1 truncate">{title()}</span>
+      <span
+        class="text-14-regular text-text-strong min-w-0 flex-1 truncate"
+        classList={{
+          "italic": !!props.archived,
+        }}
+      >
+        {title()}
+      </span>
     </A>
   )
 }
@@ -202,6 +215,7 @@ export const SessionItem = (props: SessionItemProps): JSX.Element => {
       slug={props.slug}
       mobile={props.mobile}
       dense={props.dense}
+      archived={props.archived}
       tint={tint}
       isWorking={isWorking}
       hasPermissions={hasPermissions}
@@ -214,11 +228,49 @@ export const SessionItem = (props: SessionItemProps): JSX.Element => {
     />
   )
 
+  const archiveButton = () => {
+    if (props.archived) {
+      return (
+        <Tooltip value={language.t("common.unarchive")} placement="top">
+          <IconButton
+            icon="download"
+            variant="ghost"
+            class="size-6 rounded-md"
+            aria-label={language.t("common.unarchive")}
+            onClick={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
+              void props.unarchiveSession?.(props.session)
+            }}
+          />
+        </Tooltip>
+      )
+    }
+    return (
+      <Tooltip value={language.t("common.archive")} placement="top">
+        <IconButton
+          icon="archive"
+          variant="ghost"
+          class="size-6 rounded-md"
+          aria-label={language.t("common.archive")}
+          onClick={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            void props.archiveSession(props.session)
+          }}
+        />
+      </Tooltip>
+    )
+  }
+
   return (
     <>
       <div
         data-session-id={props.session.id}
         class="group/session relative w-full min-w-0 rounded-md cursor-default pr-3 transition-colors hover:bg-surface-raised-base-hover [&:has(:focus-visible)]:bg-surface-raised-base-hover has-[[data-expanded]]:bg-surface-raised-base-hover has-[.active]:bg-surface-base-active"
+        classList={{
+          "opacity-60": !!props.archived,
+        }}
         style={{ "padding-left": `${8 + (props.level ?? 0) * 16}px` }}
       >
         <div class="flex min-w-0 items-center gap-1">
@@ -250,19 +302,7 @@ export const SessionItem = (props: SessionItemProps): JSX.Element => {
                 "group-focus-within/session:w-6 group-focus-within/session:opacity-100 group-focus-within/session:pointer-events-auto": true,
               }}
             >
-              <Tooltip value={language.t("common.archive")} placement="top">
-                <IconButton
-                  icon="archive"
-                  variant="ghost"
-                  class="size-6 rounded-md"
-                  aria-label={language.t("common.archive")}
-                  onClick={(event) => {
-                    event.preventDefault()
-                    event.stopPropagation()
-                    void props.archiveSession(props.session)
-                  }}
-                />
-              </Tooltip>
+              {archiveButton()}
             </div>
           </Show>
         </div>

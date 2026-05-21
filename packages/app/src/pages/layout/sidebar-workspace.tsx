@@ -40,6 +40,7 @@ export type WorkspaceSidebarContext = {
   clearHoverProjectSoon: () => void
   prefetchSession: (session: Session, priority?: "high" | "low") => void
   archiveSession: (session: Session) => Promise<void>
+  unarchiveSession?: (session: Session) => Promise<void>
   workspaceName: (directory: string, projectId?: string, branch?: string) => string | undefined
   renameWorkspace: (directory: string, next: string, projectId?: string, branch?: string) => void
   editorOpen: (id: string) => boolean
@@ -243,52 +244,88 @@ const WorkspaceSessionList = (props: {
   hasMore: Accessor<boolean>
   loadMore: () => Promise<void>
   language: ReturnType<typeof useLanguage>
-}): JSX.Element => (
-  <nav class="flex flex-col gap-1">
-    <Show when={props.showNew()}>
-      <NewSessionItem
-        slug={props.slug()}
-        mobile={props.mobile}
-        sidebarExpanded={props.ctx.sidebarExpanded}
-        clearHoverProjectSoon={props.ctx.clearHoverProjectSoon}
-      />
-    </Show>
-    <Show when={props.loading()}>
-      <SessionSkeleton />
-    </Show>
-    <For each={props.sessions()}>
-      {(session) => (
-        <SessionItem
-          session={session}
-          list={props.sessions()}
-          navList={props.ctx.navList}
+}): JSX.Element => {
+  const archivedSessions = createMemo(() => props.sessions().filter((s) => !!s.time?.archived))
+  const activeSessions = createMemo(() => props.sessions().filter((s) => !s.time?.archived))
+
+  return (
+    <nav class="flex flex-col gap-1">
+      <Show when={props.showNew()}>
+        <NewSessionItem
           slug={props.slug()}
           mobile={props.mobile}
-          showChild
           sidebarExpanded={props.ctx.sidebarExpanded}
           clearHoverProjectSoon={props.ctx.clearHoverProjectSoon}
-          prefetchSession={props.ctx.prefetchSession}
-          archiveSession={props.ctx.archiveSession}
         />
-      )}
-    </For>
-    <Show when={props.hasMore()}>
-      <div class="relative w-full py-1">
-        <Button
-          variant="ghost"
-          class="flex w-full text-left justify-start text-14-regular text-text-weak pl-2 pr-10"
-          size="large"
-          onClick={(e: MouseEvent) => {
-            void props.loadMore()
-            ;(e.currentTarget as HTMLButtonElement).blur()
-          }}
-        >
-          {props.language.t("common.loadMore")}
-        </Button>
-      </div>
-    </Show>
-  </nav>
-)
+      </Show>
+      <Show when={props.loading()}>
+        <SessionSkeleton />
+      </Show>
+      <For each={activeSessions()}>
+        {(session) => (
+          <SessionItem
+            session={session}
+            list={activeSessions()}
+            navList={props.ctx.navList}
+            slug={props.slug()}
+            mobile={props.mobile}
+            showChild
+            sidebarExpanded={props.ctx.sidebarExpanded}
+            clearHoverProjectSoon={props.ctx.clearHoverProjectSoon}
+            prefetchSession={props.ctx.prefetchSession}
+            archiveSession={props.ctx.archiveSession}
+            unarchiveSession={props.ctx.unarchiveSession}
+          />
+        )}
+      </For>
+      <Show when={props.hasMore()}>
+        <div class="relative w-full py-1">
+          <Button
+            variant="ghost"
+            class="flex w-full text-left justify-start text-14-regular text-text-weak pl-2 pr-10"
+            size="large"
+            onClick={(e: MouseEvent) => {
+              void props.loadMore()
+              ;(e.currentTarget as HTMLButtonElement).blur()
+            }}
+          >
+            {props.language.t("common.loadMore")}
+          </Button>
+        </div>
+      </Show>
+      <Show when={archivedSessions().length > 0}>
+        <Collapsible variant="ghost" defaultOpen={false} class="shrink-0 mt-2">
+          <Collapsible.Trigger class="flex items-center gap-2 w-full py-1.5 px-2 rounded-md hover:bg-surface-raised-base-hover text-12-medium text-text-weak !h-auto">
+            <Collapsible.Arrow />
+            {props.language.t("sidebar.archived", { count: archivedSessions().length })}
+          </Collapsible.Trigger>
+          <Collapsible.Content>
+            <div class="flex flex-col gap-0.5 pt-1">
+              <For each={archivedSessions()}>
+                {(session) => (
+                  <SessionItem
+                    session={session}
+                    list={archivedSessions()}
+                    navList={props.ctx.navList}
+                    slug={props.slug()}
+                    mobile={props.mobile}
+                    showChild={false}
+                    sidebarExpanded={props.ctx.sidebarExpanded}
+                    clearHoverProjectSoon={props.ctx.clearHoverProjectSoon}
+                    prefetchSession={props.ctx.prefetchSession}
+                    archiveSession={props.ctx.archiveSession}
+                    unarchiveSession={props.ctx.unarchiveSession}
+                    archived
+                  />
+                )}
+              </For>
+            </div>
+          </Collapsible.Content>
+        </Collapsible>
+      </Show>
+    </nav>
+  )
+}
 
 export const SortableWorkspace = (props: {
   ctx: WorkspaceSidebarContext

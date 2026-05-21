@@ -14,7 +14,7 @@ const session = (input: { id: string; parentID?: string; created: number; update
   }) as Session
 
 describe("trimSessions", () => {
-  test("keeps base roots and recent roots beyond the limit", () => {
+  test("keeps base roots and recent roots beyond the limit, always includes archived", () => {
     const now = 1_000_000
     const list = [
       session({ id: "a", created: now - 100_000 }),
@@ -25,7 +25,8 @@ describe("trimSessions", () => {
     ]
 
     const result = trimSessions(list, { limit: 2, permission: {}, now })
-    expect(result.map((x) => x.id)).toEqual(["a", "b", "c", "d"])
+    // Archived sessions are always included regardless of the limit
+    expect(result.map((x) => x.id)).toEqual(["a", "b", "c", "d", "e"])
   })
 
   test("keeps children when root is kept, permission exists, or child is recent", () => {

@@ -647,6 +647,7 @@ export const dict = {
   "common.rename": "Rename",
   "common.reset": "Reset",
   "common.archive": "Archive",
+  "common.unarchive": "Unarchive",
   "common.delete": "Delete",
   "common.close": "Close",
   "common.edit": "Edit",
@@ -687,6 +688,7 @@ export const dict = {
   "sidebar.project.clearNotifications": "Clear notifications",
   "sidebar.empty.title": "No projects open",
   "sidebar.empty.description": "Open a project to get started",
+  "sidebar.archived": "Archived ({{count}})",
 
   "debugBar.ariaLabel": "Development performance diagnostics",
   "debugBar.na": "n/a",
