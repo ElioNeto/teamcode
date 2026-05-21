@@ -39,6 +39,18 @@ async function apiPatch(path: string, body: unknown): Promise<void> {
   }
 }
 
+async function apiPost(path: string, body: unknown): Promise<void> {
+  const response = await fetch(`${API}${path}`, {
+    method: "POST",
+    headers: { ...authHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) {
+    const text = await response.text().catch(() => "")
+    throw new Error(`GitHub API POST ${response.status}: ${response.statusText} — ${text.slice(0, 200)}`)
+  }
+}
+
 export interface FetchIssuesOptions {
   state?: "open" | "closed"
   labels?: string[]
@@ -79,7 +91,7 @@ export async function fetchIssue(number: number): Promise<GitHubIssue> {
  */
 export async function closeIssue(number: number, comment?: string): Promise<void> {
   if (comment) {
-    await apiPatch(`/repos/${REPO}/issues/${number}/comments`, { body: comment })
+    await apiPost(`/repos/${REPO}/issues/${number}/comments`, { body: comment })
   }
   await apiPatch(`/repos/${REPO}/issues/${number}`, {
     state: "closed",
@@ -98,7 +110,7 @@ export async function reopenIssue(number: number): Promise<void> {
  * Add a comment to an issue.
  */
 export async function commentOnIssue(number: number, body: string): Promise<void> {
-  await apiPatch(`/repos/${REPO}/issues/${number}/comments`, { body })
+  await apiPost(`/repos/${REPO}/issues/${number}/comments`, { body })
 }
 
 function mapIssue(raw: any): GitHubIssue {
