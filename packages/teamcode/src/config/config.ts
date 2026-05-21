@@ -180,6 +180,11 @@ export const Info = Schema.Struct({
       Schema.Struct({
         build: Schema.optional(ConfigAgent.Info),
         plan: Schema.optional(ConfigAgent.Info),
+        // swarm roles
+        planner: Schema.optional(ConfigAgent.Info),
+        researcher: Schema.optional(ConfigAgent.Info),
+        executor: Schema.optional(ConfigAgent.Info),
+        reviewer: Schema.optional(ConfigAgent.Info),
       }),
       [Schema.Record(Schema.String, ConfigAgent.Info)],
     ),
@@ -198,6 +203,11 @@ export const Info = Schema.Struct({
         title: Schema.optional(ConfigAgent.Info),
         summary: Schema.optional(ConfigAgent.Info),
         compaction: Schema.optional(ConfigAgent.Info),
+        // swarm roles
+        planner: Schema.optional(ConfigAgent.Info),
+        researcher: Schema.optional(ConfigAgent.Info),
+        executor: Schema.optional(ConfigAgent.Info),
+        reviewer: Schema.optional(ConfigAgent.Info),
       }),
       [Schema.Record(Schema.String, ConfigAgent.Info)],
     ),
