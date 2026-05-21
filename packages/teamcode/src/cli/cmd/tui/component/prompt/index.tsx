@@ -1066,6 +1066,43 @@ export function Prompt(props: PromptProps) {
       }
       return true
     }
+    // /caveman [lite|full|ultra] — enable or switch caveman level
+    if (trimmed.startsWith("/caveman")) {
+      const parts = trimmed.split(/\s+/)
+      const level = parts.length > 1 ? parts[1] : "full"
+      if (level !== "lite" && level !== "full" && level !== "ultra") {
+        toast.show({ message: `Usage: /caveman [lite|full|ultra]`, variant: "warning" })
+        return true
+      }
+      const cavemanKey = Caveman.CAVEMAN_KV_KEY
+      const original = kv.get(cavemanKey) as CavemanSessionInfo | undefined
+      const alreadyEnabled = original?.enabled ?? false
+      const sameLevel = original?.level === level
+      if (alreadyEnabled && sameLevel) {
+        toast.show({ message: `🪨 Caveman already active (${level})`, variant: "info" })
+      } else {
+        kv.set(cavemanKey, {
+          enabled: true,
+          level: level as "lite" | "full" | "ultra",
+          tokens_saved: original?.tokens_saved ?? 0,
+        })
+        toast.show({ message: `🪨 CAVEMAN ${level.toUpperCase()} — agent speak with few token`, variant: "info" })
+      }
+      return true
+    }
+    // /caveman-stats — show tokens saved in this session
+    if (trimmed === "/caveman-stats") {
+      const cavemanKey = Caveman.CAVEMAN_KV_KEY
+      const current = kv.get(cavemanKey) as CavemanSessionInfo | undefined
+      if (current?.enabled && current.tokens_saved > 0) {
+        toast.show({ message: `🪨 Tokens saved: ${current.tokens_saved}`, variant: "info" })
+      } else if (current?.enabled) {
+        toast.show({ message: "🪨 Caveman active — no tokens saved yet", variant: "info" })
+      } else {
+        toast.show({ message: "Caveman not active — use /caveman to enable", variant: "info" })
+      }
+      return true
+    }
     const selectedModel = local.model.current()
     if (!selectedModel) {
       void promptModelWarning()
@@ -1633,6 +1670,20 @@ export function Prompt(props: PromptProps) {
                             <text>
                               <span style={{ fg: fadeColor(theme.warning, variantMetaAlpha()), bold: true }}>
                                 {local.model.variant.current()}
+                              </span>
+                            </text>
+                          </Show>
+                          <Show when={(() => {
+                            const info = kv.get(Caveman.CAVEMAN_KV_KEY) as CavemanSessionInfo | undefined
+                            return info?.enabled
+                          })()}>
+                            <text fg={fadeColor(theme.warning, modelMetaAlpha())}>·</text>
+                            <text>
+                              <span style={{ fg: theme.warning, bold: true }}>
+                                {(() => {
+                                  const info = kv.get(Caveman.CAVEMAN_KV_KEY) as CavemanSessionInfo | undefined
+                                  return `🪨${info?.level?.toUpperCase() ?? "FULL"}`
+                                })()}
                               </span>
                             </text>
                           </Show>

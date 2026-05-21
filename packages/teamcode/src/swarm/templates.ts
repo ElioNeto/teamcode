@@ -3,6 +3,7 @@
 // Each template produces a `SwarmDefinition` that the orchestrator can run.
 // Templates compose the agent roles (planner, researcher, executor, reviewer)
 // into common patterns.
+import { Caveman } from "@/caveman"
 import { SwarmDefinition, SwarmMode, type SwarmAgent } from "./types"
 
 // ---------------------------------------------------------------------------
@@ -28,6 +29,23 @@ function agents(seeds: AgentSeed[]): SwarmAgent[] {
 // ---------------------------------------------------------------------------
 // Templates
 // ---------------------------------------------------------------------------
+
+/**
+ * Return a caveman-compressed copy of a SwarmDefinition.
+ * Compresses every agent's prompt at the given level.
+ */
+export function compressDefinition(
+  def: SwarmDefinition,
+  level: "lite" | "full" | "ultra" = "full",
+): SwarmDefinition {
+  return {
+    ...def,
+    agents: def.agents.map((agent) => ({
+      ...agent,
+      prompt: agent.prompt ? Caveman.compress(agent.prompt, level) : agent.prompt,
+    })),
+  }
+}
 
 /** Predefined swarm template registry. */
 export const templates: Record<string, (...args: any[]) => SwarmDefinition> = {
