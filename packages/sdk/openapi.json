@@ -4827,7 +4827,8 @@
                     "type": "object",
                     "properties": {
                       "archived": {
-                        "type": "number"
+                        "type": "number",
+                        "nullable": true
                       }
                     },
                     "additionalProperties": false
@@ -4836,29 +4837,8 @@
                 "additionalProperties": false
               }
             }
-          }
-        },
-        "x-codeSamples": [
-          {
-            "lang": "js",
-            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.session.update({\n  ...\n})"
-          }
-        ]
-      }
-    },
-    "/session/{sessionID}/children": {
-      "get": {
-        "tags": ["session"],
-        "operationId": "session.children",
-        "parameters": [
-          {
-            "name": "sessionID",
-            "in": "path",
-            "schema": {
-              "type": "string",
-              "pattern": "^ses"
-            },
-            "required": true
+          },
+          "required": true
           },
           {
             "name": "directory",
