@@ -475,6 +475,11 @@ export const { use: useMarked, provider: MarkedProvider } = createSimpleContext(
             const titleAttr = title ? ` title="${title}"` : ""
             return `<a href="${href}"${titleAttr} class="external-link" target="_blank" rel="noopener noreferrer">${text}</a>`
           },
+          html({ text }) {
+            // Escape inline HTML tags to prevent DOMPurify from stripping
+            // non-standard tags like <T> in List<T> (issue #983)
+            return text.replace(/</g, "&lt;").replace(/>/g, "&gt;")
+          },
         },
       },
       markedKatex({

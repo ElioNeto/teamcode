@@ -29,4 +29,25 @@ describe("markdown stream", () => {
       },
     ])
   })
+
+  test("does not strip angle brackets from incomplete generic type syntax", () => {
+    // Previously <T at end was stripped by htmlTags handler
+    expect(stream("use List<T", true)).toEqual([
+      { raw: "use List<T", src: "use List<T", mode: "live" },
+    ])
+  })
+
+  test("does not strip angle brackets from complete generic type syntax", () => {
+    expect(stream("use List<T>", true)).toEqual([
+      { raw: "use List<T>", src: "use List<T>", mode: "live" },
+    ])
+  })
+
+  test("preserves angle brackets inside open fenced code blocks", () => {
+    // When code block is still open (no closing ```), stream splits it
+    expect(stream("before\n\n```ts\nList<T> items", true)).toEqual([
+      { raw: "before\n\n", src: "before\n\n", mode: "live" },
+      { raw: "```ts\nList<T> items", src: "```ts\nList<T> items", mode: "live" },
+    ])
+  })
 })
