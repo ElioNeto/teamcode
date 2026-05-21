@@ -127,16 +127,14 @@ describe("Permission.disabled for task tool", () => {
     expect(disabled.has("task")).toBe(false)
   })
 
-  test("task tool is NOT disabled when last wildcard pattern is allow", () => {
-    // Last matching rule wins - if wildcard allow comes after wildcard deny, tool is enabled
+  test("task tool is NOT disabled when specific allow exists in config", () => {
+    // The last matching rule for "task" has pattern "orchestrator-coder", not "*",
+    // so the tool is NOT disabled (a specific subagent has explicit permission)
     const ruleset = createRuleset({
       "*": "deny",
       "orchestrator-coder": "allow",
     })
     const disabled = Permission.disabled(["task"], ruleset)
-    // The disabled() function uses findLast and checks if the last matching rule
-    // has pattern: "*" and action: "deny". In this case, the last rule matching
-    // "task" permission has pattern "orchestrator-coder", not "*", so not disabled
     expect(disabled.has("task")).toBe(false)
   })
 })

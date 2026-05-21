@@ -35,7 +35,7 @@ test("skips external tui plugins in pure mode", async () => {
 
   const pure = process.env.TEAMCODE_PURE
   const meta = process.env.TEAMCODE_PLUGIN_META_FILE
-  process.env.TEAMCODE_PURE = "1"
+  process.env.TEAMCODE_PURE = "true"
   process.env.TEAMCODE_PLUGIN_META_FILE = tmp.extra.meta
 
   const config = createTuiResolvedConfig({

@@ -1125,13 +1125,33 @@ export function fromError(
   const toObj = (err: any) => {
     if (err._tag) {
       // TaggedErrorClass instances (APIError, ContextOverflowError, AbortedError, AuthError).
-      // Exclude `_tag` (used as the output `name`) and `name` (duplicated from
-      // _tag by the constructor) from the data payload so the outer shape is
-      // { name: "...", data: { message, ... } } without a redundant name key.
+      // Schema fields are defined as prototype accessors — collect them via
+      // prototype walk, then filter out Effect/Schema internal properties
+      // (those starting with '~', 'Symbol(', or function values like `pipe`).
       const data: Record<string, unknown> = {}
+      const seen = new Set<string>()
+      // 1. Own enumerable properties (Object.keys)
       for (const key of Object.keys(err)) {
+        seen.add(key)
         if (key === "_tag" || key === "name") continue
         if (err[key] !== undefined) data[key] = err[key]
+      }
+      // 2. Prototype walk: enumerable for…in + non-enumerable accessors
+      let proto = Object.getPrototypeOf(err)
+      while (proto && proto !== Object.prototype) {
+        const descriptors = Object.getOwnPropertyDescriptors(proto)
+        const keys = [...Object.keys(descriptors), ...Object.getOwnPropertyNames(descriptors).filter((k) => !Object.keys(descriptors).includes(k) && !k.startsWith("Symbol(") && k !== "constructor")]
+        for (const key of new Set(keys)) {
+          if (seen.has(key)) continue
+          seen.add(key)
+          if (key === "_tag" || key === "name" || key === "constructor" || key === "toJSON") continue
+          if (key.startsWith("~")) continue
+          if (key.startsWith("Symbol(")) continue
+          const v = err[key]
+          if (typeof v === "function") continue
+          if (v !== undefined) data[key] = v
+        }
+        proto = Object.getPrototypeOf(proto)
       }
       return { name: err._tag, data }
     }

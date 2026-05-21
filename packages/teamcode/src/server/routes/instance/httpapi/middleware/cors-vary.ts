@@ -1,6 +1,6 @@
 import { Effect } from "effect"
 import { HttpRouter, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
-import { CorsConfig, isAllowedCorsOrigin } from "@/server/cors"
+import { isAllowedCorsOrigin, type CorsOptions } from "@/server/cors"
 
 // effect-smol's HttpMiddleware.cors builds OPTIONS preflight responses by
 // spreading allowOrigin() and allowHeaders() into the same record. Both set
@@ -39,51 +39,73 @@ export const corsVaryFix = HttpRouter.middleware(
 //
 // Uses global middleware so it intercepts ALL requests including OPTIONS preflight
 // on routes that may not be explicitly defined for that method.
-export const corsLayer = HttpRouter.middleware(
-  (effect) =>
-    Effect.gen(function* () {
-      const corsOptions = yield* CorsConfig
-      const request = yield* HttpServerRequest.HttpServerRequest
+function corsPreflightResponse(
+  origin: string | undefined,
+  request: HttpServerRequest.HttpServerRequest,
+  corsOptions: CorsOptions | undefined,
+): HttpServerResponse.HttpServerResponse {
+  const corsHeaders: Record<string, string> = {
+    "access-control-allow-credentials": "true",
+    "access-control-allow-methods": "GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS",
+  }
+  // Only echo the origin if it is explicitly allowed.
+  if (origin && isAllowedCorsOrigin(origin, corsOptions)) {
+    corsHeaders["access-control-allow-origin"] = origin
+  }
+  const reqHeaders = request.headers["access-control-request-headers"]
+  if (reqHeaders) corsHeaders["access-control-allow-headers"] = reqHeaders
 
-      const origin = request.headers["origin"]
-      if (!origin || !isAllowedCorsOrigin(origin, corsOptions)) return yield* effect
+  // Build Vary header with Origin and (if present) Access-Control-Request-Headers.
+  const varyValues = ["Origin"]
+  if (reqHeaders) varyValues.push("Access-Control-Request-Headers")
+  corsHeaders["vary"] = varyValues.join(", ")
 
-      // Return 204 for OPTIONS preflight BEFORE running the actual handler.
-      // This prevents handler errors from blocking CORS preflight responses.
-      if (request.method === "OPTIONS") {
-        const corsHeaders: Record<string, string> = {
-          "access-control-allow-origin": origin,
-          "access-control-allow-credentials": "true",
-          "access-control-allow-methods": "GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS",
+  return HttpServerResponse.empty({ status: 204, headers: corsHeaders })
+}
+
+export function makeCorsLayer(corsOptions?: CorsOptions) {
+  return HttpRouter.middleware(
+    (effect) =>
+      Effect.gen(function* () {
+        const request = yield* HttpServerRequest.HttpServerRequest
+
+        // Always handle OPTIONS preflight here — return 204 regardless of origin
+        // so browsers receive a valid preflight response. Only echo the origin
+        // back when it's explicitly allowed.
+        if (request.method === "OPTIONS") {
+          return corsPreflightResponse(request.headers["origin"], request, corsOptions)
         }
-        const reqHeaders = request.headers["access-control-request-headers"]
-        if (reqHeaders) corsHeaders["access-control-allow-headers"] = reqHeaders
-        return HttpServerResponse.empty({ status: 204, headers: corsHeaders })
-      }
 
-      const response = yield* effect
+        const origin = request.headers["origin"]
+        if (!origin || !isAllowedCorsOrigin(origin, corsOptions)) return yield* effect
 
-      // Build and set CORS response headers
-      let newResponse = HttpServerResponse.setHeader(response, "access-control-allow-origin", origin)
-      newResponse = HttpServerResponse.setHeader(newResponse, "access-control-allow-credentials", "true")
+        const response = yield* effect
 
-      // Fix Vary header - merge with existing
-      const requestAcrh = request.headers["access-control-request-headers"]
-      const varyValues = ["Origin"]
-      if (requestAcrh) varyValues.push("Access-Control-Request-Headers")
+        // Build and set CORS response headers
+        let newResponse = HttpServerResponse.setHeader(response, "access-control-allow-origin", origin)
+        newResponse = HttpServerResponse.setHeader(newResponse, "access-control-allow-credentials", "true")
 
-      const existingVary = newResponse.headers["vary"]
-      const existingTokens = existingVary ? existingVary.split(",").map((s) => s.trim().toLowerCase()) : []
-      const needed = varyValues.filter((v) => !existingTokens.includes(v.toLowerCase()) && !existingTokens.includes("*"))
-      if (needed.length > 0) {
-        newResponse = HttpServerResponse.setHeader(
-          newResponse,
-          "vary",
-          existingVary ? `${existingVary}, ${needed.join(", ")}` : needed.join(", "),
-        )
-      }
+        // Fix Vary header - merge with existing
+        const requestAcrh = request.headers["access-control-request-headers"]
+        const varyValues = ["Origin"]
+        if (requestAcrh) varyValues.push("Access-Control-Request-Headers")
 
-      return newResponse
-    }),
-  { global: true },
-)
+        const existingVary = newResponse.headers["vary"]
+        const existingTokens = existingVary ? existingVary.split(",").map((s) => s.trim().toLowerCase()) : []
+        const needed = varyValues.filter((v) => !existingTokens.includes(v.toLowerCase()) && !existingTokens.includes("*"))
+        if (needed.length > 0) {
+          newResponse = HttpServerResponse.setHeader(
+            newResponse,
+            "vary",
+            existingVary ? `${existingVary}, ${needed.join(", ")}` : needed.join(", "),
+          )
+        }
+
+        return newResponse
+      }),
+    { global: true },
+  )
+}
+
+// Legacy singleton for the default (no custom CORS) case.
+export const corsLayer = makeCorsLayer()

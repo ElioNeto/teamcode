@@ -7,7 +7,7 @@ import { HttpApiProxy } from "./proxy"
 import * as Fence from "@/server/shared/fence"
 import { getWorkspaceRouteSessionID, isLocalWorkspaceRoute, workspaceProxyURL } from "@/server/shared/workspace-routing"
 import { NotFoundError } from "@/storage/storage"
-import { RuntimeFlags } from "@/effect/runtime-flags"
+import { Flag } from "@teamcode-ai/core/flag/flag"
 import { Context, Data, Effect, Layer, Schema } from "effect"
 import { HttpClient, HttpRouter, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
 import { HttpApiMiddleware } from "effect/unstable/httpapi"
@@ -59,17 +59,26 @@ function requestURL(request: HttpServerRequest.HttpServerRequest): URL {
   return new URL(request.url, "http://localhost")
 }
 
-const readRuntimeFlags = () =>
-  Effect.runSync(RuntimeFlags.Service.useSync((flags) => flags).pipe(Effect.provide(RuntimeFlags.defaultLayer)))
-
 function configuredWorkspaceID(): WorkspaceID | undefined {
-  const flags = readRuntimeFlags()
-  return flags.workspaceId ? WorkspaceID.make(flags.workspaceId) : undefined
+  const id = Flag.TEAMCODE_WORKSPACE_ID
+  if (!id) return undefined
+  try {
+    return WorkspaceID.make(id)
+  } catch {
+    return undefined
+  }
 }
 
 function selectedWorkspaceID(url: URL, sessionWorkspaceID?: WorkspaceID): WorkspaceID | undefined {
   const workspaceParam = url.searchParams.get("workspace")
-  return sessionWorkspaceID ?? (workspaceParam ? WorkspaceID.make(workspaceParam) : undefined)
+  if (workspaceParam) {
+    try {
+      return WorkspaceID.make(workspaceParam)
+    } catch {
+      return undefined
+    }
+  }
+  return sessionWorkspaceID
 }
 
 function defaultDirectory(request: HttpServerRequest.HttpServerRequest, url: URL): string {

@@ -83,7 +83,7 @@ import { workspaceRouterMiddleware, workspaceRoutingLayer } from "./middleware/w
 import { disposeMiddleware } from "./lifecycle"
 import { memoMap } from "@teamcode-ai/core/effect/memo-map"
 import { compressionLayer } from "./middleware/compression"
-import { corsLayer } from "./middleware/cors-vary"
+import { makeCorsLayer } from "./middleware/cors-vary"
 
 import { errorLayer } from "./middleware/error"
 import { fenceLayer } from "./middleware/fence"
@@ -212,7 +212,7 @@ export function createRoutes(
     Worktree.appLayer,
     errorLayer,
     compressionLayer,
-    corsLayer,
+    makeCorsLayer(corsOptions),
     fenceLayer as unknown as Layer.Layer<never>,
 
     Bus.layer,

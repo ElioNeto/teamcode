@@ -458,9 +458,12 @@ export const layer = Layer.effect(
 
     // Cache global config with a 30s TTL so edits to ~/.config/opencode/*.json
     // are picked up without requiring a full restart.
-    const runtimeFlags = yield* RuntimeFlags.Service
+    // Do NOT provide a captured RuntimeFlags snapshot here — loadGlobal() reads
+    // RuntimeFlags from the dynamic effect context so that env-var changes to
+    // TEAMCODE_CONFIG_DIR, TEAMCODE_DISABLE_PROJECT_CONFIG, etc. are visible
+    // when the cache is invalidated and re-executed.
     const [cachedGlobal, invalidateGlobal] = yield* Effect.cachedInvalidateWithTTL(
-      Effect.provideService(loadGlobal(), RuntimeFlags.Service, runtimeFlags).pipe(
+      loadGlobal().pipe(
         Effect.tapError((error) =>
           Effect.sync(() => log.error("failed to load global config, using defaults", { error: String(error) })),
         ),
@@ -469,8 +472,8 @@ export const layer = Layer.effect(
       Duration.seconds(30),
     )
 
-    const getGlobal = Effect.fn("Config.getGlobal")(function* () {
-      return yield* cachedGlobal
+    const getGlobal: () => Effect.Effect<Info> = Effect.fn("Config.getGlobal")(function* () {
+      return yield* cachedGlobal.pipe(Effect.provide(RuntimeFlags.defaultLayer))
     })
 
     const ensureGitignore = Effect.fn("Config.ensureGitignore")(function* (dir: string) {
@@ -780,10 +783,7 @@ export const layer = Layer.effect(
     // teamcode.json / opencode.json are picked up without restarting the process.
     const state = yield* InstanceState.make<State>(
       Effect.fn("Config.state")(function* (ctx) {
-        return yield* loadInstanceState(ctx).pipe(
-          Effect.provide(RuntimeFlags.defaultLayer),
-          Effect.orDie,
-        )
+        return yield* loadInstanceState(ctx).pipe(Effect.provide(RuntimeFlags.defaultLayer), Effect.orDie)
       }),
       { timeToLive: Duration.seconds(30) },
     )

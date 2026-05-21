@@ -288,15 +288,30 @@ export function merge(...rulesets: Ruleset[]): Ruleset {
   return rulesets.flat()
 }
 
-const EDIT_TOOLS = ["edit", "write", "apply_patch"]
+function findLastDenyGlob(ruleset: Ruleset, permission: string): boolean {
+  // A tool is disabled if the LAST matching rule has pattern "*" and action
+  // "deny". If the last matching rule is an allow (any pattern), the tool is
+  // NOT disabled. Scan backwards (last-match-wins).
+  for (let i = ruleset.length - 1; i >= 0; i--) {
+    const r = ruleset[i]
+    if (!r || !Wildcard.match(permission, r.permission)) continue
+    if (r.pattern === "*") return r.action === "deny"
+    return false
+  }
+  return false
+}
 
 export function disabled(tools: string[], ruleset: Ruleset): Set<string> {
   const result = new Set<string>()
   for (const tool of tools) {
-    const permission = EDIT_TOOLS.includes(tool) ? "edit" : tool
-    const rule = ruleset.findLast((rule) => Wildcard.match(permission, rule.permission))
-    if (!rule) continue
-    if (rule.pattern === "*" && rule.action === "deny") result.add(tool)
+    if (findLastDenyGlob(ruleset, tool)) {
+      result.add(tool)
+      continue
+    }
+    // write and apply_patch are aliases for edit in the permission system
+    if (tool === "write" || tool === "apply_patch") {
+      if (findLastDenyGlob(ruleset, "edit")) result.add(tool)
+    }
   }
   return result
 }

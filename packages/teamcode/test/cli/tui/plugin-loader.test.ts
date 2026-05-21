@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, spyOn, test } from "bun:test"
+import { afterAll, beforeAll, describe, expect, spyOn, test } from "bun:test"
 import fs from "fs/promises"
 import path from "path"
 import { pathToFileURL } from "url"
@@ -683,6 +683,10 @@ describe("tui.plugin.loader", () => {
 
   beforeAll(async () => {
     data = await load()
+  })
+
+  afterAll(async () => {
+    await TuiPluginRuntime.dispose()
   })
 
   test("passes keybind, kv, state, and dialog APIs to v1 plugins", () => {

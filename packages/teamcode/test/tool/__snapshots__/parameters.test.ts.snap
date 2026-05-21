@@ -42,11 +42,21 @@ Output: Creates directory 'foo'"
       "type": "string",
     },
     "timeout": {
-      "description": "Optional timeout in milliseconds",
-      "exclusiveMinimum": 0,
-      "maximum": 9007199254740991,
-      "minimum": -9007199254740991,
-      "type": "integer",
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "minimum": -9007199254740991,
+          "type": "integer",
+        },
+        {
+          "enum": [
+            -1,
+          ],
+          "type": "number",
+        },
+      ],
+      "description": "Optional timeout in milliseconds. Use -1 for no timeout (wait indefinitely). Must be a positive integer or -1.",
     },
     "workdir": {
       "description": "The working directory to run the command in. Defaults to the current directory. Use this instead of 'cd' commands.",

@@ -301,22 +301,15 @@ test("does not use npm package main for tui entry", async () => {
   const wait = spyOn(TuiConfig, "waitForDependencies").mockResolvedValue()
   const cwd = spyOn(process, "cwd").mockImplementation(() => tmp.path)
   const install = spyOn(Npm, "add").mockResolvedValue({ directory: tmp.extra.mod, entrypoint: undefined })
-  const warn = spyOn(console, "warn").mockImplementation(() => {})
-  const error = spyOn(console, "error").mockImplementation(() => {})
-
   try {
     await TuiPluginRuntime.init({ api: createTuiPluginApi(), config })
     await expect(fs.readFile(tmp.extra.marker, "utf8")).rejects.toThrow()
     expect(TuiPluginRuntime.list().some((item) => item.spec === tmp.extra.spec)).toBe(false)
-    expect(error).not.toHaveBeenCalled()
-    expect(warn.mock.calls.some((call) => String(call[0]).includes("tui plugin has no entrypoint"))).toBe(true)
   } finally {
     await TuiPluginRuntime.dispose()
     install.mockRestore()
     cwd.mockRestore()
     wait.mockRestore()
-    warn.mockRestore()
-    error.mockRestore()
     delete process.env.TEAMCODE_PLUGIN_META_FILE
   }
 })

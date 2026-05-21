@@ -28,37 +28,39 @@ function pathOf(url: string): string {
   return queryIndex === -1 ? url : url.slice(0, queryIndex)
 }
 
-export const compressionLayer = HttpRouter.middleware<{ handles: unknown }>()((effect) =>
-  Effect.gen(function* () {
-    const response = yield* effect
-    const request = yield* HttpServerRequest.HttpServerRequest
+export const compressionLayer = HttpRouter.middleware(
+  (effect) =>
+    Effect.gen(function* () {
+      const response = yield* effect
+      const request = yield* HttpServerRequest.HttpServerRequest
 
-    if (request.method === "HEAD") return response
-    if (response.headers["content-encoding"]) return response
-    if (response.headers["transfer-encoding"]) return response
+      if (request.method === "HEAD") return response
+      if (response.headers["content-encoding"]) return response
+      if (response.headers["transfer-encoding"]) return response
 
-    const body = response.body
-    if (body._tag !== "Uint8Array") return response
-    if (body.body.byteLength < THRESHOLD_BYTES) return response
+      const body = response.body
+      if (body._tag !== "Uint8Array") return response
+      if (body.body.byteLength < THRESHOLD_BYTES) return response
 
-    const cacheControl = response.headers["cache-control"]
-    if (cacheControl && NO_TRANSFORM_REGEX.test(cacheControl)) return response
+      const cacheControl = response.headers["cache-control"]
+      if (cacheControl && NO_TRANSFORM_REGEX.test(cacheControl)) return response
 
-    const path = pathOf(request.url)
-    if (STREAMING_PATHS.has(path)) return response
-    if (request.method === "POST" && STREAMING_POST_REGEX.test(path)) return response
+      const path = pathOf(request.url)
+      if (STREAMING_PATHS.has(path)) return response
+      if (request.method === "POST" && STREAMING_POST_REGEX.test(path)) return response
 
-    const contentType = body.contentType
-    if (!COMPRESSIBLE_CONTENT_TYPE_REGEX.test(contentType)) return response
+      const contentType = body.contentType
+      if (!COMPRESSIBLE_CONTENT_TYPE_REGEX.test(contentType)) return response
 
-    const encoding = pickEncoding(request.headers["accept-encoding"])
-    if (!encoding) return response
+      const encoding = pickEncoding(request.headers["accept-encoding"])
+      if (!encoding) return response
 
-    const compressed = encoding === "gzip" ? gzipSync(body.body) : deflateSync(body.body)
-    return HttpServerResponse.setHeader(
-      HttpServerResponse.setBody(response, HttpBody.uint8Array(compressed, contentType)),
-      "content-encoding",
-      encoding,
-    )
-  }),
-).layer
+      const compressed = encoding === "gzip" ? gzipSync(body.body) : deflateSync(body.body)
+      return HttpServerResponse.setHeader(
+        HttpServerResponse.setBody(response, HttpBody.uint8Array(compressed, contentType)),
+        "content-encoding",
+        encoding,
+      )
+    }),
+  { global: true },
+)

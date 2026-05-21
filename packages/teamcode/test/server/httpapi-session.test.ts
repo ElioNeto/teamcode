@@ -473,9 +473,12 @@ describe("session HttpApi", () => {
         )
         yield* clearSessionPath(pathlessSession.id)
 
+        // The session's path is computed as the relative path from the git
+        // worktree root (test.directory) to the session directory.
+        const sessionRelativePath = path.relative(test.directory, currentDir).replace(/\\/g, "/")
         const query = new URLSearchParams({
           scope: "project",
-          path: "packages/teamcode/src",
+          path: sessionRelativePath,
           directory: currentDir,
         })
         const headers = { "x-teamcode-directory": test.directory }
