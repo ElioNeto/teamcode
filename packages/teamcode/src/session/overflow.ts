@@ -24,5 +24,7 @@ export function isOverflow(input: {
 
   const count =
     input.tokens.total || input.tokens.input + input.tokens.output + input.tokens.cache.read + input.tokens.cache.write
-  return count >= usable(input)
+  // Only trigger overflow when there is actual content; an empty session
+  // (count === 0) should never overflow even when usable returns 0.
+  return count > 0 && count >= usable(input)
 }
