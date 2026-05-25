@@ -272,15 +272,17 @@ export function movePromptHistory(state: PromptHistoryState, dir: -1 | 1, text: 
     return { state, apply: false }
   }
 
-  if (dir === -1 && cursor !== 0) {
-    return { state, apply: false }
-  }
-
-  if (dir === 1 && cursor !== Bun.stringWidth(text)) {
-    return { state, apply: false }
-  }
-
   if (state.index === null) {
+    // Cursor-position guard applies only when entering history browse from
+    // the user's own input: Up requires cursor at 0, Down at the end.
+    if (dir === -1 && cursor !== 0) {
+      return { state, apply: false }
+    }
+
+    if (dir === 1 && cursor !== Bun.stringWidth(text)) {
+      return { state, apply: false }
+    }
+
     if (dir === 1) {
       return { state, apply: false }
     }
