@@ -202,6 +202,29 @@ const main = Effect.gen(function* () {
     }
   })
 
+  app.on("activate", () => {
+    // On macOS the app stays running after the last window is closed.
+    // Recreate the window when the user clicks the dock icon.
+    if (process.platform === "darwin" && BrowserWindow.getAllWindows().length === 0) {
+      mainWindow = createMainWindow()
+      if (mainWindow) {
+        createMenu({
+          trigger: (id) => mainWindow && sendMenuCommand(mainWindow, id),
+          checkForUpdates: () => {
+            void checkForUpdates(true, killSidecar)
+          },
+          reload: () => mainWindow?.reload(),
+          relaunch: () => {
+            void killSidecar().finally(() => {
+              app.relaunch()
+              app.exit(0)
+            })
+          },
+        })
+      }
+    }
+  })
+
   app.on("before-quit", () => {
     // Attempt graceful stop — if the sidecar doesn't finish within the
     // timeout, the will-quit handler below force-kills it.
