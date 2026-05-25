@@ -2,6 +2,24 @@ import { drizzle } from "drizzle-orm/better-sqlite3"
 import * as http from "node:http"
 import * as tls from "node:tls"
 
+// Install top-level error handlers before the server/plugins load so that
+// third-party plugin error handlers cannot silently kill the sidecar.
+// These ensure the parent process receives an error message instead of the
+// sidecar exiting with a generic code 1.
+process.on("uncaughtException", (error) => {
+  const msg = serializeError(error)
+  parentPort?.postMessage({ type: "error", error: msg })
+  console.error("sidecar uncaught exception", msg)
+  setImmediate(() => process.exit(1))
+})
+
+process.on("unhandledRejection", (reason) => {
+  const msg = serializeError(reason)
+  parentPort?.postMessage({ type: "error", error: msg })
+  console.error("sidecar unhandled rejection", msg)
+  setImmediate(() => process.exit(1))
+})
+
 type NodeHttpWithEnvProxy = typeof http & {
   setGlobalProxyFromEnv: () => void
 }
