@@ -1831,7 +1831,14 @@ export default function Page() {
           <div class="flex-1 min-h-0 overflow-hidden">
             <Switch>
               <Match when={params.id}>
-                <Show when={messagesReady()}>
+                <Show when={messagesReady()}
+                  fallback={
+                    <div class="h-full flex flex-col items-center justify-center gap-4 pb-64">
+                      <div class="animate-spin size-5 rounded-full border-2 border-surface-strong border-t-transparent" />
+                      <span class="text-14-regular text-text-weak">{language.t("common.loading")}</span>
+                    </div>
+                  }
+                >
                   <MessageTimeline
                     mobileChanges={mobileChanges()}
                     mobileFallback={reviewContent({

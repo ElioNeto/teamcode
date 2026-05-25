@@ -362,10 +362,14 @@ const main = Effect.gen(function* () {
     })
 
     yield* Effect.promise(() => health.wait).pipe(
-      Effect.timeout("30 seconds"),
-      Effect.catch((e) =>
+      Effect.timeout("120 seconds"),
+      Effect.catch((e: unknown) =>
         Effect.sync(() => {
-          logger.error("sidecar health check failed", e.toString())
+          logger.error("sidecar health check failed after timeout", String(e))
+          setInitStep({
+            phase: "error",
+            message: `Server failed to start: ${String(e)}`,
+          })
         }),
       ),
     )
@@ -387,7 +391,9 @@ const main = Effect.gen(function* () {
   }
 
   yield* Fiber.await(loadingTask)
-  setInitStep({ phase: "done" })
+  if (initStep.phase !== "error") {
+    setInitStep({ phase: "done" })
+  }
 
   if (overlay) yield* Deferred.await(loadingComplete)
 
