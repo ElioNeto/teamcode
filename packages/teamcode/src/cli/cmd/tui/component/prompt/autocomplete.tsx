@@ -57,6 +57,7 @@ function extractLineRange(input: string) {
 export type AutocompleteRef = {
   onInput: (value: string) => void
   visible: false | "@" | "/"
+  hide: () => void
 }
 
 export type AutocompleteOption = {
@@ -757,6 +758,11 @@ export function Autocomplete(props: {
     props.ref({
       get visible() {
         return store.visible
+      },
+      hide() {
+        setStore("visible", false)
+        setStore("index", 0)
+        setStore("selected", 0)
       },
       onInput(value) {
         if (store.visible) {

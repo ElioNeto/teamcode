@@ -475,7 +475,11 @@ export function Prompt(props: PromptProps) {
         hidden: true,
         enabled: status().type !== "idle",
         run: () => {
-          if (auto()?.visible) return
+          // Close autocomplete if visible instead of silently blocking interrupt
+          if (auto()?.visible) {
+            auto()?.hide?.()
+            return
+          }
           // TODO: this should be its own command
           if (store.mode === "shell") {
             setStore("mode", "normal")
@@ -1215,6 +1219,7 @@ export function Prompt(props: PromptProps) {
         },
         command: inputText,
       })
+      sync.set("session_status", sessionID, { type: "busy" })
       setStore("mode", "normal")
     } else if (
       inputText.startsWith("/") &&
@@ -1246,6 +1251,7 @@ export function Prompt(props: PromptProps) {
             ...x,
           })),
       })
+      sync.set("session_status", sessionID, { type: "busy" })
     } else {
       sdk.client.session
         .prompt({
@@ -1266,6 +1272,7 @@ export function Prompt(props: PromptProps) {
           ],
         })
         .catch(() => {})
+      sync.set("session_status", sessionID, { type: "busy" })
       if (editorParts.length > 0) editor.markSelectionSent()
     }
     history.append({
