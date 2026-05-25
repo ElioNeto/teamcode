@@ -10,7 +10,7 @@ import { useLanguage } from "@/context/language"
 import { useLayout } from "@/context/layout"
 import { useLocal } from "@/context/local"
 import { usePermission } from "@/context/permission"
-import { type ContextItem, type ImageAttachmentPart, type Prompt, usePrompt } from "@/context/prompt"
+import { type AgentPart, type ContextItem, type ImageAttachmentPart, type Prompt, usePrompt } from "@/context/prompt"
 import { useSDK } from "@/context/sdk"
 import { useSync } from "@/context/sync"
 import { Identifier } from "@/utils/id"
@@ -302,6 +302,14 @@ export function createPromptSubmit(input: PromptSubmitInput) {
     const currentModel = local.model.current()
     const currentAgent = local.agent.current()
     const variant = local.model.variant.current()
+
+    // Check if the prompt contains an @mention agent part
+    // If so, route to that subagent instead of the primary agent
+    const mentionAgent = currentPrompt
+      .filter((part): part is AgentPart => part.type === "agent")
+      .map((part) => part.name)
+      .find(Boolean)
+    const targetAgent = mentionAgent ?? currentAgent!.name
     if (!currentModel || !currentAgent) {
       showToast({
         title: language.t("prompt.toast.modelAgentRequired.title"),
@@ -393,7 +401,7 @@ export function createPromptSubmit(input: PromptSubmitInput) {
       modelID: currentModel.id,
       providerID: currentModel.provider.id,
     }
-    const agent = currentAgent.name
+    const agent = targetAgent
     const context = prompt.context.items().slice()
     const draft: FollowupDraft = {
       sessionID: session.id,
