@@ -1,4 +1,8 @@
 import { execFile } from "node:child_process"
+import { access, chmod, mkdir, writeFile } from "node:fs/promises"
+import { homedir } from "node:os"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, shell } from "electron"
 import type { IpcMainEvent, IpcMainInvokeEvent } from "electron"
 
@@ -69,6 +73,39 @@ export function registerIpcHandlers(deps: Deps) {
   ipcMain.handle("check-update", () => deps.checkUpdate())
   ipcMain.handle("install-update", () => deps.installUpdate())
   ipcMain.handle("set-background-color", (_event: IpcMainInvokeEvent, color: string) => deps.setBackgroundColor(color))
+
+  ipcMain.handle("install-cli", async () => {
+    // Locate the server bundle — in dev it lives in packages/teamcode/dist/node/node.js
+    // relative to the desktop package; in production it's bundled into out/main/chunks/
+    const mainDir = dirname(fileURLToPath(import.meta.url))
+    const dev = join(mainDir, "../../teamcode/dist/node/node.js")
+    const prod = join(mainDir, "chunks/node-*.js")
+    const serverPath = await access(dev).then(() => dev).catch(() => prod)
+
+    const binDir = process.platform === "win32"
+      ? join(process.env.APPDATA ?? join(homedir(), "AppData", "Roaming"), "opencode")
+      : join(homedir(), ".local", "bin")
+    const cliName = process.platform === "win32" ? "opencode.cmd" : "opencode"
+    const cliPath = join(binDir, cliName)
+
+    await mkdir(binDir, { recursive: true })
+
+    if (process.platform === "win32") {
+      await writeFile(cliPath, [
+        `@echo off`,
+        `"${process.execPath}" "${serverPath}" %*`,
+      ].join("\r\n"), "utf-8")
+    } else {
+      await writeFile(cliPath, [
+        `#!/usr/bin/env sh`,
+        `exec "${process.execPath}" "${serverPath}" "$@"`,
+      ].join("\n"), "utf-8")
+      await chmod(cliPath, 0o755)
+    }
+
+    return cliPath
+  })
+
   ipcMain.handle("store-get", (_event: IpcMainInvokeEvent, name: string, key: string) => {
     try {
       const store = getStore(name)
