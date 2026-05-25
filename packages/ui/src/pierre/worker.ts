@@ -25,7 +25,12 @@ function createPool(lineDiffType: "none" | "word-alt") {
     },
   )
 
-  void pool.initialize()
+  // Catch worker initialization failures so code blocks fall back
+  // to plain-text rendering instead of remaining uninitialized.
+  pool.initialize().catch((err) => {
+    console.warn("syntax highlighting worker pool init failed, falling back to plain text", err)
+  })
+
   return pool
 }
 
