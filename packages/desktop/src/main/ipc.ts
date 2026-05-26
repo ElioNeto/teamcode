@@ -183,9 +183,13 @@ export function registerIpcHandlers(deps: Deps) {
   ipcMain.handle("open-path", async (_event: IpcMainInvokeEvent, path: string, app?: string) => {
     if (!app) return shell.openPath(path)
     await new Promise<void>((resolve, reject) => {
-      const [cmd, args] =
-        process.platform === "darwin" ? (["open", ["-a", app, path]] as const) : ([app, [path]] as const)
-      execFile(cmd, args, (err) => (err ? reject(err) : resolve()))
+      if (process.platform === "darwin") {
+        execFile("open", ["-a", app, path], (err) => (err ? reject(err) : resolve()))
+      } else if (process.platform === "win32" && (app.endsWith(".cmd") || app.endsWith(".bat"))) {
+        execFile("cmd.exe", ["/c", app, path], (err) => (err ? reject(err) : resolve()))
+      } else {
+        execFile(app, [path], (err) => (err ? reject(err) : resolve()))
+      }
     })
   })
 
