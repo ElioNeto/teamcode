@@ -20,7 +20,7 @@ import { useFrecency } from "./frecency"
 import { useBindings } from "../../keymap"
 import { Reference } from "@/reference/reference"
 import type { Config } from "@/config/config"
-import { displayCharAt, mentionTriggerIndex } from "@/cli/cmd/prompt-display"
+import { displayCharAt, mentionTriggerIndex, promptOffsetWidth } from "@/cli/cmd/prompt-display"
 
 function removeLineRange(input: string) {
   const hashIndex = input.lastIndexOf("#")
@@ -136,7 +136,9 @@ export function Autocomplete(props: {
     // Track props.value to make memo reactive to text changes
     props.value // <- there surely is a better way to do this, like making .input() reactive
 
-    return props.input().getTextRange(store.index + 1, props.input().cursorOffset)
+    const charOffset = props.input().cursorOffset
+    const displayCursor = promptOffsetWidth(props.input().plainText.slice(0, charOffset))
+    return props.input().getTextRange(store.index + 1, displayCursor)
   })
 
   // filter() reads reactive props.value plus non-reactive cursor/text state.
@@ -766,11 +768,13 @@ export function Autocomplete(props: {
       },
       onInput(value) {
         if (store.visible) {
+          const charOffset = props.input().cursorOffset
+          const displayCursor = promptOffsetWidth(props.input().plainText.slice(0, charOffset))
           if (
             // Typed text before the trigger
-            props.input().cursorOffset <= store.index ||
+            displayCursor <= store.index ||
             // There is a space between the trigger and the cursor
-            props.input().getTextRange(store.index, props.input().cursorOffset).match(/\s/) ||
+            props.input().getTextRange(store.index, displayCursor).match(/\s/) ||
             // "/<command>" is not the sole content
             (store.visible === "/" && value.match(/^\S+\s+\S+\s*$/))
           ) {
@@ -791,7 +795,10 @@ export function Autocomplete(props: {
         }
 
         // Check for "@" trigger - find the nearest "@" before cursor with no whitespace between
-        const idx = mentionTriggerIndex(value, offset)
+        // mentionTriggerIndex expects a display offset; cursorOffset is a character index.
+        // CJK characters have display width 2 but string length 1, so convert.
+        const displayOffset = promptOffsetWidth(value.slice(0, offset))
+        const idx = mentionTriggerIndex(value, displayOffset)
         if (idx !== undefined) {
           show("@")
           setStore("index", idx)
