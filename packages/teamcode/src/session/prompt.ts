@@ -392,7 +392,7 @@ export const layer = Layer.effect(
 
       if (!flags.experimentalPlanMode) {
         if (input.agent.name === "plan") {
-          userMessage.parts.push({
+          const part = yield* sessions.updatePart({
             id: PartID.ascending(),
             messageID: userMessage.info.id,
             sessionID: userMessage.info.sessionID,
@@ -400,10 +400,11 @@ export const layer = Layer.effect(
             text: PROMPT_PLAN,
             synthetic: true,
           })
+          userMessage.parts.push(part)
         }
         const wasPlan = input.messages.some((msg) => msg.info.role === "assistant" && msg.info.agent === "plan")
         if (wasPlan && input.agent.name === "build") {
-          userMessage.parts.push({
+          const part = yield* sessions.updatePart({
             id: PartID.ascending(),
             messageID: userMessage.info.id,
             sessionID: userMessage.info.sessionID,
@@ -411,6 +412,7 @@ export const layer = Layer.effect(
             text: BUILD_SWITCH,
             synthetic: true,
           })
+          userMessage.parts.push(part)
         }
         return input.messages
       }
