@@ -477,8 +477,8 @@ export function Prompt(props: PromptProps) {
         hidden: true,
         enabled: status().type !== "idle",
         run: () => {
-          // Close autocomplete if visible — then proceed with interrupt
-          auto()?.hide?.()
+          if (auto()?.visible) return
+          if (!input.focused) return
           // TODO: this should be its own command
           if (store.mode === "shell") {
             setStore("mode", "normal")
@@ -486,9 +486,18 @@ export function Prompt(props: PromptProps) {
           }
           if (!props.sessionID) return
 
-          void sdk.client.session.abort({
-            sessionID: props.sessionID,
-          })
+          setStore("interrupt", store.interrupt + 1)
+
+          setTimeout(() => {
+            setStore("interrupt", 0)
+          }, 5000)
+
+          if (store.interrupt >= 2) {
+            void sdk.client.session.abort({
+              sessionID: props.sessionID,
+            })
+            setStore("interrupt", 0)
+          }
           dialog.clear()
         },
       },
