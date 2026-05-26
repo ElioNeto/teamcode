@@ -650,6 +650,12 @@ export function Prompt(props: PromptProps) {
 
   // Interrupt must be able to fire even when a dialog is open (dialog.stack.length > 0)
   // so it bypasses command.matcher. Only gate on session activity.
+  //
+  // IMPORTANT: The cache key ("prompt.interrupt") MUST be unique across all useBindings
+  // calls in this component. The underlying gather() implementation caches results by
+  // name — if two calls share the same key, the second call returns stale bindings
+  // from the first call's cache, and the interrupt binding is never registered.
+  // See https://github.com/ElioNeto/teamcode/issues/1024
   useBindings(() => ({
     enabled: status().type !== "idle" && !props.disabled,
     bindings: tuiConfig.keybinds.gather("prompt.interrupt", ["session.interrupt"]),

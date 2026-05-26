@@ -501,6 +501,50 @@ it.instance("resolves keybind lookup from canonical keybinds", () =>
   ),
 )
 
+it.instance("session.interrupt is bound to escape by default", () =>
+  withCleanState(
+    Effect.gen(function* () {
+      const test = yield* TestInstance
+      const config = yield* getTuiConfig(test.directory)
+      const bindings = config.keybinds.get("session.interrupt")
+      expect(bindings).toHaveLength(1)
+      expect(bindings[0]?.key).toBe("escape")
+    }),
+  ),
+)
+
+it.instance("gather() returns session.interrupt with unique cache key", () =>
+  withCleanState(
+    Effect.gen(function* () {
+      const test = yield* TestInstance
+      const config = yield* getTuiConfig(test.directory)
+
+      // Prime the cache with a different group of commands under "prompt.palette"
+      const paletteBindings = config.keybinds.gather("prompt.palette", [
+        "prompt.submit",
+        "prompt.editor",
+        "prompt.editor_context.clear",
+        "prompt.stash",
+        "prompt.stash.pop",
+        "prompt.stash.list",
+        "workspace.set",
+      ])
+      expect(paletteBindings.length).toBeGreaterThan(0)
+
+      // Using the SAME cache key should return stale cached result (no session.interrupt)
+      const staleBindings = config.keybinds.gather("prompt.palette", ["session.interrupt"])
+      const staleCommands = staleBindings.map((b) => b.cmd)
+      expect(staleCommands).not.toContain("session.interrupt")
+
+      // Using a UNIQUE cache key should return session.interrupt
+      const interruptBindings = config.keybinds.gather("prompt.interrupt", ["session.interrupt"])
+      const interruptCommands = interruptBindings.map((b) => b.cmd)
+      expect(interruptCommands).toContain("session.interrupt")
+      expect(interruptBindings[0]?.key).toBe("escape")
+    }),
+  ),
+)
+
 it.instance("keybinds accept OpenTUI binding specs", () =>
   withCleanState(
     Effect.gen(function* () {
