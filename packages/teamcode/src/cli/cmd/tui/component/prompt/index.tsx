@@ -652,7 +652,7 @@ export function Prompt(props: PromptProps) {
   // so it bypasses command.matcher. Only gate on session activity.
   useBindings(() => ({
     enabled: status().type !== "idle" && !props.disabled,
-    bindings: tuiConfig.keybinds.gather("prompt.palette", ["session.interrupt"]),
+    bindings: tuiConfig.keybinds.gather("prompt.interrupt", ["session.interrupt"]),
   }))
 
   const ref: PromptRef = {
