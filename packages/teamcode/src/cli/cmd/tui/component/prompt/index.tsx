@@ -475,11 +475,8 @@ export function Prompt(props: PromptProps) {
         hidden: true,
         enabled: status().type !== "idle",
         run: () => {
-          // Close autocomplete if visible instead of silently blocking interrupt
-          if (auto()?.visible) {
-            auto()?.hide?.()
-            return
-          }
+          // Close autocomplete if visible — then proceed with interrupt
+          auto()?.hide?.()
           // TODO: this should be its own command
           if (store.mode === "shell") {
             setStore("mode", "normal")
