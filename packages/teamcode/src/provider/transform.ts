@@ -335,6 +335,25 @@ function normalizeMessages(
     })
   }
 
+  // Cerebras API does not support reasoning_content in request messages.
+  // Convert reasoning parts to text to preserve context without breaking the API.
+  if (model.api.npm === "@ai-sdk/cerebras") {
+    msgs = msgs.map((msg) => {
+      if (msg.role !== "assistant" || !Array.isArray(msg.content)) return msg
+      if (!msg.content.some((part: any) => part.type === "reasoning")) return msg
+      return {
+        ...msg,
+        content: msg.content
+          .map((part: any) =>
+            part.type === "reasoning" && part.text.trim().length > 0
+              ? { type: "text" as const, text: part.text }
+              : part,
+          )
+          .filter((part: any) => part.type !== "reasoning" || part.text.trim().length > 0),
+      }
+    })
+  }
+
   return msgs
 }
 
