@@ -10,6 +10,7 @@ import { eq } from "drizzle-orm"
 import * as Log from "@teamcode-ai/core/util/log"
 import { Wildcard } from "@/util/wildcard"
 import { Deferred, Effect, Layer, Schema, Context } from "effect"
+import fs from "fs"
 import os from "os"
 import { evaluate as evalRule } from "./evaluate"
 import { PermissionID } from "./schema"
@@ -262,12 +263,37 @@ export const layer = Layer.effect(
   }),
 )
 
+/** Find the index of the first glob wildcard (* or ?) in a pattern string. */
+function globIndex(pattern: string): number {
+  const star = pattern.indexOf("*")
+  const ques = pattern.indexOf("?")
+  if (star === -1 && ques === -1) return -1
+  if (star === -1) return ques
+  if (ques === -1) return star
+  return Math.min(star, ques)
+}
+
 function expand(pattern: string): string {
-  if (pattern.startsWith("~/")) return os.homedir() + pattern.slice(1)
-  if (pattern === "~") return os.homedir()
-  if (pattern.startsWith("$HOME/")) return os.homedir() + pattern.slice(5)
-  if (pattern.startsWith("$HOME")) return os.homedir() + pattern.slice(5)
-  return pattern
+  let p = pattern
+  if (p.startsWith("~/")) p = os.homedir() + p.slice(1)
+  else if (p === "~") return os.homedir()
+  else if (p.startsWith("$HOME/")) p = os.homedir() + p.slice(5)
+  else if (p.startsWith("$HOME")) p = os.homedir() + p.slice(5)
+  else return p
+
+  // Resolve symlinks in the path prefix (the part before the first glob wildcard).
+  // This ensures that a pattern like ~/ide/** where ~/ide is a symlink to
+  // /mnt/c/Users/... actually matches paths under the real target directory.
+  // Issue #27601.
+  const idx = globIndex(p)
+  const prefix = idx === -1 ? p : p.slice(0, idx)
+  const suffix = idx === -1 ? "" : p.slice(idx)
+  try {
+    return fs.realpathSync(prefix) + suffix
+  } catch {
+    // Path may not exist yet (e.g. a future output directory); use as-is.
+    return p
+  }
 }
 
 export function fromConfig(permission: ConfigPermission.Info) {
