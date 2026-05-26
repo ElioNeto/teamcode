@@ -136,11 +136,12 @@ export const layer = Layer.effect(
           const cfg = yield* config.get()
           const cfgIgnores = cfg.watcher?.ignore ?? []
 
-          if (flags.experimentalFilewatcher) {
-            yield* Effect.forkScoped(
-              subscribe(ctx.directory, [...FileIgnore.PATTERNS, ...cfgIgnores, ...protecteds(ctx.directory)]),
-            )
-          }
+          // Watch the project directory for file changes so the file tree
+          // and open tabs auto-refresh when files are modified externally.
+          // The subscribe call gracefully handles missing native bindings.
+          yield* Effect.forkScoped(
+            subscribe(ctx.directory, [...FileIgnore.PATTERNS, ...cfgIgnores, ...protecteds(ctx.directory)]),
+          )
 
           if (ctx.project.vcs === "git") {
             const result = yield* git.run(["rev-parse", "--git-dir"], {
