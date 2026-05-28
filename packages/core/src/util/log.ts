@@ -64,6 +64,7 @@ let write = (msg: any) => {
 }
 
 export async function init(options: Options) {
+  await Global.ensure()
   if (options.level) level = options.level
   void cleanup(Global.Path.log)
   if (options.print) return

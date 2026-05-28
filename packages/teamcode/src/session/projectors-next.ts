@@ -1,4 +1,4 @@
-import { and, desc, eq } from "@/storage/db"
+import { and, desc, eq } from "drizzle-orm"
 import type { Database } from "@/storage/db"
 import { SessionMessage } from "@teamcode-ai/core/session-message"
 import { SessionMessageUpdater } from "@teamcode-ai/core/session-message-updater"

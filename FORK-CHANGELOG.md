@@ -265,6 +265,35 @@ teamcode/
 
 ---
 
+## 7. Startup Otimizado (2026-05-28)
+
+| Otimização | Descrição | Ganho |
+|------------|-----------|-------|
+| Lazy loading de comandos | 25 command modules carregados via `import()` dinâmico — dependências pesadas (Octokit, MCP SDK, ACP SDK, Agent, Session, Server) só avaliam quando o comando é executado | **~400ms** |
+| AppRuntime lazy | `ManagedRuntime.make(AppLayer)` adiado para a primeira chamada — ~50 service layers (config, git, agent, LLM, LSP, MCP, etc.) não são inicializados até serem necessários | **~300ms** |
+| Global sem top-level await | `fs.mkdir` de 7 diretórios movido de top-level `await` para `Global.ensure()` sob demanda | **~50ms** |
+| initProjectors lazy | `SyncEvent.init()` removido do side-effect de importação do `server.ts` — executado apenas quando o servidor sobe | **~100ms** |
+| Drizzle re-export removido | `export * from "drizzle-orm"` removido de `db.ts` — módulo não é mais avaliado ao importar `Database` | **~50ms** |
+
+**Resultado:** `teamcode --help` caiu de **~2.15s → ~1.11s** (48% mais rápido). `teamcode --version` caiu de **~1.9s → ~0.85s** (55% mais rápido).
+
+### Arquivos alterados
+| Arquivo | Mudança |
+|---------|---------|
+| `packages/teamcode/src/index.ts` | 25 imports estáticos substituídos por `lazyCmd()` |
+| `packages/teamcode/src/cli/cmd/lazy.ts` | **(novo)** Helper de lazy loading para yargs |
+| `packages/teamcode/src/effect/app-runtime.ts` | `ManagedRuntime.make` postergado para primeira chamada |
+| `packages/core/src/global.ts` | Top-level `await fs.mkdir` → `Global.ensure()` lazy |
+| `packages/core/src/util/log.ts` | `Global.ensure()` antes de criar write stream |
+| `packages/teamcode/src/server/server.ts` | initProjectors movido de side-effect para `listenEffect()` |
+| `packages/teamcode/src/server/init-projectors.ts` | **(removido)** Side-effect de import não é mais necessário |
+| `packages/teamcode/src/storage/db.ts` | `export * from "drizzle-orm"` removido; imports dos callers ajustados |
+| `packages/teamcode/src/session/prompt.ts` | Import de `eq` via `drizzle-orm` direto |
+| `packages/teamcode/src/session/projectors-next.ts` | Import de `and, desc, eq` via `drizzle-orm` direto |
+| `packages/teamcode/src/v2/session.ts` | Import de helpers SQL via `drizzle-orm` direto |
+
+---
+
 ## 8. Status Geral
 
 | Métrica | Valor |
@@ -275,8 +304,10 @@ teamcode/
 | Issues upstream adaptadas | ~1.513 |
 | FAQ gerado | 124 perguntas |
 | Taxa de aprovação de testes | 99.6% |
-| Commits desde o fork | ~50+ |
+| Commits desde o fork | ~55+ |
+| Startup `--help` | ~~2.15s~~ → **1.11s** (48% mais rápido) |
+| Startup `--version` | ~~1.9s~~ → **0.85s** (55% mais rápido) |
 
 ---
 
-*Documento gerado em 2026-05-22. Atualizações conforme novo progresso.*
+*Documento gerado em 2026-05-28. Atualizações conforme novo progresso.*

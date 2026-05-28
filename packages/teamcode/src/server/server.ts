@@ -1,4 +1,7 @@
-import "./init-projectors"
+// init-projectors is called explicitly in listen() below, not as a module
+// side-effect, so importing server.ts doesn't eagerly run initProjectors().
+// This speeds up module evaluation for commands that import Server but may
+// not start it (e.g. `web --help`).
 
 import { NodeHttpServer } from "@effect/platform-node"
 import * as Log from "@teamcode-ai/core/util/log"
@@ -90,6 +93,12 @@ export async function listen(opts: ListenOptions): Promise<Listener> {
 
 const listenEffect: (opts: ListenOptions) => Effect.Effect<EffectListener, unknown> = Effect.fn("Server.listen")(
   function* (opts: ListenOptions) {
+    // Initialise projectors before the server starts processing requests.
+    // Previously this ran at module import time via init-projectors.ts side
+    // effect, which slowed down every command that imported Server.
+    const { initProjectors } = yield* Effect.promise(() => import("./projectors"))
+    initProjectors()
+
     const state = yield* startWithPortFallback(opts)
     const address = yield* tcpAddress(state)
     const listenerUrl = makeURL(opts.hostname, address.port)
