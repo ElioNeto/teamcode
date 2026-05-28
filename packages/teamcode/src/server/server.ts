@@ -66,8 +66,16 @@ class ListenerServerService extends Context.Service<ListenerServerService, Liste
 
 export const Default = lazy(() => {
   const handler = HttpApiApp.webHandler().handler
+  let projectorsInited = false
   const app: ServerApp = {
-    fetch: (request: Request) => handler(request, HttpApiApp.context),
+    async fetch(request: Request) {
+      if (!projectorsInited) {
+        projectorsInited = true
+        const { initProjectors } = await import("./projectors")
+        initProjectors()
+      }
+      return handler(request, HttpApiApp.context)
+    },
     request(input, init) {
       return app.fetch(input instanceof Request ? input : new Request(new URL(input, "http://localhost"), init))
     },
