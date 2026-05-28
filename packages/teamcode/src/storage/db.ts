@@ -1,7 +1,6 @@
-import { type SQLiteBunDatabase } from "drizzle-orm/bun-sqlite"
-import { migrate } from "drizzle-orm/bun-sqlite/migrator"
+import type { SQLiteBunDatabase } from "drizzle-orm/bun-sqlite"
 import { type SQLiteTransaction } from "drizzle-orm/sqlite-core"
-export * from "drizzle-orm"
+import { migrate as drizzleMigrate } from "drizzle-orm/bun-sqlite/migrator"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { LocalContext } from "@/util/local-context"
 import { Global } from "@teamcode-ai/core/global"
@@ -49,7 +48,7 @@ type Client = ReturnType<typeof init>
 type Journal = { sql: string; timestamp: number; name: string }[]
 
 // Drizzle's migrate overloads trigger expensive variance checks here; narrow to the journal overload we actually use.
-const migrateFromJournal = migrate as unknown as (db: SQLiteBunDatabase, entries: Journal) => void
+const migrateFromJournal = drizzleMigrate as unknown as (db: SQLiteBunDatabase, entries: Journal) => void
 
 function applyMigrations(db: SQLiteBunDatabase, entries: Journal) {
   // Normalize SQL so each statement is separated by ;--> statement-breakpoint
@@ -102,6 +101,9 @@ let loaded = false
 export const Client = Object.assign(
   (flags: DatabaseFlags = readRuntimeFlags()): Client => {
     if (loaded) return client as Client
+
+    // Ensure Global paths exist before opening the database
+    void Global.ensure()
 
     const dbPath = getPath(flags)
     log.info("opening database", { path: dbPath })

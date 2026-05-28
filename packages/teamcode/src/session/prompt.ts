@@ -60,7 +60,7 @@ import { ProviderV2 } from "@teamcode-ai/core/provider"
 import { AgentAttachment, FileAttachment, ReferenceAttachment, Source } from "@teamcode-ai/core/session-prompt"
 import { Reference } from "@/reference/reference"
 import * as DateTime from "effect/DateTime"
-import { eq } from "@/storage/db"
+import { eq } from "drizzle-orm"
 import * as Database from "@/storage/db"
 import { SessionTable } from "./session.sql"
 
