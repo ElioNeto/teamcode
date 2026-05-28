@@ -236,7 +236,7 @@ describe("internal notifications TUI plugin", () => {
     harness.emit({
       id: "event-2",
       type: "session.error",
-      properties: { sessionID: "abort", error: { _tag: "MessageAbortedError", message: "Aborted" } as const },
+      properties: { sessionID: "abort", error: { name: "MessageAbortedError", message: "Aborted" } as any },
     })
     harness.emit({
       id: "event-3",

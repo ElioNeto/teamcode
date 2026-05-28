@@ -79,7 +79,7 @@ export function retryable(error: Err, provider: string) {
           reason: "free_tier_limit",
           provider,
           title: "Free limit reached",
-          message: "Subscribe to TeamCode Go for reliable access to the best open-source models, starting at $5/month.",
+          message: "Subscribe to OpenCode Go for reliable access to the best open-source models, starting at $5/month.",
           label: "subscribe",
           link: GO_UPSELL_URL,
         },
@@ -111,7 +111,7 @@ export function retryable(error: Err, provider: string) {
         action: {
           reason: "account_rate_limit",
           provider,
-          title: "TeamCode Go limit reached",
+          title: "Go limit reached",
           message,
           label: "open settings",
           link,

@@ -20,10 +20,14 @@ export type PromptTraits = EditorTraits & {
  * keymap-managed editor mappings.
  */
 export function computePromptTraits(input: PromptTraitsInput): PromptTraits {
+  // ESC is deliberately omitted from capture when autocomplete is visible
+  // so it falls through to the global keybinding which dispatches the
+  // session.interrupt / abort command. The interrupt handler itself
+  // closes autocomplete before aborting.
   const capture =
     input.mode === "normal"
       ? input.autocompleteVisible
-        ? (["escape", "navigate", "submit", "tab"] as const)
+        ? (["navigate", "submit", "tab"] as const)
         : (["tab"] as const)
       : undefined
   return {

@@ -16,7 +16,7 @@ import { FileIgnore } from "./ignore"
 import { Protected } from "./protected"
 import * as Log from "@teamcode-ai/core/util/log"
 
-declare const OPENCODE_LIBC: string | undefined
+declare const TEAMCODE_LIBC: string | undefined
 
 const log = Log.create({ service: "file.watcher" })
 const SUBSCRIBE_TIMEOUT_MS = 10_000
@@ -34,7 +34,7 @@ export const Event = {
 const watcher = lazy((): typeof import("@parcel/watcher") | undefined => {
   try {
     const binding = require(
-      `@parcel/watcher-${process.platform}-${process.arch}${process.platform === "linux" ? `-${OPENCODE_LIBC || "glibc"}` : ""}`,
+      `@parcel/watcher-${process.platform}-${process.arch}${process.platform === "linux" ? `-${TEAMCODE_LIBC || "glibc"}` : ""}`,
     )
     return createWrapper(binding) as typeof import("@parcel/watcher")
   } catch (error) {
@@ -136,11 +136,12 @@ export const layer = Layer.effect(
           const cfg = yield* config.get()
           const cfgIgnores = cfg.watcher?.ignore ?? []
 
-          if (flags.experimentalFilewatcher) {
-            yield* Effect.forkScoped(
-              subscribe(ctx.directory, [...FileIgnore.PATTERNS, ...cfgIgnores, ...protecteds(ctx.directory)]),
-            )
-          }
+          // Watch the project directory for file changes so the file tree
+          // and open tabs auto-refresh when files are modified externally.
+          // The subscribe call gracefully handles missing native bindings.
+          yield* Effect.forkScoped(
+            subscribe(ctx.directory, [...FileIgnore.PATTERNS, ...cfgIgnores, ...protecteds(ctx.directory)]),
+          )
 
           if (ctx.project.vcs === "git") {
             const result = yield* git.run(["rev-parse", "--git-dir"], {

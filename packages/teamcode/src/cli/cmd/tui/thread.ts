@@ -15,8 +15,8 @@ import { win32DisableProcessedInput, win32InstallCtrlCGuard } from "./win32"
 import { writeHeapSnapshot } from "v8"
 import { TuiConfig } from "./config/tui"
 import {
-  OPENCODE_PROCESS_ROLE,
-  OPENCODE_RUN_ID,
+  TEAMCODE_PROCESS_ROLE,
+  TEAMCODE_RUN_ID,
   ensureRunID,
   sanitizedProcessEnv,
 } from "@teamcode-ai/core/util/teamcode-process"
@@ -24,7 +24,7 @@ import { validateSession } from "./validate-session"
 import { Flock } from "@teamcode-ai/core/util/flock"
 
 declare global {
-  const OPENCODE_WORKER_PATH: string
+  const TEAMCODE_WORKER_PATH: string
 }
 
 type RpcClient = ReturnType<typeof Rpc.client<typeof rpc>>
@@ -58,7 +58,7 @@ function createEventSource(client: RpcClient): EventSource {
 }
 
 async function target() {
-  if (typeof OPENCODE_WORKER_PATH !== "undefined") return OPENCODE_WORKER_PATH
+  if (typeof TEAMCODE_WORKER_PATH !== "undefined") return TEAMCODE_WORKER_PATH
   const dist = new URL("./cli/cmd/tui/worker.js", import.meta.url)
   if (await Filesystem.exists(fileURLToPath(dist))) return dist
   return new URL("./worker.ts", import.meta.url)
@@ -146,7 +146,7 @@ export const TuiThreadCommand = cmd({
       try {
         instanceLock = await Flock.acquire(`tui:${cwd}`, {
           staleMs: 30_000,
-          timeoutMs: 2_000,
+          timeoutMs: 35_000,
         })
       } catch {
         UI.error("TeamCode is already running in this directory.")
@@ -156,8 +156,8 @@ export const TuiThreadCommand = cmd({
       }
 
       const env = sanitizedProcessEnv({
-        [OPENCODE_PROCESS_ROLE]: "worker",
-        [OPENCODE_RUN_ID]: ensureRunID(),
+        [TEAMCODE_PROCESS_ROLE]: "worker",
+        [TEAMCODE_RUN_ID]: ensureRunID(),
       })
 
       const worker = new Worker(file, {
@@ -187,6 +187,12 @@ export const TuiThreadCommand = cmd({
       process.on("uncaughtException", error)
       process.on("unhandledRejection", error)
       process.on("SIGUSR2", reload)
+      process.on("SIGINT", () => {
+        stop().finally(() => process.exit(0))
+      })
+      process.on("SIGTERM", () => {
+        stop().finally(() => process.exit(0))
+      })
 
       let stopped = false
       const stop = async () => {
@@ -194,6 +200,8 @@ export const TuiThreadCommand = cmd({
         stopped = true
         process.off("uncaughtException", error)
         process.off("unhandledRejection", error)
+        process.off("SIGINT", stop)
+        process.off("SIGTERM", stop)
         process.off("SIGUSR2", reload)
         await withTimeout(client.call("shutdown", undefined), 5000).catch((error) => {
           Log.Default.warn("worker shutdown failed", {

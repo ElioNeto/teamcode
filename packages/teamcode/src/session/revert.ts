@@ -5,6 +5,7 @@ import { Storage } from "@/storage/storage"
 import { SyncEvent } from "../sync"
 import * as Log from "@teamcode-ai/core/util/log"
 import * as Session from "./session"
+import { Todo } from "./todo"
 import { MessageV2 } from "./message-v2"
 import { SessionID, MessageID, PartID } from "./schema"
 import { SessionRunState } from "./run-state"
@@ -37,12 +38,16 @@ export const layer = Layer.effect(
     const summary = yield* SessionSummary.Service
     const state = yield* SessionRunState.Service
     const sync = yield* SyncEvent.Service
+    const todo = yield* Todo.Service
 
     const revert = Effect.fn("SessionRevert.revert")(function* (input: RevertInput) {
       yield* state.assertNotBusy(input.sessionID)
       const all = yield* sessions.messages({ sessionID: input.sessionID }).pipe(Effect.orDie)
       let lastUser: MessageV2.User | undefined
       const session = yield* sessions.get(input.sessionID).pipe(Effect.orDie)
+
+      // Capture current todos before reverting so they can be restored on cleanup
+      const currentTodos = yield* todo.get(input.sessionID)
 
       let rev: Session.Info["revert"]
       const patches: Snapshot.Patch[] = []
@@ -74,6 +79,8 @@ export const layer = Layer.effect(
       if (session.revert?.snapshot) yield* snap.restore(session.revert.snapshot)
       yield* snap.revert(patches)
       if (rev.snapshot) rev.diff = yield* snap.diff(rev.snapshot)
+      // Store current todos so cleanup can restore them
+      rev.todos = currentTodos.length > 0 ? currentTodos : undefined
       const range = all.filter((msg) => msg.info.id >= rev.messageID)
       const diffs = yield* summary.computeDiff({ messages: range })
       yield* storage.write(["session_diff", input.sessionID], diffs).pipe(Effect.ignore)
@@ -168,6 +175,10 @@ export const layer = Layer.effect(
           }
         }
       }
+      // Restore todo list to its state before the reverted messages
+      if (session.revert.todos) {
+        yield* todo.update({ sessionID, todos: session.revert.todos })
+      }
       yield* sessions.clearRevert(sessionID)
     })
 
@@ -184,6 +195,7 @@ export const defaultLayer = Layer.suspend(() =>
     Layer.provide(Bus.layer),
     Layer.provide(SessionSummary.defaultLayer),
     Layer.provide(SyncEvent.defaultLayer),
+    Layer.provide(Todo.defaultLayer),
   ),
 )
 

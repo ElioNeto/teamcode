@@ -44,6 +44,7 @@ import { ToolRegistry } from "@/tool/registry"
 import { Truncate } from "@/tool/truncate"
 import * as Log from "@teamcode-ai/core/util/log"
 import { CrossSpawnSpawner } from "@teamcode-ai/core/cross-spawn-spawner"
+import { eq } from "drizzle-orm"
 import * as Database from "../../src/storage/db"
 import { Ripgrep } from "../../src/file/ripgrep"
 import { Format } from "../../src/format"
@@ -296,7 +297,7 @@ const ensureDir = Effect.fn("test.ensureDir")(function* (dir: string) {
 
 const writeConfig = Effect.fn("test.writeConfig")(function* (dir: string, config: Partial<Config.Info>) {
   yield* writeText(
-    path.join(dir, "opencode.json"),
+    path.join(dir, "teamcode.json"),
     JSON.stringify({ $schema: "https://opencode.ai/config.json", ...config }),
   )
 })
@@ -505,7 +506,7 @@ it.instance(
         Effect.provide(SessionV2.layer),
       )
       const row = Database.use((db) =>
-        db.select().from(SessionMessageTable).where(Database.eq(SessionMessageTable.session_id, chat.id)).get(),
+        db.select().from(SessionMessageTable).where(eq(SessionMessageTable.session_id, chat.id)).get(),
       )
       expect(messages.find((message) => message.type === "user")).toMatchObject({ type: "user", text: "hello v2" })
       expect(typeof row?.data.time.created).toBe("number")

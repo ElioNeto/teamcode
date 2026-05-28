@@ -196,11 +196,18 @@ const Time = Schema.Struct({
   archived: optionalOmitUndefined(ArchivedTimestamp),
 })
 
+const TodoSchema = Schema.Struct({
+  content: Schema.String,
+  status: Schema.String,
+  priority: Schema.String,
+})
+
 const Revert = Schema.Struct({
   messageID: MessageID,
   partID: optionalOmitUndefined(PartID),
   snapshot: optionalOmitUndefined(Schema.String),
   diff: optionalOmitUndefined(Schema.String),
+  todos: optionalOmitUndefined(Schema.Array(TodoSchema)),
 })
 
 const Model = Schema.Struct({
@@ -246,6 +253,7 @@ export type GlobalInfo = Types.DeepMutable<Schema.Schema.Type<typeof GlobalInfo>
 
 export const CreateInput = Schema.optional(
   Schema.Struct({
+    id: Schema.optional(SessionID),
     parentID: Schema.optional(SessionID),
     title: Schema.optional(Schema.String),
     agent: Schema.optional(Schema.String),
@@ -456,6 +464,7 @@ export type NotFound = NotFoundError
 export interface Interface {
   readonly list: (input?: ListInput) => Effect.Effect<Info[]>
   readonly create: (input?: {
+    id?: SessionID
     parentID?: SessionID
     title?: string
     agent?: string
@@ -676,6 +685,7 @@ export const layer: Layer.Layer<
     })
 
     const create = Effect.fn("Session.create")(function* (input?: {
+      id?: SessionID
       parentID?: SessionID
       title?: string
       agent?: string
@@ -686,6 +696,7 @@ export const layer: Layer.Layer<
       const ctx = yield* InstanceState.context
       const workspace = yield* InstanceState.workspaceID
       return yield* createNext({
+        id: input?.id,
         parentID: input?.parentID,
         directory: ctx.directory,
         path: sessionPath(ctx.worktree, ctx.directory),
@@ -749,7 +760,7 @@ export const layer: Layer.Layer<
       yield* patch(input.sessionID, { title: input.title })
     })
 
-    const setArchived = Effect.fn("Session.setArchived")(function* (input: { sessionID: SessionID; time?: number }) {
+    const setArchived = Effect.fn("Session.setArchived")(function* (input: { sessionID: SessionID; time?: number | null }) {
       yield* patch(input.sessionID, { time: { archived: input.time } })
     })
 

@@ -28,7 +28,7 @@ const it = testEffect(Layer.mergeAll(AppFileSystem.defaultLayer, Snapshot.defaul
 function request(directory: string, url: string, init: RequestInit = {}) {
   return Effect.promise(() => {
     const headers = new Headers(init.headers)
-    headers.set("x-opencode-directory", directory)
+    headers.set("x-teamcode-directory", directory)
     return Promise.resolve(Server.Default().app.request(url, { ...init, headers }))
   })
 }
@@ -73,7 +73,7 @@ describe("project.initGit endpoint", () => {
       })
       // Reload behavior: bus emits exactly one server.instance.disposed for the directory.
       expect(disposedEvents(events.seen, tmp.directory)).toBe(1)
-      expect(yield* fs.exists(path.join(tmp.directory, ".git", "opencode"))).toBe(false)
+      expect(yield* fs.exists(path.join(tmp.directory, ".git", "teamcode"))).toBe(false)
 
       const current = yield* request(tmp.directory, "/project/current")
       expect(current.status).toBe(200)

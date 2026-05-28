@@ -12,6 +12,10 @@ import PROMPT_EXPLORE from "./prompt/explore.txt"
 import PROMPT_SCOUT from "./prompt/scout.txt"
 import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
+import PROMPT_PLANNER from "./prompt/planner.txt"
+import PROMPT_RESEARCHER from "./prompt/researcher.txt"
+import PROMPT_EXECUTOR from "./prompt/executor.txt"
+import PROMPT_REVIEWER from "./prompt/reviewer.txt"
 import { Permission } from "@/permission"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
 import { Global } from "@teamcode-ai/core/global"
@@ -229,6 +233,89 @@ export const layer = Layer.effect(
                 },
               }
             : {}),
+          planner: {
+            name: "planner",
+            description: "Strategic architect — decomposes tasks into structured plans with dependencies and risk assessment.",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                "*": "deny",
+                read: "allow",
+                glob: "allow",
+                grep: "allow",
+                bash: "allow",
+                external_directory: readonlyExternalDirectory,
+              }),
+              user,
+            ),
+            prompt: PROMPT_PLANNER,
+            options: {},
+            mode: "subagent",
+            native: true,
+          },
+          researcher: {
+            name: "researcher",
+            description: "Information gatherer — searches codebase, reads files, and produces structured research findings.",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                "*": "deny",
+                grep: "allow",
+                glob: "allow",
+                list: "allow",
+                read: "allow",
+                bash: "allow",
+                external_directory: readonlyExternalDirectory,
+              }),
+              user,
+            ),
+            prompt: PROMPT_RESEARCHER,
+            options: {},
+            mode: "subagent",
+            native: true,
+          },
+          executor: {
+            name: "executor",
+            description: "Implementation specialist — writes code, runs tests, and validates changes against plans.",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                edit: {
+                  "*": "allow",
+                },
+                bash: "allow",
+                read: "allow",
+                glob: "allow",
+                grep: "allow",
+              }),
+              user,
+            ),
+            prompt: PROMPT_EXECUTOR,
+            options: {},
+            mode: "subagent",
+            native: true,
+          },
+          reviewer: {
+            name: "reviewer",
+            description: "Quality gate — reviews implementations, checks tests and typecheck, and approves or requests changes.",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                "*": "deny",
+                read: "allow",
+                glob: "allow",
+                grep: "allow",
+                bash: "allow",
+                external_directory: readonlyExternalDirectory,
+              }),
+              user,
+            ),
+            prompt: PROMPT_REVIEWER,
+            options: {},
+            mode: "subagent",
+            native: true,
+          },
           compaction: {
             name: "compaction",
             mode: "primary",

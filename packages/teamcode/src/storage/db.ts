@@ -1,7 +1,6 @@
-import { type SQLiteBunDatabase } from "drizzle-orm/bun-sqlite"
-import { migrate } from "drizzle-orm/bun-sqlite/migrator"
+import type { SQLiteBunDatabase } from "drizzle-orm/bun-sqlite"
 import { type SQLiteTransaction } from "drizzle-orm/sqlite-core"
-export * from "drizzle-orm"
+import { migrate as drizzleMigrate } from "drizzle-orm/bun-sqlite/migrator"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { LocalContext } from "@/util/local-context"
 import { Global } from "@teamcode-ai/core/global"
@@ -13,7 +12,7 @@ import { EffectBridge } from "@/effect/bridge"
 import { init } from "#db"
 import { Effect, Schema } from "effect"
 
-declare const OPENCODE_MIGRATIONS: { sql: string; timestamp: number; name: string }[] | undefined
+declare const TEAMCODE_MIGRATIONS: { sql: string; timestamp: number; name: string }[] | undefined
 
 export class NotFoundError extends Schema.TaggedErrorClass<NotFoundError>()("NotFoundError", {
   message: Schema.String,
@@ -49,7 +48,7 @@ type Client = ReturnType<typeof init>
 type Journal = { sql: string; timestamp: number; name: string }[]
 
 // Drizzle's migrate overloads trigger expensive variance checks here; narrow to the journal overload we actually use.
-const migrateFromJournal = migrate as unknown as (db: SQLiteBunDatabase, entries: Journal) => void
+const migrateFromJournal = drizzleMigrate as unknown as (db: SQLiteBunDatabase, entries: Journal) => void
 
 function applyMigrations(db: SQLiteBunDatabase, entries: Journal) {
   // Normalize SQL so each statement is separated by ;--> statement-breakpoint
@@ -103,6 +102,9 @@ export const Client = Object.assign(
   (flags: DatabaseFlags = readRuntimeFlags()): Client => {
     if (loaded) return client as Client
 
+    // Ensure Global paths exist before opening the database
+    void Global.ensure()
+
     const dbPath = getPath(flags)
     log.info("opening database", { path: dbPath })
 
@@ -117,13 +119,13 @@ export const Client = Object.assign(
 
     // Apply schema migrations
     const entries =
-      typeof OPENCODE_MIGRATIONS !== "undefined"
-        ? OPENCODE_MIGRATIONS
+      typeof TEAMCODE_MIGRATIONS !== "undefined"
+        ? TEAMCODE_MIGRATIONS
         : migrations(path.join(import.meta.dirname, "../../migration"))
     if (entries.length > 0) {
       log.info("applying migrations", {
         count: entries.length,
-        mode: typeof OPENCODE_MIGRATIONS !== "undefined" ? "bundled" : "dev",
+        mode: typeof TEAMCODE_MIGRATIONS !== "undefined" ? "bundled" : "dev",
       })
       if (flags.skipMigrations) {
         for (const item of entries) {

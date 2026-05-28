@@ -93,7 +93,8 @@ export const EditTool = Tool.define(
                 const next = Bom.split(params.newString)
                 const desiredBom = source.bom || next.bom
                 contentOld = source.text
-                contentNew = next.text
+                // Ensure new files end with a trailing newline
+                contentNew = next.text.endsWith("\n") ? next.text : next.text + "\n"
                 diff = trimDiff(createTwoFilesPatch(filePath, filePath, contentOld, contentNew))
                 yield* ctx.ask({
                   permission: "edit",

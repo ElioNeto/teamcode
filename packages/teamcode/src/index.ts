@@ -1,46 +1,20 @@
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
-import { RunCommand } from "./cli/cmd/run"
-import { GenerateCommand } from "./cli/cmd/generate"
 import * as Log from "@teamcode-ai/core/util/log"
-import { ConsoleCommand } from "./cli/cmd/account"
-import { ProvidersCommand } from "./cli/cmd/providers"
-import { AgentCommand } from "./cli/cmd/agent"
-import { UpgradeCommand } from "./cli/cmd/upgrade"
-import { UninstallCommand } from "./cli/cmd/uninstall"
-import { ModelsCommand } from "./cli/cmd/models"
 import { UI } from "./cli/ui"
 import { Installation } from "./installation"
 import { InstallationVersion } from "@teamcode-ai/core/installation/version"
 import { NamedError } from "@teamcode-ai/core/util/error"
 import { FormatError } from "./cli/error"
-import { ServeCommand } from "./cli/cmd/serve"
 import { Filesystem } from "@/util/filesystem"
-import { DebugCommand } from "./cli/cmd/debug"
-import { StatsCommand } from "./cli/cmd/stats"
-import { McpCommand } from "./cli/cmd/mcp"
-import { GithubCommand } from "./cli/cmd/github"
-import { ExportCommand } from "./cli/cmd/export"
-import { ImportCommand } from "./cli/cmd/import"
-import { AttachCommand } from "./cli/cmd/tui/attach"
-import { TuiThreadCommand } from "./cli/cmd/tui/thread"
-import { AcpCommand } from "./cli/cmd/acp"
-import { EOL } from "os"
-import { WebCommand } from "./cli/cmd/web"
-import { PrCommand } from "./cli/cmd/pr"
-import { SessionCommand } from "./cli/cmd/session"
-import { DbCommand } from "./cli/cmd/db"
-import path from "path"
-import { Global } from "@teamcode-ai/core/global"
-import { JsonMigration } from "@/storage/json-migration"
-import { Database } from "@/storage/db"
 import { errorMessage } from "./util/error"
-import { PluginCommand } from "./cli/cmd/plug"
-import { CavemanCompressCommand } from "./cli/cmd/caveman-compress"
 import { Heap } from "./cli/heap"
-import { drizzle } from "drizzle-orm/bun-sqlite"
 import { ensureProcessMetadata } from "@teamcode-ai/core/util/teamcode-process"
 import { isRecord } from "@/util/record"
+import { lazyCmd } from "./cli/cmd/lazy"
+import { EOL } from "os"
+import path from "path"
+import { Global } from "@teamcode-ai/core/global"
 
 const processMetadata = ensureProcessMetadata("main")
 
@@ -113,13 +87,14 @@ const cli = yargs(args)
   .middleware(async (opts) => {
     if (opts.pure) {
       process.env.TEAMCODE_PURE = "1"
-      process.env.OPENCODE_PURE = "1"
     }
 
     if (opts.caveman) {
       process.env.TEAMCODE_CAVEMAN = opts.caveman as string
-      process.env.OPENCODE_CAVEMAN = opts.caveman as string
     }
+
+    // Ensure Global directories exist before Log/Database init
+    await Global.ensure()
 
     await Log.init({
       print: process.argv.includes("--print-logs"),
@@ -135,9 +110,7 @@ const cli = yargs(args)
 
     process.env.AGENT = "1"
     process.env.TEAMCODE = "1"
-    process.env.OPENCODE = "1"
     process.env.TEAMCODE_PID = String(process.pid)
-    process.env.OPENCODE_PID = String(process.pid)
 
     Log.Default.info("teamcode", {
       version: InstallationVersion,
@@ -157,6 +130,14 @@ const cli = yargs(args)
       let last = -1
       if (tty) process.stderr.write("\x1b[?25l")
       try {
+        // Lazily import database dependencies — these are only needed once
+        // per machine lifetime (first startup). The static import of Drizzle
+        // and Database at module top-level would slow down every command.
+        const [{ drizzle }, { Database }, { JsonMigration }] = await Promise.all([
+          import("drizzle-orm/bun-sqlite") as Promise<typeof import("drizzle-orm/bun-sqlite")>,
+          import("@/storage/db") as Promise<typeof import("@/storage/db")>,
+          import("@/storage/json-migration") as Promise<typeof import("@/storage/json-migration")>,
+        ])
         await JsonMigration.run(drizzle({ client: Database.Client().$client }), {
           progress: (event) => {
             const percent = Math.floor((event.current / event.total) * 100)
@@ -185,30 +166,121 @@ const cli = yargs(args)
   })
   .usage("")
   .completion("completion", "generate shell completion script")
-  .command(AcpCommand)
-  .command(McpCommand)
-  .command(TuiThreadCommand)
-  .command(AttachCommand)
-  .command(RunCommand)
-  .command(GenerateCommand)
-  .command(DebugCommand)
-  .command(ConsoleCommand)
-  .command(ProvidersCommand)
-  .command(AgentCommand)
-  .command(UpgradeCommand)
-  .command(UninstallCommand)
-  .command(ServeCommand)
-  .command(WebCommand)
-  .command(ModelsCommand)
-  .command(StatsCommand)
-  .command(ExportCommand)
-  .command(ImportCommand)
-  .command(GithubCommand)
-  .command(PrCommand)
-  .command(SessionCommand)
-  .command(PluginCommand)
-  .command(CavemanCompressCommand)
-  .command(DbCommand)
+  .command(
+    lazyCmd("run [message..]", "run opencode with a message", () =>
+      import("./cli/cmd/run").then((m) => m.RunCommand),
+    ),
+  )
+  .command(
+    lazyCmd("web", "start opencode server and open web interface", () =>
+      import("./cli/cmd/web").then((m) => m.WebCommand),
+    ),
+  )
+  .command(
+    lazyCmd("serve", "starts a headless opencode server", () =>
+      import("./cli/cmd/serve").then((m) => m.ServeCommand),
+    ),
+  )
+  .command(
+    lazyCmd("generate", false, () => import("./cli/cmd/generate").then((m) => m.GenerateCommand)),
+  )
+  .command(
+    lazyCmd("agent", "manage agents", () => import("./cli/cmd/agent").then((m) => m.AgentCommand)),
+  )
+  .command(
+    lazyCmd("providers", "manage AI providers and credentials", () =>
+      import("./cli/cmd/providers").then((m) => m.ProvidersCommand),
+      ["auth"],
+    ),
+  )
+  .command(
+    lazyCmd("models [provider]", "list all available models", () =>
+      import("./cli/cmd/models").then((m) => m.ModelsCommand),
+    ),
+  )
+  .command(
+    lazyCmd("stats", "show token usage and cost statistics", () =>
+      import("./cli/cmd/stats").then((m) => m.StatsCommand),
+    ),
+  )
+  .command(
+    lazyCmd("session", "manage sessions", () => import("./cli/cmd/session").then((m) => m.SessionCommand)),
+  )
+  .command(
+    lazyCmd("export [sessionID]", "export session data as JSON", () =>
+      import("./cli/cmd/export").then((m) => m.ExportCommand),
+    ),
+  )
+  .command(
+    lazyCmd("import <file>", "import session data from JSON file or URL", () =>
+      import("./cli/cmd/import").then((m) => m.ImportCommand),
+    ),
+  )
+  .command(
+    lazyCmd("github", "manage GitHub agent", () =>
+      import("./cli/cmd/github").then((m) => m.GithubCommand),
+    ),
+  )
+  .command(
+    lazyCmd("pr <number>", "fetch and checkout a GitHub PR branch, then run opencode", () =>
+      import("./cli/cmd/pr").then((m) => m.PrCommand),
+    ),
+  )
+  .command(
+    lazyCmd("mcp", "manage MCP (Model Context Protocol) servers", () =>
+      import("./cli/cmd/mcp").then((m) => m.McpCommand),
+    ),
+  )
+  .command(
+    lazyCmd("acp", "start ACP (Agent Client Protocol) server", () =>
+      import("./cli/cmd/acp").then((m) => m.AcpCommand),
+    ),
+  )
+  .command(
+    lazyCmd("login <url>", false, () => import("./cli/cmd/account").then((m) => m.ConsoleCommand)),
+  )
+  .command(
+    lazyCmd("upgrade [target]", "upgrade teamcode to the latest or a specific version", () =>
+      import("./cli/cmd/upgrade").then((m) => m.UpgradeCommand),
+    ),
+  )
+  .command(
+    lazyCmd("uninstall", "uninstall opencode and remove all related files", () =>
+      import("./cli/cmd/uninstall").then((m) => m.UninstallCommand),
+    ),
+  )
+  .command(
+    lazyCmd("debug", "debugging and troubleshooting tools", () =>
+      import("./cli/cmd/debug").then((m) => m.DebugCommand),
+    ),
+  )
+  .command(
+    lazyCmd("kill [directory]", "kill a running instance in the given directory", () =>
+      import("./cli/cmd/kill").then((m) => m.KillCommand),
+    ),
+  )
+  .command(
+    lazyCmd("caveman-compress <file>", "compress session for caveman mode", () =>
+      import("./cli/cmd/caveman-compress").then((m) => m.CavemanCompressCommand),
+    ),
+  )
+  .command(
+    lazyCmd("plugin <module>", "install plugin and update config", () =>
+      import("./cli/cmd/plug").then((m) => m.PluginCommand),
+      ["plug"],
+    ),
+  )
+  .command(lazyCmd("db", "database tools", () => import("./cli/cmd/db").then((m) => m.DbCommand)))
+  .command(
+    lazyCmd("attach <url>", "attach to a running opencode server", () =>
+      import("./cli/cmd/tui/attach").then((m) => m.AttachCommand),
+    ),
+  )
+  .command(
+    lazyCmd("$0 [project]", "start opencode tui", () =>
+      import("./cli/cmd/tui/thread").then((m) => m.TuiThreadCommand),
+    ),
+  )
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||
@@ -275,15 +347,12 @@ try {
   }
   process.exitCode = 1
 } finally {
-  // Use exitCode + natural drain instead of process.exit() so pending I/O
-  // (e.g. process.stdout.write to a pipe) has a chance to flush before the
-  // process terminates. This fixes a regression where `opencode run` spawned
-  // via execvp (no shell) produced 0 bytes on stdout because process.exit()
-  // killed the process before buffered writes reached the pipe.
+  // Set the exit code but let the event loop drain naturally instead of
+  // forcing process.exit(). This prevents the parent shell (PowerShell on
+  // Windows) from terminating when the Node.js process calls exit().
   //
-  // The setTimeout fallback ensures the process still exits even if MCP or
-  // other subprocesses keep the event loop alive past the timeout.
-  const code = process.exitCode || 0
-  setTimeout(() => process.exit(code), 2000).unref()
-  process.exitCode = code
+  // Letting Node exit naturally after the event loop drains still flushes
+  // buffered I/O (stdout pipes, etc.) before termination, preserving the
+  // fix for the execvp regression.
+  process.exitCode = process.exitCode || 0
 }

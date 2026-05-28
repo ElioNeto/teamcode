@@ -159,7 +159,10 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
           const stage = Effect.fnUntraced(function* (files: string[]) {
             if (!files.length) return
             const result = yield* git(
-              [...cfg, ...args(["add", "--all", "--sparse", "--pathspec-from-file=-", "--pathspec-file-nul"])],
+              [
+                ...cfg,
+                ...args(["add", "--all", "--sparse", "--ignore-errors", "--pathspec-from-file=-", "--pathspec-file-nul"]),
+              ],
               {
                 cwd: state.worktree,
                 stdin: feed(files),
@@ -170,6 +173,12 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
               exitCode: result.code,
               stderr: result.stderr,
             })
+            // Clear the index so write-tree returns a fresh tree reflecting
+            // the files that were actually staged, rather than reusing the
+            // stale tree from a previous successful add.
+            yield* git([...cfg, "reset"], { cwd: state.worktree }).pipe(
+              Effect.catch(() => Effect.void),
+            )
           })
 
           const exists = (file: string) => fs.exists(file).pipe(Effect.orDie)

@@ -155,7 +155,22 @@ function withFallback<T>(read: () => T | undefined, fallback: T) {
 export const { use: useSettings, provider: SettingsProvider } = createSimpleContext({
   name: "Settings",
   init: () => {
-    const [store, setStore, _, ready] = persisted("settings.v3", createStore<Settings>(defaultSettings))
+    const [store, setStore, _, ready] = persisted(
+      {
+        key: "settings.v3",
+        migrate(value: unknown) {
+          if (!value || typeof value !== "object" || Array.isArray(value)) return value
+          const data = value as Record<string, unknown>
+          // Ensure nested default fields exist when loading older persisted data
+          // that may be missing fields added in later versions.
+          if (data.permissions === undefined) data.permissions = { autoApprove: false }
+          if (data.notifications === undefined) data.notifications = { agent: false, permissions: false, errors: false }
+          if (data.sounds === undefined) data.sounds = { agentEnabled: false, agent: "", permissionsEnabled: false, permissions: "", errorsEnabled: false, errors: "" }
+          return data
+        },
+      },
+      createStore<Settings>(defaultSettings),
+    )
 
     createEffect(() => {
       if (typeof document === "undefined") return

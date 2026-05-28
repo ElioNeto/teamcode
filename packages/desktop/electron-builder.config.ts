@@ -70,6 +70,8 @@ const getBase = (): Configuration => ({
     perMachine: false,
     installerIcon: `resources/icons/icon.ico`,
     installerHeaderIcon: `resources/icons/icon.ico`,
+    packElevateHelper: false,
+    allowElevation: false,
   },
   linux: {
     icon: `resources/icons`,

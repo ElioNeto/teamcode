@@ -14,14 +14,14 @@ import { testEffect } from "../lib/effect"
 const it = testEffect(Layer.mergeAll(Config.defaultLayer, AppFileSystem.defaultLayer))
 const winIt = process.platform === "win32" ? it.instance : it.instance.skip
 
-const globalConfigFiles = ["opencode.json", "opencode.jsonc", "teamcode.json", "teamcode.jsonc", "tui.json", "tui.jsonc"].map((file) =>
+const globalConfigFiles = ["teamcode.json", "opencode.jsonc", "teamcode.json", "teamcode.jsonc", "tui.json", "tui.jsonc"].map((file) =>
   path.join(Global.Path.config, file),
 )
 
 const cleanState = Effect.gen(function* () {
   const fs = yield* AppFileSystem.Service
-  delete process.env.OPENCODE_CONFIG
-  delete process.env.OPENCODE_TUI_CONFIG
+  delete process.env.TEAMCODE_CONFIG
+  delete process.env.TEAMCODE_TUI_CONFIG
   yield* Effect.forEach(globalConfigFiles, (file) => fs.remove(file, { force: true }).pipe(Effect.ignore), {
     discard: true,
   })
@@ -402,7 +402,7 @@ it.instance("top-level keys in tui.json take precedence over nested tui key", ()
   ),
 )
 
-it.instance("project config takes precedence over OPENCODE_TUI_CONFIG (matches OPENCODE_CONFIG)", () =>
+it.instance("project config takes precedence over TEAMCODE_TUI_CONFIG (matches TEAMCODE_CONFIG)", () =>
   withCleanState(
     Effect.gen(function* () {
       const fs = yield* AppFileSystem.Service
@@ -412,7 +412,7 @@ it.instance("project config takes precedence over OPENCODE_TUI_CONFIG (matches O
       yield* fs.writeJson(custom, { theme: "custom", diff_style: "stacked" })
 
       yield* withEnv(
-        "OPENCODE_TUI_CONFIG",
+        "TEAMCODE_TUI_CONFIG",
         custom,
         Effect.gen(function* () {
           const config = yield* getTuiConfig(test.directory)
@@ -497,6 +497,50 @@ it.instance("resolves keybind lookup from canonical keybinds", () =>
       expect(
         config.keybinds.gather("plugins.dialog", ["dialog.plugins.install"]).map((binding) => binding.cmd),
       ).toEqual(["dialog.plugins.install"])
+    }),
+  ),
+)
+
+it.instance("session.interrupt is bound to escape by default", () =>
+  withCleanState(
+    Effect.gen(function* () {
+      const test = yield* TestInstance
+      const config = yield* getTuiConfig(test.directory)
+      const bindings = config.keybinds.get("session.interrupt")
+      expect(bindings).toHaveLength(1)
+      expect(bindings[0]?.key).toBe("escape")
+    }),
+  ),
+)
+
+it.instance("gather() returns session.interrupt with unique cache key", () =>
+  withCleanState(
+    Effect.gen(function* () {
+      const test = yield* TestInstance
+      const config = yield* getTuiConfig(test.directory)
+
+      // Prime the cache with a different group of commands under "prompt.palette"
+      const paletteBindings = config.keybinds.gather("prompt.palette", [
+        "prompt.submit",
+        "prompt.editor",
+        "prompt.editor_context.clear",
+        "prompt.stash",
+        "prompt.stash.pop",
+        "prompt.stash.list",
+        "workspace.set",
+      ])
+      expect(paletteBindings.length).toBeGreaterThan(0)
+
+      // Using the SAME cache key should return stale cached result (no session.interrupt)
+      const staleBindings = config.keybinds.gather("prompt.palette", ["session.interrupt"])
+      const staleCommands = staleBindings.map((b) => b.cmd)
+      expect(staleCommands).not.toContain("session.interrupt")
+
+      // Using a UNIQUE cache key should return session.interrupt
+      const interruptBindings = config.keybinds.gather("prompt.interrupt", ["session.interrupt"])
+      const interruptCommands = interruptBindings.map((b) => b.cmd)
+      expect(interruptCommands).toContain("session.interrupt")
+      expect(interruptBindings[0]?.key).toBe("escape")
     }),
   ),
 )
@@ -623,7 +667,7 @@ it.instance("keeps explicit configured keybind input undo on Windows", () =>
   ),
 )
 
-it.instance("OPENCODE_TUI_CONFIG provides settings when no project config exists", () =>
+it.instance("TEAMCODE_TUI_CONFIG provides settings when no project config exists", () =>
   withCleanState(
     Effect.gen(function* () {
       const fs = yield* AppFileSystem.Service
@@ -632,7 +676,7 @@ it.instance("OPENCODE_TUI_CONFIG provides settings when no project config exists
       yield* fs.writeJson(custom, { theme: "from-env", diff_style: "stacked" })
 
       yield* withEnv(
-        "OPENCODE_TUI_CONFIG",
+        "TEAMCODE_TUI_CONFIG",
         custom,
         Effect.gen(function* () {
           const config = yield* getTuiConfig(test.directory)
@@ -644,7 +688,7 @@ it.instance("OPENCODE_TUI_CONFIG provides settings when no project config exists
   ),
 )
 
-it.instance("does not derive tui path from OPENCODE_CONFIG", () =>
+it.instance("does not derive tui path from TEAMCODE_CONFIG", () =>
   withCleanState(
     Effect.gen(function* () {
       const fs = yield* AppFileSystem.Service
@@ -655,7 +699,7 @@ it.instance("does not derive tui path from OPENCODE_CONFIG", () =>
       yield* fs.writeJson(path.join(customDir, "tui.json"), { theme: "should-not-load" })
 
       yield* withEnv(
-        "OPENCODE_CONFIG",
+        "TEAMCODE_CONFIG",
         path.join(customDir, "teamcode.json"),
         Effect.gen(function* () {
           const config = yield* getTuiConfig(test.directory)

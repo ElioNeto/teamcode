@@ -165,6 +165,10 @@ export function args(file: string, command: string, cwd: string) {
   const n = name(file)
   if (n === "nu" || n === "fish") return ["-c", command]
   if (n === "zsh") {
+    // Replace newlines with semicolons so multi-line pasted commands
+    // work correctly inside eval — JSON.stringify escapes actual newlines
+    // to \\n which bash/zsh treat as literal backslash-n, not as separators.
+    const joined = command.replace(/\n+/g, " ; ")
     return [
       "-l",
       "-c",
@@ -172,13 +176,14 @@ export function args(file: string, command: string, cwd: string) {
         [[ -f ~/.zshenv ]] && source ~/.zshenv >/dev/null 2>&1 || true
         [[ -f "\${ZDOTDIR:-$HOME}/.zshrc" ]] && source "\${ZDOTDIR:-$HOME}/.zshrc" >/dev/null 2>&1 || true
         cd -- "$1"
-        eval ${JSON.stringify(command)}
+        eval ${JSON.stringify(joined)}
       `,
       "teamcode",
       cwd,
     ]
   }
   if (n === "bash") {
+    const joined = command.replace(/\n+/g, " ; ")
     return [
       "-l",
       "-c",
@@ -186,7 +191,7 @@ export function args(file: string, command: string, cwd: string) {
         shopt -s expand_aliases
         [[ -f ~/.bashrc ]] && source ~/.bashrc >/dev/null 2>&1 || true
         cd -- "$1"
-        eval ${JSON.stringify(command)}
+        eval ${JSON.stringify(joined)}
       `,
       "teamcode",
       cwd,

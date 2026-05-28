@@ -20,7 +20,7 @@ const levelPriority: Record<Level, number> = {
   ERROR: 3,
 }
 const keep = 10
-const initializedRunID = "OPENCODE_LOG_INITIALIZED_RUN_ID"
+const initializedRunID = "TEAMCODE_LOG_INITIALIZED_RUN_ID"
 
 let level: Level = "INFO"
 
@@ -64,6 +64,7 @@ let write = (msg: any) => {
 }
 
 export async function init(options: Options) {
+  await Global.ensure()
   if (options.level) level = options.level
   void cleanup(Global.Path.log)
   if (options.print) return
@@ -71,7 +72,7 @@ export async function init(options: Options) {
     Global.Path.log,
     options.dev ? "dev.log" : new Date().toISOString().split(".")[0].replace(/:/g, "") + ".log",
   )
-  const runID = process.env.TEAMCODE_RUN_ID ?? process.env.OPENCODE_RUN_ID
+  const runID = process.env.TEAMCODE_RUN_ID ?? process.env.TEAMCODE_RUN_ID
   const shouldTruncate = !options.dev || !runID || process.env[initializedRunID] !== runID
   if (shouldTruncate) await fs.truncate(logpath).catch(() => {})
   if (options.dev && runID) process.env[initializedRunID] = runID

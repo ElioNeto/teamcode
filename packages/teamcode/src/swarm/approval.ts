@@ -10,6 +10,8 @@
 //   - prepr: before creating a PR (review the final diff)
 import { Bus } from "@/bus"
 import { BusEvent } from "@/bus/bus-event"
+import { Caveman, type CavemanLevel } from "@/caveman"
+import { Config } from "@/config/config"
 import { Effect, Layer, Schema, Context, Deferred } from "effect"
 import * as Log from "@teamcode-ai/core/util/log"
 
@@ -160,6 +162,25 @@ export const layer: Layer.Layer<Service, never, Bus.Service> = Layer.effect(
     return Service.of({ request, reply, pending: getPending })
   }),
 )
+
+// ---------------------------------------------------------------------------
+// Caveman-aware display helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Compress an approval request's summary and details for caveman display.
+ * Returns a new ApprovalRequest with compressed text fields.
+ */
+export function compressApprovalRequest(
+  input: ApprovalRequest,
+  level: CavemanLevel,
+): ApprovalRequest {
+  return {
+    ...input,
+    summary: Caveman.compress(input.summary, level),
+    details: input.details ? Caveman.compress(input.details, level) : input.details,
+  }
+}
 
 export const defaultLayer = layer
 

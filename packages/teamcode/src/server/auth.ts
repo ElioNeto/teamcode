@@ -1,8 +1,6 @@
 export * as ServerAuth from "./auth"
 
 import { ConfigService } from "@/effect/config-service"
-import { Effect } from "effect"
-import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Config as EffectConfig, Context, Option, Redacted } from "effect"
 
 export type Credentials = {
@@ -17,11 +15,9 @@ export type DecodedCredentials = {
 
 export class Config extends ConfigService.Service<Config>()("@teamcode/ServerAuthConfig", {
   password: EffectConfig.string("TEAMCODE_SERVER_PASSWORD").pipe(
-    EffectConfig.orElse(() => EffectConfig.string("OPENCODE_SERVER_PASSWORD")),
     EffectConfig.option,
   ),
   username: EffectConfig.string("TEAMCODE_SERVER_USERNAME").pipe(
-    EffectConfig.orElse(() => EffectConfig.string("OPENCODE_SERVER_USERNAME")),
     EffectConfig.withDefault("teamcode"),
   ),
 }) {}
@@ -40,15 +36,11 @@ export function authorized(credentials: DecodedCredentials, config: Info) {
   )
 }
 
-const readRuntimeFlags = () =>
-  Effect.runSync(RuntimeFlags.Service.useSync((flags) => flags).pipe(Effect.provide(RuntimeFlags.defaultLayer)))
-
 export function header(credentials?: Credentials) {
-  const flags = readRuntimeFlags()
-  const password = credentials?.password ?? flags.serverPassword
+  const password = credentials?.password ?? process.env["TEAMCODE_SERVER_PASSWORD"]
   if (!password) return undefined
 
-  const username = credentials?.username ?? flags.serverUsername ?? "teamcode"
+  const username = credentials?.username ?? process.env["TEAMCODE_SERVER_USERNAME"] ?? "teamcode"
   return `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`
 }
 

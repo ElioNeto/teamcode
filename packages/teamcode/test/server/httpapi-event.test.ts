@@ -74,7 +74,7 @@ afterEach(async () => {
 describe("event HttpApi", () => {
   test("serves event stream", async () => {
     await using tmp = await tmpdir({ git: true, config: { formatter: false, lsp: false } })
-    const response = await app().request(EventPaths.event, { headers: { "x-opencode-directory": tmp.path } })
+    const response = await app().request(EventPaths.event, { headers: { "x-teamcode-directory": tmp.path } })
 
     expect(response.status).toBe(200)
     expect(response.headers.get("content-type")).toContain("text/event-stream")
@@ -86,7 +86,7 @@ describe("event HttpApi", () => {
 
   test("keeps the event stream open after the initial event", async () => {
     await using tmp = await tmpdir({ git: true, config: { formatter: false, lsp: false } })
-    const response = await app().request(EventPaths.event, { headers: { "x-opencode-directory": tmp.path } })
+    const response = await app().request(EventPaths.event, { headers: { "x-teamcode-directory": tmp.path } })
     if (!response.body) throw new Error("missing response body")
 
     const reader = response.body.getReader()
@@ -100,7 +100,7 @@ describe("event HttpApi", () => {
 
   test("delivers instance bus events after the initial event", async () => {
     await using tmp = await tmpdir({ git: true, config: { formatter: false, lsp: false } })
-    const response = await app().request(EventPaths.event, { headers: { "x-opencode-directory": tmp.path } })
+    const response = await app().request(EventPaths.event, { headers: { "x-teamcode-directory": tmp.path } })
     if (!response.body) throw new Error("missing response body")
 
     const reader = response.body.getReader()

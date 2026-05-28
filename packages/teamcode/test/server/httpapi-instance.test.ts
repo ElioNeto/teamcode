@@ -21,12 +21,12 @@ import { testEffect } from "../lib/effect"
 // repeat it.
 const testStateLayer = Layer.effectDiscard(
   Effect.gen(function* () {
-    const originalWorkspaces = Flag.OPENCODE_EXPERIMENTAL_WORKSPACES
-    Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = true
+    const originalWorkspaces = Flag.TEAMCODE_EXPERIMENTAL_WORKSPACES
+    Flag.TEAMCODE_EXPERIMENTAL_WORKSPACES = true
     yield* Effect.promise(() => resetDatabase())
     yield* Effect.addFinalizer(() =>
       Effect.promise(async () => {
-        Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = originalWorkspaces
+        Flag.TEAMCODE_EXPERIMENTAL_WORKSPACES = originalWorkspaces
         await resetDatabase()
       }),
     )
@@ -50,7 +50,7 @@ const httpApiServerLayer = servedRoutes.pipe(
 const it = testEffect(Layer.mergeAll(testStateLayer, httpApiServerLayer))
 const handlerContext = Context.empty() as Context.Context<unknown>
 
-const directoryHeader = (dir: string) => HttpClientRequest.setHeader("x-opencode-directory", dir)
+const directoryHeader = (dir: string) => HttpClientRequest.setHeader("x-teamcode-directory", dir)
 
 describe("instance HttpApi", () => {
   it.live("serves the OpenAPI document", () =>
@@ -72,11 +72,11 @@ describe("instance HttpApi", () => {
 
   it.live("emits a sync fence header for fixed-workspace mutations", () =>
     Effect.gen(function* () {
-      const originalWorkspaceID = Flag.OPENCODE_WORKSPACE_ID
-      Flag.OPENCODE_WORKSPACE_ID = WorkspaceID.ascending()
+      const originalWorkspaceID = Flag.TEAMCODE_WORKSPACE_ID
+      Flag.TEAMCODE_WORKSPACE_ID = WorkspaceID.ascending()
       yield* Effect.addFinalizer(() =>
         Effect.sync(() => {
-          Flag.OPENCODE_WORKSPACE_ID = originalWorkspaceID
+          Flag.TEAMCODE_WORKSPACE_ID = originalWorkspaceID
         }),
       )
 
@@ -94,11 +94,11 @@ describe("instance HttpApi", () => {
 
   it.live("does not emit sync fence headers for fixed-workspace reads or no-op mutations", () =>
     Effect.gen(function* () {
-      const originalWorkspaceID = Flag.OPENCODE_WORKSPACE_ID
-      Flag.OPENCODE_WORKSPACE_ID = WorkspaceID.ascending()
+      const originalWorkspaceID = Flag.TEAMCODE_WORKSPACE_ID
+      Flag.TEAMCODE_WORKSPACE_ID = WorkspaceID.ascending()
       yield* Effect.addFinalizer(() =>
         Effect.sync(() => {
-          Flag.OPENCODE_WORKSPACE_ID = originalWorkspaceID
+          Flag.TEAMCODE_WORKSPACE_ID = originalWorkspaceID
         }),
       )
 
@@ -125,7 +125,7 @@ describe("instance HttpApi", () => {
           HttpApiApp.webHandler().handler(
             new Request(`http://localhost${path}`, {
               ...init,
-              headers: { "x-opencode-directory": dir, "content-type": "application/json", ...init?.headers },
+              headers: { "x-teamcode-directory": dir, "content-type": "application/json", ...init?.headers },
             }),
             handlerContext,
           ),

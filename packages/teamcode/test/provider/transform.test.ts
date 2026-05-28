@@ -1131,6 +1131,11 @@ describe("ProviderTransform.message - DeepSeek reasoning content", () => {
         toolCallId: "test",
         toolName: "bash",
         input: { command: "echo hello" },
+        providerOptions: {
+          openaiCompatible: {
+            cache_control: { type: "ephemeral" },
+          },
+        },
       },
     ])
     expect(result[0].providerOptions?.openaiCompatible?.reasoning_content).toBe("Let me think about this...")
@@ -2267,31 +2272,6 @@ describe("ProviderTransform.message - cache control on gateway", () => {
           type: "ephemeral",
         },
       },
-      openrouter: {
-        cacheControl: {
-          type: "ephemeral",
-        },
-      },
-      bedrock: {
-        cachePoint: {
-          type: "default",
-        },
-      },
-      openaiCompatible: {
-        cache_control: {
-          type: "ephemeral",
-        },
-      },
-      copilot: {
-        copilot_cache_control: {
-          type: "ephemeral",
-        },
-      },
-      alibaba: {
-        cacheControl: {
-          type: "ephemeral",
-        },
-      },
     })
   })
 
@@ -2324,34 +2304,8 @@ describe("ProviderTransform.message - cache control on gateway", () => {
           type: "ephemeral",
         },
       },
-      openrouter: {
-        cacheControl: {
-          type: "ephemeral",
-        },
-      },
-      bedrock: {
-        cachePoint: {
-          type: "default",
-        },
-      },
-      openaiCompatible: {
-        cache_control: {
-          type: "ephemeral",
-        },
-      },
-      copilot: {
-        copilot_cache_control: {
-          type: "ephemeral",
-        },
-      },
-      alibaba: {
-        cacheControl: {
-          type: "ephemeral",
-        },
-      },
     })
   })
-})
 
 describe("ProviderTransform.variants", () => {
   const createMockModel = (overrides: Partial<any> = {}): any => ({
@@ -3808,4 +3762,5 @@ describe("ProviderTransform.providerOptions - ai-gateway-provider", () => {
     const result = ProviderTransform.providerOptions(createModel(), { reasoningEffort: "high" })
     expect(result).toEqual({ openaiCompatible: { reasoningEffort: "high" } })
   })
+})
 })

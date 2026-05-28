@@ -10,9 +10,9 @@ const exists = (path: string) =>
     .then(() => true)
     .catch(() => false)
 
-export function checkAppExists(appName: string) {
-  if (process.platform === "win32") return true
-  if (process.platform === "linux") return true
+export async function checkAppExists(appName: string) {
+  if (process.platform === "win32") return (await resolveWindowsAppPath(appName)) !== null
+  if (process.platform === "linux") return execFilePromise("which", [appName]).then(() => true).catch(() => false)
   return checkMacosApp(appName)
 }
 

@@ -31,7 +31,7 @@ import { testEffect } from "../lib/effect"
 
 void Log.init({ print: false })
 
-const originalWorkspaces = Flag.OPENCODE_EXPERIMENTAL_WORKSPACES
+const originalWorkspaces = Flag.TEAMCODE_EXPERIMENTAL_WORKSPACES
 const workspaceLayer = Workspace.defaultLayer.pipe(
   Layer.provide(InstanceStore.defaultLayer),
   Layer.provide(InstanceBootstrap.defaultLayer),
@@ -191,7 +191,7 @@ function requestJson<T>(path: string, init?: RequestInit) {
 }
 
 afterEach(async () => {
-  Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = originalWorkspaces
+  Flag.TEAMCODE_EXPERIMENTAL_WORKSPACES = originalWorkspaces
   await disposeAllInstances()
   await resetDatabase()
 })
@@ -202,7 +202,7 @@ describe("session HttpApi", () => {
     () =>
       Effect.gen(function* () {
         const test = yield* TestInstance
-        const headers = { "x-opencode-directory": test.directory }
+        const headers = { "x-teamcode-directory": test.directory }
         const missingSession = SessionID.descending()
         const missingSessionBody = {
           name: "NotFoundError",
@@ -267,7 +267,7 @@ describe("session HttpApi", () => {
     () =>
       Effect.gen(function* () {
         const test = yield* TestInstance
-        const headers = { "x-opencode-directory": test.directory }
+        const headers = { "x-teamcode-directory": test.directory }
         const parent = yield* createSession({ title: "parent" })
         const child = yield* createSession({ title: "child", parentID: parent.id })
         const message = yield* createTextMessage(parent.id, "hello")
@@ -342,7 +342,7 @@ describe("session HttpApi", () => {
         yield* setLegacySummaryDiff(session.id)
 
         const response = yield* request(pathFor(SessionPaths.get, { sessionID: session.id }), {
-          headers: { "x-opencode-directory": test.directory },
+          headers: { "x-teamcode-directory": test.directory },
         })
 
         expect(response.status).toBe(200)
@@ -356,7 +356,7 @@ describe("session HttpApi", () => {
     () =>
       Effect.gen(function* () {
         const test = yield* TestInstance
-        const headers = { "x-opencode-directory": test.directory, "content-type": "application/json" }
+        const headers = { "x-teamcode-directory": test.directory, "content-type": "application/json" }
 
         const createdEmpty = yield* requestJson<Session.Info>(SessionPaths.create, {
           method: "POST",
@@ -406,7 +406,7 @@ describe("session HttpApi", () => {
     () =>
       Effect.gen(function* () {
         const test = yield* TestInstance
-        Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = true
+        Flag.TEAMCODE_EXPERIMENTAL_WORKSPACES = true
         const project = yield* Project.use.fromDirectory(test.directory)
         const workspace = yield* createLocalWorkspace({
           projectID: project.project.id,
@@ -416,13 +416,13 @@ describe("session HttpApi", () => {
 
         const created = yield* requestJson<Session.Info>(`${SessionPaths.create}?workspace=${workspace.id}`, {
           method: "POST",
-          headers: { "x-opencode-directory": test.directory, "content-type": "application/json" },
+          headers: { "x-teamcode-directory": test.directory, "content-type": "application/json" },
           body: JSON.stringify({ title: "workspace session" }),
         })
         const messages = yield* request(
           `${pathFor(SessionPaths.messages, { sessionID: created.id })}?workspace=${workspace.id}`,
           {
-            headers: { "x-opencode-directory": test.directory },
+            headers: { "x-teamcode-directory": test.directory },
           },
         )
 
@@ -438,7 +438,7 @@ describe("session HttpApi", () => {
     () =>
       Effect.gen(function* () {
         const test = yield* TestInstance
-        const headers = { "x-opencode-directory": test.directory, "content-type": "application/json" }
+        const headers = { "x-teamcode-directory": test.directory, "content-type": "application/json" }
         const session = yield* createSession({ title: "archived" })
         const body = JSON.stringify({ time: { archived: -1 } })
 
@@ -473,12 +473,15 @@ describe("session HttpApi", () => {
         )
         yield* clearSessionPath(pathlessSession.id)
 
+        // The session's path is computed as the relative path from the git
+        // worktree root (test.directory) to the session directory.
+        const sessionRelativePath = path.relative(test.directory, currentDir).replace(/\\/g, "/")
         const query = new URLSearchParams({
           scope: "project",
-          path: "packages/teamcode/src",
+          path: sessionRelativePath,
           directory: currentDir,
         })
-        const headers = { "x-opencode-directory": test.directory }
+        const headers = { "x-teamcode-directory": test.directory }
         const sessions = (yield* json<Session.Info[]>(
           yield* request(`${SessionPaths.list}?${query}`, { headers }),
         )).map((item) => item.id)
@@ -494,7 +497,7 @@ describe("session HttpApi", () => {
     () =>
       Effect.gen(function* () {
         const test = yield* TestInstance
-        const headers = { "x-opencode-directory": test.directory }
+        const headers = { "x-teamcode-directory": test.directory }
         const session = yield* createSession({ title: "messages" })
         yield* createTextMessage(session.id, "first")
         yield* createTextMessage(session.id, "second")
@@ -514,7 +517,7 @@ describe("session HttpApi", () => {
     () =>
       Effect.gen(function* () {
         const test = yield* TestInstance
-        const headers = { "x-opencode-directory": test.directory, "content-type": "application/json" }
+        const headers = { "x-teamcode-directory": test.directory, "content-type": "application/json" }
         const session = yield* createSession({ title: "messages" })
         const first = yield* createTextMessage(session.id, "first")
         const second = yield* createTextMessage(session.id, "second")
@@ -559,7 +562,7 @@ describe("session HttpApi", () => {
     () =>
       Effect.gen(function* () {
         const test = yield* TestInstance
-        const headers = { "x-opencode-directory": test.directory, "content-type": "application/json" }
+        const headers = { "x-teamcode-directory": test.directory, "content-type": "application/json" }
         const session = yield* createSession({ title: "part mismatch" })
         const message = yield* createTextMessage(session.id, "first")
         const response = yield* request(
@@ -585,7 +588,7 @@ describe("session HttpApi", () => {
     () =>
       Effect.gen(function* () {
         const test = yield* TestInstance
-        const headers = { "x-opencode-directory": test.directory, "content-type": "application/json" }
+        const headers = { "x-teamcode-directory": test.directory, "content-type": "application/json" }
         const session = yield* createSession({ title: "remaining" })
 
         expect(

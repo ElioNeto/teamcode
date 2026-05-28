@@ -11,7 +11,9 @@ describe("computePromptTraits", () => {
 
   test("normal mode with autocomplete captures navigation keys", () => {
     const traits = computePromptTraits({ mode: "normal", autocompleteVisible: true })
-    expect(traits.capture).toEqual(["escape", "navigate", "submit", "tab"])
+    // ESC is deliberately omitted so it falls through to the global keybinding
+    // which dispatches the session.interrupt command. See traits.ts comment.
+    expect(traits.capture).toEqual(["navigate", "submit", "tab"])
     expect(traits.suspend).toBeUndefined()
     expect(traits.status).toBeUndefined()
   })

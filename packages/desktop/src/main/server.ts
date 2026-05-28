@@ -17,7 +17,7 @@ type SidecarMessage =
   | { type: "stopped" }
   | { type: "error"; error: { message: string; stack?: string } }
 
-export type SidecarListener = { stop: () => Promise<void> }
+export type SidecarListener = { stop: () => Promise<void>; kill: () => void }
 
 const SIDECAR_SERVICE_NAME = "opencode server"
 const SIDECAR_START_STALL_TIMEOUT = 60_000
@@ -74,9 +74,9 @@ export function preferAppEnv(userDataPath: string) {
   const shell = process.platform === "win32" ? null : getUserShell()
   Object.assign(process.env, {
     ...(shell ? loadShellEnv(shell) : null),
-    OPENCODE_EXPERIMENTAL_ICON_DISCOVERY: "true",
-    OPENCODE_EXPERIMENTAL_FILEWATCHER: "true",
-    OPENCODE_CLIENT: "desktop",
+    TEAMCODE_EXPERIMENTAL_ICON_DISCOVERY: "true",
+    TEAMCODE_EXPERIMENTAL_FILEWATCHER: "true",
+    TEAMCODE_CLIENT: "desktop",
     XDG_STATE_HOME: process.env.XDG_STATE_HOME ?? userDataPath,
   })
 }
@@ -210,6 +210,10 @@ export async function spawnLocalServer(
           }),
         ])
         return stopping
+      },
+      kill: () => {
+        if (exited) return
+        child.kill()
       },
     },
     health: { wait },

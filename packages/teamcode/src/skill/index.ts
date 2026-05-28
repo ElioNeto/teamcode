@@ -14,14 +14,14 @@ import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Glob } from "@teamcode-ai/core/util/glob"
 import * as Log from "@teamcode-ai/core/util/log"
 import { Discovery } from "./discovery"
-import CUSTOMIZE_OPENCODE_SKILL_BODY from "./prompt/customize-teamcode.md" with { type: "text" }
+import CUSTOMIZE_TEAMCODE_SKILL_BODY from "./prompt/customize-teamcode.md" with { type: "text" }
 import { isRecord } from "@/util/record"
 
 const log = Log.create({ service: "skill" })
 const CLAUDE_EXTERNAL_DIR = ".claude"
 const AGENTS_EXTERNAL_DIR = ".agents"
 const EXTERNAL_SKILL_PATTERN = "skills/**/SKILL.md"
-const OPENCODE_SKILL_PATTERN = "{skill,skills}/**/SKILL.md"
+const TEAMCODE_SKILL_PATTERN = "{skill,skills}/**/SKILL.md"
 const SKILL_PATTERN = "**/SKILL.md"
 
 // Built-in skill that ships with opencode. The model's intuition for what an
@@ -29,8 +29,8 @@ const SKILL_PATTERN = "**/SKILL.md"
 // invalid config, so users hit cryptic startup errors. Loading this skill
 // when the model is asked to touch opencode's own config files gives it the
 // actual schemas instead of guesses.
-const CUSTOMIZE_OPENCODE_SKILL_NAME = "customize-teamcode"
-const CUSTOMIZE_OPENCODE_SKILL_DESCRIPTION =
+const CUSTOMIZE_TEAMCODE_SKILL_NAME = "customize-teamcode"
+const CUSTOMIZE_TEAMCODE_SKILL_DESCRIPTION =
   "Use ONLY when the user is editing or creating opencode's own configuration: opencode.json, opencode.jsonc, files under .opencode/, or files under ~/.config/opencode/. Also use when creating or fixing opencode agents, subagents, skills, plugins, MCP servers, or permission rules. Do not use for the user's own application code, or for any project that is not configuring opencode itself."
 
 export const Info = Schema.Struct({
@@ -193,9 +193,25 @@ const discoverSkills = Effect.fnUntraced(function* (
     }
   }
 
+  // Always scan .opencode directories for teamcode's own skills.
+  // These are first-party skills, not external tool skills, so they are not
+  // gated by disableExternalSkills.
+  const opencodeDirs = yield* fsys
+    .up({ targets: [".opencode"], start: directory, stop: worktree })
+    .pipe(Effect.catch(() => Effect.succeed([] as string[])))
+  for (const root of opencodeDirs) {
+    yield* scan(state, root, TEAMCODE_SKILL_PATTERN, { dot: true, scope: "project" })
+  }
+
+  // Also scan the home .opencode directory for project-agnostic skills.
+  const opencodeHome = path.join(global.home, ".opencode")
+  if (yield* fsys.isDir(opencodeHome)) {
+    yield* scan(state, opencodeHome, TEAMCODE_SKILL_PATTERN, { dot: true, scope: "global" })
+  }
+
   const configDirs = yield* config.directories()
   for (const dir of configDirs) {
-    yield* scan(state, dir, OPENCODE_SKILL_PATTERN)
+    yield* scan(state, dir, TEAMCODE_SKILL_PATTERN)
   }
 
   const cfg = yield* config.get()
@@ -262,11 +278,11 @@ export const layer = Layer.effect(
         const s: State = { skills: {}, dirs: new Set() }
         // Register the built-in skill BEFORE disk discovery so a user-disk
         // skill with the same name can override it.
-        s.skills[CUSTOMIZE_OPENCODE_SKILL_NAME] = {
-          name: CUSTOMIZE_OPENCODE_SKILL_NAME,
-          description: CUSTOMIZE_OPENCODE_SKILL_DESCRIPTION,
+        s.skills[CUSTOMIZE_TEAMCODE_SKILL_NAME] = {
+          name: CUSTOMIZE_TEAMCODE_SKILL_NAME,
+          description: CUSTOMIZE_TEAMCODE_SKILL_DESCRIPTION,
           location: "<built-in>",
-          content: CUSTOMIZE_OPENCODE_SKILL_BODY,
+          content: CUSTOMIZE_TEAMCODE_SKILL_BODY,
         }
         yield* loadSkills(s, yield* InstanceState.get(discovered), bus)
         return s

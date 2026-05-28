@@ -25,7 +25,7 @@ function app() {
 function request(path: string, directory: string, init: RequestInit = {}) {
   return Effect.promise(() => {
     const headers = new Headers(init.headers)
-    headers.set("x-opencode-directory", directory)
+    headers.set("x-teamcode-directory", directory)
     return Promise.resolve(app().request(path, { ...init, headers }))
   })
 }
@@ -107,7 +107,7 @@ function withCreatedWorktree(directory: string, use: (info: Worktree.Info) => Ef
 
       expect(created.status).toBe(200)
       const info = yield* json<Worktree.Info>(created)
-      expect(info).toMatchObject({ name, branch: "opencode/api-test" })
+      expect(info).toMatchObject({ name, branch: "teamcode/api-test" })
       yield* Fiber.join(ready)
       return info
     }),

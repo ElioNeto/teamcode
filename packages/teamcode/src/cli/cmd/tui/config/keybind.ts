@@ -65,7 +65,7 @@ export const Definitions = {
   theme_switch_mode: keybind("none", "Switch between light and dark theme mode"),
   theme_mode_lock: keybind("none", "Lock or unlock theme mode"),
   sidebar_toggle: keybind("<leader>b", "Toggle sidebar"),
-  git_toggle: keybind("ctrl+shift+g", "Toggle Git panel"),
+  git_toggle: keybind("ctrl+g", "Toggle Git panel"),
   scrollbar_toggle: keybind("none", "Toggle session scrollbar"),
   status_view: keybind("<leader>s", "View status"),
 
@@ -121,7 +121,7 @@ export const Definitions = {
   messages_line_down: keybind("ctrl+alt+e", "Scroll messages down by one line"),
   messages_half_page_up: keybind("ctrl+alt+u", "Scroll messages up by half page"),
   messages_half_page_down: keybind("ctrl+alt+d", "Scroll messages down by half page"),
-  messages_first: keybind("ctrl+g,home", "Navigate to first message"),
+  messages_first: keybind("ctrl+shift+g,home", "Navigate to first message"),
   messages_last: keybind("ctrl+alt+g,end", "Navigate to last message"),
   messages_next: keybind("none", "Navigate to next message"),
   messages_previous: keybind("none", "Navigate to previous message"),

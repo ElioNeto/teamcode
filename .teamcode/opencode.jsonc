@@ -7,5 +7,121 @@
   "tools": {
     "github-triage": true,
     "github-pr-search": true
+  },
+
+  // === COMMANDS ===
+  "command": {
+    "dev": {
+      "description": "Start the TUI development server",
+      "prompt": "Start the TeamCode TUI in development mode. Run `bun run dev` from the repo root. This starts the interactive terminal UI from packages/teamcode."
+    },
+    "dev:desktop": {
+      "description": "Start the desktop Electron app in development mode",
+      "prompt": "Start the desktop app in development mode. Run `bun run dev:desktop` from the repo root. This starts the Electron app with hot reload."
+    },
+    "dev:web": {
+      "description": "Start the web app in development mode",
+      "prompt": "Start the web app in development mode. Run `bun run dev:web` from the repo root. This starts the Vite dev server for the SolidJS web app."
+    },
+    "test": {
+      "description": "Run tests for a specific package",
+      "prompt": "Run tests for a specific package. Usage: `test <package-name>` (e.g., `test teamcode`). Runs `bun run test` in that package's directory."
+    },
+    "typecheck": {
+      "description": "Run typecheck on all or specific packages",
+      "prompt": "Run TypeScript type checking. Usage: `typecheck` (all packages) or `typecheck <package-name>` for a specific package."
+    },
+    "db": {
+      "description": "Generate a database migration",
+      "prompt": "Generate a new Drizzle ORM database migration. Usage: `db <migration-name>`. Runs `bun run db generate --name <name>` in packages/teamcode."
+    },
+    "build-sdk": {
+      "description": "Regenerate the JavaScript SDK",
+      "prompt": "Regenerate the JavaScript SDK from source. Runs `bun run packages/sdk/js/script/build.ts`."
+    }
+  },
+
+  // === AGENT CONFIGURATION ===
+  "agent": {
+    "god": {
+      "model": "anthropic/claude-sonnet-4-6",
+      "description": "Omnipotent agent with unrestricted access to all tools and permissions"
+    },
+    "delivery-loop": {
+      "model": "anthropic/claude-sonnet-4-6",
+      "description": "Autonomous pipeline that continuously resolves open GitHub issues through the Plan-Implement-Validate-Review cycle"
+    },
+    "db-agent": {
+      "model": "anthropic/claude-sonnet-4-6",
+      "description": "Database specialist for Drizzle ORM schema design, SQLite migrations, and data management"
+    },
+    "desktop-agent": {
+      "model": "anthropic/claude-sonnet-4-6",
+      "description": "Desktop app specialist for Electron-based desktop application development"
+    },
+    "web-agent": {
+      "model": "anthropic/claude-sonnet-4-6",
+      "description": "Web app specialist for SolidJS web application with Vite, Tailwind, and Hono"
+    },
+    "test-agent": {
+      "model": "anthropic/claude-sonnet-4-6",
+      "description": "Testing specialist managing test infrastructure across the monorepo"
+    },
+    "docs-agent": {
+      "model": "anthropic/claude-sonnet-4-6",
+      "description": "Documentation specialist writing and maintaining project documentation"
+    },
+    "deps": {
+      "model": "anthropic/claude-sonnet-4-6",
+      "description": "Dependency auditor detecting outdated, conflicting, and vulnerable dependencies"
+    }
+  },
+
+  // === PROVIDER CONFIGURATION ===
+  "provider": {
+    "opencode": {
+      "options": {}
+    }
+  },
+
+  // === MCP SERVERS ===
+  "mcp": {},
+
+  // === PERMISSIONS ===
+  "permission": {
+    "edit": "allow",
+    "bash": {
+      "git *": "allow",
+      "bun *": "allow",
+      "npm *": "allow",
+      "gh *": "allow",
+      "ls *": "allow",
+      "mkdir *": "allow",
+      "cp *": "allow",
+      "mv *": "allow",
+      "cat *": "allow",
+      "sleep *": "allow",
+      "which *": "allow",
+      "*": "ask"
+    },
+    "external_directory": {
+      "/tmp/teamcode": "allow",
+      "*": "ask"
+    }
+  },
+
+  // === EXPERIMENTAL FEATURES ===
+  "experimental": {},
+
+  // === TOOL OUTPUT ===
+  "tool_output": {
+    "max_lines": 200,
+    "max_bytes": 16384
+  },
+
+  // === COMPACTION ===
+  "compaction": {
+    "auto": true,
+    "tail_turns": 15
   }
 }

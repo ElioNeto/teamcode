@@ -1,7 +1,7 @@
 import { SessionMessageTable, SessionTable, MessageTable, PartTable } from "@/session/session.sql"
 import { SessionID, MessageID, PartID } from "@/session/schema"
 import { WorkspaceID } from "@/control-plane/schema"
-import { and, asc, desc, eq, gt, gte, isNull, like, lt, or, type SQL } from "@/storage/db"
+import { and, asc, desc, eq, gt, gte, isNull, like, lt, or, type SQL } from "drizzle-orm"
 import * as Database from "@/storage/db"
 import { Context, DateTime, Effect, Layer, Option, Schema } from "effect"
 import { SessionMessage } from "@teamcode-ai/core/session-message"

@@ -13,8 +13,8 @@ const workerPath = new URL("./src/cli/cmd/tui/worker.ts", import.meta.url)
 console.error("1. Spawning worker...")
 const worker = new Worker(workerPath, {
   env: {
-    OPENCODE_PROCESS_ROLE: "worker",
-    OPENCODE_RUN_ID: crypto.randomUUID(),
+    TEAMCODE_PROCESS_ROLE: "worker",
+    TEAMCODE_RUN_ID: crypto.randomUUID(),
   },
 })
 

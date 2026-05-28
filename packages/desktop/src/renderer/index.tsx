@@ -13,11 +13,12 @@ import {
   PlatformProvider,
   ServerConnection,
   useCommand,
+  useGlobalSync,
 } from "@teamcode-ai/app"
 import * as Sentry from "@sentry/solid"
 import type { AsyncStorage } from "@solid-primitives/storage"
 import { MemoryRouter } from "@solidjs/router"
-import { createEffect, createResource, onCleanup, onMount, Show } from "solid-js"
+import { createEffect, createMemo, createResource, onCleanup, onMount, Show } from "solid-js"
 import { render } from "solid-js/web"
 import pkg from "../../package.json"
 import { initI18n, t } from "./i18n"
@@ -45,7 +46,7 @@ if (import.meta.env.VITE_SENTRY_DSN) {
         (i) =>
           i.name !== "Breadcrumbs" &&
           !(
-            import.meta.env.OPENCODE_CHANNEL === "prod" &&
+            import.meta.env.TEAMCODE_CHANNEL === "prod" &&
             (i.name === "GlobalHandlers" || i.name === "BrowserApiErrors")
           ),
       )
@@ -59,9 +60,9 @@ const deepLinkEvent = "opencode:deep-link"
 
 const emitDeepLinks = (urls: string[]) => {
   if (urls.length === 0) return
-  window.__OPENCODE__ ??= {}
-  const pending = window.__OPENCODE__.deepLinks ?? []
-  window.__OPENCODE__.deepLinks = [...pending, ...urls]
+  window.__TEAMCODE__ ??= {}
+  const pending = window.__TEAMCODE__.deepLinks ?? []
+  window.__TEAMCODE__.deepLinks = [...pending, ...urls]
   window.dispatchEvent(new CustomEvent(deepLinkEvent, { detail: { urls } }))
 }
 
@@ -331,6 +332,39 @@ render(() => {
     menuTrigger = (id) => cmd.trigger(id)
 
     const theme = useTheme()
+    const globalSync = useGlobalSync()
+
+    const SPINNER = ["◐", "◓", "◑", "◒"]
+    const TITLE_BASE = "TeamCode"
+
+    const anySessionWorking = createMemo(() => {
+      const projects = globalSync.data.project
+      return projects.some((project) => {
+        const dirs = [project.worktree, ...(project.sandboxes ?? [])]
+        return dirs.some((directory) => {
+          const [store] = globalSync.child(directory, { bootstrap: false })
+          if (!store) return false
+          return Object.keys(store.session_status).some((id) => store.session_working(id))
+        })
+      })
+    })
+
+    createEffect(() => {
+      if (!anySessionWorking()) {
+        document.title = TITLE_BASE
+        return
+      }
+      let frame = 0
+      const interval = setInterval(() => {
+        frame = (frame + 1) % SPINNER.length
+        document.title = `${SPINNER[frame]} ${TITLE_BASE}`
+      }, 300)
+      document.title = `${SPINNER[0]} ${TITLE_BASE}`
+      onCleanup(() => {
+        clearInterval(interval)
+        document.title = TITLE_BASE
+      })
+    })
 
     createEffect(() => {
       theme.themeId()

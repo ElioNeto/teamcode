@@ -173,4 +173,39 @@ export async function lines(cmd: string[], opts: RunOptions = {}): Promise<strin
   return (await text(cmd, opts)).text.split(/\r?\n/).filter(Boolean)
 }
 
+/**
+ * Run a command and return just the exit status.
+ * Throws on non-zero exit unless `nothrow` is set.
+ */
+export async function status(cmd: string[], opts: RunOptions = {}): Promise<number> {
+  const out = await run(cmd, opts)
+  return out.code
+}
+
+/**
+ * Run a command through the system shell.
+ * Uses `sh -c <command>` on POSIX, `cmd.exe /c <command>` on Windows.
+ */
+export async function shell(command: string, opts: RunOptions = {}): Promise<Result> {
+  return run(
+    process.platform === "win32" ? ["cmd.exe", "/c", command] : ["sh", "-c", command],
+    opts,
+  )
+}
+
+/**
+ * Run a git command in the specified or current working directory.
+ * Accepts args as a single string or array.
+ */
+export async function git(args: string[], opts: RunOptions = {}): Promise<Result> {
+  return run(["git", ...args], opts)
+}
+
+/**
+ * Run a git command and return stdout as text.
+ */
+export async function gitText(args: string[], opts: RunOptions = {}): Promise<TextResult> {
+  return text(["git", ...args], opts)
+}
+
 export * as Process from "./process"

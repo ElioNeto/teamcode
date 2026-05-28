@@ -150,7 +150,20 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
     })
 
     const create = Effect.fn("SessionHttpApi.create")(function* (ctx: { payload?: Session.CreateInput }) {
-      return yield* shareSvc.create(ctx.payload)
+      const payload = ctx.payload
+      // If an explicit session id is provided, check it doesn't already exist
+      if (payload?.id) {
+        const exists = yield* session.get(payload.id).pipe(
+          Effect.match({
+            onSuccess: () => true,
+            onFailure: () => false,
+          }),
+        )
+        if (exists) {
+          return yield* Effect.fail(new HttpApiError.BadRequest({}))
+        }
+      }
+      return yield* session.create(payload)
     })
 
     const createRaw = Effect.fn("SessionHttpApi.createRaw")(function* (ctx: {

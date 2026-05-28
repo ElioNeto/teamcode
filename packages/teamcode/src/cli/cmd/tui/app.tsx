@@ -117,7 +117,7 @@ const appBindingCommands = [
 ] as const
 
 function rendererConfig(_config: TuiConfig.Resolved): CliRendererConfig {
-  const mouseEnabled = !Flag.OPENCODE_DISABLE_MOUSE && (_config.mouse ?? true)
+  const mouseEnabled = !Flag.TEAMCODE_DISABLE_MOUSE && (_config.mouse ?? true)
 
   return {
     externalOutputMode: "passthrough",
@@ -328,7 +328,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
   const offSelectionKeys = keymap.intercept(
     "key",
     ({ event }) => {
-      if (!Flag.OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT) return
+      if (!Flag.TEAMCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT) return
       Selection.handleSelectionKey(renderer, toast, event)
     },
     { priority: 1 },
@@ -355,28 +355,48 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
 
   // Update terminal window title based on current route and session
   createEffect(() => {
-    if (!terminalTitleEnabled() || Flag.OPENCODE_DISABLE_TERMINAL_TITLE) return
+    if (!terminalTitleEnabled() || Flag.TEAMCODE_DISABLE_TERMINAL_TITLE) return
 
+    let base: string
     if (route.data.type === "home") {
-      renderer.setTerminalTitle("TeamCode")
-      return
-    }
-
-    if (route.data.type === "session") {
+      base = "TeamCode"
+    } else if (route.data.type === "session") {
       const session = sync.session.get(route.data.sessionID)
       if (!session || SessionApi.isDefaultTitle(session.title)) {
-        renderer.setTerminalTitle("TeamCode")
-        return
+        base = "TeamCode"
+      } else {
+        const title = session.title.length > 40 ? session.title.slice(0, 37) + "..." : session.title
+        const branch = sync.data.vcs?.branch
+        base = branch ? `TC | ${title}@${branch}` : `TC | ${title}`
       }
+    } else if (route.data.type === "plugin") {
+      base = `TC | ${route.data.id}`
+    } else {
+      base = "TeamCode"
+    }
 
-      const title = session.title.length > 40 ? session.title.slice(0, 37) + "..." : session.title
-      renderer.setTerminalTitle(`TC | ${title}`)
+    // Animated spinner while agent is working in the current session
+    const working =
+      route.data.type === "session" &&
+      sync.data.session_status[route.data.sessionID]?.type !== undefined &&
+      sync.data.session_status[route.data.sessionID]?.type !== "idle"
+
+    if (!working) {
+      renderer.setTerminalTitle(base)
       return
     }
 
-    if (route.data.type === "plugin") {
-      renderer.setTerminalTitle(`TC | ${route.data.id}`)
-    }
+    const SPINNER = ["◐", "◓", "◑", "◒"]
+    let frame = 0
+    renderer.setTerminalTitle(`${SPINNER[0]} ${base}`)
+    const interval = setInterval(() => {
+      frame = (frame + 1) % SPINNER.length
+      renderer.setTerminalTitle(`${SPINNER[frame]} ${base}`)
+    }, 300)
+    onCleanup(() => {
+      clearInterval(interval)
+      renderer.setTerminalTitle(base)
+    })
   })
 
   const args = useArgs()
@@ -930,16 +950,15 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
       flexDirection="column"
       backgroundColor={theme.background}
       onMouseDown={(evt) => {
-        if (!Flag.OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT) return
-        if (evt.button !== MouseButton.RIGHT) return
+        if (!Flag.TEAMCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT) return
 
         if (!Selection.copy(renderer, toast)) return
         evt.preventDefault()
         evt.stopPropagation()
       }}
-      onMouseUp={Flag.OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT ? undefined : () => Selection.copy(renderer, toast)}
+      onMouseUp={Flag.TEAMCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT ? undefined : () => Selection.copy(renderer, toast)}
     >
-      <Show when={Flag.OPENCODE_SHOW_TTFD}>
+      <Show when={Flag.TEAMCODE_SHOW_TTFD}>
         <TimeToFirstDraw />
       </Show>
       <Show when={ready()}>

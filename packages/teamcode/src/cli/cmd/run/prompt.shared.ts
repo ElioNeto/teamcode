@@ -12,7 +12,7 @@
 // The leader-key cycle (promptCycle) uses a two-step pattern: first press
 // arms the leader, second press within the timeout fires the action.
 import type { KeyBinding } from "@opentui/core"
-export { displayCharAt, displaySlice, mentionTriggerIndex } from "../prompt-display"
+export { displayCharAt, displaySlice, mentionTriggerIndex, promptOffsetWidth } from "../prompt-display"
 import { formatBinding, parseBindings } from "./keymap.shared"
 import type { FooterKeybinds, RunPrompt } from "./types"
 
@@ -272,15 +272,17 @@ export function movePromptHistory(state: PromptHistoryState, dir: -1 | 1, text: 
     return { state, apply: false }
   }
 
-  if (dir === -1 && cursor !== 0) {
-    return { state, apply: false }
-  }
-
-  if (dir === 1 && cursor !== Bun.stringWidth(text)) {
-    return { state, apply: false }
-  }
-
   if (state.index === null) {
+    // Cursor-position guard applies only when entering history browse from
+    // the user's own input: Up requires cursor at 0, Down at the end.
+    if (dir === -1 && cursor !== 0) {
+      return { state, apply: false }
+    }
+
+    if (dir === 1 && cursor !== Bun.stringWidth(text)) {
+      return { state, apply: false }
+    }
+
     if (dir === 1) {
       return { state, apply: false }
     }

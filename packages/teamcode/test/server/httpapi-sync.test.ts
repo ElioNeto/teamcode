@@ -12,7 +12,7 @@ import { testEffect } from "../lib/effect"
 
 void Log.init({ print: false })
 
-const originalWorkspaces = Flag.OPENCODE_EXPERIMENTAL_WORKSPACES
+const originalWorkspaces = Flag.TEAMCODE_EXPERIMENTAL_WORKSPACES
 const context = Context.empty() as Context.Context<unknown>
 const it = testEffect(Session.defaultLayer)
 
@@ -22,7 +22,7 @@ function app() {
 
 afterEach(async () => {
   mock.restore()
-  Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = originalWorkspaces
+  Flag.TEAMCODE_EXPERIMENTAL_WORKSPACES = originalWorkspaces
   await disposeAllInstances()
   await resetDatabase()
 })
@@ -32,9 +32,9 @@ describe("sync HttpApi", () => {
     "serves sync routes",
     () =>
       Effect.gen(function* () {
-        Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = true
+        Flag.TEAMCODE_EXPERIMENTAL_WORKSPACES = true
         const tmp = yield* TestInstance
-        const headers = { "x-opencode-directory": tmp.directory, "content-type": "application/json" }
+        const headers = { "x-teamcode-directory": tmp.directory, "content-type": "application/json" }
         const info = spyOn(Log.create({ service: "server.sync" }), "info")
         const session = yield* Session.Service.use((svc) => svc.create({ title: "sync" }))
 
@@ -96,7 +96,7 @@ describe("sync HttpApi", () => {
     () =>
       Effect.gen(function* () {
         const tmp = yield* TestInstance
-        const headers = { "x-opencode-directory": tmp.directory, "content-type": "application/json" }
+        const headers = { "x-teamcode-directory": tmp.directory, "content-type": "application/json" }
         const cases = [
           {
             path: SyncPaths.history,
@@ -147,7 +147,7 @@ describe("sync HttpApi", () => {
           HttpApiApp.webHandler().handler(
             new Request(`http://localhost${SyncPaths.history}`, {
               method: "POST",
-              headers: { "x-opencode-directory": tmp.directory, "content-type": "application/json" },
+              headers: { "x-teamcode-directory": tmp.directory, "content-type": "application/json" },
               body: JSON.stringify({ aggregate: -1 }),
             }),
             context,

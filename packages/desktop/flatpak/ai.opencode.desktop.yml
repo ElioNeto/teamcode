@@ -53,7 +53,7 @@ modules:
       - bun install --frozen-lockfile --filter '!./' --filter './packages/opencode'
         --filter './packages/desktop' --filter './packages/app' --ignore-scripts
       # Build the CLI binary
-      - cd packages/opencode && OPENCODE_DISABLE_MODELS_FETCH=true bun run script/build.ts
+      - cd packages/opencode && TEAMCODE_DISABLE_MODELS_FETCH=true bun run script/build.ts
         --single --skip-install
       # Build the desktop app
       - cd packages/desktop && bun run build

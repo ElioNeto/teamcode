@@ -60,7 +60,7 @@ import { ProviderV2 } from "@teamcode-ai/core/provider"
 import { AgentAttachment, FileAttachment, ReferenceAttachment, Source } from "@teamcode-ai/core/session-prompt"
 import { Reference } from "@/reference/reference"
 import * as DateTime from "effect/DateTime"
-import { eq } from "@/storage/db"
+import { eq } from "drizzle-orm"
 import * as Database from "@/storage/db"
 import { SessionTable } from "./session.sql"
 
@@ -392,7 +392,7 @@ export const layer = Layer.effect(
 
       if (!flags.experimentalPlanMode) {
         if (input.agent.name === "plan") {
-          userMessage.parts.push({
+          const part = yield* sessions.updatePart({
             id: PartID.ascending(),
             messageID: userMessage.info.id,
             sessionID: userMessage.info.sessionID,
@@ -400,10 +400,11 @@ export const layer = Layer.effect(
             text: PROMPT_PLAN,
             synthetic: true,
           })
+          userMessage.parts.push(part)
         }
         const wasPlan = input.messages.some((msg) => msg.info.role === "assistant" && msg.info.agent === "plan")
         if (wasPlan && input.agent.name === "build") {
-          userMessage.parts.push({
+          const part = yield* sessions.updatePart({
             id: PartID.ascending(),
             messageID: userMessage.info.id,
             sessionID: userMessage.info.sessionID,
@@ -411,6 +412,7 @@ export const layer = Layer.effect(
             text: BUILD_SWITCH,
             synthetic: true,
           })
+          userMessage.parts.push(part)
         }
         return input.messages
       }

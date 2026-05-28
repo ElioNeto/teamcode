@@ -9,11 +9,11 @@ This codebase uses Effect for typed, composable TypeScript services, schemas, an
 
 ## Source Of Truth
 
-Use the current Effect v4 / effect-smol source, not memory or older Effect v2/v3 examples.
+This repo uses Effect v4 (effect-smol). The config schema is in `packages/core/src/schema.ts`, and the canonical Effect patterns are documented in `packages/teamcode/AGENTS.md` under `# teamcode Effect rules`.
 
-1. If `.opencode/references/effect-smol` is missing, clone `https://github.com/Effect-TS/effect-smol` there. Do this in the project, not in the skill folder.
-2. Search `.opencode/references/effect-smol` for exact APIs, examples, tests, and naming patterns before answering or implementing Effect-specific code.
-3. Also inspect existing repo code for local house style before introducing new patterns.
+1. Read `packages/teamcode/AGENTS.md` for the project's Effect rules and conventions before writing Effect code.
+2. Inspect existing repo code (e.g., `packages/teamcode/src/`, `packages/core/src/`) for local house style before introducing new patterns.
+3. Search for specific Effect APIs in the `node_modules/.bun/effect@4.0.0-beta.65/` directory for exact API signatures when unsure.
 4. Prefer answers and implementations backed by specific source files or nearby repo examples.
 
 ## Guidelines
@@ -31,8 +31,8 @@ Use the current Effect v4 / effect-smol source, not memory or older Effect v2/v3
 
 ## Testing Patterns
 
-- Use `testEffect(...)` from `packages/opencode/test/lib/effect.ts` for tests that exercise Effect services, layers, runtime context, scoped resources, or platform integrations.
+- Use `testEffect(...)` from `packages/teamcode/test/lib/effect.ts` for tests that exercise Effect services, layers, runtime context, scoped resources, or platform integrations.
 - Use `it.live(...)` for filesystem, git repositories, HTTP servers, sockets, child processes, locks, real time, and other live platform behavior.
-- Run tests from package directories such as `packages/opencode`; never run package tests from the repo root.
+- Run tests from package directories such as `packages/teamcode`; never run package tests from the repo root.
 - Prefer explicit test layers over ad hoc managed runtimes. Keep dependency provisioning visible in the test file.
 - Use scoped fixtures and finalizers for resources that must be cleaned up, including temporary directories, flags, databases, fibers, servers, and global state.

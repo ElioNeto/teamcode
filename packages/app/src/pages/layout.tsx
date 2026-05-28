@@ -48,7 +48,6 @@ import {
 } from "@/context/global-sync/session-prefetch"
 import { useNotification } from "@/context/notification"
 import { usePermission } from "@/context/permission"
-import { Binary } from "@teamcode-ai/core/util/binary"
 import { retry } from "@teamcode-ai/core/util/retry"
 import { playSoundById } from "@/utils/sound"
 import { createAim } from "@/utils/aim"
@@ -994,8 +993,7 @@ export default function Layout(props: ParentProps) {
   }
 
   async function archiveSession(session: Session) {
-    const [store, setStore] = globalSync.child(session.directory)
-    const sessions = store.session ?? []
+    const sessions = currentSessions()
     const index = sessions.findIndex((s) => s.id === session.id)
     const nextSession = sessions[index + 1] ?? sessions[index - 1]
 
@@ -1004,18 +1002,26 @@ export default function Layout(props: ParentProps) {
       sessionID: session.id,
       time: { archived: Date.now() },
     })
-    setStore(
-      produce((draft) => {
-        const match = Binary.search(draft.session, session.id, (s) => s.id)
-        if (match.found) draft.session.splice(match.index, 1)
-      }),
-    )
     if (session.id === params.id) {
       if (nextSession) {
         navigate(`/${params.dir}/session/${nextSession.id}`)
       } else {
         navigate(`/${params.dir}/session`)
       }
+    }
+  }
+
+  async function unarchiveSession(session: Session) {
+    await globalSDK.client.session.update({
+      directory: session.directory,
+      sessionID: session.id,
+      time: { archived: null },
+    })
+    if (
+      session.id !== params.id ||
+      pathKey(params.dir ?? "") !== pathKey(session.directory)
+    ) {
+      navigate(`/${base64Encode(session.directory)}/session/${session.id}`)
     }
   }
 
@@ -1990,6 +1996,7 @@ export default function Layout(props: ParentProps) {
     clearHoverProjectSoon,
     prefetchSession,
     archiveSession,
+    unarchiveSession,
     workspaceName,
     renameWorkspace,
     editorOpen,

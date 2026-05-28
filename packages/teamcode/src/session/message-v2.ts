@@ -1123,8 +1123,40 @@ export function fromError(
 ): NonNullable<Assistant["error"]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toObj = (err: any) => {
-    const { _tag: name, ...data } = err
-    return { name, data }
+    if (err._tag) {
+      // TaggedErrorClass instances (APIError, ContextOverflowError, AbortedError, AuthError).
+      // Schema fields are defined as prototype accessors — collect them via
+      // prototype walk, then filter out Effect/Schema internal properties
+      // (those starting with '~', 'Symbol(', or function values like `pipe`).
+      const data: Record<string, unknown> = {}
+      const seen = new Set<string>()
+      // 1. Own enumerable properties (Object.keys)
+      for (const key of Object.keys(err)) {
+        seen.add(key)
+        if (key === "_tag" || key === "name") continue
+        if (err[key] !== undefined) data[key] = err[key]
+      }
+      // 2. Prototype walk: enumerable for…in + non-enumerable accessors
+      let proto = Object.getPrototypeOf(err)
+      while (proto && proto !== Object.prototype) {
+        const descriptors = Object.getOwnPropertyDescriptors(proto)
+        const keys = [...Object.keys(descriptors), ...Object.getOwnPropertyNames(descriptors).filter((k) => !Object.keys(descriptors).includes(k) && !k.startsWith("Symbol(") && k !== "constructor")]
+        for (const key of new Set(keys)) {
+          if (seen.has(key)) continue
+          seen.add(key)
+          if (key === "_tag" || key === "name" || key === "constructor" || key === "toJSON") continue
+          if (key.startsWith("~")) continue
+          if (key.startsWith("Symbol(")) continue
+          const v = err[key]
+          if (typeof v === "function") continue
+          if (v !== undefined) data[key] = v
+        }
+        proto = Object.getPrototypeOf(proto)
+      }
+      return { name: err._tag, data }
+    }
+    // NamedError instances (NamedError.Unknown)
+    return { name: err.name, data: err.data }
   }
 
   switch (true) {
@@ -1138,13 +1170,20 @@ export function fromError(
         message: e.message,
       }))
     case (e as SystemError)?.code === "ECONNRESET":
+    case (e as SystemError)?.cause &&
+      typeof (e as SystemError).cause === "object" &&
+      ((e as SystemError).cause as { code?: string })?.code === "ECONNRESET":
+    case e instanceof TypeError &&
+      typeof e.message === "string" &&
+      /ECONNRESET|connection (reset|closed|terminated|was closed)|socket (.+ )?closed|socket (hang|reset|interrupt)|interrupted|connection was (reset|closed)|read ECONNRESET|closed unexpectedly/i.test(e.message):
+      const connErr = e as SystemError & { cause?: { code?: string } }
       return toObj(new APIError({
         message: "Connection reset by server",
         isRetryable: true,
         metadata: {
-          code: (e as SystemError).code ?? "",
-          syscall: (e as SystemError).syscall ?? "",
-          message: (e as SystemError).message ?? "",
+          code: connErr.code ?? connErr.cause?.code ?? "",
+          syscall: connErr.syscall ?? "",
+          message: connErr.message ?? "",
         },
       }))
     case e instanceof Error && (e as FetchDecompressionError).code === "ZlibError":

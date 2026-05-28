@@ -465,6 +465,7 @@ export const dict = {
   "session.files.all": "Todos os arquivos",
   "session.files.empty": "Nenhum arquivo",
   "session.files.binaryContent": "Arquivo binário (conteúdo não pode ser exibido)",
+  "session.files.refresh": "Atualizar arquivo",
   "session.messages.renderEarlier": "Renderizar mensagens anteriores",
   "session.messages.loadingEarlier": "Carregando mensagens anteriores...",
   "session.messages.loadEarlier": "Carregar mensagens anteriores",

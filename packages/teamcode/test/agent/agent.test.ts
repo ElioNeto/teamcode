@@ -82,7 +82,7 @@ it.instance("plan agent denies edits except .opencode/plans/*", () =>
     // Wildcard is denied
     expect(evalPerm(plan, "edit")).toBe("deny")
     // But specific path is allowed
-    expect(Permission.evaluate("edit", ".opencode/plans/foo.md", plan!.permission).action).toBe("allow")
+    expect(Permission.evaluate("edit", ".teamcode/plans/foo.md", plan!.permission).action).toBe("allow")
   }),
 )
 
@@ -608,11 +608,11 @@ description: Permission skill.
         ),
       )
 
-      const home = process.env.OPENCODE_TEST_HOME
-      process.env.OPENCODE_TEST_HOME = test.directory
+      const home = process.env.TEAMCODE_TEST_HOME
+      process.env.TEAMCODE_TEST_HOME = test.directory
       yield* Effect.addFinalizer(() =>
         Effect.sync(() => {
-          process.env.OPENCODE_TEST_HOME = home
+          process.env.TEAMCODE_TEST_HOME = home
         }),
       )
 

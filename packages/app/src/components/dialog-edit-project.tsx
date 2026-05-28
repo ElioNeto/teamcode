@@ -4,6 +4,7 @@ import { Dialog } from "@teamcode-ai/ui/dialog"
 import { TextField } from "@teamcode-ai/ui/text-field"
 import { useMutation } from "@tanstack/solid-query"
 import { Icon } from "@teamcode-ai/ui/icon"
+import { showToast } from "@teamcode-ai/ui/toast"
 import { createMemo, For, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import { useGlobalSDK } from "@/context/global-sdk"
@@ -38,12 +39,26 @@ export function DialogEditProject(props: { project: LocalProject }) {
 
   function handleFileSelect(file: File) {
     if (!file.type.startsWith("image/")) return
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setStore("iconOverride", e.target?.result as string)
+
+    const MAX_ICON_SIZE = 128
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement("canvas")
+      let { width, height } = img
+      if (width > MAX_ICON_SIZE || height > MAX_ICON_SIZE) {
+        const ratio = Math.min(MAX_ICON_SIZE / width, MAX_ICON_SIZE / height)
+        width = Math.round(width * ratio)
+        height = Math.round(height * ratio)
+      }
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext("2d")
+      if (!ctx) return
+      ctx.drawImage(img, 0, 0, width, height)
+      setStore("iconOverride", canvas.toDataURL("image/png"))
       setStore("iconHover", false)
     }
-    reader.readAsDataURL(file)
+    img.src = URL.createObjectURL(file)
   }
 
   function handleDrop(e: DragEvent) {
@@ -96,6 +111,9 @@ export function DialogEditProject(props: { project: LocalProject }) {
         commands: { start: start || undefined },
       })
       dialog.close()
+    },
+    onError(error) {
+      showToast({ title: "Failed to save project settings", description: String(error) })
     },
   }))
 

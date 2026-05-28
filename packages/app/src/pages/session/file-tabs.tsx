@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, Match, on, onCleanup, Switch } from "solid-js"
+import { createEffect, createMemo, createSignal, Match, on, onCleanup, Show, Switch } from "solid-js"
 import { createStore } from "solid-js/store"
 import { Dynamic } from "solid-js/web"
 import { makeEventListener } from "@solid-primitives/event-listener"
@@ -11,6 +11,7 @@ import { DropdownMenu } from "@teamcode-ai/ui/dropdown-menu"
 import { IconButton } from "@teamcode-ai/ui/icon-button"
 import { Tabs } from "@teamcode-ai/ui/tabs"
 import { ScrollView } from "@teamcode-ai/ui/scroll-view"
+import { Tooltip } from "@teamcode-ai/ui/tooltip"
 import { showToast } from "@teamcode-ai/ui/toast"
 import { selectionFromLines, useFile, type FileSelection, type SelectedLineRange } from "@/context/file"
 import { useComments } from "@/context/comments"
@@ -442,6 +443,22 @@ export function FileTabContent(props: { tab: string }) {
 
   return (
     <Tabs.Content value={props.tab} class="mt-3 relative h-full">
+      <Show when={state()?.loaded}>
+        <div class="absolute top-2 right-2 z-10">
+          <Tooltip value={language.t("session.files.refresh")}>
+            <IconButton
+              icon="reset"
+              variant="ghost"
+              size="small"
+              onClick={() => {
+                const p = path()
+                if (p) file.load(p, { force: true })
+              }}
+              aria-label={language.t("session.files.refresh")}
+            />
+          </Tooltip>
+        </div>
+      </Show>
       <ScrollView class="h-full" viewportRef={scrollSync.setViewport} onScroll={scrollSync.handleScroll as any}>
         <Switch>
           <Match when={state()?.loaded}>{renderFile(contents())}</Match>

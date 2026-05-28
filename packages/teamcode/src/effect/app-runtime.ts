@@ -1,4 +1,4 @@
-import { Layer, ManagedRuntime } from "effect"
+import { Effect, type Fiber, Layer, ManagedRuntime } from "effect"
 import { attach } from "./run-service"
 import * as Observability from "@teamcode-ai/core/effect/observability"
 
@@ -116,28 +116,43 @@ export const AppLayer = Layer.mergeAll(
   DataMigration.defaultLayer,
 ).pipe(Layer.provideMerge(InstanceLayer.layer), Layer.provideMerge(Observability.layer))
 
-const rt = ManagedRuntime.make(AppLayer, { memoMap })
-type Runtime = Pick<typeof rt, "runSync" | "runPromise" | "runPromiseExit" | "runFork" | "runCallback" | "dispose">
+// Derive the service type from AppLayer at the type level (no runtime needed).
+type _AppROut = typeof AppLayer extends Layer.Layer<infer ROut, any, any> ? ROut : never
+type _AppErr = typeof AppLayer extends Layer.Layer<any, infer E, any> ? E : never
 
 /** Services provided by AppRuntime — i.e. what an Effect run via AppRuntime.runPromise can yield. */
-export type AppServices = ManagedRuntime.ManagedRuntime.Services<typeof rt>
-const wrap = (effect: Parameters<typeof rt.runSync>[0]) => attach(effect as never) as never
+export type AppServices = _AppROut
 
-export const AppRuntime: Runtime = {
-  runSync(effect) {
-    return rt.runSync(wrap(effect))
+// ManagedRuntime.make(AppLayer) is deferred until first use to speed up module
+// loading (the static imports of ~50 service modules are still evaluated, but
+// the heavy layer initialisation — config parsing, file reads, DB open, etc. —
+// is skipped until a command actually needs the runtime).
+let _rt: ManagedRuntime.ManagedRuntime<_AppROut, _AppErr> | undefined
+
+function ensure() {
+  if (!_rt) {
+    _rt = ManagedRuntime.make(AppLayer, { memoMap })
+  }
+  return _rt
+}
+
+export const AppRuntime = {
+  runSync<A, E>(effect: Effect.Effect<A, E, _AppROut>): A {
+    return ensure().runSync(attach(effect as any) as any)
   },
-  runPromise(effect, options) {
-    return rt.runPromise(wrap(effect), options)
+  runPromise<A, E>(effect: Effect.Effect<A, E, _AppROut>, options?: Effect.RunOptions): Promise<A> {
+    return ensure().runPromise(attach(effect as any) as any, options) as Promise<A>
   },
-  runPromiseExit(effect, options) {
-    return rt.runPromiseExit(wrap(effect), options)
+  runPromiseExit<A, E>(effect: Effect.Effect<A, E, _AppROut>, options?: Effect.RunOptions) {
+    return ensure().runPromiseExit(attach(effect as any) as any, options) as any
   },
-  runFork(effect) {
-    return rt.runFork(wrap(effect))
+  runFork<A, E>(effect: Effect.Effect<A, E, _AppROut>, options?: Effect.RunOptions) {
+    return ensure().runFork(attach(effect as any) as any, options) as any
   },
-  runCallback(effect) {
-    return rt.runCallback(wrap(effect))
+  runCallback<A, E>(effect: Effect.Effect<A, E, _AppROut>) {
+    return ensure().runCallback(attach(effect as any) as any) as any
   },
-  dispose: () => rt.dispose(),
+  dispose() {
+    return ensure().dispose()
+  },
 }

@@ -23,7 +23,7 @@ function open(raw: string) {
 }
 
 function heal(text: string) {
-  return remend(text, { linkMode: "text-only" })
+  return remend(text, { linkMode: "text-only", htmlTags: false })
 }
 
 export function stream(text: string, live: boolean) {

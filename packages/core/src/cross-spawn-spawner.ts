@@ -418,13 +418,11 @@ export const make = Effect.gen(function* () {
             isRunning: Effect.map(Deferred.isDone(signal), (done) => !done),
             exitCode: Effect.flatMap(Deferred.await(signal), ([code, signal]) => {
               if (Predicate.isNotNull(code)) return Effect.succeed(ExitCode(code))
-              return Effect.fail(
-                toPlatformError(
-                  "exitCode",
-                  new Error(`Process interrupted due to receipt of signal: '${signal}'`),
-                  command,
-                ),
-              )
+              // Process was killed by a signal (e.g., taskkill on Windows).
+              // Return exit code 1 instead of failing so callers don't need
+              // special handling for external termination — consistent with
+              // the approach in packages/teamcode/src/util/process.ts.
+              return Effect.succeed(ExitCode(1))
             }),
             kill: (opts?: ChildProcess.KillOptions) => {
               const sig = opts?.killSignal ?? "SIGTERM"

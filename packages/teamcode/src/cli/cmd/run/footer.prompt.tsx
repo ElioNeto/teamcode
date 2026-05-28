@@ -18,6 +18,7 @@ import {
   displaySlice,
   isExitCommand,
   mentionTriggerIndex,
+  promptOffsetWidth,
   isNewCommand,
   movePromptHistory,
   promptCycle,
@@ -627,7 +628,10 @@ export function createPromptState(input: PromptInput): PromptState {
       return
     }
 
-    const idx = mentionTriggerIndex(text, cursor)
+    // cursor is a string index, but mentionTriggerIndex expects a display offset.
+    // CJK characters have display width 2 but string length 1, so convert.
+    const displayOffset = promptOffsetWidth(text.slice(0, cursor))
+    const idx = mentionTriggerIndex(text, displayOffset)
     if (idx !== undefined) {
       setAt(idx)
       menu.reset()

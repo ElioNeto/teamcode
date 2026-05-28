@@ -180,6 +180,11 @@ export const Info = Schema.Struct({
       Schema.Struct({
         build: Schema.optional(ConfigAgent.Info),
         plan: Schema.optional(ConfigAgent.Info),
+        // swarm roles
+        planner: Schema.optional(ConfigAgent.Info),
+        researcher: Schema.optional(ConfigAgent.Info),
+        executor: Schema.optional(ConfigAgent.Info),
+        reviewer: Schema.optional(ConfigAgent.Info),
       }),
       [Schema.Record(Schema.String, ConfigAgent.Info)],
     ),
@@ -198,6 +203,11 @@ export const Info = Schema.Struct({
         title: Schema.optional(ConfigAgent.Info),
         summary: Schema.optional(ConfigAgent.Info),
         compaction: Schema.optional(ConfigAgent.Info),
+        // swarm roles
+        planner: Schema.optional(ConfigAgent.Info),
+        researcher: Schema.optional(ConfigAgent.Info),
+        executor: Schema.optional(ConfigAgent.Info),
+        reviewer: Schema.optional(ConfigAgent.Info),
       }),
       [Schema.Record(Schema.String, ConfigAgent.Info)],
     ),
@@ -326,7 +336,7 @@ export interface Interface {
 export class Service extends Context.Service<Service, Interface>()("@teamcode/Config") { }
 
 function globalConfigFile() {
-  const candidates = ["teamcode.jsonc", "teamcode.json", "config.json"].map((file) =>
+  const candidates = ["opencode.jsonc", "opencode.json", "teamcode.jsonc", "teamcode.json", "config.json"].map((file) =>
     path.join(Global.Path.config, file),
   )
   for (const file of candidates) {
@@ -424,6 +434,8 @@ export const layer = Layer.effect(
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "config.json")))
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "teamcode.json")))
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "teamcode.jsonc")))
+      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "opencode.json")))
+      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "opencode.jsonc")))
 
       const legacy = path.join(Global.Path.config, "config")
       if (existsSync(legacy)) {
@@ -446,9 +458,12 @@ export const layer = Layer.effect(
 
     // Cache global config with a 30s TTL so edits to ~/.config/opencode/*.json
     // are picked up without requiring a full restart.
-    const runtimeFlags = yield* RuntimeFlags.Service
+    // Do NOT provide a captured RuntimeFlags snapshot here — loadGlobal() reads
+    // RuntimeFlags from the dynamic effect context so that env-var changes to
+    // TEAMCODE_CONFIG_DIR, TEAMCODE_DISABLE_PROJECT_CONFIG, etc. are visible
+    // when the cache is invalidated and re-executed.
     const [cachedGlobal, invalidateGlobal] = yield* Effect.cachedInvalidateWithTTL(
-      Effect.provideService(loadGlobal(), RuntimeFlags.Service, runtimeFlags).pipe(
+      loadGlobal().pipe(
         Effect.tapError((error) =>
           Effect.sync(() => log.error("failed to load global config, using defaults", { error: String(error) })),
         ),
@@ -457,8 +472,8 @@ export const layer = Layer.effect(
       Duration.seconds(30),
     )
 
-    const getGlobal = Effect.fn("Config.getGlobal")(function* () {
-      return yield* cachedGlobal
+    const getGlobal: () => Effect.Effect<Info> = Effect.fn("Config.getGlobal")(function* () {
+      return yield* cachedGlobal.pipe(Effect.provide(RuntimeFlags.defaultLayer))
     })
 
     const ensureGitignore = Effect.fn("Config.ensureGitignore")(function* (dir: string) {
@@ -486,7 +501,7 @@ export const layer = Layer.effect(
 
         const pluginScopeForSource = Effect.fnUntraced(function* (source: string) {
           if (source.startsWith("http://") || source.startsWith("https://")) return "global"
-          if (source === "OPENCODE_CONFIG_CONTENT") return "local"
+          if (source === "TEAMCODE_CONFIG_CONTENT") return "local"
           if (containsPath(source, ctx)) return "local"
           return "global"
         })
@@ -568,8 +583,10 @@ export const layer = Layer.effect(
         }
 
         if (!flags.disableProjectConfig) {
-          for (const file of yield* ConfigPaths.files("teamcode", ctx.directory, ctx.worktree).pipe(Effect.orDie)) {
-            yield* merge(file, yield* loadFile(file), "local")
+          for (const name of ["teamcode", "opencode"]) {
+            for (const file of yield* ConfigPaths.files(name, ctx.directory, ctx.worktree).pipe(Effect.orDie)) {
+              yield* merge(file, yield* loadFile(file), "local")
+            }
           }
         }
 
@@ -580,14 +597,14 @@ export const layer = Layer.effect(
         const directories = yield* ConfigPaths.directories(ctx.directory, ctx.worktree)
 
         if (flags.configDir) {
-          log.debug("loading config from OPENCODE_CONFIG_DIR", { path: flags.configDir })
+          log.debug("loading config from TEAMCODE_CONFIG_DIR", { path: flags.configDir })
         }
 
         const deps: Fiber.Fiber<void, never>[] = []
 
         for (const dir of directories) {
-          if (dir.endsWith(".teamcode") || dir === flags.configDir) {
-            for (const file of ["teamcode.json", "teamcode.jsonc"]) {
+          if (dir.endsWith(".opencode") || dir.endsWith(".teamcode") || dir === flags.configDir) {
+            for (const file of ["opencode.jsonc", "opencode.json", "teamcode.jsonc", "teamcode.json"]) {
               const source = path.join(dir, file)
               log.debug(`loading config from ${source}`)
               yield* merge(source, yield* loadFile(source))
@@ -631,15 +648,15 @@ export const layer = Layer.effect(
           yield* mergePluginOrigins(dir, list)
         }
 
-        const configContent = process.env.TEAMCODE_CONFIG_CONTENT ?? process.env.OPENCODE_CONFIG_CONTENT
+        const configContent = process.env.TEAMCODE_CONFIG_CONTENT
         if (configContent) {
-          const source = "OPENCODE_CONFIG_CONTENT"
+          const source = "TEAMCODE_CONFIG_CONTENT"
           const next = yield* loadConfig(configContent, {
             dir: ctx.directory,
             source,
           })
           yield* merge(source, next, "local")
-          log.debug("loaded custom config from TEAMCODE_CONFIG_CONTENT / OPENCODE_CONFIG_CONTENT")
+          log.debug("loaded custom config from TEAMCODE_CONFIG_CONTENT")
         }
 
         const activeAccount = Option.getOrUndefined(
@@ -655,8 +672,8 @@ export const layer = Layer.effect(
               { concurrency: 2 },
             )
             if (Option.isSome(tokenOpt)) {
-              process.env["OPENCODE_CONSOLE_TOKEN"] = tokenOpt.value
-              yield* env.set("OPENCODE_CONSOLE_TOKEN", tokenOpt.value)
+              process.env["TEAMCODE_CONSOLE_TOKEN"] = tokenOpt.value
+              yield* env.set("TEAMCODE_CONSOLE_TOKEN", tokenOpt.value)
             }
 
             if (Option.isSome(configOpt)) {
@@ -740,8 +757,8 @@ export const layer = Layer.effect(
           result.compaction = { ...result.compaction, prune: false }
         }
 
-        if (process.env.TEAMCODE_CAVEMAN || process.env.OPENCODE_CAVEMAN) {
-          const level = (process.env.TEAMCODE_CAVEMAN || process.env.OPENCODE_CAVEMAN) as string
+        if (process.env.TEAMCODE_CAVEMAN) {
+          const level = process.env.TEAMCODE_CAVEMAN as string
           result.caveman = {
             enabled: true,
             level: level === "lite" || level === "ultra" ? level : "full",
@@ -766,10 +783,7 @@ export const layer = Layer.effect(
     // teamcode.json / opencode.json are picked up without restarting the process.
     const state = yield* InstanceState.make<State>(
       Effect.fn("Config.state")(function* (ctx) {
-        return yield* loadInstanceState(ctx).pipe(
-          Effect.provide(RuntimeFlags.defaultLayer),
-          Effect.orDie,
-        )
+        return yield* loadInstanceState(ctx).pipe(Effect.provide(RuntimeFlags.defaultLayer), Effect.orDie)
       }),
       { timeToLive: Duration.seconds(30) },
     )

@@ -166,7 +166,7 @@ describe("applyDirectoryEvent", () => {
     expect(store.sessionTotal).toBe(2)
   })
 
-  test("cleans session caches when archived", () => {
+  test("keeps session in store when archived (does not remove it)", () => {
     const message = userMessage("msg_1", "ses_1")
     const [store, setStore] = createStore(
       baseState({
@@ -191,15 +191,11 @@ describe("applyDirectoryEvent", () => {
       loadLsp() {},
     })
 
-    expect(store.session.map((x) => x.id)).toEqual(["ses_2"])
-    expect(store.sessionTotal).toBe(1)
-    expect(store.message.ses_1).toBeUndefined()
-    expect(store.part[message.id]).toBeUndefined()
-    expect(store.session_diff.ses_1).toBeUndefined()
-    expect(store.todo.ses_1).toBeUndefined()
-    expect(store.permission.ses_1).toBeUndefined()
-    expect(store.question.ses_1).toBeUndefined()
-    expect(store.session_status.ses_1).toBeUndefined()
+    // Session should remain in store with archived timestamp updated
+    expect(store.session.map((x) => x.id)).toEqual(["ses_1", "ses_2"])
+    expect(store.sessionTotal).toBe(2)
+    expect(store.session[0]?.time.archived).toBe(10)
+    expect(store.message.ses_1).toBeDefined()
   })
 
   test("cleans session caches when deleted and decrements only root totals", () => {

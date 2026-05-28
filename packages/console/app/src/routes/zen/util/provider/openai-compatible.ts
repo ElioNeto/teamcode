@@ -199,9 +199,9 @@ export function toOaCompatibleRequest(body: CommonRequest) {
     ? body.tools.map((tool: any) => ({
         type: "function",
         function: {
-          name: tool.name,
-          description: tool.description,
-          parameters: tool.parameters,
+          name: tool.function?.name ?? tool.name,
+          description: tool.function?.description ?? tool.description,
+          parameters: tool.function?.parameters ?? tool.parameters,
         },
       }))
     : undefined

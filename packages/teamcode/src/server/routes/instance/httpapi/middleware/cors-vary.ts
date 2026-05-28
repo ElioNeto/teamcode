@@ -1,5 +1,6 @@
 import { Effect } from "effect"
-import { HttpRouter, HttpServerResponse } from "effect/unstable/http"
+import { HttpRouter, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
+import { CorsConfig, isAllowedCorsOrigin, type CorsOptions } from "@/server/cors"
 
 // effect-smol's HttpMiddleware.cors builds OPTIONS preflight responses by
 // spreading allowOrigin() and allowHeaders() into the same record. Both set
@@ -29,3 +30,88 @@ export const corsVaryFix = HttpRouter.middleware(
     }),
   { global: true },
 )
+
+// Combined CORS middleware that:
+// 1. Reads CorsConfig to determine allowed origins
+// 2. Adds CORS headers to responses when the request origin is allowed
+// 3. Returns 204 for OPTIONS preflight requests
+// 4. Fixes the Vary header to include both Origin and Access-Control-Request-Headers
+//
+// Uses global middleware so it intercepts ALL requests including OPTIONS preflight
+// on routes that may not be explicitly defined for that method.
+function corsPreflightResponse(
+  origin: string | undefined,
+  request: HttpServerRequest.HttpServerRequest,
+  corsOptions: CorsOptions | undefined,
+): HttpServerResponse.HttpServerResponse {
+  const corsHeaders: Record<string, string> = {
+    "access-control-allow-credentials": "true",
+    "access-control-allow-methods": "GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS",
+  }
+  // Only echo the origin if it is explicitly allowed.
+  if (origin && isAllowedCorsOrigin(origin, corsOptions)) {
+    corsHeaders["access-control-allow-origin"] = origin
+  }
+  const reqHeaders = request.headers["access-control-request-headers"]
+  if (reqHeaders) corsHeaders["access-control-allow-headers"] = reqHeaders
+
+  // Build Vary header with Origin and (if present) Access-Control-Request-Headers.
+  const varyValues = ["Origin"]
+  if (reqHeaders) varyValues.push("Access-Control-Request-Headers")
+  corsHeaders["vary"] = varyValues.join(", ")
+
+  return HttpServerResponse.empty({ status: 204, headers: corsHeaders })
+}
+
+export function makeCorsLayer(corsOptions?: CorsOptions) {
+  return HttpRouter.middleware(
+    (effect) =>
+      Effect.gen(function* () {
+        const request = yield* HttpServerRequest.HttpServerRequest
+
+        // Read dynamic CORS config from the context reference. This ensures requests
+        // served via a memoMap-cached layer still pick up the correct per-listener
+        // CORS options even when the closure-captured value belongs to a different
+        // listener instance.
+        const opts = yield* CorsConfig
+
+        // Always handle OPTIONS preflight here — return 204 regardless of origin
+        // so browsers receive a valid preflight response. Only echo the origin
+        // back when it's explicitly allowed.
+        if (request.method === "OPTIONS") {
+          return corsPreflightResponse(request.headers["origin"], request, opts)
+        }
+
+        const origin = request.headers["origin"]
+        if (!origin || !isAllowedCorsOrigin(origin, opts)) return yield* effect
+
+        const response = yield* effect
+
+        // Build and set CORS response headers
+        let newResponse = HttpServerResponse.setHeader(response, "access-control-allow-origin", origin)
+        newResponse = HttpServerResponse.setHeader(newResponse, "access-control-allow-credentials", "true")
+
+        // Fix Vary header - merge with existing
+        const requestAcrh = request.headers["access-control-request-headers"]
+        const varyValues = ["Origin"]
+        if (requestAcrh) varyValues.push("Access-Control-Request-Headers")
+
+        const existingVary = newResponse.headers["vary"]
+        const existingTokens = existingVary ? existingVary.split(",").map((s) => s.trim().toLowerCase()) : []
+        const needed = varyValues.filter((v) => !existingTokens.includes(v.toLowerCase()) && !existingTokens.includes("*"))
+        if (needed.length > 0) {
+          newResponse = HttpServerResponse.setHeader(
+            newResponse,
+            "vary",
+            existingVary ? `${existingVary}, ${needed.join(", ")}` : needed.join(", "),
+          )
+        }
+
+        return newResponse
+      }),
+    { global: true },
+  )
+}
+
+// Legacy singleton for the default (no custom CORS) case.
+export const corsLayer = makeCorsLayer()

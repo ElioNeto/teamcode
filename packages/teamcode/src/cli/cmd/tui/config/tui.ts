@@ -196,7 +196,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
     })
 
   // Every config dir we may read from: global config dir, any `.opencode`
-  // folders between cwd and home, and OPENCODE_CONFIG_DIR.
+  // folders between cwd and home, and TEAMCODE_CONFIG_DIR.
   const directories = yield* ConfigPaths.directories(ctx.directory)
   yield* Effect.promise(() => migrateTuiConfig({ directories, cwd: ctx.directory }))
 
@@ -212,10 +212,10 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
     yield* mergeFile(acc, file)
   }
 
-  // 2. Explicit OPENCODE_TUI_CONFIG / TEAMCODE_TUI_CONFIG override, if set.
+  // 2. Explicit TEAMCODE_TUI_CONFIG override, if set.
   // Read both from RuntimeFlags (Effect config system) and directly from process.env
   // as a fallback for environments where RuntimeFlags is cached from an outer scope.
-  const tuiConfigFile = flags.tuiConfig || process.env.OPENCODE_TUI_CONFIG || process.env.TEAMCODE_TUI_CONFIG
+  const tuiConfigFile = flags.tuiConfig || process.env.TEAMCODE_TUI_CONFIG
   if (tuiConfigFile) {
     yield* mergeFile(acc, tuiConfigFile)
     log.debug("loaded custom tui config", { path: tuiConfigFile })
@@ -226,7 +226,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
     yield* mergeFile(acc, file)
   }
 
-  // 4. `.opencode` directories (and OPENCODE_CONFIG_DIR) discovered while
+  // 4. `.opencode` directories (and TEAMCODE_CONFIG_DIR) discovered while
   // walking up the tree. Also returned below so callers can install plugin
   // dependencies from each location.
   const dirs = unique(directories).filter((dir) => dir.endsWith(".teamcode") || dir === flags.configDir)

@@ -31,7 +31,7 @@ import { resetDatabase } from "../fixture/db"
 import { disposeAllInstances, tmpdir } from "../fixture/fixture"
 import { it } from "../lib/effect"
 
-const originalWorkspaces = Flag.OPENCODE_EXPERIMENTAL_WORKSPACES
+const originalWorkspaces = Flag.TEAMCODE_EXPERIMENTAL_WORKSPACES
 
 type Method = "get" | "post" | "put" | "delete" | "patch"
 type QuerySchema = { readonly fields: Record<string, unknown> }
@@ -149,7 +149,7 @@ function assertAdvertisedQueryParamsAreRuntimeFields(input: {
 }
 
 afterEach(async () => {
-  Flag.OPENCODE_EXPERIMENTAL_WORKSPACES = originalWorkspaces
+  Flag.TEAMCODE_EXPERIMENTAL_WORKSPACES = originalWorkspaces
   await disposeAllInstances()
   await resetDatabase()
 })
@@ -326,7 +326,7 @@ describe("httpapi query schema drift", () => {
     "vcs diff accepts directory and workspace",
     withTmp({ config: { formatter: false, lsp: false } }, (tmp) =>
       Effect.gen(function* () {
-        const url = `/vcs/diff?mode=working&${routingParams(tmp.path)}`
+        const url = `/vcs/diff?mode=git&${routingParams(tmp.path)}`
         const response = yield* request(url)
         expectNotSchemaRejection(response.status, url)
       }),

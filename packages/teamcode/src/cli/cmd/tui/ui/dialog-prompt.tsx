@@ -63,6 +63,15 @@ export function DialogPrompt(props: DialogPromptProps) {
             if (props.busy) return
             props.onConfirm?.(textarea.plainText)
           }}
+          onKeyDown={(e: { key?: string; shiftKey?: boolean; preventDefault(): void }) => {
+            // Bare Enter (without Shift) always submits the dialog,
+            // regardless of global input_newline rebinding.
+            if ((e.key === "return" || e.key === "enter") && !e.shiftKey) {
+              e.preventDefault()
+              if (props.busy) return
+              props.onConfirm?.(textarea.plainText)
+            }
+          }}
           height={3}
           ref={(val: TextareaRenderable) => {
             textarea = val
