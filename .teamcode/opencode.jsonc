@@ -74,6 +74,10 @@
     "deps": {
       "model": "anthropic/claude-sonnet-4-6",
       "description": "Dependency auditor detecting outdated, conflicting, and vulnerable dependencies"
+    },
+    "security-agent": {
+      "model": "anthropic/claude-sonnet-4-6",
+      "description": "Security assessment specialist for pentest reconnaissance — nmap, nikto, whois, whatweb, dig, curl"
     }
   },
 
