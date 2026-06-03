@@ -277,6 +277,11 @@ const cli = yargs(args)
   )
   .command(lazyCmd("db", "database tools", () => import("./cli/cmd/db").then((m) => m.DbCommand)))
   .command(
+    lazyCmd("pentest <action> [target]", "pentest management — scan, list, show, export, delete sessions", () =>
+      import("./cli/cmd/pentest").then((m) => m.PentestCommand),
+    ),
+  )
+  .command(
     lazyCmd("attach <url>", "attach to a running opencode server", () =>
       import("./cli/cmd/tui/attach").then((m) => m.AttachCommand),
     ),
