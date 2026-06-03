@@ -93,7 +93,14 @@
   },
 
   // === MCP SERVERS ===
-  "mcp": {},
+  "mcp": {
+    "security-tools": {
+      "type": "local",
+      "command": ["bun", "run", "packages/mcp-security-tools/src/index.ts"],
+      "enabled": true,
+      "timeout": 300000
+    }
+  },
 
   // === PERMISSIONS ===
   "permission": {
