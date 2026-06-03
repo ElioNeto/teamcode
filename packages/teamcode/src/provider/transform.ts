@@ -1004,7 +1004,11 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
       ]
       const mistralId = model.api.id.toLowerCase()
       if (!MISTRAL_REASONING_IDS.some((id) => mistralId.includes(id))) return {}
+      // Mistral supports low, medium, high reasoning efforts
+      // Using all three to give users more control and avoid issues with "high" effort
       return {
+        low: { reasoningEffort: "low" },
+        medium: { reasoningEffort: "medium" },
         high: { reasoningEffort: "high" },
       }
 
