@@ -217,6 +217,11 @@ const cli = yargs(args)
     ),
   )
   .command(
+    lazyCmd("init [directory]", "scaffold .teamcode directory structure", () =>
+      import("./cli/cmd/init").then((m) => m.InitCommand),
+    ),
+  )
+  .command(
     lazyCmd("github", "manage GitHub agent", () =>
       import("./cli/cmd/github").then((m) => m.GithubCommand),
     ),

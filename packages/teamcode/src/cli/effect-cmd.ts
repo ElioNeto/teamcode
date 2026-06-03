@@ -77,18 +77,27 @@ export const effectCmd = <Args, A>(opts: EffectCmdOpts<Args, A>) =>
       // yargs typing wraps Args in ArgumentsCamelCase<WithDoubleDash<...>>; cast at the boundary.
       const args = rawArgs as unknown as WithDoubleDash<Args>
       const useInstance = typeof opts.instance === "function" ? opts.instance(args) : opts.instance !== false
-      if (!useInstance) {
-        await AppRuntime.runPromise(opts.handler(args))
-        return
-      }
-      const directory = opts.directory?.(args) ?? process.cwd()
-      const { store, ctx } = await AppRuntime.runPromise(
-        InstanceStore.Service.use((store) => store.load({ directory }).pipe(Effect.map((ctx) => ({ store, ctx })))),
-      )
       try {
-        await AppRuntime.runPromise(opts.handler(args).pipe(Effect.provideService(InstanceRef, ctx)))
+        if (!useInstance) {
+          await AppRuntime.runPromise(opts.handler(args))
+          return
+        }
+        const directory = opts.directory?.(args) ?? process.cwd()
+        const { store, ctx } = await AppRuntime.runPromise(
+          InstanceStore.Service.use((store) => store.load({ directory }).pipe(Effect.map((ctx) => ({ store, ctx })))),
+        )
+        try {
+          await AppRuntime.runPromise(opts.handler(args).pipe(Effect.provideService(InstanceRef, ctx)))
+        } finally {
+          await AppRuntime.runPromise(store.dispose(ctx))
+        }
       } finally {
-        await AppRuntime.runPromise(store.dispose(ctx))
+        // Dispose the global AppRuntime so the process can exit naturally.
+        // ManagedRuntime.make(AppLayer) initializes ~50 service layers, some
+        // of which start background fibers that keep the event loop alive
+        // (file watchers, database pools, bus subscriptions, etc.). Without
+        // explicit dispose, short-lived commands would hang after completion.
+        await AppRuntime.dispose().catch(() => {})
       }
     },
   })

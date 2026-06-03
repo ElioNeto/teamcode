@@ -8,6 +8,7 @@ import * as Vcs from "./vcs"
 import { Bus } from "../bus"
 import { InstanceState } from "@/effect/instance-state"
 import { FileWatcher } from "@/file/watcher"
+import { ConfigWatcher } from "@/config/watch"
 import { ShareNext } from "@/share/share-next"
 import { Effect, Layer } from "effect"
 import { Config } from "@/config/config"
@@ -24,6 +25,7 @@ export const layer = Layer.effect(
     // InstanceStore imports only the lightweight tag from bootstrap-service.ts,
     // so it can depend on bootstrap without importing this implementation graph.
     const config = yield* Config.Service
+    const configWatcher = yield* ConfigWatcher.Service
     const file = yield* File.Service
     const fileWatcher = yield* FileWatcher.Service
     const format = yield* Format.Service
@@ -45,7 +47,7 @@ export const layer = Layer.effect(
       // Each service self-manages its own slow work via Effect.forkScoped against
       // its per-instance state scope. We just await materialization here.
       yield* Effect.forEach(
-        [reference, lsp, shareNext, format, file, fileWatcher, vcs, snapshot, project],
+        [reference, lsp, shareNext, format, file, fileWatcher, configWatcher, vcs, snapshot, project],
         (s) => s.init().pipe(Effect.catchCause((cause) => Effect.logWarning("init failed", { cause }))),
         { concurrency: "unbounded", discard: true },
       ).pipe(Effect.withSpan("InstanceBootstrap.init"))
@@ -59,6 +61,7 @@ export const defaultLayer: Layer.Layer<Service> = layer.pipe(
   Layer.provide([
     Bus.layer,
     Config.defaultLayer,
+    ConfigWatcher.defaultLayer,
     File.defaultLayer,
     FileWatcher.defaultLayer,
     Format.defaultLayer,

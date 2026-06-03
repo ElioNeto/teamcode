@@ -2,6 +2,7 @@ import path from "path"
 import { pathToFileURL } from "url"
 import { Effect, Schema } from "effect"
 import * as Stream from "effect/Stream"
+import { AppFileSystem } from "@teamcode-ai/core/filesystem"
 import { Ripgrep } from "../file/ripgrep"
 import { Skill } from "../skill"
 import * as Tool from "./tool"
@@ -16,6 +17,7 @@ export const SkillTool = Tool.define(
   Effect.gen(function* () {
     const skill = yield* Skill.Service
     const rg = yield* Ripgrep.Service
+    const fs = yield* AppFileSystem.Service
 
     return {
       description: DESCRIPTION,
@@ -47,23 +49,33 @@ export const SkillTool = Tool.define(
             Effect.map((chunk) => [...chunk].map((file) => `<file>${file}</file>`).join("\n")),
           )
 
+          const workflowPath = path.join(dir, "workflow.md")
+          const workflowContent = (yield* fs.existsSafe(workflowPath))
+            ? yield* fs.readFileStringSafe(workflowPath)
+            : undefined
+
+          const lines = [
+            `<skill_content name="${info.name}">`,
+            `# Skill: ${info.name}`,
+            "",
+            info.content.trim(),
+            "",
+            `Base directory for this skill: ${base}`,
+            "Relative paths in this skill (e.g., scripts/, reference/) are relative to this base directory.",
+            "Note: file list is sampled.",
+            "",
+            "<skill_files>",
+            files,
+            "</skill_files>",
+          ]
+          if (workflowContent) {
+            lines.push("", "# Workflow", "", workflowContent.trim())
+          }
+          lines.push("</skill_content>")
+
           return {
             title: `Loaded skill: ${info.name}`,
-            output: [
-              `<skill_content name="${info.name}">`,
-              `# Skill: ${info.name}`,
-              "",
-              info.content.trim(),
-              "",
-              `Base directory for this skill: ${base}`,
-              "Relative paths in this skill (e.g., scripts/, reference/) are relative to this base directory.",
-              "Note: file list is sampled.",
-              "",
-              "<skill_files>",
-              files,
-              "</skill_files>",
-              "</skill_content>",
-            ].join("\n"),
+            output: lines.join("\n"),
             metadata: {
               name: info.name,
               dir,
