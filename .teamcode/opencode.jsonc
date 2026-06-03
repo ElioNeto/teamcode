@@ -78,6 +78,10 @@
     "security-agent": {
       "model": "anthropic/claude-sonnet-4-6",
       "description": "Security assessment specialist for pentest reconnaissance — nmap, nikto, whois, whatweb, dig, curl"
+    },
+    "pentest-agent": {
+      "model": "anthropic/claude-sonnet-4-6",
+      "description": "METATRON pentest agent — agentic-loop vulnerability analysis with structured output for database storage"
     }
   },
 
