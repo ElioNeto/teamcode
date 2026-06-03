@@ -27,6 +27,7 @@
     }
   },
   "exclude": [
-    "script"
+    "script",
+    "bin"
   ]
 }
