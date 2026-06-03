@@ -256,17 +256,38 @@ const lowerOptions = Effect.fn("OpenAIChat.lowerOptions")(function* (request: LL
   }
 })
 
+// Some OpenAI-compatible providers (especially Chinese providers like MiMo, GLM, Qwen, Baidu)
+// do not support the stream_options parameter and return "Param Incorrect" errors.
+// Detect these providers by URL host and skip stream_options for them.
+const supportsStreamOptions = (baseURL: string): boolean => {
+  try {
+    const host = new URL(baseURL).hostname.toLowerCase()
+    // Known incompatible providers
+    const incompatibleHosts = [
+      "api.xiaomimimo.com",      // MiMo
+      "open.bigmodel.cn",        // Zhipu/GLM
+      "dashscope.aliyuncs.com",  // Alibaba/Qwen
+      "qianfan.baidubce.com",    // Baidu/Qianfan
+    ]
+    return !incompatibleHosts.some((incompatible) => host.includes(incompatible))
+  } catch {
+    // If URL parsing fails, assume stream_options is supported
+    return true
+  }
+}
+
 const fromRequest = Effect.fn("OpenAIChat.fromRequest")(function* (request: LLMRequest) {
   // `fromRequest` returns the provider body only. Endpoint, auth, framing,
   // validation, and HTTP execution are composed by `Route.make`.
   const generation = request.generation
+  const includeStreamOptions = supportsStreamOptions(request.model.baseURL)
   return {
     model: request.model.id,
     messages: yield* lowerMessages(request),
     tools: request.tools.length === 0 ? undefined : request.tools.map(lowerTool),
     tool_choice: request.toolChoice ? yield* lowerToolChoice(request.toolChoice) : undefined,
     stream: true as const,
-    stream_options: { include_usage: true },
+    ...(includeStreamOptions ? { stream_options: { include_usage: true } } : {}),
     max_tokens: generation?.maxTokens,
     temperature: generation?.temperature,
     top_p: generation?.topP,
