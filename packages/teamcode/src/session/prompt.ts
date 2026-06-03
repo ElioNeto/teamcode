@@ -1713,7 +1713,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
                 }
               }
             }
-            yield* slog.info("exiting loop")
+            yield* slog.info("loop exit: assistant finished", { finish: lastAssistant.finish })
             break
           }
 
@@ -1788,6 +1788,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
           }
           const maxSteps = agent.steps ?? Infinity
           const isLastStep = step >= maxSteps
+          if (isLastStep) yield* slog.info("loop exit: max steps reached", { step, maxSteps })
           msgs = yield* insertReminders({ messages: msgs, agent, session })
 
           const msg: MessageV2.Assistant = {
@@ -1897,6 +1898,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
               handle.message.structured = structured
               handle.message.finish = handle.message.finish ?? "stop"
               yield* sessions.updateMessage(handle.message)
+              yield* slog.info("loop exit: structured output set")
               return "break" as const
             }
 
@@ -1911,11 +1913,15 @@ NOTE: At any point in time through this workflow you should feel free to ask the
                   },
                 } as unknown as MessageV2.Assistant["error"]
                 yield* sessions.updateMessage(handle.message)
+                yield* slog.info("loop exit: json_schema model did not produce structured output")
                 return "break" as const
               }
             }
 
-            if (result === "stop") return "break" as const
+            if (result === "stop") {
+              yield* slog.info("loop exit: processor returned stop")
+              return "break" as const
+            }
             if (result === "compact") {
               yield* compaction.create({
                 sessionID,
