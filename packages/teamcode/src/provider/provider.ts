@@ -847,6 +847,14 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
           },
         },
       }),
+    ollama: () =>
+      Effect.succeed({
+        autoload: true,
+        options: {
+          baseURL: "http://localhost:11434/v1",
+          apiKey: "ollama",
+        },
+      }),
   }
 }
 
