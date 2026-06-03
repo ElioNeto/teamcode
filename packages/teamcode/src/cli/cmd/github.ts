@@ -472,6 +472,7 @@ export const GithubRunCommand = effectCmd({
 
       const { providerID, modelID } = normalizeModel()
       const variant = process.env["VARIANT"] || undefined
+      const agent = process.env["AGENT"] || undefined
       const runId = normalizeRunId()
       const share = normalizeShare()
       const oidcBaseUrl = normalizeOidcBaseUrl()
@@ -961,11 +962,11 @@ export const GithubRunCommand = effectCmd({
               sessionID: session.id,
               messageID: MessageID.ascending(),
               variant,
+              agent,
               model: {
                 providerID,
                 modelID,
               },
-              // agent is omitted - server will use default_agent from config or fall back to "build"
               parts: [
                 {
                   id: PartID.ascending(),
@@ -1009,6 +1010,7 @@ export const GithubRunCommand = effectCmd({
               sessionID: session.id,
               messageID: MessageID.ascending(),
               variant,
+              agent,
               model: {
                 providerID,
                 modelID,
