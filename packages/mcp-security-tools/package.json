@@ -1,0 +1,21 @@
+{
+  "name": "@teamcode-ai/mcp-security-tools",
+  "version": "1.0.0",
+  "description": "MCP server exposing security reconnaissance tools (nmap, whois, whatweb, curl, dig, nikto)",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-security-tools": "dist/index.js"
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target node",
+    "dev": "bun run src/index.ts",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.27.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}

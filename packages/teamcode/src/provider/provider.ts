@@ -503,7 +503,9 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
     "google-vertex-anthropic": Effect.fnUntraced(function* () {
       const env = yield* dep.env()
       const project = env["GOOGLE_CLOUD_PROJECT"] ?? env["GCP_PROJECT"] ?? env["GCLOUD_PROJECT"]
-      const location = env["GOOGLE_CLOUD_LOCATION"] ?? env["VERTEX_LOCATION"] ?? "global"
+      // Support multiple region/location env vars for compatibility with different tools
+      // CLOUD_ML_REGION is used by Claude Code and other Google Cloud tools
+      const location = env["GOOGLE_CLOUD_LOCATION"] ?? env["VERTEX_LOCATION"] ?? env["CLOUD_ML_REGION"] ?? "global"
       const autoload = Boolean(project)
       if (!autoload) return { autoload: false }
       return {
@@ -845,6 +847,14 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
             "HTTP-Referer": "https://opencode.ai/",
             "X-Title": "teamcode",
           },
+        },
+      }),
+    ollama: () =>
+      Effect.succeed({
+        autoload: true,
+        options: {
+          baseURL: "http://localhost:11434/v1",
+          apiKey: "ollama",
         },
       }),
   }

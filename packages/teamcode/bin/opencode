@@ -1,199 +1,134 @@
-#!/usr/bin/env node
+#!/bin/sh
 
-const childProcess = require("child_process")
-const fs = require("fs")
-const path = require("path")
-const os = require("os")
+# POSIX shell wrapper for opencode that uses exec to replace the process
+# This ensures VS Code and other terminal emulators see "opencode" as the
+# process name instead of "node"
 
-const forwardedSignals = ["SIGINT", "SIGTERM", "SIGHUP"]
+set -e
 
-function run(target) {
-  const child = childProcess.spawn(target, process.argv.slice(2), {
-    stdio: "inherit",
-  })
+# Get the directory of this script
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-  child.on("error", (error) => {
-    console.error(error.message)
-    process.exit(1)
-  })
+# Detect platform and architecture
+case "$(uname -s)" in
+  Darwin) PLATFORM="darwin" ;;
+  Linux)  PLATFORM="linux" ;;
+  MINGW*|MSYS*|CYGWIN*) PLATFORM="windows" ;;
+  *) PLATFORM="$(uname -s)" ;;
+esac
 
-  const forwarders = {}
-  for (const signal of forwardedSignals) {
-    forwarders[signal] = () => {
-      try {
-        child.kill(signal)
-      } catch {
-        // The child may have already exited.
-      }
-    }
-    process.on(signal, forwarders[signal])
+case "$(uname -m)" in
+  x86_64|amd64) ARCH="x64" ;;
+  aarch64|arm64) ARCH="arm64" ;;
+  armv7l|arm) ARCH="arm" ;;
+  *) ARCH="$(uname -m)" ;;
+esac
+
+BASE="opencode-${PLATFORM}-${ARCH}"
+BINARY="opencode"
+if [ "$PLATFORM" = "windows" ]; then
+  BINARY="opencode.exe"
+fi
+
+# Check for AVX2 support on x64
+supports_avx2() {
+  if [ "$ARCH" != "x64" ]; then
+    return 1
+  fi
+
+  if [ "$PLATFORM" = "linux" ]; then
+    if grep -q -i 'avx2' /proc/cpuinfo 2>/dev/null; then
+      return 0
+    fi
+    return 1
+  fi
+
+  if [ "$PLATFORM" = "darwin" ]; then
+    if sysctl -n hw.optional.avx2_0 2>/dev/null | grep -q '^1$'; then
+      return 0
+    fi
+    return 1
+  fi
+
+  return 1
+}
+
+# Check for musl libc on Linux
+is_musl() {
+  if [ "$PLATFORM" != "linux" ]; then
+    return 1
+  fi
+
+  if [ -f /etc/alpine-release ]; then
+    return 0
+  fi
+
+  if ldd --version 2>&1 | grep -q -i 'musl'; then
+    return 0
+  fi
+
+  return 1
+}
+
+# Determine which binary names to try
+if [ "$ARCH" = "x64" ]; then
+  if supports_avx2; then
+    BASELINE=""
+  else
+    BASELINE="-baseline"
+  fi
+else
+  BASELINE=""
+fi
+
+if is_musl; then
+  MUSL="-musl"
+else
+  MUSL=""
+fi
+
+# Build list of candidate binary names
+NAMES=""
+if [ "$ARCH" = "x64" ]; then
+  if [ -n "$BASELINE" ]; then
+    NAMES="${BASE}${BASELINE}${MUSL} ${BASE}${MUSL} ${BASE}${BASELINE} ${BASE}"
+  else
+    NAMES="${BASE}${MUSL} ${BASE}${BASELINE}${MUSL} ${BASE} ${BASE}${BASELINE}"
+  fi
+else
+  NAMES="${BASE}${MUSL} ${BASE}"
+fi
+
+# Find the binary in node_modules
+find_binary() {
+  local dir="$1"
+  while [ "$dir" != "/" ]; do
+    if [ -d "$dir/node_modules" ]; then
+      for name in $NAMES; do
+        local candidate="$dir/node_modules/$name/bin/$BINARY"
+        if [ -f "$candidate" ]; then
+          echo "$candidate"
+          return 0
+        fi
+      done
+    fi
+    dir="$(dirname "$dir")"
+  done
+  return 1
+}
+
+# Check for cached binary or environment override
+if [ -n "$OPENCODE_BIN_PATH" ]; then
+  RESOLVED="$OPENCODE_BIN_PATH"
+elif [ -f "$SCRIPT_DIR/.opencode" ]; then
+  RESOLVED="$SCRIPT_DIR/.opencode"
+else
+  RESOLVED="$(find_binary "$SCRIPT_DIR")" || {
+    echo "It seems that your package manager failed to install the right version of the opencode CLI for your platform. You can try manually installing one of: $NAMES" >&2
+    exit 1
   }
+fi
 
-  child.on("exit", (code, signal) => {
-    for (const forwardedSignal of forwardedSignals) {
-      process.removeListener(forwardedSignal, forwarders[forwardedSignal])
-    }
-
-    if (signal) {
-      process.kill(process.pid, signal)
-      return
-    }
-
-    process.exit(typeof code === "number" ? code : 0)
-  })
-}
-
-const envPath = process.env.OPENCODE_BIN_PATH
-
-const scriptPath = fs.realpathSync(__filename)
-const scriptDir = path.dirname(scriptPath)
-
-//
-const cached = path.join(scriptDir, ".opencode")
-
-const platformMap = {
-  darwin: "darwin",
-  linux: "linux",
-  win32: "windows",
-}
-const archMap = {
-  x64: "x64",
-  arm64: "arm64",
-  arm: "arm",
-}
-
-let platform = platformMap[os.platform()]
-if (!platform) {
-  platform = os.platform()
-}
-let arch = archMap[os.arch()]
-if (!arch) {
-  arch = os.arch()
-}
-const base = "opencode-" + platform + "-" + arch
-const binary = platform === "windows" ? "opencode.exe" : "opencode"
-
-function supportsAvx2() {
-  if (arch !== "x64") return false
-
-  if (platform === "linux") {
-    try {
-      return /(^|\s)avx2(\s|$)/i.test(fs.readFileSync("/proc/cpuinfo", "utf8"))
-    } catch {
-      return false
-    }
-  }
-
-  if (platform === "darwin") {
-    try {
-      const result = childProcess.spawnSync("sysctl", ["-n", "hw.optional.avx2_0"], {
-        encoding: "utf8",
-        timeout: 1500,
-      })
-      if (result.status !== 0) return false
-      return (result.stdout || "").trim() === "1"
-    } catch {
-      return false
-    }
-  }
-
-  if (platform === "windows") {
-    const cmd =
-      '(Add-Type -MemberDefinition "[DllImport(""kernel32.dll"")] public static extern bool IsProcessorFeaturePresent(int ProcessorFeature);" -Name Kernel32 -Namespace Win32 -PassThru)::IsProcessorFeaturePresent(40)'
-
-    for (const exe of ["powershell.exe", "pwsh.exe", "pwsh", "powershell"]) {
-      try {
-        const result = childProcess.spawnSync(exe, ["-NoProfile", "-NonInteractive", "-Command", cmd], {
-          encoding: "utf8",
-          timeout: 3000,
-          windowsHide: true,
-        })
-        if (result.status !== 0) continue
-        const out = (result.stdout || "").trim().toLowerCase()
-        if (out === "true" || out === "1") return true
-        if (out === "false" || out === "0") return false
-      } catch {
-        continue
-      }
-    }
-
-    return false
-  }
-
-  return false
-}
-
-const names = (() => {
-  const avx2 = supportsAvx2()
-  const baseline = arch === "x64" && !avx2
-
-  if (platform === "linux") {
-    const musl = (() => {
-      try {
-        if (fs.existsSync("/etc/alpine-release")) return true
-      } catch {
-        // ignore
-      }
-
-      try {
-        const result = childProcess.spawnSync("ldd", ["--version"], { encoding: "utf8" })
-        const text = ((result.stdout || "") + (result.stderr || "")).toLowerCase()
-        if (text.includes("musl")) return true
-      } catch {
-        // ignore
-      }
-
-      return false
-    })()
-
-    if (musl) {
-      if (arch === "x64") {
-        if (baseline) return [`${base}-baseline-musl`, `${base}-musl`, `${base}-baseline`, base]
-        return [`${base}-musl`, `${base}-baseline-musl`, base, `${base}-baseline`]
-      }
-      return [`${base}-musl`, base]
-    }
-
-    if (arch === "x64") {
-      if (baseline) return [`${base}-baseline`, base, `${base}-baseline-musl`, `${base}-musl`]
-      return [base, `${base}-baseline`, `${base}-musl`, `${base}-baseline-musl`]
-    }
-    return [base, `${base}-musl`]
-  }
-
-  if (arch === "x64") {
-    if (baseline) return [`${base}-baseline`, base]
-    return [base, `${base}-baseline`]
-  }
-  return [base]
-})()
-
-function findBinary(startDir) {
-  let current = startDir
-  for (;;) {
-    const modules = path.join(current, "node_modules")
-    if (fs.existsSync(modules)) {
-      for (const name of names) {
-        const candidate = path.join(modules, name, "bin", binary)
-        if (fs.existsSync(candidate)) return candidate
-      }
-    }
-    const parent = path.dirname(current)
-    if (parent === current) {
-      return
-    }
-    current = parent
-  }
-}
-
-const resolved = envPath || (fs.existsSync(cached) ? cached : findBinary(scriptDir))
-if (!resolved) {
-  console.error(
-    "It seems that your package manager failed to install the right version of the opencode CLI for your platform. You can try manually installing " +
-      names.map((n) => `\"${n}\"`).join(" or ") +
-      " package",
-  )
-  process.exit(1)
-}
-
-run(resolved)
+# Use exec to replace this process with the opencode binary
+# This ensures the OS process table shows "opencode" instead of "sh" or "node"
+exec "$RESOLVED" "$@"

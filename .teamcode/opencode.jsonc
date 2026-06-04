@@ -74,6 +74,14 @@
     "deps": {
       "model": "anthropic/claude-sonnet-4-6",
       "description": "Dependency auditor detecting outdated, conflicting, and vulnerable dependencies"
+    },
+    "security-agent": {
+      "model": "anthropic/claude-sonnet-4-6",
+      "description": "Security assessment specialist for pentest reconnaissance — nmap, nikto, whois, whatweb, dig, curl"
+    },
+    "pentest-agent": {
+      "model": "anthropic/claude-sonnet-4-6",
+      "description": "METATRON pentest agent — agentic-loop vulnerability analysis with structured output for database storage"
     }
   },
 
@@ -85,7 +93,14 @@
   },
 
   // === MCP SERVERS ===
-  "mcp": {},
+  "mcp": {
+    "security-tools": {
+      "type": "local",
+      "command": ["bun", "run", "packages/mcp-security-tools/src/index.ts"],
+      "enabled": true,
+      "timeout": 300000
+    }
+  },
 
   // === PERMISSIONS ===
   "permission": {

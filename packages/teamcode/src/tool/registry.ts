@@ -23,6 +23,7 @@ import { Plugin } from "../plugin"
 import { Provider } from "@/provider/provider"
 import { ProviderID, type ModelID } from "../provider/schema"
 import { WebSearchTool } from "./websearch"
+import { CveLookupTool } from "./cve-lookup"
 import { RepoCloneTool } from "./repo_clone"
 import { RepoOverviewTool } from "./repo_overview"
 import * as Log from "@teamcode-ai/core/util/log"
@@ -124,6 +125,7 @@ export const layer: Layer.Layer<
     const plan = yield* PlanExitTool
     const webfetch = yield* WebFetchTool
     const websearch = yield* WebSearchTool
+    const cveLookup = yield* CveLookupTool
     const repoClone = yield* RepoCloneTool
     const repoOverview = yield* RepoOverviewTool
     const shell = yield* ShellTool
@@ -262,6 +264,10 @@ export const layer: Layer.Layer<
           })),
           search: Tool.init(websearch).pipe(Effect.catch((error) => {
             log.warn("tool initialization failed, skipping", { tool: "search", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
+          cve_lookup: Tool.init(cveLookup).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "cve_lookup", error: String(error) })
             return Effect.succeed(undefined)
           })),
           repo_clone: Tool.init(repoClone).pipe(Effect.catch((error) => {
