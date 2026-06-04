@@ -2405,6 +2405,8 @@ describe("ProviderTransform.variants", () => {
     })
     const result = ProviderTransform.variants(model)
     expect(result).toEqual({
+      low: { reasoningEffort: "low" },
+      medium: { reasoningEffort: "medium" },
       high: { reasoningEffort: "high" },
     })
   })
@@ -2422,6 +2424,8 @@ describe("ProviderTransform.variants", () => {
     })
     const result = ProviderTransform.variants(model)
     expect(result).toEqual({
+      low: { reasoningEffort: "low" },
+      medium: { reasoningEffort: "medium" },
       high: { reasoningEffort: "high" },
     })
   })

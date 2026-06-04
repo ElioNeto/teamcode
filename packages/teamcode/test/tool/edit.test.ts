@@ -99,7 +99,8 @@ describe("tool.edit", () => {
         const result = yield* run({ filePath: filepath, oldString: "", newString: "new content" })
 
         expect(result.metadata.diff).toContain("new content")
-        expect(yield* load(filepath)).toBe("new content")
+        // Edit tool appends trailing newline when creating new files
+        expect(yield* load(filepath)).toBe("new content\n")
       }),
     )
 
@@ -128,7 +129,8 @@ describe("tool.edit", () => {
 
         yield* run({ filePath: filepath, oldString: "", newString: "nested file" })
 
-        expect(yield* load(filepath)).toBe("nested file")
+        // Edit tool appends trailing newline when creating new files
+        expect(yield* load(filepath)).toBe("nested file\n")
       }),
     )
 
