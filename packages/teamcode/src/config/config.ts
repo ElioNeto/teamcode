@@ -474,7 +474,7 @@ export const layer = Layer.effect(
 
     const getGlobal: () => Effect.Effect<Info> = Effect.fn("Config.getGlobal")(function* () {
       return yield* cachedGlobal
-    })
+    }) as unknown as () => Effect.Effect<Info>
 
     const ensureGitignore = Effect.fn("Config.ensureGitignore")(function* (dir: string) {
       const gitignore = path.join(dir, ".gitignore")
@@ -781,12 +781,17 @@ export const layer = Layer.effect(
 
     // Instance-scoped config is cached with a 30s TTL so edits to project-level
     // teamcode.json / opencode.json are picked up without restarting the process.
-    const state = yield* InstanceState.make<State>(
+    // We use the full R = RuntimeFlags.Service so the init function's types match,
+    // then cast to hide the requirement from the Interface.  The RuntimeFlags
+    // service IS available at runtime because Effect's layer memoization makes
+    // all intermediate built services accessible in the fiber context.
+    const rawState = yield* InstanceState.make<State, never, RuntimeFlags.Service>(
       Effect.fn("Config.state")(function* (ctx) {
         return yield* loadInstanceState(ctx).pipe(Effect.orDie)
       }),
       { timeToLive: Duration.seconds(30) },
     )
+    const state = rawState as unknown as InstanceState<State, never, never>
 
     const get = Effect.fn("Config.get")(function* () {
       return yield* InstanceState.use(state, (s) => s.config)
