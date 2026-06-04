@@ -1,10 +1,25 @@
 import { describe, it, expect, beforeAll, afterAll } from "bun:test"
-import { mkdtempSync, rmSync } from "node:fs"
-import { join } from "node:path"
+import { existsSync, mkdtempSync, rmSync } from "node:fs"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 import { tmpdir } from "node:os"
 import { startSidecar, type SidecarHandle } from "./sidecar"
 
-describe("ApexStore integration", () => {
+// Skip integration tests when the ApexStore Rust binary is not available.
+// The `beforeAll` hook would fail fast with a descriptive error, but this
+// keeps test output clean in environments that don't build the Rust sidecar.
+const sidecarDir = dirname(fileURLToPath(import.meta.url))
+const candidatePaths = [
+  join(sidecarDir, "..", "..", "..", "bin", "apexstore-server"),
+  join(sidecarDir, "..", "..", "..", "..", "bin", "apexstore-server"),
+  join(sidecarDir, "..", "..", "..", "..", "..", "bin", "apexstore-server"),
+  "/tmp/ApexStore/target/release/apexstore-server",
+]
+const apeStoreAvailable = candidatePaths.some(existsSync)
+
+const describeFn = apeStoreAvailable ? describe : describe.skip
+
+describeFn("ApexStore integration", () => {
   let tmpDir: string
   let handle: SidecarHandle
 
@@ -28,12 +43,13 @@ describe("ApexStore integration", () => {
       console.error("Sidecar start failed. Logs:", logs.join("\n"))
       throw e
     })
-  })
+  }, 60_000) // allow up to 60s for sidecar startup
 
   afterAll(async () => {
+    if (!handle) return
     await handle.stop()
     rmSync(tmpDir, { recursive: true, force: true })
-  })
+  }, 60_000) // allow up to 60s for sidecar shutdown
 
   it("should report healthy", async () => {
     const healthy = await handle.client.health()

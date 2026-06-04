@@ -1,5 +1,5 @@
 import { test, expect, describe, mock, afterEach, beforeEach } from "bun:test"
-import { Effect, Layer, Option } from "effect"
+import { ConfigProvider, Effect, Layer, Option } from "effect"
 import { NodeFileSystem, NodePath } from "@effect/platform-node"
 import { Config } from "@/config/config"
 import { ConfigManaged } from "@/config/managed"
@@ -1081,10 +1081,15 @@ test("installs dependencies in writable TEAMCODE_CONFIG_DIR", async () => {
       fn: async (ctx) => {
         // Use a single effect scope so both get() and waitForDependencies() share the
         // same Config.Service instance and its InstanceState cache.
+        // Provide a fresh ConfigProvider so the env-var change (TEAMCODE_CONFIG_DIR)
+        // made at line 1076 is visible to RuntimeFlags.defaultLayer.
+        // Use RuntimeFlags.layer so configDir is explicit and does not rely on
+        // Effect's ConfigProvider.fromEnv() which snapshots process.env at first
+        // use and can leave stale cached values from earlier test runs.
         const testLayer = Config.layer.pipe(
           Layer.provide(testFlock),
           Layer.provide(AppFileSystem.defaultLayer),
-          Layer.provide(RuntimeFlags.defaultLayer),
+          Layer.provide(RuntimeFlags.layer({ configDir: tmp.extra })),
           Layer.provide(Env.defaultLayer),
           Layer.provide(emptyAuth),
           Layer.provide(emptyAccount),

@@ -229,6 +229,11 @@ export function createRoutes(
     Layer.provideMerge(RuntimeFlags.defaultLayer),
     Layer.provideMerge(InstanceLayer.layer),
     Layer.provideMerge(Observability.layer),
+    // CorsConfig must be merged into the output so the CORS middleware can
+    // read it via `yield* CorsConfig` at request time.  The earlier
+    // `Layer.provide` (line 223) only satisfies the construction-time tag
+    // and does NOT make the value available downstream at runtime.
+    Layer.provideMerge(Layer.succeed(CorsConfig)(corsOptions)),
   )
 }
 

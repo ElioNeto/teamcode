@@ -40,8 +40,8 @@ export class V2LocationMiddleware extends HttpApiMiddleware.Service<
 function ref(request: HttpServerRequest.HttpServerRequest): Location.Ref {
   const query = new URL(request.url, "http://localhost").searchParams
   return {
-    directory: query.get("location[directory]") || request.headers["x-teamcode-directory"] || process.cwd(),
-    workspaceID: query.get("location[workspace]") || request.headers["x-teamcode-workspace"],
+    directory: query.get("location[directory]") || request.headers["x-opencode-directory"] || request.headers["x-teamcode-directory"] || process.cwd(),
+    workspaceID: query.get("location[workspace]") || request.headers["x-opencode-workspace"] || request.headers["x-teamcode-workspace"],
   }
 }
 

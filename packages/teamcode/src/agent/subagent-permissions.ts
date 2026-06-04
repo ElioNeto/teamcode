@@ -31,17 +31,17 @@ export function deriveSubagentSessionPermission(input: {
     input.parentAgent?.permission.filter(
       (rule) => rule.action === "deny" && EDIT_CLASS.has(rule.permission),
     ) ?? []
+  const parentDenies = input.parentSessionPermission.filter(
+    (rule) => rule.permission === "external_directory" || rule.action === "deny",
+  )
   return [
-    // Parent denies come first as defaults; subagent's own rules come last
-    // so Permission.evaluate last-match-wins semantics let the subagent's
-    // explicit permissions override inherited restrictions. (#27497)
-    ...parentAgentDenies,
-    ...input.parentSessionPermission.filter(
-      (rule) => rule.permission === "external_directory" || rule.action === "deny",
-    ),
+    // Subagent's own rules come first — they get lowest priority.
+    // Parent denies come last so they act as hard ceilings that
+    // cannot be overridden by the subagent. (#26514)
+    ...input.subagent.permission,
     ...(canTodo ? [] : [{ permission: "todowrite" as const, pattern: "*" as const, action: "deny" as const }]),
     ...(canTask ? [] : [{ permission: "task" as const, pattern: "*" as const, action: "deny" as const }]),
-    // Subagent's own rules last = highest priority in last-match-wins evaluation.
-    ...input.subagent.permission,
+    ...parentDenies,
+    ...parentAgentDenies,
   ]
 }

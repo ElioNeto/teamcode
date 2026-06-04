@@ -473,7 +473,7 @@ export const layer = Layer.effect(
     )
 
     const getGlobal: () => Effect.Effect<Info> = Effect.fn("Config.getGlobal")(function* () {
-      return yield* cachedGlobal.pipe(Effect.provide(RuntimeFlags.defaultLayer))
+      return yield* cachedGlobal
     })
 
     const ensureGitignore = Effect.fn("Config.ensureGitignore")(function* (dir: string) {
@@ -783,7 +783,7 @@ export const layer = Layer.effect(
     // teamcode.json / opencode.json are picked up without restarting the process.
     const state = yield* InstanceState.make<State>(
       Effect.fn("Config.state")(function* (ctx) {
-        return yield* loadInstanceState(ctx).pipe(Effect.provide(RuntimeFlags.defaultLayer), Effect.orDie)
+        return yield* loadInstanceState(ctx).pipe(Effect.orDie)
       }),
       { timeToLive: Duration.seconds(30) },
     )

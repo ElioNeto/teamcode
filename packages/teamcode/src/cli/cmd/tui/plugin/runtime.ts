@@ -41,7 +41,7 @@ import type { HostPluginApi, HostSlots } from "./slots"
 import { ConfigPlugin } from "@/config/plugin"
 import { createCommandShim } from "./command-shim"
 import { RuntimeFlags } from "@/effect/runtime-flags"
-import { Effect } from "effect"
+import { ConfigProvider, Effect } from "effect"
 
 ensureRuntimePluginSupport({ additional: keymapRuntimeModules })
 
@@ -1064,10 +1064,17 @@ async function load(input: { api: Api; config: TuiConfig.Resolved; dispose?: () 
   }
   runtime = next
   try {
+    // Use a fresh ConfigProvider.fromEnv() so process.env changes (e.g.
+    // TEAMCODE_PURE set by tests) are visible.  Effect's default ConfigProvider
+    // Context.Reference snapshots process.env on first access, which can leave
+    // stale values from earlier test runs or CLI invocations.
     const flags = await Effect.runPromise(
       Effect.gen(function* () {
         return yield* RuntimeFlags.Service
-      }).pipe(Effect.provide(RuntimeFlags.defaultLayer)),
+      }).pipe(
+        Effect.provide(RuntimeFlags.defaultLayer),
+        Effect.provide(ConfigProvider.layer(ConfigProvider.fromEnv())),
+      ),
     )
     const records = flags.pure ? [] : (config.plugin_origins ?? [])
     if (flags.pure && config.plugin_origins?.length) {

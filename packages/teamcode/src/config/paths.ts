@@ -86,7 +86,7 @@ export const files = Effect.fn("ConfigPaths.projectFiles")(function* (
 export const directories = Effect.fn("ConfigPaths.directories")(function* (directory: string, worktree?: string) {
   const afs = yield* AppFileSystem.Service
   const flags = yield* RuntimeFlags.Service
-  return unique([
+  const result = unique([
     Global.Path.config,
     ...(!flags.disableProjectConfig
       ? yield* afs.up({
@@ -102,4 +102,5 @@ export const directories = Effect.fn("ConfigPaths.directories")(function* (direc
     })),
     ...(flags.configDir ? [flags.configDir] : []),
   ])
+  return result
 })
