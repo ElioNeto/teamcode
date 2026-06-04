@@ -95,7 +95,7 @@ cd packages/teamcode && bun run test --timeout 30000 2>&1 | tail -20
 
 If validation fails:
 1. Read the error message carefully
-2. Fix the underlying issue
+2. Fix the underlying issue — never dismiss it as "pre-existing" or "upstream"
 3. Return to **Implement**
 
 #### 4. Review
@@ -131,12 +131,18 @@ Continue forever.
 
 | Situation | Action |
 |-----------|--------|
-| Validate fails | Return to Implement with error context |
+| Validate fails | Fix the error — never dismiss as "pre-existing" or "upstream" |
 | Review fails (simple) | Return to Implement |
 | Review fails (complex) | Return to Plan |
 | 3 consecutive failures on same issue | Skip issue with explanatory comment |
 | API rate limit | Wait and retry |
 | Working tree not clean | Stash or abort, then retry |
+
+### Hard Rules
+
+1. **Never dismiss an error as "pre-existing" or "upstream".** Every error has a root cause. Investigate and fix it.
+2. **Do not check if "main also fails".** If it fails on main too, fix it on main as part of your changes.
+3. **When CI fails, read the full error log, trace the source, and make a targeted fix.** If unsure, investigate deeper — do not skip.
 
 ## Rules
 

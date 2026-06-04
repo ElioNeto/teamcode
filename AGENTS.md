@@ -3,6 +3,7 @@
 - The default branch in this repo is `dev`.
 - Local `main` ref may not exist; use `dev` or `origin/dev` for diffs.
 - Prefer automation: execute requested actions without confirmation unless blocked by missing info or safety/irreversibility.
+- **Never dismiss an error as "pre-existing" or "upstream."** Every CI failure, test failure, or validation error must be investigated to its root cause and fixed. If the same error exists on `main`, fix it on `main` as part of your changes. There is no such thing as a "pre-existing" error — only errors that haven't been fixed yet.
 
 ## Style Guide
 
