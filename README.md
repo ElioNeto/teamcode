@@ -6,8 +6,7 @@
 </p>
 <p align="center">An open-source AI coding agent for your terminal.</p>
 <p align="center">
-  <a href="https://discord.gg/teamcode"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord&color=5865F2" /></a>
-  <a href="https://x.com/teamcode"><img alt="X / Twitter" src="https://img.shields.io/badge/x-@teamcode-1DA1F2?style=flat-square&logo=x" /></a>
+
   <a href="https://github.com/ElioNeto/teamcode/actions/workflows/publish.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/ElioNeto/teamcode/publish.yml?style=flat-square&branch=main" /></a>
   <a href="https://www.npmjs.com/package/@teamcode-ai/teamcode"><img alt="npm" src="https://img.shields.io/npm/v/@teamcode-ai/teamcode?style=flat-square" /></a>
 </p>
