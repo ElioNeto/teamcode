@@ -372,7 +372,74 @@ export const layer = Layer.effect(
 
         next.dirs = Array.from(dirs).toSorted()
       } else {
-        const files = yield* rg.files({ cwd: ctx.directory }).pipe(
+        const files = yield* rg.files({
+          cwd: ctx.directory,
+          glob: [
+            // Skip common dependency and build directories
+            "!**/node_modules/**",
+            "!**/bower_components/**",
+            "!**/.pnpm-store/**",
+            "!**/vendor/**",
+            "!**/dist/**",
+            "!**/build/**",
+            "!**/out/**",
+            "!**/.next/**",
+            "!**/target/**",
+            "!**/bin/**",
+            "!**/obj/**",
+            // Skip VCS directories
+            "!**/.git/**",
+            "!**/.svn/**",
+            "!**/.hg/**",
+            // Skip cache and temp directories
+            "!**/.cache/**",
+            "!**/__pycache__/**",
+            "!**/.pytest_cache/**",
+            "!**/mypy_cache/**",
+            "!**/.gradle/**",
+            "!**/logs/**",
+            "!**/tmp/**",
+            "!**/temp/**",
+            "!**/coverage/**",
+            "!**/.nyc_output/**",
+            // Skip large generated/test artifact directories
+            "!**/desktop/**",
+            "!**/.sst/**",
+            "!**/.turbo/**",
+            "!**/.output/**",
+            // Skip common binary/large file types not useful for code search.
+            // Images are intentionally NOT excluded since filenames like
+            // logo.png or icon.svg are meaningful for code search.
+            "!**/*.mp4",
+            "!**/*.avi",
+            "!**/*.mov",
+            "!**/*.wmv",
+            "!**/*.flv",
+            "!**/*.webm",
+            "!**/*.mkv",
+            "!**/*.zip",
+            "!**/*.tar",
+            "!**/*.gz",
+            "!**/*.rar",
+            "!**/*.7z",
+            "!**/*.bz2",
+            "!**/*.xz",
+            "!**/*.pdf",
+            "!**/*.doc",
+            "!**/*.docx",
+            "!**/*.xls",
+            "!**/*.xlsx",
+            "!**/*.ppt",
+            "!**/*.pptx",
+            "!**/*.exe",
+            "!**/*.dll",
+            "!**/*.so",
+            "!**/*.dylib",
+            "!**/*.wasm",
+            "!**/*.class",
+            "!**/*.jar",
+          ],
+        }).pipe(
           Stream.runCollect,
           Effect.map((chunk) => [...chunk]),
         )
