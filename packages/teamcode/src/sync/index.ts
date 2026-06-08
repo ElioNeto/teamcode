@@ -363,11 +363,13 @@ function process<Def extends Definition>(
               instance: options.context?.instance,
               workspace: options.context?.workspace,
             }),
-          )
+          ).catch((error) => {
+            console.error("sync event bus publish failed", def.type, error)
+          })
         if (result instanceof Promise) {
           void result.then(publish)
         } else {
-          void publish(result)
+          publish(result) // fire-and-forget with error logging
         }
 
         GlobalBus.emit("event", {
