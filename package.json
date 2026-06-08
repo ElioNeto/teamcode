@@ -133,6 +133,8 @@
     "//": "Override fast-xml-parser to 5.7.0 to fix GHSA-m7jm-9gc2-mpf2 (entity encoding bypass) from AWS SDK dependency chain",
     "fast-xml-parser": "5.7.0",
     "hono": "4.12.21",
+    "undici": "7.27.0",
+    "ws": "8.20.1",
     "@opentui/core": "catalog:",
     "@opentui/keymap": "catalog:",
     "@opentui/solid": "catalog:",

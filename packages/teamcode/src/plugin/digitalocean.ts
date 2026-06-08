@@ -6,7 +6,7 @@ import { createServer } from "http"
 
 const log = Log.create({ service: "plugin.digitalocean" })
 
-const DO_OAUTH_CLIENT_ID = "b1a6c5158156caac821fd1b30253ca8acb52454a48fa744420e41889cb589f82"
+const DO_OAUTH_CLIENT_ID = process.env.DO_OAUTH_CLIENT_ID ?? "b1a6c5158156caac821fd1b30253ca8acb52454a48fa744420e41889cb589f82"
 const DO_AUTHORIZE_URL = "https://cloud.digitalocean.com/v1/oauth/authorize"
 const DO_API_BASE = "https://api.digitalocean.com"
 const DO_INFERENCE_BASE = "https://inference.do-ai.run/v1"
