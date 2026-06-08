@@ -96,16 +96,29 @@ export const layer = Layer.effect(
             Effect.promise(() => Promise.allSettled(subs.map((sub) => sub.unsubscribe()))),
           )
 
+          // Debounce file-watcher events to prevent a burst of N parallel bus
+          // publishes (and therefore N parallel HTTP sync requests to the web UI)
+          // when an agent writes many files at once. Accumulate events during
+          // the debounce window so none are lost.
+          let debounceTimer: ReturnType<typeof setTimeout> | null = null
+          let pending: ParcelWatcher.Event[] = []
           const cb: ParcelWatcher.SubscribeCallback = bridge.bind((err, evts) => {
             if (err) {
               log.warn("watcher error", { error: err })
               return
             }
-            for (const evt of evts) {
-              if (evt.type === "create") void Bus.publish(ctx, Event.Updated, { file: evt.path, event: "add" })
-              if (evt.type === "update") void Bus.publish(ctx, Event.Updated, { file: evt.path, event: "change" })
-              if (evt.type === "delete") void Bus.publish(ctx, Event.Updated, { file: evt.path, event: "unlink" })
-            }
+            pending.push(...evts)
+            if (debounceTimer) clearTimeout(debounceTimer)
+            debounceTimer = setTimeout(() => {
+              debounceTimer = null
+              const batch = pending
+              pending = []
+              for (const evt of batch) {
+                if (evt.type === "create") void Bus.publish(ctx, Event.Updated, { file: evt.path, event: "add" })
+                if (evt.type === "update") void Bus.publish(ctx, Event.Updated, { file: evt.path, event: "change" })
+                if (evt.type === "delete") void Bus.publish(ctx, Event.Updated, { file: evt.path, event: "unlink" })
+              }
+            }, 100) // 100ms debounce — coalesces bursts while staying interactive
           })
 
           const subscribe = (dir: string, ignore: string[]) => {
