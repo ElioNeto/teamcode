@@ -959,7 +959,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
               state: {
                 status: "running",
                 time: { start: started },
-                input: { command: input.command },
+                input: { command: input.command, description: `Shell: ${input.command}` },
               },
             }
             yield* sessions.updatePart(part)
