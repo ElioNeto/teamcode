@@ -182,7 +182,13 @@ const aggregateSessionStats = Effect.fn("Cli.stats.aggregate")(function* (
           }
         > = {}
 
+        // Filter messages by time window — only count messages created within
+        // the requested days, not all messages from a session that was updated
+        // within the window.
+        const cutoff = cutoffTime > 0 ? cutoffTime : 0
+
         for (const message of messages) {
+          if (cutoff > 0 && message.info.time.created < cutoff) continue
           if (message.info.role === "assistant") {
             const modelKey = `${message.info.providerID}/${message.info.modelID}`
             if (!sessionModelUsage[modelKey]) {
