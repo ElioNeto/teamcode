@@ -562,12 +562,18 @@ export const layer = Layer.effect(
               }
               ctx.snapshot = undefined
             }
-            yield* summary
-              .summarize({
-                sessionID: ctx.sessionID,
-                messageID: ctx.assistantMessage.parentID,
-              })
-              .pipe(Effect.ignore, Effect.forkIn(scope))
+            // Only summarize on final steps (stop/end), not intermediate tool-call
+            // steps. Each summarize loads the full session history, so running it
+            // on every finish-step causes O(N^2) memory growth during multi-step
+            // agent execution.
+            if (value.finishReason !== "tool-calls") {
+              yield* summary
+                .summarize({
+                  sessionID: ctx.sessionID,
+                  messageID: ctx.assistantMessage.parentID,
+                })
+                .pipe(Effect.ignore, Effect.forkIn(scope))
+            }
             if (
               !ctx.assistantMessage.summary &&
               isOverflow({ cfg: yield* config.get(), tokens: usage.tokens, model: ctx.model })
