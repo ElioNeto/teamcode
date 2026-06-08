@@ -403,7 +403,7 @@ export const layer = Layer.effect(
           userMessage.parts.push(part)
         }
         const wasPlan = input.messages.some((msg) => msg.info.role === "assistant" && msg.info.agent === "plan")
-        if (wasPlan && input.agent.name === "build") {
+        if (wasPlan && input.agent.name !== "plan") {
           const part = yield* sessions.updatePart({
             id: PartID.ascending(),
             messageID: userMessage.info.id,
