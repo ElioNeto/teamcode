@@ -122,4 +122,37 @@ export class ACPSessionManager {
     this.sessions.delete(sessionId)
     return session
   }
+
+  /**
+   * Register a session that was not created via create()/load() (e.g. a child
+   * session created by the Task tool for a subagent). Uses the SDK to fetch
+   * session metadata and registers it with the parent's config.
+   */
+  async autoRegister(sessionId: string, directory: string): Promise<ACPSessionState | undefined> {
+    if (this.sessions.has(sessionId)) return this.sessions.get(sessionId)
+
+    try {
+      const session = await this.sdk.session
+        .get({ sessionID: sessionId, directory }, { throwOnError: true })
+        .then((x) => x.data)
+
+      if (!session) return undefined
+
+      const state: ACPSessionState = {
+        id: sessionId,
+        cwd: directory,
+        mcpServers: [],
+        createdAt: new Date(session.time.created),
+        model: session.model
+          ? { providerID: ProviderID.make(session.model.providerID), modelID: ModelID.make(session.model.id) }
+          : undefined,
+      }
+      log.info("auto-registered child session", { sessionId, parentCwd: directory })
+      this.sessions.set(sessionId, state)
+      return state
+    } catch (error) {
+      log.warn("failed to auto-register session", { sessionId, error })
+      return undefined
+    }
+  }
 }

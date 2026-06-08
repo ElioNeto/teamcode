@@ -202,8 +202,13 @@ export class Agent implements ACPAgent {
     switch (event.type) {
       case "permission.asked": {
         const permission = event.properties
-        const session = this.sessionManager.tryGet(permission.sessionID)
-        if (!session) return
+        let session = this.sessionManager.tryGet(permission.sessionID)
+        if (!session) {
+          // Child session (e.g. from Task tool subagent) — auto-register so
+          // permission prompts and events are visible to the ACP client.
+          session = await this.sessionManager.autoRegister(permission.sessionID, "")
+          if (!session) return
+        }
 
         const prev = this.permissionQueues.get(permission.sessionID) ?? Promise.resolve()
         const next = prev
@@ -285,8 +290,11 @@ export class Agent implements ACPAgent {
         log.info("message part updated", { event: event.properties })
         const props = event.properties
         const part = props.part
-        const session = this.sessionManager.tryGet(part.sessionID)
-        if (!session) return
+        let session = this.sessionManager.tryGet(part.sessionID)
+        if (!session) {
+          session = await this.sessionManager.autoRegister(part.sessionID, "")
+          if (!session) return
+        }
         const sessionId = session.id
 
         if (part.type === "tool") {
