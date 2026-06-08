@@ -278,6 +278,24 @@ export const ReadTool = Tool.define(
       }
 
       const loaded = yield* instruction.resolve(ctx.messages, filepath, ctx.messageID)
+
+      // Check file size early — large files (especially media) can overflow
+      // provider context windows or cause API errors when sent as attachments.
+      const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+      if (Number(stat.size) > MAX_FILE_SIZE) {
+        return {
+          title,
+          output: [
+            `<path>${filepath}</path>`,
+            `<type>file</type>`,
+            `<size>${Number(stat.size)} bytes</size>`,
+            "",
+            `(File is ${(Number(stat.size) / 1024 / 1024).toFixed(1)} MB. Use offset and limit parameters to read specific sections.)`,
+          ].join("\n"),
+          metadata: { preview: `(large file: ${(Number(stat.size) / 1024 / 1024).toFixed(1)} MB)`, truncated: true, loaded: loaded.map((item) => item.filepath) },
+        }
+      }
+
       const sample = yield* readSample(filepath, Number(stat.size), SAMPLE_BYTES)
 
       const mime = sniffAttachmentMime(sample, AppFileSystem.mimeType(filepath))
