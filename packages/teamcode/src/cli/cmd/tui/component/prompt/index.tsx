@@ -157,6 +157,11 @@ export function Prompt(props: PromptProps) {
   const dialog = useDialog()
   const toast = useToast()
   const status = createMemo(() => sync.data.session_status?.[props.sessionID ?? ""] ?? { type: "idle" })
+  // Also consider any session busy — background agents run as child sessions
+  // whose status is tracked separately in the store.
+  const anySessionBusy = createMemo(() =>
+    Object.values(sync.data.session_status).some((s) => s.type === "busy"),
+  )
   const history = usePromptHistory()
   const stash = usePromptStash()
   const command = useCommandPalette()
@@ -475,7 +480,7 @@ export function Prompt(props: PromptProps) {
         name: "session.interrupt",
         category: "Session",
         hidden: true,
-        enabled: status().type !== "idle",
+        enabled: status().type !== "idle" || anySessionBusy(),
         run: () => {
           if (auto()?.visible) return
           if (!input.focused) return
@@ -657,7 +662,7 @@ export function Prompt(props: PromptProps) {
   // from the first call's cache, and the interrupt binding is never registered.
   // See https://github.com/ElioNeto/teamcode/issues/1024
   useBindings(() => ({
-    enabled: status().type !== "idle" && !props.disabled,
+    enabled: (status().type !== "idle" || anySessionBusy()) && !props.disabled,
     bindings: tuiConfig.keybinds.gather("prompt.interrupt", ["session.interrupt"]),
   }))
 
