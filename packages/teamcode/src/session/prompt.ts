@@ -817,7 +817,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
                     status: "error",
                     error: "Cancelled",
                     time: { start: part.state.time.start, end: Date.now() },
-                    metadata: part.state.metadata,
+                    metadata: { ...part.state.metadata, interrupted: true },
                     input: part.state.input,
                   },
                 } satisfies MessageV2.ToolPart)

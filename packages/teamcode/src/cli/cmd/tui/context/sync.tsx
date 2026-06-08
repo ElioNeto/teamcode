@@ -566,20 +566,40 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
         },
         async sync(sessionID: string) {
           if (fullSyncedSessions.has(sessionID)) return
-          const [session, messages, todo, diff] = await Promise.all([
+
+          // Fetch session metadata, todos, and diff in parallel (small responses)
+          const [session, todo, diff] = await Promise.all([
             sdk.client.session.get({ sessionID }, { throwOnError: true }),
-            sdk.client.session.messages({ sessionID, limit: 100 }),
             sdk.client.session.todo({ sessionID }),
             sdk.client.session.diff({ sessionID }),
           ])
+
+          // Load messages in pages to prevent oversized HTTP responses
+          // when a subagent contains long text.
+          const allMessages: any[] = []
+          const PAGE_SIZE = 20
+          let before: string | undefined
+          while (true) {
+            const page = await sdk.client.session.messages({
+              sessionID,
+              limit: PAGE_SIZE,
+              before,
+            })
+            if (!page.data || page.data.length === 0) break
+            allMessages.push(...page.data)
+            const nextCursor = page.response?.headers?.get("X-Next-Cursor")
+            if (!nextCursor) break
+            before = nextCursor
+          }
+
           setStore(
             produce((draft) => {
               const match = Binary.search(draft.session, sessionID, (s) => s.id)
               if (match.found) draft.session[match.index] = session.data!
               if (!match.found) draft.session.splice(match.index, 0, session.data!)
               draft.todo[sessionID] = todo.data ?? []
-              const infos: (typeof draft.message)[string] = []
-              for (const message of messages.data ?? []) {
+              const infos: any[] = []
+              for (const message of allMessages) {
                 infos.push(message.info)
                 draft.part[message.info.id] = message.parts
               }
