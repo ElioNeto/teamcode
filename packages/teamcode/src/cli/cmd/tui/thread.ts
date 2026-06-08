@@ -22,6 +22,7 @@ import {
 } from "@teamcode-ai/core/util/teamcode-process"
 import { validateSession } from "./validate-session"
 import { Flock } from "@teamcode-ai/core/util/flock"
+import { Installation } from "@/installation"
 
 declare global {
   const TEAMCODE_WORKER_PATH: string
@@ -127,6 +128,16 @@ export const TuiThreadCommand = cmd({
         process.exitCode = 1
         return
       }
+
+      // Initialize logging for the main thread so Log.Default writes to a file
+      // instead of stderr. Without this, every Log.Default call (e.g. on
+      // bootstrap failure during config reload) would leak raw text into the
+      // TUI's alternate screen and corrupt the display.
+      await Log.init({
+        print: process.argv.includes("--print-logs"),
+        dev: Installation.isLocal(),
+        level: Installation.isLocal() ? "DEBUG" : "INFO",
+      })
 
       // Resolve relative --project paths from PWD, then use the real cwd after
       // chdir so the thread and worker share the same directory key.
