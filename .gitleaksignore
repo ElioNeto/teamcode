@@ -1,5 +1,27 @@
-# Fake secret-looking strings used by HTTP recorder redaction tests.
+# Gitleaks Ignore File
+# =====================
+# Each entry follows the Gitleaks ignore format:
+#   <commit>:<file>:<rule>:<line>
+#
+# The commit field is a full SHA (or all-zero for --no-git scans).
+# To generate entries, run:
+#   gitleaks detect --no-git --verbose 2>&1 | grep "Fingerprint:"
+# Then add the fingerprint line here after confirming it is a false positive.
+#
+# Only add entries here after confirming the match is a true false positive
+# (e.g., test fixtures, generated files, known keybinding patterns).
+
+# Test fixture — credential-like URL (user:password) used by HTTP recorder
+# redaction tests to verify built-in URL credential stripping.
 afa57acfda894e0ebf3c637dd710310b705c0a2f:packages/http-recorder/test/record-replay.test.ts:generic-api-key:69
+
+# Test fixture — same URL fixture continued on next line
 afa57acfda894e0ebf3c637dd710310b705c0a2f:packages/http-recorder/test/record-replay.test.ts:generic-api-key:92
+
+# Test fixture — fake API key used in HTTP recorder secretary detection test
+# (sk-test-invalid-do-not-scan / AIza-test-invalid-do-not-scan)
 afa57acfda894e0ebf3c637dd710310b705c0a2f:packages/http-recorder/test/record-replay.test.ts:generic-api-key:146
+
+# Test fixture — GCP-style key name (x-goog-api-key) in header list,
+# used to verify HTTP recorder header redaction
 afa57acfda894e0ebf3c637dd710310b705c0a2f:packages/http-recorder/test/record-replay.test.ts:gcp-api-key:71

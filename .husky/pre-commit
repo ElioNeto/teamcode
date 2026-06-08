@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+# Ensure Bun is in PATH for contributors whose hook environment
+# may not include interactive-shell PATH extensions.
+case "$(command -v bun 2>/dev/null)" in
+  "") export PATH="$HOME/.bun/bin:$PATH" ;;
+esac
+
+command -v bun >/dev/null 2>&1 || {
+  echo "⚠️  bun is required. Install it at https://bun.sh"
+  echo "   Then run: bun install"
+  exit 1
+}
+
+bun --version > /dev/null 2>&1 || exit 1
+
+# Run Gitleaks detection before commit to prevent secret leakage
+if command -v gitleaks &> /dev/null; then
+  gitleaks detect --no-git --verbose 2>&1 | head -5
+fi
