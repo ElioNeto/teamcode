@@ -3,7 +3,7 @@ import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui"
 import * as Clipboard from "@tui/util/clipboard"
 import * as Selection from "@tui/util/selection"
 import * as TuiAudio from "@tui/util/audio"
-import { createCliRenderer, MouseButton, type CliRenderer, type CliRendererConfig } from "@opentui/core"
+import { createCliRenderer, MouseButton, RGBA, type CliRenderer, type CliRendererConfig } from "@opentui/core"
 import { RouteProvider, useRoute } from "@tui/context/route"
 import {
   Switch,
@@ -194,8 +194,17 @@ If the problem persists, use --no-tui or run in headless mode: opencode run`)
       throw error
     }
     // Prewarm palette before ThemeProvider mounts so `system` theme avoids a first-paint fallback flash.
-    void renderer.getPalette({ size: 16 }).catch(() => undefined)
-    const mode = (await renderer.waitForThemeMode(1000)) ?? "dark"
+    const palette = await renderer.getPalette({ size: 16 }).catch(() => undefined)
+    // Compute mode from actual background color rather than relying on
+    // renderer.waitForThemeMode() which can return a stale cached value
+    // from the previous session (OSC 11 may not have updated yet).
+    const mode = palette?.defaultBackground
+      ? (() => {
+          const bg = RGBA.fromHex(palette.defaultBackground)
+          const brightness = (bg.r * 299 + bg.g * 587 + bg.b * 114) / 1000
+          return brightness > 0.5 ? "light" : "dark"
+        })()
+      : (await renderer.waitForThemeMode(1000)) ?? "dark"
 
     const keymap = createDefaultOpenTuiKeymap(renderer)
     const offKeymap = registerOpencodeKeymap(keymap, renderer, input.config)
