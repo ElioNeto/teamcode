@@ -55,6 +55,7 @@ export function RunFooterSubagentTabs(props: {
   selected?: string
   theme: RunFooterTheme
   width: number
+  onSelect?: (sessionID: string) => void
 }) {
   const items = mapArray(
     () => props.tabs,
@@ -62,7 +63,7 @@ export function RunFooterSubagentTabs(props: {
       const active = () => props.selected === tab.sessionID
       const slot = () => String(index() + 1)
       return (
-        <box paddingRight={1}>
+        <box paddingRight={1} onMouseUp={[() => props.onSelect?.(tab.sessionID)]}>
           <box flexDirection="row" gap={1} width="100%">
             {tab.status === "running" ? (
               <box flexShrink={0}>
