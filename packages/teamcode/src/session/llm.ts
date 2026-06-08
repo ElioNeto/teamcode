@@ -428,6 +428,10 @@ function resolveTools(input: Pick<StreamInput, "tools" | "agent" | "permission" 
     Object.keys(input.tools),
     Permission.merge(input.agent.permission, input.permission ?? []),
   )
+  // StructuredOutput is an internal framework tool injected by the system
+  // for JSON-schema structured output requests. It is not subject to agent
+  // permission deny rules (e.g. "*": "deny") since it is not a user-facing tool.
+  disabled.delete("StructuredOutput")
   return Record.filter(input.tools, (_, k) => input.user.tools?.[k] !== false && !disabled.has(k))
 }
 
