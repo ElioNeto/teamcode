@@ -114,6 +114,46 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
 
     const fullSyncedSessions = new Set<string>()
 
+    // ---- Debounced text delta buffer ----
+    // During streaming, text deltas arrive at high frequency (every 10-50ms).
+    // Batching them with a short debounce prevents cascading re-renders that
+    // cause terminal flickering when rendering fenced code blocks.
+    const textDeltaBuffer: Record<string, Record<string, string>> = {} // messageID -> partID -> accumulated text
+    let deltaFlushTimer: ReturnType<typeof setTimeout> | null = null
+
+    function bufferTextDelta(messageID: string, partID: string, delta: string) {
+      const parts = textDeltaBuffer[messageID] ??= {}
+      parts[partID] = (parts[partID] ?? "") + delta
+      if (deltaFlushTimer) clearTimeout(deltaFlushTimer)
+      deltaFlushTimer = setTimeout(flushTextDeltas, 50)
+    }
+
+    function flushTextDeltas() {
+      deltaFlushTimer = null
+      const pending = textDeltaBuffer
+      // Clear the buffer before iterating so new deltas create a new batch
+      for (const key of Object.keys(textDeltaBuffer)) delete textDeltaBuffer[key]
+
+      batch(() => {
+        for (const [messageID, parts] of Object.entries(pending)) {
+          for (const [partID, accumulated] of Object.entries(parts)) {
+            const currentParts = store.part[messageID]
+            if (!currentParts) continue
+            const result = Binary.search(currentParts, partID, (p) => p.id)
+            if (!result.found) continue
+            setStore(
+              "part",
+              messageID,
+              produce((draft) => {
+                const part = draft[result.index] as Record<string, string>
+                part.text = (part.text ?? "") + accumulated
+              }),
+            )
+          }
+        }
+      })
+    }
+
     function sessionListQuery(): { scope?: "project"; path?: string } {
       if (!kv.get("session_directory_filter_enabled", true)) return { scope: "project" }
       if (!project.data.instance.path.worktree || !project.data.instance.path.directory) return { scope: "project" }
@@ -329,16 +369,22 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           if (!parts) break
           const result = Binary.search(parts, event.properties.partID, (p) => p.id)
           if (!result.found) break
-          setStore(
-            "part",
-            event.properties.messageID,
-            produce((draft) => {
-              const part = draft[result.index]
-              const field = event.properties.field as keyof typeof part
-              const existing = part[field] as string | undefined
-              ;(part[field] as string) = (existing ?? "") + event.properties.delta
-            }),
-          )
+          const field = event.properties.field as string
+          // Debounce text deltas to batch rapid updates during code block streaming,
+          // preventing cascading re-renders that cause terminal flickering.
+          if (field === "text") {
+            bufferTextDelta(event.properties.messageID, event.properties.partID, event.properties.delta)
+          } else {
+            setStore(
+              "part",
+              event.properties.messageID,
+              produce((draft) => {
+                const part = draft[result.index]
+                const existing = part[field as keyof typeof part] as string | undefined
+                ;(part[field as keyof typeof part] as string) = (existing ?? "") + event.properties.delta
+              }),
+            )
+          }
           break
         }
 
