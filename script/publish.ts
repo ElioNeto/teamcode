@@ -40,5 +40,11 @@ await $`bun ./packages/plugin/script/publish.ts`
 
 // ── Finalize GitHub Release (publish draft) ────────────────────────────────
 if (process.env.GH_REPO) {
-  await $`gh release edit v${version} --draft=false --repo ${process.env.GH_REPO}`
+  const { exitCode } = await $`gh release edit v${version} --draft=false --repo ${process.env.GH_REPO}`.nothrow()
+  if (exitCode !== 0) {
+    // Release not found — create it now. The build step may have failed to
+    // create the draft (pre-existing bug) but npm packages are already
+    // pushed, so we still need a GitHub Release for this tag.
+    await $`gh release create v${version} --title "v${version}" --generate-notes --repo ${process.env.GH_REPO}`
+  }
 }
