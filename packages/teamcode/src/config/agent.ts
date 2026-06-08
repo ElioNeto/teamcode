@@ -124,8 +124,8 @@ export async function load(dir: string) {
 
     const config = {
       name,
-      ...md.data,
       prompt: md.content.trim(),
+      ...md.data,
     }
     const parsed = Schema.decodeUnknownOption(Info)(config, { errors: "all", propertyOrder: "original" })
     if (Option.isSome(parsed)) {
@@ -153,8 +153,8 @@ export async function loadMode(dir: string) {
 
     const config = {
       name: configEntryNameFromPath(item, []),
-      ...md.data,
       prompt: md.content.trim(),
+      ...md.data,
     }
     const parsed = Schema.decodeUnknownOption(Info)(config, { errors: "all", propertyOrder: "original" })
     if (Option.isSome(parsed)) {

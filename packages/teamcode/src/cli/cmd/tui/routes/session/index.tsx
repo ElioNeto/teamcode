@@ -2386,7 +2386,7 @@ function Diagnostics(props: { diagnostics?: Record<string, Record<string, any>[]
 }
 
 function input(input: Record<string, any>, omit?: string[]): string {
-  const primitives = Object.entries(input).filter(([key, value]) => {
+  const primitives = Object.entries(input ?? {}).filter(([key, value]) => {
     if (omit?.includes(key)) return false
     return typeof value === "string" || typeof value === "number" || typeof value === "boolean"
   })

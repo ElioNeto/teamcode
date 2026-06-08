@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-06-08T19:05:00-03:00",
+  "generatedAt": "2026-06-08T19:25:00-03:00",
   "totalOpen": 720,
-  "totalResolved": 31,
+  "totalResolved": 35,
   "phases": {
     "phase:p0-critical": {
       "label": "Must fix now — stability, security, core breaks",
-      "totalOpen": 136,
+      "totalOpen": 24,
       "open": [
         762,
         684,
@@ -158,7 +158,9 @@
         731,
         586,
         625,
-        613
+        613,
+        640,
+        513
       ]
     },
     "phase:p1-high": {
@@ -842,7 +844,7 @@
   "summary": {
     "p0-critical": {
       "open": 139,
-      "resolved": 11
+      "resolved": 13
     },
     "p1-high": {
       "open": 460,
@@ -861,7 +863,7 @@
       "resolved": 0
     },
     "totalOpen": 720,
-    "totalResolved": 31,
+    "totalResolved": 35,
     "skipped": 15
   }
 }
