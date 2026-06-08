@@ -264,7 +264,15 @@ if (Script.release) {
       await $`zip -r ../../${key}.zip *`.cwd(`dist/${key}/bin`).nothrow()
     }
   }
-  await $`gh release upload v${Script.version} ./dist/*.zip ./dist/*.tar.gz --clobber --repo ${process.env.GH_REPO}`.nothrow()
+  // Create the release (with archive upload) if it doesn't exist; otherwise
+  // upload any assets that may be missing.  Without this the downstream
+  // publish step would fail trying to ``gh release edit`` a release that was
+  // never created.
+  const archives = ["./dist/*.zip", "./dist/*.tar.gz"]
+  const createResult = await $`gh release create v${Script.version} --title "v${Script.version}" --generate-notes ${archives} --repo ${process.env.GH_REPO}`.nothrow()
+  if (createResult.exitCode !== 0) {
+    await $`gh release upload v${Script.version} ${archives} --clobber --repo ${process.env.GH_REPO}`.nothrow()
+  }
 }
 
 export { binaries }
