@@ -1497,6 +1497,16 @@ NOTE: At any point in time through this workflow you should feel free to ask the
                 (error) => error instanceof Image.ResizerUnavailableError,
                 () => Effect.succeed(part),
               ),
+              Effect.catchTag("ImageSizeError", (error) =>
+                Effect.succeed({
+                  id: part.id,
+                  messageID: part.messageID,
+                  sessionID: part.sessionID,
+                  type: "text" as const,
+                  synthetic: true,
+                  text: `[Image omitted: ${error.message}]`,
+                } satisfies MessageV2.Part),
+              ),
             )
           : Effect.succeed(part),
       )
