@@ -1019,10 +1019,16 @@ NOTE: At any point in time through this workflow you should feel free to ask the
                 { cwd, sessionID: input.sessionID, callID: part.callID },
                 { env: {} },
               )
+              const env: Record<string, string> = { ...shellEnv.env, TERM: "dumb" }
+              // Compose plugin PATH with system PATH instead of stomping it.
+              const pluginPath = (shellEnv.env as { PATH?: string }).PATH
+              if (pluginPath && pluginPath !== process.env.PATH) {
+                env.PATH = pluginPath + path.delimiter + (process.env.PATH ?? "")
+              }
               const cmd = ChildProcess.make(sh, args, {
                 cwd,
                 extendEnv: true,
-                env: { ...shellEnv.env, TERM: "dumb" },
+                env,
                 stdin: "ignore",
                 forceKillAfter: "3 seconds",
               })

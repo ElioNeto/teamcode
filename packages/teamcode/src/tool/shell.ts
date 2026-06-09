@@ -440,10 +440,13 @@ export const ShellTool = Tool.define(
         { cwd, sessionID: ctx.sessionID, callID: ctx.callID },
         { env: {} },
       )
-      return {
-        ...process.env,
-        ...extra.env,
+      const merged: Record<string, string> = { ...(process.env as Record<string, string>), ...extra.env }
+      // Compose plugin PATH with system PATH instead of stomping it.
+      const pluginPath = (extra.env as { PATH?: string }).PATH
+      if (pluginPath && pluginPath !== process.env.PATH) {
+        merged.PATH = pluginPath + path.delimiter + (process.env.PATH ?? "")
       }
+      return merged
     })
 
     const run = Effect.fn("ShellTool.run")(function* (
@@ -453,10 +456,11 @@ export const ShellTool = Tool.define(
         cwd: string
         env: NodeJS.ProcessEnv
         timeout: number
-        description: string
+        description: string | undefined
       },
       ctx: Tool.Context,
     ) {
+      const description = input.description ?? ""
       const limits = yield* trunc.limits()
       const keep = limits.maxBytes * 2
       let full = ""
@@ -497,7 +501,7 @@ export const ShellTool = Tool.define(
       yield* ctx.metadata({
         metadata: {
           output: "",
-          description: input.description,
+          description: description,
         },
       })
 
@@ -538,7 +542,7 @@ export const ShellTool = Tool.define(
                       ctx.metadata({
                         metadata: {
                           output: last,
-                          description: input.description,
+                          description: description,
                         },
                       }),
                     ),
@@ -549,7 +553,7 @@ export const ShellTool = Tool.define(
               return ctx.metadata({
                 metadata: {
                   output: last,
-                  description: input.description,
+                  description: description,
                 },
               })
             }),
@@ -612,11 +616,11 @@ export const ShellTool = Tool.define(
         output += "\n\n<shell_metadata>\n" + meta.join("\n") + "\n</shell_metadata>"
       }
       return {
-        title: input.description,
+        title: description,
         metadata: {
           output: last || preview(output),
           exit: code,
-          description: input.description,
+          description: description,
           truncated: cut,
           ...(cut && file ? { outputPath: file } : {}),
         },
