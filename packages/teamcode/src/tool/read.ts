@@ -1,5 +1,4 @@
 import { Effect, Option, Schema, Scope, Stream } from "effect"
-import { NonNegativeInt } from "@teamcode-ai/core/schema"
 import * as path from "path"
 import * as Tool from "./tool"
 import { AppFileSystem } from "@teamcode-ai/core/filesystem"
@@ -21,17 +20,16 @@ const SUPPORTED_IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/gif", "
 
 class ReadStop extends Schema.TaggedErrorClass<ReadStop>()("ReadStop", {}) {}
 
-// `offset` and `limit` were originally `z.coerce.number()` — the runtime
-// coercion was useful when the tool was called from a shell but serves no
-// purpose in the LLM tool-call path (the model emits typed JSON). The JSON
-// Schema output is identical (`type: "number"`), so the LLM view is
-// unchanged; purely CLI-facing uses must now send numbers rather than strings.
+// Some LLMs serialize integers as strings (e.g. "2480" instead of 2480).
+// Accept both forms and parse down to a non-negative integer.
+const IntParam = Schema.Union([Schema.Int, Schema.NumberFromString]).check(Schema.isGreaterThanOrEqualTo(0))
+
 export const Parameters = Schema.Struct({
   filePath: Schema.String.annotate({ description: "The absolute path to the file or directory to read" }),
-  offset: Schema.optional(NonNegativeInt).annotate({
+  offset: Schema.optional(IntParam).annotate({
     description: "The line number to start reading from (1-indexed)",
   }),
-  limit: Schema.optional(NonNegativeInt).annotate({
+  limit: Schema.optional(IntParam).annotate({
     description: "The maximum number of lines to read (defaults to 2000)",
   }),
 })
