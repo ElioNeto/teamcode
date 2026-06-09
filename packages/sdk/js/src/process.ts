@@ -4,11 +4,23 @@ import { type ChildProcess, spawnSync } from "node:child_process"
 // import `opencode` without creating a cycle (`opencode` depends on `@teamcode-ai/sdk`).
 export function stop(proc: ChildProcess) {
   if (proc.exitCode !== null || proc.signalCode !== null) return
-  if (process.platform === "win32" && proc.pid) {
-    const out = spawnSync("taskkill", ["/pid", String(proc.pid), "/T", "/F"], { windowsHide: true })
-    if (!out.error && out.status === 0) return
+  if (!proc.pid) return
+  if (process.platform === "win32") {
+    spawnSync("taskkill", ["/pid", String(proc.pid), "/T", "/F"], { windowsHide: true })
+    return
   }
-  proc.kill()
+  // On Unix, kill the process group first (SIGTERM) so orphaned children are
+  // cleaned up. If the process ignores the signal, escalate to SIGKILL after
+  // a brief grace period.
+  try {
+    process.kill(-proc.pid, "SIGTERM")
+  } catch {
+    // Process group may not exist (wrapper like Deno may not create one).
+  }
+  // Signal the direct process in case process group kill didn't reach it.
+  // Use SIGKILL for the direct process to ensure termination even when
+  // running through wrappers that may intercept or not forward SIGTERM.
+  proc.kill("SIGKILL")
 }
 
 export function bindAbort(proc: ChildProcess, signal?: AbortSignal, onAbort?: () => void) {
