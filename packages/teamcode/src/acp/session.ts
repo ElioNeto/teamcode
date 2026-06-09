@@ -3,12 +3,20 @@ import type { ACPSessionState } from "./types"
 import * as Log from "@teamcode-ai/core/util/log"
 import type { OpencodeClient } from "@teamcode-ai/sdk/v2"
 import { ModelID, ProviderID } from "../provider/schema"
+import { BusEvent } from "@/bus/bus-event"
+import { Schema } from "effect"
+
+export const ModeChanged = BusEvent.define("session.mode.changed", Schema.Struct({
+  sessionID: Schema.String,
+  modeId: Schema.String,
+}))
 
 const log = Log.create({ service: "acp-session-manager" })
 
 export class ACPSessionManager {
   private sessions = new Map<string, ACPSessionState>()
   private sdk: OpencodeClient
+  onModeChange?: (sessionId: string, modeId: string) => void
 
   constructor(sdk: OpencodeClient) {
     this.sdk = sdk
@@ -114,6 +122,18 @@ export class ACPSessionManager {
     const session = this.get(sessionId)
     session.modeId = modeId
     this.sessions.set(sessionId, session)
+    this.onModeChange?.(sessionId, modeId)
+    return session
+  }
+
+  getAgentModel(sessionId: string, agent: string) {
+    const session = this.get(sessionId)
+    return session.agentModels?.[agent]
+  }
+
+  setAgentModels(sessionId: string, agentModels: NonNullable<ACPSessionState["agentModels"]>) {
+    const session = this.get(sessionId)
+    session.agentModels = agentModels
     return session
   }
 
