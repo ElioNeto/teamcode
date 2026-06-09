@@ -1,0 +1,78 @@
+// go-core — Rewrite of core TypeScript services in Go.
+//
+// Communication protocol: HTTP REST (JSON) over localhost.
+// The TypeScript runtime spawns this binary and communicates via HTTP.
+// Feature flags in TS control routing between legacy TS and new Go core.
+package main
+
+import (
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+)
+
+func main() {
+	port := os.Getenv("GO_CORE_PORT")
+	if port == "" {
+		port = "43001"
+	}
+
+	mux := http.NewServeMux()
+
+	// Health check
+	mux.HandleFunc("GET /health", handleHealth)
+
+	// Filesystem operations
+	mux.HandleFunc("POST /fs/read", handleFSRead)
+	mux.HandleFunc("POST /fs/write", handleFSWrite)
+	mux.HandleFunc("POST /fs/watch", handleFSWatch)
+	mux.HandleFunc("POST /fs/list", handleFSList)
+	mux.HandleFunc("POST /fs/stat", handleFSStat)
+
+	// Session operations
+	mux.HandleFunc("POST /session/stream", handleSessionStream)
+	mux.HandleFunc("POST /session/event", handleSessionEvent)
+
+	server := &http.Server{
+		Addr:    ":" + port,
+		Handler: withCORS(mux),
+	}
+
+	go func() {
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+		<-sig
+		log.Println("shutting down go-core...")
+		server.Close()
+	}()
+
+	log.Printf("go-core listening on port %s", port)
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("server error: %v", err)
+	}
+}
+
+func withCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Request-ID, X-Feature-Flag")
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
+func writeError(w http.ResponseWriter, msg string, code int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write([]byte(`{"error":"` + msg + `"}`))
+}
