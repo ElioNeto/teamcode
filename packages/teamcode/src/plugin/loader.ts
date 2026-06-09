@@ -1,7 +1,9 @@
 // Ensure the Solid JSX runtime is available when server plugins import compiled
 // .tsx components via dynamic import. The TUI runtime already calls
-// ensureRuntimePluginSupport; the server process needs this bare side-effect.
-import "@opentui/solid/runtime-plugin-support"
+// ensureRuntimePluginSupport with keymap modules; this module uses the same
+// configure path so the call is a no-op if already installed (idempotent).
+import { ensureRuntimePluginSupport } from "@opentui/solid/runtime-plugin-support/configure"
+ensureRuntimePluginSupport({})
 
 import {
   checkPluginCompatibility,
