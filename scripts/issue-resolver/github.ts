@@ -239,9 +239,9 @@ export function hasSufficientInfo(issue: GitHubIssue): boolean {
  * Count issues by phase from a list.
  */
 export function countByPhase(issues: GitHubIssue[]): Record<Phase, number> {
-  const counts: Record<string, number> = { "p0-critical": 0, "p1-high": 0, "p2-medium": 0, "p3-low": 0, unphased: 0 }
+  const counts: Record<Phase, number> = { "p0-critical": 0, "p1-high": 0, "p2-medium": 0, "p3-low": 0, unphased: 0 }
   for (const issue of issues) {
     counts[issue.phase] = (counts[issue.phase] ?? 0) + 1
   }
-  return counts as Record<Phase, number>
+  return counts
 }

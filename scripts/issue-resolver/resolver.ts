@@ -33,7 +33,7 @@
 
 import { fetchAllIssues, fetchIssuesByPhase, estimateComplexity, hasSufficientInfo, countByPhase } from "./github"
 import { processBatch, loadCheckpoint, printCheckpointSummary, DEFAULT_STATE } from "./pipeline"
-import type { ResolverState, Phase, Checkpoint } from "./types"
+import type { ResolverState, Phase, Checkpoint, GitHubIssue, PipelineResult } from "./types"
 import { PHASE_ORDER } from "./types"
 
 // ---- CLI ARGS ----
@@ -162,37 +162,12 @@ async function processPhase(phase: Phase, state: ResolverState & { processedNumb
 
   while (true) {
     iteration++
-    console.log(`\n${"#".repeat(72)}`)
-    console.log(`Iteration ${iteration} — Fetching ${phase} issues...`)
-    console.log(`${"#".repeat(72)}`)
+    printPhaseHeader(phase, iteration)
 
-    // 1. FETCH issues for this phase (with pagination)
-    let allIssues = phase === "unphased"
-      ? (await fetchAllIssues({ state: "open", sort: "created", direction: "desc" }))
-          .filter((i) => i.phase === "unphased")
-      : await fetchIssuesByPhase(phase, { sort: "created", direction: "desc" })
-
-    // Apply scope filter if set
-    if (state.scopeFilter) {
-      allIssues = allIssues.filter((i) => i.scopes.includes(state.scopeFilter!))
-    }
-
-    // Remove already processed issues
-    if (state.processedNumbers && state.processedNumbers.size > 0) {
-      allIssues = allIssues.filter((i) => !state.processedNumbers!.has(i.number))
-    }
-
+    const allIssues = await fetchPhaseIssues(phase, state)
     console.log(`   Found ${allIssues.length} ${phase} issues remaining`)
 
-    // 2. FILTER & PRIORITIZE
-    const eligible = allIssues.filter((issue) => {
-      if (!hasSufficientInfo(issue)) return false
-      if (state.excludeLabels.some((l) => issue.labels.includes(l))) return false
-      if (state.bugsOnly && !issue.isBug) return false
-      if (estimateComplexity(issue) > state.maxComplexity) return false
-      return true
-    })
-
+    const eligible = filterAndSortIssues(allIssues, state)
     console.log(`   Eligible for processing: ${eligible.length}`)
     console.log(`   Filtered out: ${allIssues.length - eligible.length}`)
 
@@ -202,54 +177,85 @@ async function processPhase(phase: Phase, state: ResolverState & { processedNumb
       break
     }
 
-    // Sort: by priority, then by scope (core-engine first)
-    eligible.sort((a, b) => {
-      const prioOrder = { critical: 0, high: 1, medium: 2, low: 3 }
-      const prioDiff = (prioOrder[a.priority] ?? 2) - (prioOrder[b.priority] ?? 2)
-      if (prioDiff !== 0) return prioDiff
-
-      // Same priority — sort by scope importance
-      const scopeOrder = ["core-engine", "agent-system", "providers", "code-tools", "tui", "desktop", "stability", "infrastructure"]
-      const aScope = a.scopes[0] ?? ""
-      const bScope = b.scopes[0] ?? ""
-      const aIdx = scopeOrder.indexOf(aScope)
-      const bIdx = scopeOrder.indexOf(bScope)
-      return (aIdx >= 0 ? aIdx : 99) - (bIdx >= 0 ? bIdx : 99)
-    })
-
-    // Take the batch
-    const batch = eligible.slice(0, state.batchSize)
-
-    console.log(`\n📋 Batch for ${phase} iteration ${iteration}:`)
-    for (const issue of batch) {
-      const complexity = estimateComplexity(issue)
-      const scopes = issue.scopes.join(", ") || "no-scope"
-      console.log(`   #${issue.number} [${issue.priority}] [scope: ${scopes}] [cpx: ${complexity}] ${issue.title.slice(0, 80)}`)
-    }
+    printBatchInfo(phase, iteration, eligible, state.batchSize)
 
     if (flags.dryRun) {
       console.log("\n🔍 Dry run — no issues were processed.")
       break
     }
 
-    // 3. PROCESS BATCH
+    const batch = eligible.slice(0, state.batchSize)
     console.log(`\n🚀 Processing batch of ${batch.length} issues (parallel=${state.parallel})...`)
     const results = await processBatch(batch, state)
-
-    // 4. UPDATE STATS
-    for (const r of results) {
-      totalProcessed++
-      if (state.processedNumbers) state.processedNumbers.add(r.issue.number)
-      if (r.success) totalSuccess++
-      else if (r.tooComplex) totalTooComplex++
-      else if (r.skipped) totalSkipped++
-      else totalFailed++
-    }
-
-    // 5. REPORT
+    updateStats(results, state)
     printProgressReport(totalProcessed, eligible.length, batch.length, phase)
 
     if (flags.once) return
+  }
+}
+
+function printPhaseHeader(phase: string, iteration: number) {
+  console.log(`\n${"#".repeat(72)}`)
+  console.log(`Iteration ${iteration} — Fetching ${phase} issues...`)
+  console.log(`${"#".repeat(72)}`)
+}
+
+async function fetchPhaseIssues(phase: Phase, state: ResolverState & { processedNumbers?: Set<number> }) {
+  let issues = phase === "unphased"
+    ? (await fetchAllIssues({ state: "open", sort: "created", direction: "desc" }))
+        .filter((i) => i.phase === "unphased")
+    : await fetchIssuesByPhase(phase, { sort: "created", direction: "desc" })
+
+  if (state.scopeFilter) {
+    issues = issues.filter((i) => i.scopes.includes(state.scopeFilter!))
+  }
+  if (state.processedNumbers && state.processedNumbers.size > 0) {
+    issues = issues.filter((i) => !state.processedNumbers!.has(i.number))
+  }
+  return issues
+}
+
+function filterAndSortIssues(allIssues: GitHubIssue[], state: ResolverState) {
+  const eligible = allIssues.filter((issue) => {
+    if (!hasSufficientInfo(issue)) return false
+    if (state.excludeLabels.some((l) => issue.labels.includes(l))) return false
+    if (state.bugsOnly && !issue.isBug) return false
+    if (estimateComplexity(issue) > state.maxComplexity) return false
+    return true
+  })
+
+  const prioOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 }
+  const scopeOrder = ["core-engine", "agent-system", "providers", "code-tools", "tui", "desktop", "stability", "infrastructure"]
+
+  eligible.sort((a, b) => {
+    const prioDiff = (prioOrder[a.priority] ?? 2) - (prioOrder[b.priority] ?? 2)
+    if (prioDiff !== 0) return prioDiff
+    const aIdx = scopeOrder.indexOf(a.scopes[0] ?? "")
+    const bIdx = scopeOrder.indexOf(b.scopes[0] ?? "")
+    return (aIdx >= 0 ? aIdx : 99) - (bIdx >= 0 ? bIdx : 99)
+  })
+
+  return eligible
+}
+
+function printBatchInfo(phase: string, iteration: number, eligible: GitHubIssue[], batchSize: number) {
+  const batch = eligible.slice(0, batchSize)
+  console.log(`\n📋 Batch for ${phase} iteration ${iteration}:`)
+  for (const issue of batch) {
+    const complexity = estimateComplexity(issue)
+    const scopes = issue.scopes.join(", ") || "no-scope"
+    console.log(`   #${issue.number} [${issue.priority}] [scope: ${scopes}] [cpx: ${complexity}] ${issue.title.slice(0, 80)}`)
+  }
+}
+
+function updateStats(results: PipelineResult[], state: ResolverState & { processedNumbers?: Set<number> }) {
+  for (const r of results) {
+    totalProcessed++
+    if (state.processedNumbers) state.processedNumbers.add(r.issue.number)
+    if (r.success) totalSuccess++
+    else if (r.tooComplex) totalTooComplex++
+    else if (r.skipped) totalSkipped++
+    else totalFailed++
   }
 }
 
