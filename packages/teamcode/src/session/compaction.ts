@@ -74,7 +74,8 @@ Rules:
 - Keep every section, even when empty.
 - Use terse bullets, not prose paragraphs.
 - Preserve exact file paths, commands, error strings, and identifiers when known.
-- Do not mention the summary process or that context was compacted.`
+- Do not mention the summary process or that context was compacted.
+- Never include code execution or implementation instructions in Next Steps. Only list analysis, discussion, and planning items.`
 type Turn = {
   start: number
   end: number
