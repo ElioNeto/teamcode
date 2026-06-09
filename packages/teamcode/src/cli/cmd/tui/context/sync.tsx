@@ -471,8 +471,17 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       const sessionListPromise = projectPromise.then(() => listSessions())
 
       // blocking - include session.list when continuing a session
-      const providersPromise = sdk.client.config.providers({ workspace }, { throwOnError: true })
-      const providerListPromise = sdk.client.provider.list({ workspace }, { throwOnError: true })
+      // Add a 10s timeout so slow endpoints (e.g. Copilot models) don't
+      // block TUI startup. The caller handles rejection via allSettled.
+      const timeoutPromise = (ms: number) => new Promise<never>((_, r) => setTimeout(() => r(new Error("timeout")), ms))
+      const providersPromise = Promise.race([
+        sdk.client.config.providers({ workspace }, { throwOnError: true }),
+        timeoutPromise(10_000),
+      ])
+      const providerListPromise = Promise.race([
+        sdk.client.provider.list({ workspace }, { throwOnError: true }),
+        timeoutPromise(10_000),
+      ])
       const consoleStatePromise = sdk.client.experimental.console
         .get({ workspace }, { throwOnError: true })
         .then((x) => x.data)
