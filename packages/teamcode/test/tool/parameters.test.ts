@@ -107,8 +107,8 @@ describe("tool parameters", () => {
       expect(parsed.timeout).toBe(5000)
       expect(parsed.workdir).toBe("/tmp")
     })
-    test("rejects missing description", () => {
-      expect(accepts(Shell, { command: "ls" })).toBe(false)
+    test("accepts missing description (now optional)", () => {
+      expect(accepts(Shell, { command: "ls" })).toBe(true)
     })
     test("rejects missing command", () => {
       expect(accepts(Shell, { description: "list" })).toBe(false)
