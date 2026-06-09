@@ -39,7 +39,7 @@ jobs:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       - name: Publish unit reports
         if: always()
-        uses: mikepenz/action-junit-report@v6
+        uses: mikepenz/action-junit-report@3a81627bfac62268172037048872e8ebd4207e6d # v6
         with:
           report_paths: packages/*/.artifacts/unit/junit.xml
           check_name: "unit results"
