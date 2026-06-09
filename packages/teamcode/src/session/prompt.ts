@@ -1099,7 +1099,18 @@ NOTE: At any point in time through this workflow you should feel free to ask the
     })
 
     const createUserMessage = Effect.fn("SessionPrompt.createUserMessage")(function* (input: PromptInput) {
-      const agentName = input.agent
+      // Read session's current agent/model from DB so prompt_async (which
+      // may omit agent/model) preserves the session's active state rather
+      // than silently falling back to the default agent's config.
+      const sessionRow = Database.use((db) =>
+        db
+          .select({ agent: SessionTable.agent, model: SessionTable.model })
+          .from(SessionTable)
+          .where(eq(SessionTable.id, input.sessionID))
+          .get(),
+      )
+
+      const agentName = input.agent ?? sessionRow?.agent ?? undefined
       const ag = agentName ? yield* agents.get(agentName) : yield* agents.defaultInfo()
       if (!ag) {
         const available = (yield* agents.list()).filter((a) => !a.hidden).map((a) => a.name)
@@ -1109,14 +1120,12 @@ NOTE: At any point in time through this workflow you should feel free to ask the
         throw error
       }
 
-      const current = Database.use((db) =>
-        db
-          .select({ agent: SessionTable.agent, model: SessionTable.model })
-          .from(SessionTable)
-          .where(eq(SessionTable.id, input.sessionID))
-          .get(),
-      )
-      const model = input.model ?? ag.model ?? (yield* currentModel(input.sessionID))
+      // Prefer the session's stored model over the agent's default when no
+      // explicit model was provided in the prompt input (prompt_async path).
+      const storedModel = sessionRow?.model
+        ? { providerID: ProviderID.make(sessionRow.model.providerID), modelID: ModelID.make(sessionRow.model.id) }
+        : undefined
+      const model = input.model ?? storedModel ?? ag.model ?? (yield* currentModel(input.sessionID))
       const same = ag.model && model.providerID === ag.model.providerID && model.modelID === ag.model.modelID
       const full =
         !input.variant && ag.variant && same
@@ -1142,7 +1151,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
         format: input.format,
       }
 
-      if (current?.agent !== info.agent) {
+      if (sessionRow?.agent !== info.agent) {
         yield* events.publish(SessionEvent.AgentSwitched, {
           sessionID: input.sessionID,
           timestamp: DateTime.makeUnsafe(info.time.created),
@@ -1150,9 +1159,9 @@ NOTE: At any point in time through this workflow you should feel free to ask the
         })
       }
       if (
-        current?.model?.providerID !== info.model.providerID ||
-        current.model.id !== info.model.modelID ||
-        (current.model.variant === "default" ? undefined : current.model.variant) !== info.model.variant
+        sessionRow?.model?.providerID !== info.model.providerID ||
+        sessionRow.model.id !== info.model.modelID ||
+        (sessionRow.model.variant === "default" ? undefined : sessionRow.model.variant) !== info.model.variant
       ) {
         yield* events.publish(SessionEvent.ModelSwitched, {
           sessionID: input.sessionID,
