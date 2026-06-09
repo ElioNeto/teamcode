@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-09T16:29:36.555Z",
+  "updatedAt": "2026-06-09T16:38:44.966Z",
   "currentPhase": "p1-high",
   "processedIssues": [],
   "skippedIssues": [],
@@ -13,13 +13,23 @@
     721,
     699,
     685,
+    682,
+    781,
+    761,
+    759,
+    752,
+    738,
+    727,
+    721,
+    699,
+    685,
     682
   ],
   "stats": {
-    "totalProcessed": 10,
+    "totalProcessed": 20,
     "totalSuccess": 0,
     "totalSkipped": 0,
-    "totalFailed": 10,
+    "totalFailed": 20,
     "totalTooComplex": 0
   }
 }
