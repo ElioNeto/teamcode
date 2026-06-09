@@ -1,9 +1,7 @@
-// Ensure the Solid JSX runtime is available when server plugins import compiled
-// .tsx components via dynamic import. The TUI runtime already calls
-// ensureRuntimePluginSupport with keymap modules; this module uses the same
-// configure path so the call is a no-op if already installed (idempotent).
-import { ensureRuntimePluginSupport } from "@opentui/solid/runtime-plugin-support/configure"
-ensureRuntimePluginSupport({})
+// Solid JSX runtime support is set up by the TUI runtime (runtime.ts).
+// Server-side plugins that need .tsx support should import it themselves.
+// Do NOT add ensureRuntimePluginSupport here — it conflicts with the TUI's
+// call which includes @opentui/keymap modules.
 
 import {
   checkPluginCompatibility,
@@ -123,16 +121,16 @@ export namespace PluginLoader {
   }
 
   // Import the resolved module only after all earlier validation has succeeded.
-  export async function load(row: Resolved): Promise<{ ok: true; value: Loaded } | { ok: false; error: unknown }> {
-    let mod
-    try {
-      mod = await import(row.entry)
-    } catch (error) {
-      return { ok: false, error }
-    }
-    if (!mod) return { ok: false, error: new Error(`Plugin ${row.spec} module is empty`) }
-    return { ok: true, value: { ...row, mod } }
-  }
+   export async function load(row: Resolved): Promise<{ ok: true; value: Loaded } | { ok: false; error: unknown }> {
+     let mod
+     try {
+       mod = await import(row.entry)
+     } catch (error) {
+       return { ok: false, error }
+     }
+     if (!mod) return { ok: false, error: new Error(`Plugin ${row.spec} module is empty`) }
+     return { ok: true, value: { ...row, mod } }
+   }
 
   // Run one candidate through the full pipeline: resolve, optionally surface a missing entry,
   // import the module, and finally let the caller transform the loaded plugin into any result type.
