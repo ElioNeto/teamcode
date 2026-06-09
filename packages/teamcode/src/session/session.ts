@@ -952,7 +952,8 @@ function* listByProject(
       // Normalize directory to prevent mismatches from relative vs absolute,
       // trailing slashes, or symlink resolution differences. Exact eq() fails
       // if the stored directory differs even slightly from the query value.
-      const dir = path.resolve(input.directory).replace(/\/+$/, "")
+      let dir = path.resolve(input.directory)
+      while (dir.endsWith("/") && dir.length > 1) dir = dir.slice(0, -1)
       conditions.push(eq(SessionTable.directory, dir))
     }
   }

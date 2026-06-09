@@ -6,6 +6,7 @@ export function stop(proc: ChildProcess) {
   if (proc.exitCode !== null || proc.signalCode !== null) return
   if (!proc.pid) return
   if (process.platform === "win32") {
+    // taskkill is a fixed Windows system binary in System32
     spawnSync("taskkill", ["/pid", String(proc.pid), "/T", "/F"], { windowsHide: true })
     return
   }

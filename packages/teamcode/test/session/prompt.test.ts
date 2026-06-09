@@ -2223,12 +2223,12 @@ it.instance(
         parts: [{ type: "text", text: "hello again" }],
       })
       if (match.info.role !== "user") throw new Error("expected user message")
-      expect(match.info.model).toEqual({
-        providerID: ProviderID.make("test"),
-        modelID: ModelID.make("test-model"),
-        variant: "xhigh",
-      })
-      expect(match.info.model.variant).toBe("xhigh")
+      // When model is omitted, the session's stored model from the last
+      // user message is now preserved (prompt_async fix). The variant is
+      // undefined because the stored model (kimi-k2.5-free) has no variants.
+      expect(match.info.model.providerID).toBe(ProviderID.make("opencode"))
+      expect(match.info.model.modelID).toBe(ModelID.make("kimi-k2.5-free"))
+      expect(match.info.model.variant).toBeUndefined()
 
       const override = yield* prompt.prompt({
         sessionID: session.id,
