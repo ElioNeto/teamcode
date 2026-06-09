@@ -82,7 +82,16 @@ function selectedWorkspaceID(url: URL, sessionWorkspaceID?: WorkspaceID): Worksp
 }
 
 function defaultDirectory(request: HttpServerRequest.HttpServerRequest, url: URL): string {
-  return url.searchParams.get("directory") || request.headers["x-opencode-directory"] || request.headers["x-teamcode-directory"] || process.cwd()
+  const raw = url.searchParams.get("directory") || request.headers["x-opencode-directory"] || request.headers["x-teamcode-directory"] || process.cwd()
+  // URLSearchParams auto-decodes percent-encoded values, but the raw header
+  // value (used for POST requests where rewrite() does not run) may still be
+  // encoded. Decode consistently so the stored directory matches the queried
+  // directory regardless of request path.
+  try {
+    return decodeURIComponent(raw)
+  } catch {
+    return raw
+  }
 }
 
 function shouldStayOnControlPlane(request: HttpServerRequest.HttpServerRequest, url: URL): boolean {
