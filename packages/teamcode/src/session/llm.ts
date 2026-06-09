@@ -302,6 +302,7 @@ const live: Layer.Layer<
         ? (yield* InstanceState.context).project.id
         : undefined
 
+      const activeTools = Object.keys(sortedTools).filter((x) => x !== "invalid")
       return streamText({
         onError(error) {
           l.error("stream error", {
@@ -349,8 +350,10 @@ const live: Layer.Layer<
         topP: params.topP,
         topK: params.topK,
         providerOptions: ProviderTransform.providerOptions(input.model, params.options),
-        activeTools: Object.keys(sortedTools).filter((x) => x !== "invalid"),
-        tools: sortedTools,
+        activeTools,
+        tools: Record.fromEntries(
+          Object.entries(sortedTools).filter(([k]) => activeTools.includes(k)),
+        ),
         toolChoice: input.toolChoice,
         maxOutputTokens: params.maxOutputTokens,
         abortSignal: input.abort,

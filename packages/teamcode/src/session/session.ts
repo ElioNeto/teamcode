@@ -949,7 +949,12 @@ function* listByProject(
     }
   } else if (input.scope !== "project") {
     if (input.directory) {
-      conditions.push(eq(SessionTable.directory, input.directory))
+      // Normalize directory to prevent mismatches from relative vs absolute,
+      // trailing slashes, or symlink resolution differences. Exact eq() fails
+      // if the stored directory differs even slightly from the query value.
+      let dir = path.resolve(input.directory)
+      while (dir.endsWith("/") && dir.length > 1) dir = dir.slice(0, -1)
+      conditions.push(eq(SessionTable.directory, dir))
     }
   }
   if (input.roots) {
