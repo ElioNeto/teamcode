@@ -119,6 +119,9 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
     // Batching them with a short debounce prevents cascading re-renders that
     // cause terminal flickering when rendering fenced code blocks.
     const textDeltaBuffer: Record<string, Record<string, string>> = {} // messageID -> partID -> accumulated text
+    // Buffer for message.part.delta events that arrive before the
+    // corresponding message.part.updated event. Keyed by messageID.
+    let pendingPartDeltas: Map<string, Array<{ messageID: string; partID: string; field: string; delta: string }>> | undefined
     let deltaFlushTimer: ReturnType<typeof setTimeout> | null = null
 
     function bufferTextDelta(messageID: string, partID: string, delta: string) {
@@ -361,12 +364,52 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
               draft.splice(result.index, 0, event.properties.part)
             }),
           )
+          // Replay any deltas that arrived before the part was created.
+          if (pendingPartDeltas) {
+            const key = event.properties.part.messageID
+            const buffered = pendingPartDeltas.get(key)
+            if (buffered) {
+              pendingPartDeltas.delete(key)
+              for (const delta of buffered) {
+                const r = Binary.search(parts!, delta.partID, (p) => p.id)
+                if (!r.found) continue
+                const field = delta.field as string
+                if (field === "text") {
+                  bufferTextDelta(delta.messageID, delta.partID, delta.delta)
+                } else {
+                  setStore(
+                    "part",
+                    delta.messageID,
+                    produce((draft) => {
+                      const part = draft[r.index]
+                      const existing = part[field as keyof typeof part] as string | undefined
+                      ;(part[field as keyof typeof part] as string) = (existing ?? "") + delta.delta
+                    }),
+                  )
+                }
+              }
+            }
+          }
           break
         }
 
         case "message.part.delta": {
           const parts = store.part[event.properties.messageID]
-          if (!parts) break
+          // Deltas can race ahead of the initial part.updated event,
+          // especially after a version upgrade where the event pipeline
+          // flushes asynchronously. Buffer the delta and replay it when
+          // the part is created (see message.part.updated handler below).
+          if (!parts) {
+            if (!pendingPartDeltas) pendingPartDeltas = new Map()
+            const key = event.properties.messageID
+            let list = pendingPartDeltas.get(key)
+            if (!list) {
+              list = []
+              pendingPartDeltas.set(key, list)
+            }
+            list.push(event.properties)
+            break
+          }
           const result = Binary.search(parts, event.properties.partID, (p) => p.id)
           if (!result.found) break
           const field = event.properties.field as string
