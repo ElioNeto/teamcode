@@ -178,7 +178,13 @@ const getCopyMethod = lazy(async () => {
 })
 
 export async function copy(text: string): Promise<void> {
-  writeOsc52(text)
+  // If stdout is a TTY, the OSC 52 escape sequence will be handled by the
+  // terminal emulator, which is sufficient for clipboard copy. Skip the native
+  // method fallback — it may fail in headless/server/SSH environments.
+  if (process.stdout.isTTY) {
+    writeOsc52(text)
+    return
+  }
   const method = await getCopyMethod()
   await method(text)
 }

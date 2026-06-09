@@ -769,6 +769,36 @@ export const layer = Layer.effect(
           }
         }
 
+        // Validate custom model config — catch typos/missing fields at startup
+        if (result.provider) {
+          for (const [providerId, providerInfo] of Object.entries(result.provider)) {
+            for (const [modelKey, model] of Object.entries(providerInfo.models ?? {})) {
+              if (!model.id && !model.name) {
+                log.warn(
+                  `Configuration warning: Model "${modelKey}" under provider "${providerId}" has no "id" or "name"; it may not be usable.`,
+                )
+              }
+              if (!model.cost?.input || !model.cost?.output) {
+                log.warn(
+                  `Configuration warning: Model "${modelKey}" under provider "${providerId}" is missing "cost" data — token accounting will be inaccurate.`,
+                )
+              }
+              if (!model.limit?.context) {
+                log.warn(
+                  `Configuration warning: Model "${modelKey}" under provider "${providerId}" has no "limit.context" — context window is treated as unlimited.`,
+                )
+              }
+            }
+            if (providerInfo.models && Object.keys(providerInfo.models).length > 0) {
+              if (!providerInfo.api && !providerInfo.npm) {
+                log.warn(
+                  `Configuration warning: Provider "${providerId}" has custom models but no "api" or "npm" endpoint.`,
+                )
+              }
+            }
+          }
+        }
+
         return {
           config: result,
           directories,
