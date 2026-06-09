@@ -175,6 +175,7 @@ export const TaskTool = Tool.define(
         modelID: msg.info.modelID,
         providerID: msg.info.providerID,
       }
+      const variant = next.variant ?? msg.info.variant
       const metadata = {
         parentSessionId: ctx.sessionID,
         sessionId: nextSession.id,
@@ -200,6 +201,7 @@ export const TaskTool = Tool.define(
             modelID: model.modelID,
             providerID: model.providerID,
           },
+          ...(variant ? { variant } : {}),
           agent: next.name,
           tools: {
             ...(next.permission.some((rule) => rule.permission === "todowrite") ? {} : { todowrite: false }),
