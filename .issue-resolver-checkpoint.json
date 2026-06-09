@@ -1,8 +1,9 @@
 {
-  "updatedAt": "2026-06-09T16:38:52.269Z",
-  "currentPhase": "p2-medium",
+  "updatedAt": "2026-06-09T16:39:17.329Z",
+  "currentPhase": "p3-low",
   "processedIssues": [
-    855
+    855,
+    765
   ],
   "skippedIssues": [],
   "failedIssues": [
@@ -34,13 +35,22 @@
     812,
     807,
     801,
-    792
+    792,
+    734,
+    538,
+    737,
+    704,
+    696,
+    692,
+    638,
+    611,
+    589
   ],
   "stats": {
-    "totalProcessed": 30,
-    "totalSuccess": 1,
+    "totalProcessed": 40,
+    "totalSuccess": 2,
     "totalSkipped": 0,
-    "totalFailed": 29,
+    "totalFailed": 38,
     "totalTooComplex": 0
   }
 }

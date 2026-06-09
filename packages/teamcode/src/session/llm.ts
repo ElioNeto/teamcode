@@ -302,6 +302,7 @@ const live: Layer.Layer<
         ? (yield* InstanceState.context).project.id
         : undefined
 
+      const activeTools = Object.keys(sortedTools).filter((x) => x !== "invalid")
       return streamText({
         onError(error) {
           l.error("stream error", {
@@ -349,8 +350,13 @@ const live: Layer.Layer<
         topP: params.topP,
         topK: params.topK,
         providerOptions: ProviderTransform.providerOptions(input.model, params.options),
-        activeTools: Object.keys(sortedTools).filter((x) => x !== "invalid"),
-        tools: sortedTools,
+        activeTools,
+        // Narrow tools to the active set so the AI SDK's execution path
+        // cannot resolve tools the model wasn't shown (see #21367). The
+        // synthetic "invalid" tool is kept for repairToolCall fallback.
+        tools: Object.fromEntries(
+          Object.entries(sortedTools).filter(([k]) => k === "invalid" || activeTools.includes(k)),
+        ),
         toolChoice: input.toolChoice,
         maxOutputTokens: params.maxOutputTokens,
         abortSignal: input.abort,
