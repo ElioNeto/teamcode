@@ -351,11 +351,8 @@ const live: Layer.Layer<
         topK: params.topK,
         providerOptions: ProviderTransform.providerOptions(input.model, params.options),
         activeTools,
-        // Narrow tools to the active set so the AI SDK's execution path
-        // cannot resolve tools the model wasn't shown (see #21367). The
-        // synthetic "invalid" tool is kept for repairToolCall fallback.
-        tools: Object.fromEntries(
-          Object.entries(sortedTools).filter(([k]) => k === "invalid" || activeTools.includes(k)),
+        tools: Record.fromEntries(
+          Object.entries(sortedTools).filter(([k]) => activeTools.includes(k)),
         ),
         toolChoice: input.toolChoice,
         maxOutputTokens: params.maxOutputTokens,
