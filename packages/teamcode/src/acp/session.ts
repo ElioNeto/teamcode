@@ -3,12 +3,20 @@ import type { ACPSessionState } from "./types"
 import * as Log from "@teamcode-ai/core/util/log"
 import type { OpencodeClient } from "@teamcode-ai/sdk/v2"
 import { ModelID, ProviderID } from "../provider/schema"
+import { BusEvent } from "@/bus/bus-event"
+import { Schema } from "effect"
+
+export const ModeChanged = BusEvent.define("session.mode.changed", Schema.Struct({
+  sessionID: Schema.String,
+  modeId: Schema.String,
+}))
 
 const log = Log.create({ service: "acp-session-manager" })
 
 export class ACPSessionManager {
   private sessions = new Map<string, ACPSessionState>()
   private sdk: OpencodeClient
+  onModeChange?: (sessionId: string, modeId: string) => void
 
   constructor(sdk: OpencodeClient) {
     this.sdk = sdk
@@ -114,6 +122,18 @@ export class ACPSessionManager {
     const session = this.get(sessionId)
     session.modeId = modeId
     this.sessions.set(sessionId, session)
+    this.onModeChange?.(sessionId, modeId)
+    return session
+  }
+
+  getAgentModel(sessionId: string, agent: string) {
+    const session = this.get(sessionId)
+    return session.agentModels?.[agent]
+  }
+
+  setAgentModels(sessionId: string, agentModels: NonNullable<ACPSessionState["agentModels"]>) {
+    const session = this.get(sessionId)
+    session.agentModels = agentModels
     return session
   }
 
@@ -121,5 +141,38 @@ export class ACPSessionManager {
     const session = this.sessions.get(sessionId)
     this.sessions.delete(sessionId)
     return session
+  }
+
+  /**
+   * Register a session that was not created via create()/load() (e.g. a child
+   * session created by the Task tool for a subagent). Uses the SDK to fetch
+   * session metadata and registers it with the parent's config.
+   */
+  async autoRegister(sessionId: string, directory: string): Promise<ACPSessionState | undefined> {
+    if (this.sessions.has(sessionId)) return this.sessions.get(sessionId)
+
+    try {
+      const session = await this.sdk.session
+        .get({ sessionID: sessionId, directory }, { throwOnError: true })
+        .then((x) => x.data)
+
+      if (!session) return undefined
+
+      const state: ACPSessionState = {
+        id: sessionId,
+        cwd: directory,
+        mcpServers: [],
+        createdAt: new Date(session.time.created),
+        model: session.model
+          ? { providerID: ProviderID.make(session.model.providerID), modelID: ModelID.make(session.model.id) }
+          : undefined,
+      }
+      log.info("auto-registered child session", { sessionId, parentCwd: directory })
+      this.sessions.set(sessionId, state)
+      return state
+    } catch (error) {
+      log.warn("failed to auto-register session", { sessionId, error })
+      return undefined
+    }
   }
 }

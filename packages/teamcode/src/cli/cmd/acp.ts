@@ -3,10 +3,14 @@ import { Effect } from "effect"
 import { effectCmd } from "../effect-cmd"
 import { AgentSideConnection, ndJsonStream } from "@agentclientprotocol/sdk"
 import { ACP } from "@/acp/agent"
+import { ModeChanged } from "@/acp/session"
 import { Server } from "@/server/server"
 import { ServerAuth } from "@/server/auth"
 import { createOpencodeClient } from "@teamcode-ai/sdk/v2"
 import { withNetworkOptions, resolveNetworkOptions } from "../network"
+import { RuntimeFlags } from "@/effect/runtime-flags"
+import { Bus } from "@/bus"
+import { InstanceRef } from "@/effect/instance-ref"
 
 const log = Log.create({ service: "acp-command" })
 
@@ -22,6 +26,9 @@ export const AcpCommand = effectCmd({
   },
   handler: Effect.fn("Cli.acp")(function* (args) {
     process.env.TEAMCODE_CLIENT = "acp"
+    if (!(yield* RuntimeFlags.Service).serverPassword) {
+      console.log("Warning: TEAMCODE_SERVER_PASSWORD is not set; server is unsecured.")
+    }
     const opts = yield* resolveNetworkOptions(args)
     const server = yield* Effect.promise(() => Server.listen(opts))
 
@@ -54,7 +61,15 @@ export const AcpCommand = effectCmd({
     })
 
     const stream = ndJsonStream(input, output)
-    const agent = ACP.init({ sdk })
+    const instanceCtx = yield* InstanceRef
+    const agent = ACP.init({
+      sdk,
+      onModeChange: instanceCtx
+        ? (sessionId, modeId) => {
+            void Bus.publish(instanceCtx, ModeChanged, { sessionID: sessionId, modeId })
+          }
+        : undefined,
+    })
 
     new AgentSideConnection((conn) => {
       return agent.create(conn, { sdk })

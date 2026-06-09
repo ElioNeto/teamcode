@@ -797,15 +797,21 @@ export const layer: Layer.Layer<
     })
 
     const messages: Interface["messages"] = Effect.fn("Session.messages")(function* (input) {
-      if (input.limit) {
-        return (yield* MessageV2.page({ sessionID: input.sessionID, limit: input.limit })).items
+      // Cap unbounded requests at 1000 messages to prevent OOM on sessions
+      // with tens of thousands of messages. Callers that need more should pass
+      // an explicit limit and use cursor-based pagination.
+      const limit = input.limit ?? 1000
+      if (limit <= 50) {
+        return (yield* MessageV2.page({ sessionID: input.sessionID, limit })).items
       }
 
       const size = 50
       const result = [] as MessageV2.WithParts[]
       let before: string | undefined
       while (true) {
-        const page = yield* MessageV2.page({ sessionID: input.sessionID, limit: size, before })
+        const remaining = limit - result.length
+        if (remaining <= 0) break
+        const page = yield* MessageV2.page({ sessionID: input.sessionID, limit: Math.min(size, remaining), before })
         if (page.items.length === 0) break
         for (let i = page.items.length - 1; i >= 0; i--) {
           const item = page.items[i]

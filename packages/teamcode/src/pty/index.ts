@@ -11,6 +11,7 @@ import * as Log from "@teamcode-ai/core/util/log"
 import { PtyID } from "./schema"
 import { Effect, Layer, Context, Schema, Types } from "effect"
 import { NonNegativeInt, PositiveInt } from "@teamcode-ai/core/schema"
+import path from "path"
 
 const log = Log.create({ service: "pty" })
 
@@ -190,6 +191,11 @@ export const layer = Layer.effect(
         TERM: "xterm-256color",
         TEAMCODE_TERMINAL: "1",
       } as Record<string, string>
+      // Compose plugin PATH with system PATH instead of stomping it.
+      const pluginPath = (shell.env as { PATH?: string }).PATH
+      if (pluginPath && pluginPath !== process.env.PATH) {
+        env.PATH = pluginPath + path.delimiter + (process.env.PATH ?? "")
+      }
 
       if (process.platform === "win32") {
         env.LC_ALL = "C.UTF-8"

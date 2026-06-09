@@ -19,7 +19,7 @@ runs:
   steps:
     - name: Create app token
       id: apptoken
-      uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
+      uses: actions/create-github-app-token@v3
       with:
         app-id: ${{ inputs.teamcode-app-id }}
         private-key: ${{ inputs.teamcode-app-secret }}

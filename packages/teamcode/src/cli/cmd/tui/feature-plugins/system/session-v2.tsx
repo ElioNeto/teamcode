@@ -1103,7 +1103,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function input(input: Record<string, unknown>, omit?: string[]) {
-  const primitives = Object.entries(input).filter(([key, value]) => {
+  const primitives = Object.entries(input ?? {}).filter(([key, value]) => {
     if (omit?.includes(key)) return false
     return typeof value === "string" || typeof value === "number" || typeof value === "boolean"
   })

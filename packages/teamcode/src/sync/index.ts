@@ -18,6 +18,9 @@ import { serviceUse } from "@/effect/service-use"
 import { InstanceState } from "@/effect/instance-state"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { attachWith } from "@/effect/run-service"
+import * as Log from "@teamcode-ai/core/util/log"
+
+const log = Log.create({ service: "sync" })
 
 // Keep `Event["data"]` mutable because projectors mutate the persisted shape
 // when writing to the database. Bus payloads (`Properties`) stay readonly —
@@ -363,11 +366,13 @@ function process<Def extends Definition>(
               instance: options.context?.instance,
               workspace: options.context?.workspace,
             }),
-          )
+          ).catch((error) => {
+            log.error("sync event bus publish failed", { type: def.type, error })
+          })
         if (result instanceof Promise) {
           void result.then(publish)
         } else {
-          void publish(result)
+          publish(result) // fire-and-forget with error logging
         }
 
         GlobalBus.emit("event", {

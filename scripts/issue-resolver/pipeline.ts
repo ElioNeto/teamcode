@@ -2,24 +2,27 @@
  * Pipeline orchestrator for the issue resolver.
  *
  * Manages the Plan → Implement → Validate → Review → Commit → Close cycle.
- * Each stage is delegated to a task agent for execution.
- * Failed stages trigger retry with feedback; complex issues loop back to planning.
+ * Supports parallel batch processing, checkpointing, and phase-based triage.
  */
 
-import type { GitHubIssue, IssueContext, PipelineResult, ResolverState } from "./types"
-import { estimateComplexity, hasSufficientInfo, closeIssue } from "./github"
+import type { GitHubIssue, IssueContext, PipelineResult, ResolverState, Checkpoint, Phase } from "./types"
+import { PHASE_ORDER } from "./types"
+import { estimateComplexity, hasSufficientInfo, closeIssue, commentOnIssue } from "./github"
 import { execSync } from "child_process"
-import { existsSync, readFileSync } from "fs"
-import { resolve } from "path"
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs"
+import { resolve, dirname } from "path"
 
 const DEFAULT_STATE: ResolverState = {
   batchSize: 10,
+  parallel: 3,
   preferLabels: ["bug"],
   excludeLabels: ["wontfix", "duplicate", "invalid"],
   bugsOnly: false,
   maxAttempts: 3,
   maxComplexity: 7,
   requireReproduction: false,
+  checkpointFile: ".issue-resolver-checkpoint.json",
+  currentPhase: "p0-critical",
 }
 
 export { DEFAULT_STATE }
@@ -27,34 +30,65 @@ export type { ResolverState }
 
 /**
  * Process a batch of issues through the full pipeline.
+ * Issues within a batch are processed in parallel (up to `state.parallel` at a time).
  */
 export async function processBatch(issues: GitHubIssue[], state: ResolverState): Promise<PipelineResult[]> {
   const results: PipelineResult[] = []
+  const queue = [...issues]
+  const inFlight = new Set<Promise<void>>()
+  const semaphore = state.parallel ?? 3
 
-  for (const issue of issues) {
-    console.log(`\n${"=".repeat(72)}`)
-    console.log(`Processing #${issue.number}: ${issue.title}`)
-    console.log(`${"=".repeat(72)}\n`)
+  console.log(`\n🚀 Processing batch of ${queue.length} issues (parallel=${semaphore})`)
 
-    const startTime = Date.now()
-    const result = await processIssue(issue, state)
-    result.durationMs = Date.now() - startTime
+  // Process issues concurrently using a simple semaphore
+  while (queue.length > 0 || inFlight.size > 0) {
+    // Fill up to the semaphore limit
+    while (queue.length > 0 && inFlight.size < semaphore) {
+      const issue = queue.shift()!
+      const promise = processIssueWithLogging(issue, state).then((result) => {
+        results.push(result)
+        inFlight.delete(promise)
+      })
+      inFlight.add(promise)
+    }
 
-    results.push(result)
-
-    // Print summary
-    if (result.success) {
-      console.log(`\n✅ #${issue.number} — SUCCESS${result.commitHash ? ` (${result.commitHash})` : ""}`)
-    } else if (result.tooComplex) {
-      console.log(`\n⏭️  #${issue.number} — TOO COMPLEX (skipped)`)
-    } else if (result.skipped) {
-      console.log(`\n⏭️  #${issue.number} — SKIPPED: ${result.error}`)
-    } else {
-      console.log(`\n❌ #${issue.number} — FAILED after ${result.attempts} attempts: ${result.error}`)
+    // Wait for at least one to finish
+    if (inFlight.size > 0) {
+      await Promise.race(inFlight)
     }
   }
 
+  // Save checkpoint after batch
+  saveCheckpoint(results, state)
+
+  // Print batch summary
+  printBatchSummary(results)
+
   return results
+}
+
+async function processIssueWithLogging(issue: GitHubIssue, state: ResolverState): Promise<PipelineResult> {
+  const startTime = Date.now()
+  console.log(`\n${"=".repeat(72)}`)
+  console.log(`[${new Date().toISOString()}] Processing #${issue.number}: ${issue.title}`)
+  console.log(`  Phase: ${issue.phase} | Scopes: ${issue.scopes.join(", ") || "none"} | Priority: ${issue.priority}`)
+  console.log(`  URL: ${issue.html_url}`)
+  console.log(`${"=".repeat(72)}\n`)
+
+  const result = await processIssue(issue, state)
+  result.durationMs = Date.now() - startTime
+
+  if (result.success) {
+    console.log(`\n✅ #${issue.number} — SUCCESS${result.commitHash ? ` (${result.commitHash})` : ""} [${(result.durationMs / 1000).toFixed(1)}s]`)
+  } else if (result.tooComplex) {
+    console.log(`\n⏭️  #${issue.number} — TOO COMPLEX (skipped) [${(result.durationMs / 1000).toFixed(1)}s]`)
+  } else if (result.skipped) {
+    console.log(`\n⏭️  #${issue.number} — SKIPPED: ${result.error} [${(result.durationMs / 1000).toFixed(1)}s]`)
+  } else {
+    console.log(`\n❌ #${issue.number} — FAILED after ${result.attempts} attempts: ${result.error} [${(result.durationMs / 1000).toFixed(1)}s]`)
+  }
+
+  return result
 }
 
 /**
@@ -70,23 +104,19 @@ async function processIssue(issue: GitHubIssue, state: ResolverState): Promise<P
 
   // --- SELECTION GATES ---
 
-  // Skip issues without sufficient info
   if (!hasSufficientInfo(issue)) {
     return { issue, success: false, skipped: true, tooComplex: false, attempts: 0, error: "Insufficient information in issue description", durationMs: 0 }
   }
 
-  // Complexity check
   const complexity = estimateComplexity(issue)
   if (complexity > state.maxComplexity) {
     return { issue, success: false, skipped: false, tooComplex: true, attempts: 0, error: `Complexity score ${complexity} exceeds max ${state.maxComplexity}`, durationMs: 0 }
   }
 
-  // Label exclusions
   if (state.excludeLabels.some((l) => issue.labels.includes(l))) {
     return { issue, success: false, skipped: true, tooComplex: false, attempts: 0, error: `Excluded by label`, durationMs: 0 }
   }
 
-  // Bug-only mode
   if (state.bugsOnly && !issue.isBug) {
     return { issue, success: false, skipped: true, tooComplex: false, attempts: 0, error: "Not a bug (bug-only mode)", durationMs: 0 }
   }
@@ -128,7 +158,6 @@ async function processIssue(issue: GitHubIssue, state: ResolverState): Promise<P
       const reviewOk = await stageReview(ctx)
       if (!reviewOk) {
         ctx.lastError = "Review failed"
-        // If the issue is complex, go back to planning
         if (complexity >= 5) {
           ctx.stage = "plan"
         } else {
@@ -163,6 +192,11 @@ async function processIssue(issue: GitHubIssue, state: ResolverState): Promise<P
       console.error(`\n⚠️  Error during ${ctx.stage}: ${ctx.lastError}`)
 
       if (ctx.attempt >= ctx.maxAttempts) {
+        // Comment on issue explaining failure
+        try {
+          await commentOnIssue(issue.number, `Automatic resolution attempted ${ctx.maxAttempts} times without success.\n\nLast error: ${ctx.lastError}\n\nSkipping — needs manual triage.`)
+        } catch { /* ignore comment errors */ }
+
         return {
           issue,
           success: false,
@@ -175,7 +209,6 @@ async function processIssue(issue: GitHubIssue, state: ResolverState): Promise<P
       }
 
       ctx.attempt++
-      // If the error was during planning or it's complex, re-plan
       if (ctx.stage === "plan" || complexity >= 5) {
         ctx.stage = "plan"
       } else {
@@ -197,28 +230,21 @@ async function processIssue(issue: GitHubIssue, state: ResolverState): Promise<P
 
 // --- STAGE HELPERS ---
 
-/**
- * PLAN: Outputs issue details for the agent to read and plan.
- * The agent should research the codebase and create a plan.
- */
 async function stagePlan(ctx: IssueContext): Promise<void> {
   const { issue } = ctx
   console.log(`\nIssue #${issue.number}: ${issue.title}`)
   console.log(`URL: ${issue.html_url}`)
   console.log(`Labels: ${issue.labels.join(", ") || "none"}`)
   console.log(`Priority: ${issue.priority}`)
+  console.log(`Phase: ${issue.phase}`)
+  console.log(`Scopes: ${issue.scopes.join(", ") || "none"}`)
   console.log(`Bug: ${issue.isBug}`)
   console.log(`\nDescription:`)
   console.log(issue.body.slice(0, 3000))
   if (issue.body.length > 3000) console.log(`... (${issue.body.length - 3000} more chars)`)
 }
 
-/**
- * IMPLEMENT: Outputs implementation instructions and checks for changes.
- * Returns false if the implementation should be retried.
- */
 async function stageImplement(_ctx: IssueContext): Promise<boolean> {
-  // Check if there are uncommitted changes (signs of implementation)
   const status = execSync("git status --porcelain", { encoding: "utf-8" }).trim()
   if (!status) {
     console.warn("⚠️  No changes detected after implementation stage")
@@ -232,14 +258,9 @@ async function stageImplement(_ctx: IssueContext): Promise<boolean> {
   return true
 }
 
-/**
- * VALIDATE: Runs typecheck and tests on changed packages.
- * Returns false if validation fails (triggers re-implementation).
- */
 async function stageValidate(ctx: IssueContext): Promise<boolean> {
   const errors: string[] = []
 
-  // Identify changed packages
   const changedFiles = execSync("git diff --name-only", { encoding: "utf-8" })
     .trim()
     .split("\n")
@@ -252,7 +273,6 @@ async function stageValidate(ctx: IssueContext): Promise<boolean> {
     if (match) changedPackages.add(match[1])
   }
 
-  // Always check the root typecheck
   console.log("Running root typecheck...")
   try {
     execSync("bun run typecheck 2>&1", { encoding: "utf-8", timeout: 120_000, stdio: "pipe" })
@@ -263,7 +283,6 @@ async function stageValidate(ctx: IssueContext): Promise<boolean> {
     errors.push(`Typecheck: ${output.slice(0, 500)}`)
   }
 
-  // Run tests for changed packages
   for (const pkg of changedPackages) {
     const pkgPath = `packages/${pkg}`
     if (!existsSync(resolve(pkgPath, "package.json"))) continue
@@ -274,7 +293,6 @@ async function stageValidate(ctx: IssueContext): Promise<boolean> {
       console.log(`  ✅ Tests passed in ${pkgPath}`)
     } catch (e) {
       const output = e instanceof Error ? e.message : String(e)
-      // Only fail on actual test failures, not on "no tests" or timeout
       if (!output.includes("no tests")) {
         console.error(`  ❌ Tests failed in ${pkgPath}`)
         errors.push(`Tests (${pkgPath}): ${output.slice(0, 500)}`)
@@ -290,20 +308,14 @@ async function stageValidate(ctx: IssueContext): Promise<boolean> {
   return true
 }
 
-/**
- * REVIEW: Checks code quality, diffs, and conventions.
- * Returns false if review fails (triggers re-implementation).
- */
 async function stageReview(ctx: IssueContext): Promise<boolean> {
   const errors: string[] = []
 
-  // Check for debug artifacts
   const diff = execSync("git diff", { encoding: "utf-8" })
   if (/console\.log\(|debugger|TODO|FIXME|XXX:/i.test(diff) && !/\/\/\s*(TODO|FIXME)/i.test(diff)) {
     console.warn("  ⚠️  Possible debug artifacts in diff")
   }
 
-  // Check for binary files
   const binaryFiles = execSync("git diff --diff-filter=A --name-only", { encoding: "utf-8" })
     .trim()
     .split("\n")
@@ -312,14 +324,11 @@ async function stageReview(ctx: IssueContext): Promise<boolean> {
     console.warn(`  ⚠️  Binary files added: ${binaryFiles.join(", ")}`)
   }
 
-  // Check diff size
   const diffLines = diff.split("\n").length
   if (diffLines > 1000) {
     console.warn(`  ⚠️  Large diff: ${diffLines} lines (consider splitting into smaller PRs)`)
   }
 
-  // Check commit message conventions
-  const log = execSync("git log --oneline -3", { encoding: "utf-8" })
   if (errors.length > 0) {
     ctx.lastError = errors.join("\n")
     return false
@@ -328,24 +337,13 @@ async function stageReview(ctx: IssueContext): Promise<boolean> {
   return true
 }
 
-/**
- * COMMIT: Creates a commit with the changes.
- */
 async function stageCommit(ctx: IssueContext): Promise<void> {
   const { issue } = ctx
 
-  // Stage all changes
   execSync("git add -A", { encoding: "utf-8" })
 
-  // Create commit message
   const type = issue.isBug ? "fix" : "feat"
-  const labels = issue.labels.join(" ")
-  const scope = labels.includes("config") ? "config" :
-    labels.includes("ui") || labels.includes("tui") ? "ui" :
-    labels.includes("cli") ? "cli" :
-    labels.includes("permission") ? "permission" :
-    labels.includes("provider") ? "provider" :
-    "core"
+  const scope = determineScope(issue)
 
   const message = `${type}(${scope}): ${issue.title.split("—").pop()?.trim() ?? issue.title}
 
@@ -356,22 +354,16 @@ Automatic resolution via issue-resolver pipeline.
 
   execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { encoding: "utf-8" })
 
-  // Get commit hash
   ctx.commitHash = execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim()
   console.log(`  ✅ Commit: ${ctx.commitHash}`)
 }
 
-/**
- * CLOSE: Pushes changes and closes the issue on GitHub.
- */
 async function stageClose(ctx: IssueContext): Promise<void> {
   const { issue } = ctx
 
-  // Push to current branch
   const branch = execSync("git branch --show-current", { encoding: "utf-8" }).trim()
   const remote = execSync("git remote get-url origin", { encoding: "utf-8" }).trim()
 
-  // Only push if we have a token
   if (process.env.GH_TOKEN || process.env.GITHUB_TOKEN) {
     execSync(`git push origin ${branch} 2>&1`, { encoding: "utf-8", timeout: 60_000 })
     console.log(`  ✅ Pushed to ${branch}`)
@@ -379,7 +371,6 @@ async function stageClose(ctx: IssueContext): Promise<void> {
     console.warn("  ⚠️  No GITHUB_TOKEN set, skipping push")
   }
 
-  // Close the issue
   if (process.env.GH_TOKEN) {
     await closeIssue(
       issue.number,
@@ -389,4 +380,108 @@ async function stageClose(ctx: IssueContext): Promise<void> {
   } else {
     console.warn("  ⚠️  No GH_TOKEN set, skipping issue close")
   }
+}
+
+function determineScope(issue: GitHubIssue): string {
+  if (issue.scopes.includes("core-engine")) return "core"
+  if (issue.scopes.includes("providers")) return "provider"
+  if (issue.scopes.includes("code-tools")) return "tools"
+  if (issue.scopes.includes("tui")) return "tui"
+  if (issue.scopes.includes("desktop")) return "desktop"
+  if (issue.scopes.includes("agent-system")) return "agent"
+  if (issue.scopes.includes("plugins")) return "plugins"
+  if (issue.scopes.includes("mcp")) return "mcp"
+  if (issue.scopes.includes("web")) return "web"
+  if (issue.scopes.includes("infrastructure")) return "infra"
+  if (issue.scopes.includes("stability")) return "stability"
+  if (issue.scopes.includes("features")) return "features"
+  if (issue.scopes.includes("platform")) return "platform"
+  return "core"
+}
+
+// --- CHECKPOINT SYSTEM ---
+
+export function loadCheckpoint(checkpointFile: string): Checkpoint | null {
+  try {
+    if (existsSync(checkpointFile)) {
+      const data = readFileSync(checkpointFile, "utf-8")
+      return JSON.parse(data) as Checkpoint
+    }
+  } catch (e) {
+    console.warn(`⚠️  Could not load checkpoint: ${e}`)
+  }
+  return null
+}
+
+export function saveCheckpoint(results: PipelineResult[], state: ResolverState): void {
+  try {
+    const existing = loadCheckpoint(state.checkpointFile)
+    const checkpoint: Checkpoint = {
+      updatedAt: new Date().toISOString(),
+      currentPhase: state.currentPhase,
+      processedIssues: [
+        ...(existing?.processedIssues ?? []),
+        ...results.filter((r) => r.success).map((r) => r.issue.number),
+      ],
+      skippedIssues: [
+        ...(existing?.skippedIssues ?? []),
+        ...results.filter((r) => r.skipped || r.tooComplex).map((r) => r.issue.number),
+      ],
+      failedIssues: [
+        ...(existing?.failedIssues ?? []),
+        ...results.filter((r) => !r.success && !r.skipped && !r.tooComplex).map((r) => r.issue.number),
+      ],
+      stats: {
+        totalProcessed: (existing?.stats.totalProcessed ?? 0) + results.length,
+        totalSuccess: (existing?.stats.totalSuccess ?? 0) + results.filter((r) => r.success).length,
+        totalSkipped: (existing?.stats.totalSkipped ?? 0) + results.filter((r) => r.skipped || r.tooComplex).length,
+        totalFailed: (existing?.stats.totalFailed ?? 0) + results.filter((r) => !r.success && !r.skipped && !r.tooComplex).length,
+        totalTooComplex: (existing?.stats.totalTooComplex ?? 0) + results.filter((r) => r.tooComplex).length,
+      },
+    }
+
+    const dir = dirname(resolve(state.checkpointFile))
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true })
+    }
+    writeFileSync(state.checkpointFile, JSON.stringify(checkpoint, null, 2))
+    console.log(`\n💾 Checkpoint saved to ${state.checkpointFile}`)
+  } catch (e) {
+    console.warn(`⚠️  Could not save checkpoint: ${e}`)
+  }
+}
+
+export function printCheckpointSummary(checkpoint: Checkpoint): void {
+  console.log(`\n📊 Checkpoint Summary:`)
+  console.log(`   Last updated: ${checkpoint.updatedAt}`)
+  console.log(`   Current phase: ${checkpoint.currentPhase}`)
+  console.log(`   Total processed: ${checkpoint.stats.totalProcessed}`)
+  console.log(`   Success: ${checkpoint.stats.totalSuccess}`)
+  console.log(`   Skipped: ${checkpoint.stats.totalSkipped}`)
+  console.log(`   Too complex: ${checkpoint.stats.totalTooComplex}`)
+  console.log(`   Failed: ${checkpoint.stats.totalFailed}`)
+  console.log(`   Processed issues: ${checkpoint.processedIssues.length}`)
+  console.log(`   Skipped issues: ${checkpoint.skippedIssues.length}`)
+  console.log(`   Failed issues: ${checkpoint.failedIssues.length}`)
+}
+
+function printBatchSummary(results: PipelineResult[]): void {
+  const success = results.filter((r) => r.success).length
+  const skipped = results.filter((r) => r.skipped || r.tooComplex).length
+  const failed = results.filter((r) => !r.success && !r.skipped && !r.tooComplex).length
+  const totalTime = results.reduce((acc, r) => acc + r.durationMs, 0)
+
+  console.log(`\n${"=".repeat(72)}`)
+  console.log(`📊 Batch Complete`)
+  console.log(`   Total: ${results.length}`)
+  console.log(`   ✅ Success: ${success}`)
+  console.log(`   ⏭️  Skipped: ${skipped}`)
+  console.log(`   ❌ Failed:  ${failed}`)
+  console.log(`   ⏱  Total time: ${(totalTime / 1000).toFixed(1)}s`)
+  console.log(`   ⏱  Avg time: ${(totalTime / 1000 / Math.max(1, results.length)).toFixed(1)}s`)
+  console.log(`${"=".repeat(72)}`)
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }

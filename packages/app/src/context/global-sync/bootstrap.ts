@@ -13,6 +13,7 @@ import type {
 import { showToast } from "@teamcode-ai/ui/toast"
 import { getFilename } from "@teamcode-ai/core/util/path"
 import { retry } from "@teamcode-ai/core/util/retry"
+import { pathKey } from "@/utils/path-key"
 import { batch } from "solid-js"
 import { reconcile, type SetStoreFunction, type Store } from "solid-js/store"
 import type { State, VcsCache } from "./types"
@@ -141,7 +142,11 @@ function groupBySession<T extends { id: string; sessionID: string }>(input: T[])
 }
 
 function projectID(directory: string, projects: Project[]) {
-  return projects.find((project) => project.worktree === directory || project.sandboxes?.includes(directory))?.id
+  const normalized = pathKey(directory)
+  return projects.find(
+    (project) =>
+      pathKey(project.worktree) === normalized || project.sandboxes?.some((s) => pathKey(s) === normalized),
+  )?.id
 }
 
 function mergeSession(setStore: SetStoreFunction<State>, session: Session) {
@@ -214,7 +219,7 @@ export async function bootstrapDirectory(input: {
 }) {
   const loading = input.store.status !== "complete"
   const seededProject = projectID(input.directory, input.global.project)
-  const seededPath = input.global.path.directory === input.directory ? input.global.path : undefined
+  const seededPath = pathKey(input.global.path.directory) === pathKey(input.directory) ? input.global.path : undefined
   if (seededProject) input.setStore("project", seededProject)
   if (seededPath) input.setStore("path", seededPath)
   if (Object.keys(input.store.config).length === 0 && Object.keys(input.global.config).length > 0) {

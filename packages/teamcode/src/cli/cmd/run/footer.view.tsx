@@ -365,7 +365,7 @@ export function RunFooterView(props: RunFooterViewProps) {
       <box id="run-direct-footer-top-spacer" width="100%" height={1} flexShrink={0} backgroundColor="transparent" />
 
       <Show when={showTabs()}>
-        <RunFooterSubagentTabs tabs={tabs()} selected={selected()} theme={theme()} width={term().width} />
+        <RunFooterSubagentTabs tabs={tabs()} selected={selected()} theme={theme()} width={term().width} onSelect={toggleTab} />
       </Show>
 
       <Show

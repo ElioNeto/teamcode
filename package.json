@@ -58,7 +58,7 @@
       "effect": "4.0.0-beta.65",
       "ai": "6.0.168",
       "cross-spawn": "7.0.6",
-      "hono": "4.10.7",
+      "hono": "4.12.21",
       "hono-openapi": "1.1.2",
       "fuzzysort": "3.1.0",
       "luxon": "3.6.1",
@@ -97,7 +97,7 @@
     "oxlint": "1.60.0",
     "oxlint-tsgolint": "0.21.0",
     "prettier": "3.6.2",
-    "semver": "^7.6.0",
+    "semver": "^7.8.3",
     "sst": "3.18.10",
     "turbo": "2.8.13"
   },
@@ -130,6 +130,11 @@
     "electron"
   ],
   "overrides": {
+    "//": "Override fast-xml-parser to 5.7.0 to fix GHSA-m7jm-9gc2-mpf2 (entity encoding bypass) from AWS SDK dependency chain",
+    "fast-xml-parser": "5.7.0",
+    "hono": "4.12.21",
+    "undici": "7.27.0",
+    "ws": "8.20.1",
     "@opentui/core": "catalog:",
     "@opentui/keymap": "catalog:",
     "@opentui/solid": "catalog:",

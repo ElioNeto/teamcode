@@ -404,7 +404,7 @@ export type BindingLookupView = {
 }
 
 export function toBindingConfig(keybinds: Keybinds): BindingConfig<Renderable, KeyEvent> {
-  return Object.fromEntries(Object.entries(keybinds)) as BindingConfig<Renderable, KeyEvent>
+  return Object.fromEntries(Object.entries(keybinds ?? {})) as BindingConfig<Renderable, KeyEvent>
 }
 
 const decodeBindingValue = Schema.decodeUnknownSync(BindingValueSchema)

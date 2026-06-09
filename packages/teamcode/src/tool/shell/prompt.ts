@@ -6,6 +6,7 @@ import { ShellID } from "./id"
 
 const PS = new Set(["powershell", "pwsh"])
 const CMD = new Set(["cmd"])
+const CSH = new Set(["csh", "tcsh"])
 
 const descriptions = {
   bash: "Clear, concise description of what this command does in 5-10 words. Examples:\nInput: ls\nOutput: Lists files in current directory\n\nInput: git status\nOutput: Shows working tree status\n\nInput: npm install\nOutput: Installs package dependencies\n\nInput: mkdir foo\nOutput: Creates directory 'foo'",
@@ -28,7 +29,7 @@ export function parameterSchema(description: string) {
     workdir: Schema.optional(Schema.String).annotate({
       description: `The working directory to run the command in. Defaults to the current directory. Use this instead of 'cd' commands.`,
     }),
-    description: Schema.String.annotate({ description }),
+    description: Schema.optional(Schema.String).annotate({ description }),
   })
 }
 
@@ -47,6 +48,8 @@ function shellDisplayName(name: string) {
   if (name === "pwsh") return "PowerShell (7+)"
   if (name === "powershell") return "Windows PowerShell (5.1)"
   if (name === "cmd") return "cmd.exe"
+  if (name === "csh") return "csh"
+  if (name === "tcsh") return "tcsh"
   return name
 }
 
@@ -73,6 +76,9 @@ function powershellNotes(name: string) {
 }
 
 function chainGuidance(name: string) {
+  if (CSH.has(name)) {
+    return "If the commands depend on each other and must run sequentially, use a single shell tool call with '&&' to chain them together (e.g., `git add . && git commit -m \"message\" && git push`). For instance, if one operation must complete before another starts, run these operations sequentially instead."
+  }
   if (name === "powershell") {
     return "If the commands depend on each other and must run sequentially, avoid '&&' in this shell because Windows PowerShell (5.1) does not support it. Use PowerShell conditionals such as `cmd1; if ($?) { cmd2 }` when later commands must depend on earlier success."
   }
@@ -117,6 +123,57 @@ Usage notes:
     - Communication: Output text directly (NOT echo/printf)
   - When issuing multiple commands:
     - If the commands are independent and can run in parallel, make multiple bash tool calls in a single message. For example, if you need to run "git status" and "git diff", send a single message with two bash tool calls in parallel.
+    - ${chain}
+    - Use ';' only when you need to run commands sequentially but don't care if earlier commands fail
+    - DO NOT use newlines to separate commands (newlines are ok in quoted strings)
+  - AVOID using \`cd <directory> && <command>\`. Use the \`workdir\` parameter to change directories instead.
+    <good-example>
+    Use workdir="/foo/bar" with command: pytest tests
+    </good-example>
+    <bad-example>
+    cd /foo/bar && pytest tests
+    </bad-example>`
+}
+
+function cshCommandSection(name: string, chain: string, limits: Limits, defaultTimeoutMs: number) {
+  return `# ${shellDisplayName(name)} shell notes
+- This shell uses DIFFERENT redirection syntax than bash. NEVER use bash-style redirections like \`2>&1\`.
+- Instead, use \`>&file\` to redirect both stdout and stderr to a file.
+- Use \`|&\` to pipe both stdout and stderr to another command.
+- Command substitution uses backticks (\`cmd\`), not \`$(cmd)\`.
+- Use double quotes for paths with spaces, single quotes for literal strings.
+
+Before executing the command, please follow these steps:
+
+1. Directory Verification:
+   - If the command will create new directories or files, first use \`ls\` to verify the parent directory exists and is the correct location
+   - For example, before running "mkdir foo/bar", first use \`ls foo\` to check that "foo" exists and is the intended parent directory
+
+2. Command Execution:
+   - Always quote file paths that contain spaces with double quotes (e.g., rm "path with spaces/file.txt")
+   - Examples of proper quoting:
+     - mkdir "/Users/name/My Documents" (correct)
+     - mkdir /Users/name/My Documents (incorrect - will fail)
+     - python "/path/with spaces/script.py" (correct)
+     - python /path/with spaces/script.py (incorrect - will fail)
+   - After ensuring proper quoting, execute the command.
+   - Capture the output of the command.
+
+Usage notes:
+  - The command argument is required.
+  - You can specify an optional timeout in milliseconds. If not specified, commands will time out after ${defaultTimeoutMs}ms (${Math.round(defaultTimeoutMs / 60000)} minutes). Use -1 for no timeout (wait indefinitely).
+  - It is very helpful if you write a clear, concise description of what this command does in 5-10 words.
+  - If the output exceeds ${limits.maxLines} lines or ${limits.maxBytes} bytes, it will be truncated and the full output will be written to a file. You can use Read with offset/limit to read specific sections or Grep to search the full content. Do NOT use \`head\`, \`tail\`, or other truncation commands to limit output; the full output will already be captured to a file for more precise searching.
+
+  - Avoid using Shell with the \`find\`, \`grep\`, \`cat\`, \`head\`, \`tail\`, \`sed\`, \`awk\`, or \`echo\` commands, unless explicitly instructed or when these commands are truly necessary for the task. Instead, always prefer using the dedicated tools for these commands:
+    - File search: Use Glob (NOT find or ls)
+    - Content search: Use Grep (NOT grep or rg)
+    - Read files: Use Read (NOT cat/head/tail)
+    - Edit files: Use Edit (NOT sed/awk)
+    - Write files: Use Write (NOT echo >/cat <<EOF)
+    - Communication: Output text directly (NOT echo/printf)
+  - When issuing multiple commands:
+    - If the commands are independent and can run in parallel, make multiple shell tool calls in a single message.
     - ${chain}
     - Use ';' only when you need to run commands sequentially but don't care if earlier commands fail
     - DO NOT use newlines to separate commands (newlines are ok in quoted strings)
@@ -228,6 +285,19 @@ Usage notes:
 function profile(name: string, platform: NodeJS.Platform, limits: Limits, defaultTimeoutMs: number) {
   const isPowerShell = PS.has(name)
   const chain = chainGuidance(name)
+  if (CSH.has(name)) {
+    return {
+      intro: `Executes a given ${shellDisplayName(name)} command with optional timeout, ensuring proper handling and security measures.`,
+      workdirSection:
+        "All commands run in the current working directory by default. Use the `workdir` parameter if you need to run a command in a different directory. AVOID changing directories inside the command - use `workdir` instead.",
+      commandSection: cshCommandSection(name, chain, limits, defaultTimeoutMs),
+      gitCommands: "shell commands",
+      gitCommandRestriction: "shell commands",
+      createPrInstruction: "Create PR using gh pr create with the format below. Use a HEREDOC to pass the body to ensure correct formatting.",
+      createPrExample: `gh pr create --title "the pr title" --body "$(cat <<'EOF'\n## Summary\n<1-3 bullet points>`,
+      parameterDescription: descriptions.bash,
+    }
+  }
   if (CMD.has(name)) {
     return {
       intro: `Executes a given ${shellDisplayName(name)} command with optional timeout, ensuring proper handling and security measures.`,

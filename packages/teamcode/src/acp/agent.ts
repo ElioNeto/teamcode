@@ -131,10 +131,17 @@ async function sendUsageUpdate(
     })
 }
 
-export function init({ sdk: _sdk }: { sdk: OpencodeClient }) {
+export function init({
+  sdk: _sdk,
+  onModeChange,
+}: {
+  sdk: OpencodeClient
+  onModeChange?: (sessionId: string, modeId: string) => void
+}) {
   return {
     create: (connection: AgentSideConnection, fullConfig: ACPConfig) => {
-      return new Agent(connection, fullConfig)
+      const agent = new Agent(connection, fullConfig, onModeChange)
+      return agent
     },
   }
 }
@@ -164,11 +171,16 @@ export class Agent implements ACPAgent {
     },
   ]
 
-  constructor(connection: AgentSideConnection, config: ACPConfig) {
+  constructor(
+    connection: AgentSideConnection,
+    config: ACPConfig,
+    onModeChange?: (sessionId: string, modeId: string) => void,
+  ) {
     this.connection = connection
     this.config = config
     this.sdk = config.sdk
     this.sessionManager = new ACPSessionManager(this.sdk)
+    this.sessionManager.onModeChange = onModeChange
     this.startEventSubscription()
   }
 
@@ -202,8 +214,13 @@ export class Agent implements ACPAgent {
     switch (event.type) {
       case "permission.asked": {
         const permission = event.properties
-        const session = this.sessionManager.tryGet(permission.sessionID)
-        if (!session) return
+        let session = this.sessionManager.tryGet(permission.sessionID)
+        if (!session) {
+          // Child session (e.g. from Task tool subagent) — auto-register so
+          // permission prompts and events are visible to the ACP client.
+          session = await this.sessionManager.autoRegister(permission.sessionID, "")
+          if (!session) return
+        }
 
         const prev = this.permissionQueues.get(permission.sessionID) ?? Promise.resolve()
         const next = prev
@@ -285,8 +302,11 @@ export class Agent implements ACPAgent {
         log.info("message part updated", { event: event.properties })
         const props = event.properties
         const part = props.part
-        const session = this.sessionManager.tryGet(part.sessionID)
-        if (!session) return
+        let session = this.sessionManager.tryGet(part.sessionID)
+        if (!session) {
+          session = await this.sessionManager.autoRegister(part.sessionID, "")
+          if (!session) return
+        }
         const sessionId = session.id
 
         if (part.type === "tool") {
@@ -629,7 +649,9 @@ export class Agent implements ACPAgent {
       // Don't pass a model — let load() resolve it from the stored session
       await this.sessionManager.load(sessionId, params.cwd, params.mcpServers, undefined)
 
-      const messages = await this.loadSessionMessages(directory, sessionId)
+      // Limit messages to avoid unbounded memory growth on sessions with
+      // thousands of messages; 200 is enough for meaningful context.
+      const messages = await this.loadSessionMessages(directory, sessionId, 200)
       this.restoreSessionStateFromMessages(sessionId, messages)
 
       log.info("load_session", { sessionId, mcpServers: params.mcpServers.length })
@@ -727,7 +749,7 @@ export class Agent implements ACPAgent {
       const sessionId = forked.id
       await this.sessionManager.load(sessionId, directory, mcpServers, model)
 
-      const messages = await this.loadSessionMessages(directory, sessionId)
+      const messages = await this.loadSessionMessages(directory, sessionId, 200)
       this.restoreSessionStateFromMessages(sessionId, messages)
 
       log.info("fork_session", { sessionId, mcpServers: mcpServers.length })
@@ -1628,9 +1650,30 @@ export class Agent implements ACPAgent {
   }
 
   private restoreSessionStateFromMessages(sessionId: string, messages: SessionMessageResponse[] | undefined) {
-    const lastUser = messages?.findLast((message) => message.info.role === "user")?.info
-    if (lastUser?.role !== "user") return
+    if (!messages?.length) return
 
+    // Build per-agent model map from ALL user messages so that switching to a
+    // previously-used agent recalls the model they were last used with.
+    const agentModels: Record<string, { providerID: ProviderID; modelID: ModelID; variant?: string }> = {}
+    let lastUser: SessionMessageResponse["info"] & { role: "user" } | undefined
+
+    for (const msg of messages) {
+      if (msg.info.role !== "user") continue
+      const info = msg.info
+      if (info.role !== "user") continue // type guard for narrowing
+      lastUser = info
+      if (info.agent && info.model) {
+        agentModels[info.agent] = {
+          providerID: ProviderID.make(info.model.providerID),
+          modelID: ModelID.make(info.model.modelID),
+          variant: info.model.variant,
+        }
+      }
+    }
+
+    this.sessionManager.setAgentModels(sessionId, agentModels)
+
+    if (!lastUser) return
     this.sessionManager.setModel(sessionId, {
       providerID: ProviderID.make(lastUser.model.providerID),
       modelID: ModelID.make(lastUser.model.modelID),

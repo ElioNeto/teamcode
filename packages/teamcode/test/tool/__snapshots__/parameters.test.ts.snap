@@ -65,7 +65,6 @@ Output: Creates directory 'foo'"
   },
   "required": [
     "command",
-    "description",
   ],
   "type": "object",
 }
@@ -290,16 +289,30 @@ exports[`tool parameters JSON Schema (wire shape) read 1`] = `
       "type": "string",
     },
     "limit": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": -9007199254740991,
+          "type": "integer",
+        },
+        {
+          "type": "string",
+        },
+      ],
       "description": "The maximum number of lines to read (defaults to 2000)",
-      "maximum": 9007199254740991,
-      "minimum": 0,
-      "type": "integer",
     },
     "offset": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": -9007199254740991,
+          "type": "integer",
+        },
+        {
+          "type": "string",
+        },
+      ],
       "description": "The line number to start reading from (1-indexed)",
-      "maximum": 9007199254740991,
-      "minimum": 0,
-      "type": "integer",
     },
   },
   "required": [

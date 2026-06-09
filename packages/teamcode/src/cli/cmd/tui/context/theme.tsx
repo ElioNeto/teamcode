@@ -221,7 +221,7 @@ export function resolveTheme(theme: ThemeJson, mode: "dark" | "light") {
   }
 
   const resolved = Object.fromEntries(
-    Object.entries(theme.theme)
+    Object.entries(theme.theme ?? {})
       .filter(([key]) => key !== "selectedListItemText" && key !== "backgroundMenu" && key !== "thinkingOpacity")
       .map(([key, value]) => {
         return [key, resolveColor(value as ColorValue)]
@@ -349,6 +349,13 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
 
     onMount(init)
 
+    function detectModeFromBg(colors: TerminalColors): "dark" | "light" {
+      const bg = RGBA.fromHex(colors.defaultBackground ?? colors.palette[0]!)
+      // Perceived brightness (sRGB luminance weights)
+      const brightness = (bg.r * 299 + bg.g * 587 + bg.b * 114) / 1000
+      return brightness > 0.5 ? "light" : "dark"
+    }
+
     function resolveSystemTheme(mode: "dark" | "light" = store.mode) {
       return renderer
         .getPalette({
@@ -363,7 +370,11 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
             }
             return
           }
-          systemTheme = generateSystem(colors, mode)
+          // Compute mode from background color brightness as the primary source,
+          // since renderer.themeMode may return stale/wrong values (e.g. always
+          // "light" despite a dark terminal background from OSC 11 queries).
+          const computedMode = detectModeFromBg(colors)
+          systemTheme = generateSystem(colors, computedMode)
           syncThemes()
         })
         .catch(() => {

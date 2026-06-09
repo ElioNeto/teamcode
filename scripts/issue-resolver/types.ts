@@ -4,6 +4,7 @@
 
 export type IssueStatus = "open" | "closed"
 export type Priority = "low" | "medium" | "high" | "critical"
+export type Phase = "p0-critical" | "p1-high" | "p2-medium" | "p3-low" | "unphased"
 
 export interface GitHubIssue {
   number: number
@@ -17,6 +18,10 @@ export interface GitHubIssue {
   /** Whether this issue is a bug */
   isBug: boolean
   priority: Priority
+  /** Phase label (p0-critical, p1-high, etc.) */
+  phase: Phase
+  /** Scope labels (scope:core-engine, scope:providers, etc.) */
+  scopes: string[]
 }
 
 export type PipelineStage =
@@ -62,6 +67,8 @@ export interface PipelineResult {
 export interface ResolverState {
   /** Batch configuration */
   batchSize: number
+  /** Number of parallel workers */
+  parallel: number
   /** Labels to prefer (sorted first) */
   preferLabels: string[]
   /** Labels to exclude */
@@ -74,4 +81,47 @@ export interface ResolverState {
   maxComplexity: number
   /** Whether to skip issues without clear reproduction steps */
   requireReproduction: boolean
+  /** Filter by phase (p0-critical, p1-high, etc.) */
+  phaseFilter?: Phase
+  /** Filter by scope (core-engine, providers, etc.) */
+  scopeFilter?: string
+  /** Path to checkpoint file */
+  checkpointFile: string
+  /** Current phase being processed */
+  currentPhase: Phase
 }
+
+/**
+ * Snapshot of resolver progress for checkpointing.
+ */
+export interface Checkpoint {
+  updatedAt: string
+  currentPhase: Phase
+  processedIssues: number[]
+  skippedIssues: number[]
+  failedIssues: number[]
+  stats: {
+    totalProcessed: number
+    totalSuccess: number
+    totalSkipped: number
+    totalFailed: number
+    totalTooComplex: number
+  }
+}
+
+export const PHASE_ORDER: Phase[] = ["p0-critical", "p1-high", "p2-medium", "p3-low", "unphased"]
+export const SCOPE_ORDER = [
+  "core-engine",
+  "agent-system",
+  "providers",
+  "code-tools",
+  "tui",
+  "desktop",
+  "stability",
+  "infrastructure",
+  "features",
+  "plugins",
+  "mcp",
+  "web",
+  "platform",
+]

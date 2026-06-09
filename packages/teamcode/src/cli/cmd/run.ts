@@ -259,9 +259,9 @@ export const RunCommand = effectCmd({
         process.env.TEAMCODE_CAVEMAN = args.caveman as string
       }
       const thinking = args.interactive ? (args.thinking ?? true) : (args.thinking ?? false)
-      const die = (message: string): never => {
+      const die = (message: string) => {
         UI.error(message)
-        process.exit(1)
+        process.exitCode = 1
       }
       const dieInteractive = (error: unknown): never => {
         if (error instanceof Error && error.message === INTERACTIVE_INPUT_ERROR) {
@@ -277,18 +277,22 @@ export const RunCommand = effectCmd({
 
       if (args.interactive && args.command) {
         die("--interactive cannot be used with --command")
+        return
       }
 
       if (args.demo && !args.interactive) {
         die("--demo requires --interactive")
+        return
       }
 
       if (args.interactive && args.format === "json") {
         die("--interactive cannot be used with --format json")
+        return
       }
 
       if (args.interactive && !process.stdout.isTTY) {
         die("--interactive requires a TTY stdout")
+        return
       }
 
       if (args.interactive) {
@@ -309,7 +313,8 @@ export const RunCommand = effectCmd({
           return process.cwd()
         } catch {
           UI.error("Failed to change directory to " + args.dir)
-          process.exit(1)
+          process.exitCode = 1
+          return undefined
         }
       })()
       const attachHeaders = args.attach
@@ -331,7 +336,8 @@ export const RunCommand = effectCmd({
           const resolvedPath = path.resolve(args.attach ? root : (directory ?? root), filePath)
           if (!(await Filesystem.exists(resolvedPath))) {
             UI.error(`File not found: ${filePath}`)
-            process.exit(1)
+            process.exitCode = 1
+            return
           }
 
           const mime = (await Filesystem.isDir(resolvedPath)) ? "application/x-directory" : await Filesystem.mimeType(resolvedPath)
@@ -351,12 +357,14 @@ export const RunCommand = effectCmd({
 
       if (message.trim().length === 0 && !args.command && !args.interactive) {
         UI.error("You must provide a message or a command")
-        process.exit(1)
+        process.exitCode = 1
+        return
       }
 
       if (args.fork && !args.continue && !args.session) {
         UI.error("--fork requires --continue or --session")
-        process.exit(1)
+        process.exitCode = 1
+        return
       }
 
       const rules: Permission.Ruleset = args.interactive
@@ -522,12 +530,13 @@ export const RunCommand = effectCmd({
         }
 
         UI.error("Failed to resolve remote directory")
-        process.exit(1)
+        process.exitCode = 1
+        return ""
       }
 
       async function localAgent() {
         if (!args.agent) return undefined
-        const name = args.agent
+        const name = (args.agent ?? "").toLowerCase()
 
         const entry = await Effect.runPromise(
           agentSvc.get(name).pipe(Effect.provideService(InstanceRef, localInstance)),
@@ -553,7 +562,7 @@ export const RunCommand = effectCmd({
 
       async function attachAgent(sdk: OpencodeClient) {
         if (!args.agent) return undefined
-        const name = args.agent
+        const name = (args.agent ?? "").toLowerCase()
 
         const modes = await sdk.app
           .agents(undefined, { throwOnError: true })
@@ -855,7 +864,7 @@ export const RunCommand = effectCmd({
             session,
             share,
             createSession: createFreshSession,
-            agent: args.agent,
+            agent: (args.agent ?? "").toLowerCase(),
             model,
             variant: args.variant,
             files,

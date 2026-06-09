@@ -142,7 +142,7 @@ export const TaskTool = Tool.define(
       }
 
       const taskID = params.task_id
-      const session = taskID
+      const session = taskID && taskID.startsWith("ses")
         ? yield* sessions.get(SessionID.make(taskID)).pipe(Effect.catchCause(() => Effect.succeed(undefined)))
         : undefined
       const parent = yield* sessions.get(ctx.sessionID)

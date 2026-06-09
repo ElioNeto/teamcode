@@ -594,6 +594,19 @@ export const layer = Layer.effect(
         result.mode = result.mode || {}
         result.plugin = result.plugin || []
 
+        // Convert deprecated `mode` field to `agent` entries BEFORE loading .md
+        // agent files, so that .md definitions override the default "primary" mode.
+        // Otherwise the unconditional `mode: "primary"` stamp would overwrite
+        // `mode: subagent` from .md files when users only override model in config.
+        for (const [name, mode] of Object.entries(result.mode ?? {})) {
+          result.agent = mergeDeep(result.agent ?? {}, {
+            [name]: {
+              ...mode,
+              mode: "primary" as const,
+            },
+          })
+        }
+
         const directories = yield* ConfigPaths.directories(ctx.directory, ctx.worktree)
 
         if (flags.configDir) {
@@ -718,15 +731,6 @@ export const layer = Layer.effect(
           )
         }
 
-        for (const [name, mode] of Object.entries(result.mode ?? {})) {
-          result.agent = mergeDeep(result.agent ?? {}, {
-            [name]: {
-              ...mode,
-              mode: "primary" as const,
-            },
-          })
-        }
-
         if (flags.permission) {
           result.permission = mergeDeep(result.permission ?? {}, JSON.parse(flags.permission))
         }
@@ -762,6 +766,36 @@ export const layer = Layer.effect(
           result.caveman = {
             enabled: true,
             level: level === "lite" || level === "ultra" ? level : "full",
+          }
+        }
+
+        // Validate custom model config — catch typos/missing fields at startup
+        if (result.provider) {
+          for (const [providerId, providerInfo] of Object.entries(result.provider)) {
+            for (const [modelKey, model] of Object.entries(providerInfo.models ?? {})) {
+              if (!model.id && !model.name) {
+                log.warn(
+                  `Configuration warning: Model "${modelKey}" under provider "${providerId}" has no "id" or "name"; it may not be usable.`,
+                )
+              }
+              if (!model.cost?.input || !model.cost?.output) {
+                log.warn(
+                  `Configuration warning: Model "${modelKey}" under provider "${providerId}" is missing "cost" data — token accounting will be inaccurate.`,
+                )
+              }
+              if (!model.limit?.context) {
+                log.warn(
+                  `Configuration warning: Model "${modelKey}" under provider "${providerId}" has no "limit.context" — context window is treated as unlimited.`,
+                )
+              }
+            }
+            if (providerInfo.models && Object.keys(providerInfo.models).length > 0) {
+              if (!providerInfo.api && !providerInfo.npm) {
+                log.warn(
+                  `Configuration warning: Provider "${providerId}" has custom models but no "api" or "npm" endpoint.`,
+                )
+              }
+            }
           }
         }
 

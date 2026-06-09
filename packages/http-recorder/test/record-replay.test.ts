@@ -124,9 +124,9 @@ describe("http-recorder", () => {
             transport: "http",
             request: {
               method: "POST",
-              url: "https://example.test/path?key=sk-123456789012345678901234",
+              url: "https://example.test/path?key=sk-test-invalid-do-not-scan",
               headers: {},
-              body: JSON.stringify({ nested: "AIzaSyDHibiBRvJZLsFnPYPoiTwxY4ztQ55yqCE" }),
+              body: JSON.stringify({ nested: "AIza-test-invalid-do-not-scan" }),
             },
             response: {
               status: 200,
@@ -147,7 +147,7 @@ describe("http-recorder", () => {
     expect(
       HttpRecorder.secretFindings({
         version: 1,
-        metadata: { token: "sk-123456789012345678901234" },
+        metadata: { token: "sk-test-invalid-do-not-scan" },
         interactions: [],
       }),
     ).toEqual([{ path: "metadata.token", reason: "API key" }])
@@ -311,7 +311,7 @@ describe("http-recorder", () => {
     await run(
       Effect.gen(function* () {
         const exit = yield* Effect.exit(
-          post("https://example.test/echo?api_key=secret-value", { step: 3, token: "sk-123456789012345678901234" }),
+          post("https://example.test/echo?api_key=secret-value", { step: 3, token: "sk-test-invalid-do-not-scan" }),
         )
         const message = failureText(exit)
         expect(message).toContain("url:")
@@ -319,7 +319,7 @@ describe("http-recorder", () => {
         expect(message).toContain("body:")
         expect(message).toContain("$.step expected 1, received 3")
         expect(message).toContain('$.token expected undefined, received "[REDACTED]"')
-        expect(message).not.toContain("sk-123456789012345678901234")
+        expect(message).not.toContain("sk-test-invalid-do-not-scan")
       }),
     )
   })

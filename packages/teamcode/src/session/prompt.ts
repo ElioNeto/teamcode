@@ -403,7 +403,7 @@ export const layer = Layer.effect(
           userMessage.parts.push(part)
         }
         const wasPlan = input.messages.some((msg) => msg.info.role === "assistant" && msg.info.agent === "plan")
-        if (wasPlan && input.agent.name === "build") {
+        if (wasPlan && input.agent.name !== "plan") {
           const part = yield* sessions.updatePart({
             id: PartID.ascending(),
             messageID: userMessage.info.id,
@@ -817,7 +817,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
                     status: "error",
                     error: "Cancelled",
                     time: { start: part.state.time.start, end: Date.now() },
-                    metadata: part.state.metadata,
+                    metadata: { ...part.state.metadata, interrupted: true },
                     input: part.state.input,
                   },
                 } satisfies MessageV2.ToolPart)
@@ -959,7 +959,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
               state: {
                 status: "running",
                 time: { start: started },
-                input: { command: input.command },
+                input: { command: input.command, description: `Shell: ${input.command}` },
               },
             }
             yield* sessions.updatePart(part)
@@ -1019,10 +1019,16 @@ NOTE: At any point in time through this workflow you should feel free to ask the
                 { cwd, sessionID: input.sessionID, callID: part.callID },
                 { env: {} },
               )
+              const env: Record<string, string> = { ...shellEnv.env, TERM: "dumb" }
+              // Compose plugin PATH with system PATH instead of stomping it.
+              const pluginPath = (shellEnv.env as { PATH?: string }).PATH
+              if (pluginPath && pluginPath !== process.env.PATH) {
+                env.PATH = pluginPath + path.delimiter + (process.env.PATH ?? "")
+              }
               const cmd = ChildProcess.make(sh, args, {
                 cwd,
                 extendEnv: true,
-                env: { ...shellEnv.env, TERM: "dumb" },
+                env,
                 stdin: "ignore",
                 forceKillAfter: "3 seconds",
               })

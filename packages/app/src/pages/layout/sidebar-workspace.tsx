@@ -347,7 +347,7 @@ export const SortableWorkspace = (props: {
   })
   const slug = createMemo(() => base64Encode(props.directory))
   const sessions = createMemo(() => sortedRootSessions(workspaceStore, props.sortNow()))
-  const local = createMemo(() => props.directory === props.project.worktree)
+  const local = createMemo(() => pathKey(props.directory) === pathKey(props.project.worktree))
   const active = createMemo(() => pathKey(props.ctx.currentDir()) === pathKey(props.directory))
   const workspaceValue = createMemo(() => {
     const branch = workspaceStore.vcs?.branch
