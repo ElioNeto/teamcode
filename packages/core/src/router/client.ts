@@ -96,7 +96,9 @@ function startCircuitBreaker(): void {
 
   // Immediate first poll, then repeat
   poll()
-  setInterval(poll, CB_POLL_INTERVAL)
+  // Use unref so this timer doesn't keep subprocesses alive
+  const timer = setInterval(poll, CB_POLL_INTERVAL)
+  timer.unref()
 }
 
 // ---------------------------------------------------------------------------
