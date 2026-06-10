@@ -6,4 +6,5 @@
 export { flag, listFlags } from "./flag"
 export type { Flag } from "./flag"
 export { GoCoreClient } from "./client"
+export { startGoCore, stopGoCore, isGoCoreReady } from "./go-core"
 export type { GoCoreReadResult, GoCoreStatResult, GoCoreDirEntry, GoCoreGlobResponse, GoCoreFindUpResponse, GoCoreSession, GoCoreSessionListResponse, GoCoreProcessResult, GoCoreMessagesResponse } from "./client"

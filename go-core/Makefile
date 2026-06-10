@@ -25,9 +25,29 @@ dev:
 lint:
 	go vet ./...
 
-# Build for CI (cross-platform)
+# Cross-compilation for all platforms (CGO_ENABLED=0 for static binaries)
+GO_CORE_SRC := ./cmd/server
+GO_FLAGS := CGO_ENABLED=0
+
+.PHONY: build-ci cross-all cross-linux cross-darwin cross-windows
+
 build-ci:
-	CGO_ENABLED=0 go build -o $(BUILD_DIR)/go-core-server-linux-amd64 ./cmd/server
+	$(GO_FLAGS) go build -o $(BUILD_DIR)/go-core-server-linux-amd64 $(GO_CORE_SRC)
+
+# Cross-compile for all supported platforms
+cross-all: cross-linux cross-darwin cross-windows
+
+cross-linux:
+	$(GO_FLAGS) GOOS=linux GOARCH=amd64 go build -o $(BUILD_DIR)/go-core-server-linux-x64 $(GO_CORE_SRC)
+	$(GO_FLAGS) GOOS=linux GOARCH=arm64 go build -o $(BUILD_DIR)/go-core-server-linux-arm64 $(GO_CORE_SRC)
+
+cross-darwin:
+	$(GO_FLAGS) GOOS=darwin GOARCH=amd64 go build -o $(BUILD_DIR)/go-core-server-darwin-x64 $(GO_CORE_SRC)
+	$(GO_FLAGS) GOOS=darwin GOARCH=arm64 go build -o $(BUILD_DIR)/go-core-server-darwin-arm64 $(GO_CORE_SRC)
+
+cross-windows:
+	$(GO_FLAGS) GOOS=windows GOARCH=amd64 go build -o $(BUILD_DIR)/go-core-server-windows-x64.exe $(GO_CORE_SRC)
+	$(GO_FLAGS) GOOS=windows GOARCH=arm64 go build -o $(BUILD_DIR)/go-core-server-windows-arm64.exe $(GO_CORE_SRC)
 
 # Run parity tests (clean build Go binary first, then runs TS tests)
 parity-test: clean

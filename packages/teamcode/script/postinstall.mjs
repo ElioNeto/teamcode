@@ -27,6 +27,8 @@ const arch = archMap[os.arch()] ?? os.arch()
 const base = `@teamcode-ai/${platform}-${arch}`
 const sourceBinary = platform === "windows" ? "teamcode.exe" : "teamcode"
 const targetBinary = path.join(__dirname, "bin", "teamcode.exe")
+const goBinaryName = platform === "windows" ? "go-core-server.exe" : "go-core-server"
+const targetGoBinary = path.join(__dirname, "bin", goBinaryName)
 
 function supportsAvx2() {
   if (arch !== "x64") return false
@@ -137,6 +139,11 @@ function installPackage(name) {
     if (result.status !== 0) return
     const packageDir = path.join(temp, "node_modules", name)
     copyBinary(path.join(packageDir, "bin", sourceBinary), targetBinary)
+    // Also copy Go core binary if present
+    const goSource = path.join(packageDir, "bin", goBinaryName)
+    if (fs.existsSync(goSource)) {
+      copyBinary(goSource, targetGoBinary)
+    }
     return true
   } finally {
     fs.rmSync(temp, { recursive: true, force: true })
@@ -164,10 +171,24 @@ function verifyBinary() {
   return result.status === 0
 }
 
+function tryCopyGoBinary(name) {
+  try {
+    const packageJsonPath = require.resolve(`${name}/package.json`)
+    const goSource = path.join(path.dirname(packageJsonPath), "bin", goBinaryName)
+    if (fs.existsSync(goSource)) {
+      copyBinary(goSource, targetGoBinary)
+      console.log(`[go-core] installed`)
+    }
+  } catch {
+    // Go core binary not available in this package — this is fine
+  }
+}
+
 function main() {
   for (const name of packageNames()) {
     try {
       copyBinary(resolveBinary(name), targetBinary)
+      tryCopyGoBinary(name)
       if (verifyBinary()) return
     } catch {
       if (installPackage(name) && verifyBinary()) return

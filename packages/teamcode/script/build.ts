@@ -239,6 +239,29 @@ for (const item of targets) {
   }
 
   await $`rm -rf ./dist/${name}/bin/tui`
+
+  // Build Go core binary for this platform (if Go cross-compilation is available)
+  const goBinaryName = item.os === "win32" ? "go-core-server.exe" : "go-core-server"
+  const goOutput = `./dist/${name}/bin/${goBinaryName}`
+  const goDir = path.resolve(dir, "../../go-core")
+  if (fs.existsSync(path.join(goDir, "go.mod"))) {
+    // Map Node.js platform/arch to Go GOOS/GOARCH
+    const goosMap: Record<string, string> = { linux: "linux", darwin: "darwin", win32: "windows" }
+    const goarchMap: Record<string, string> = { x64: "amd64", arm64: "arm64" }
+    const goos = goosMap[item.os] ?? item.os
+    const goarch = goarchMap[item.arch] ?? item.arch
+    const absGoOutput = path.resolve(dir, goOutput)
+    console.log(`  go-core: cross-compiling for ${goos}/${goarch} → ${absGoOutput}`)
+    try {
+      await $`CGO_ENABLED=0 GOOS=${goos} GOARCH=${goarch} go build -o ${absGoOutput} ./cmd/server`.cwd(goDir)
+      console.log(`  go-core: done`)
+    } catch (e) {
+      console.warn(`  go-core: cross-compilation failed (${e}) — skipping Go core for this target`)
+    }
+  } else {
+    console.log(`  go-core: source not found at ${goDir} — skipping`)
+  }
+
   await Bun.file(`dist/${name}/package.json`).write(
     JSON.stringify(
       {
