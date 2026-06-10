@@ -1,44 +1,77 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="">
-    <img alt="TeamCode" src="" width="320">
-  </picture>
+  <img src="https://raw.githubusercontent.com/ElioNeto/teamcode/rewrite/go-core/.github/logo.svg" alt="TeamCode" width="200" />
 </p>
-<p align="center">An open-source AI coding agent for your terminal.</p>
+<p align="center">The open source AI coding agent — powered by a hybrid TypeScript + Go core.</p>
 <p align="center">
-  <a href="https://github.com/ElioNeto/teamcode/actions/workflows/publish.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/ElioNeto/teamcode/publish.yml?style=flat-square&branch=main" /></a>
+  <a href="https://discord.gg/teamcode"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
+  <a href="https://github.com/ElioNeto/teamcode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/ElioNeto/teamcode/publish.yml?style=flat-square&branch=dev" /></a>
   <a href="https://www.npmjs.com/package/@teamcode-ai/teamcode"><img alt="npm" src="https://img.shields.io/npm/v/@teamcode-ai/teamcode?style=flat-square" /></a>
 </p>
 
-TeamCode is an open-source AI coding agent that runs in your terminal. It helps you navigate, understand, and modify codebases through natural-language conversations, with support for multiple agents, subagents, and autonomous workflows.
+TeamCode is an open source AI-powered coding agent that runs in your terminal. It helps you navigate, understand, and modify codebases through natural language conversations.
 
 ---
 
-### Quick Start
+## 🚀 v2.0.0 — Go Core Engine
+
+TeamCode v2.0.0 introduces a **hybrid runtime architecture**: a Go core engine that handles I/O-heavy operations alongside the existing TypeScript runtime, delivering significant performance improvements:
+
+- **Filesystem operations** — up to 10× faster reads, writes, and searches
+- **Process spawning** — cross-platform process execution with timeouts
+- **File watching** — real-time file change detection via SSE streaming
+- **Session management** — CRUD lifecycle with consolidated message history
+- **Provider catalog** — built-in registry of 25+ models across 8 providers
+- **Configuration** — hierarchical `teamcode.json[c]` loading with caching
+
+The Go core runs as a sidecar process, automatically spawned when you run TeamCode. Feature flags control routing between the engines, with a **circuit breaker** that falls back to 100% TypeScript if the Go core encounters errors.
+
+---
+
+## 📦 Installation
+
+### Via npm (recommended)
 
 ```bash
-# Install globally via npm
 npm install -g @teamcode-ai/teamcode
-
-# Or via bun
-bun install -g @teamcode-ai/teamcode
-
-# Launch in your project directory
 teamcode
 ```
 
-The first run downloads the platform-specific binary automatically. No other setup required.
-
-### From Source
+### From source
 
 ```bash
 git clone https://github.com/ElioNeto/teamcode.git
 cd teamcode
 bun install
-bun run --cwd packages/teamcode --conditions=browser src/index.ts
+bun run --cwd packages/teamcode dev
 ```
 
-### Agents
+---
+
+## 🎮 Usage
+
+```bash
+# Start TeamCode in the current directory
+teamcode
+
+# Start with a specific project
+teamcode /path/to/project
+
+# Run a single prompt non-interactively
+teamcode run "explain this codebase"
+
+# List available providers and models
+teamcode providers
+```
+
+### Engine indicator
+
+The TUI footer shows which engine is active:
+- **`⚡Go`** — Go core running alongside TypeScript (shadow mode or canary)
+- **`TS`** — 100% TypeScript (Go core not available)
+
+---
+
+## 🤖 Agents
 
 TeamCode includes two built-in agents you can switch between with the `Tab` key.
 
@@ -48,40 +81,76 @@ TeamCode includes two built-in agents you can switch between with the `Tab` key.
   - Asks permission before running bash commands
   - Ideal for exploring unfamiliar codebases or planning changes
 
-Also included is a **general** subagent for complex searches and multi-step tasks.
-It can be invoked with `@general` in messages.
-
-Custom agents and subagents are configured via `teamcode.json` / `opencode.jsonc` in your project or global config directory.
+Also included is a **general** subagent for complex searches and multistep tasks.
+This is used internally and can be invoked using `@general` in messages.
 
 ---
 
-**Join our community** [Discord](https://discord.gg/teamcode) | [X / Twitter](https://x.com/teamcode)
+## 🏗️ Architecture
 
-### Configuration
+```
+┌─────────────────────────────────────────────────────┐
+│                  TeamCode CLI                        │
+│  (Bun-compiled binary: teamcode)                    │
+├─────────────────────────────────────────────────────┤
+│  TypeScript Runtime        │  Go Core (sidecar)     │
+│  ┌───────────────────┐     │  ┌──────────────────┐  │
+│  │ TUI / UI          │     │  │ Filesystem       │  │
+│  │ Session management│     │  │ Process spawning │  │
+│  │ LLM integration   │     │  │ File watching    │  │
+│  │ Plugin system     │     │  │ Session CRUD     │  │
+│  │ Feature flags     │────┼──│→ Provider catalog │  │
+│  │ Circuit breaker   │     │  │ Config loading   │  │
+│  └───────────────────┘     │  └──────────────────┘  │
+│                            │  localhost:43001        │
+└─────────────────────────────────────────────────────┘
+```
 
-TeamCode looks for config in this order:
+### Shadow mode
 
-1. **Global config** — `~/.config/teamcode/config.json`, `~/.config/opencode.json`, or `XDG_CONFIG_HOME`
-2. **Project config** — `teamcode.json`, `opencode.json`, or `opencode.jsonc` in the project root
-3. **Environment variables** — `TEAMCODE_CONFIG_DIR`, `TEAMCODE_DISABLE_PROJECT_CONFIG`, etc.
+Before routing traffic to the Go core, TeamCode runs both engines in parallel, compares results, and logs divergences. This **shadow mode** validates correctness without affecting your workflow:
 
-A minimal `opencode.jsonc`:
-```jsonc
-{
-  "$schema": "https://opencode.ai/config.json",
-  "model": "anthropic/claude-sonnet-4-20250514",
-  "agent": {
-    "build": { /* agent overrides */ }
-  }
-}
+```bash
+FLAG_filesystem_shadow=true teamcode /path/to/project
+```
+
+Divergences are logged to stderr:
+```
+[shadow] divergence filesystem.read trace=<uuid> { ts: ..., go: ... }
 ```
 
 ---
 
-### Contributing
+## 🧪 Test Suite
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md).
+**178+ tests** spanning both TypeScript and Go:
+
+| Layer | Tests | Stack |
+|-------|-------|-------|
+| Go unit | 103 | `go test` |
+| TS parity | 75 | `bun test` + Go core |
+
+```bash
+# Run Go tests
+cd go-core && make test
+
+# Run parity tests (requires Go core binary)
+cd packages/core && GO_CORE_BINARY=../../go-core/server bun test test/parity/
+
+# Full typecheck across all packages
+bun turbo typecheck
+```
 
 ---
 
-_Based on [opencode](https://github.com/sst/opencode) (MIT)_
+## 🤝 Contributing
+
+If you're interested in contributing to TeamCode, please read our [contributing docs](./CONTRIBUTING.md) before submitting a pull request.
+
+---
+
+**Join our community** [Discord](https://discord.gg/teamcode) | [X.com](https://x.com/teamcode)
+
+---
+
+_Originally based on [opencode](https://github.com/sst/opencode) (MIT)_
