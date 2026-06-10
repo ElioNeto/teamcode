@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 func main() {
@@ -48,6 +49,9 @@ func main() {
 	mux.HandleFunc("POST /fs/remove-all", handleFSRemoveAll)
 	mux.HandleFunc("POST /fs/watch", handleFSWatch)
 
+	// Metrics endpoint (used by circuit breaker)
+	mux.HandleFunc("GET /metrics", handleMetrics)
+
 	// Session event streaming (SSE)
 	mux.HandleFunc("GET /session/events", handleSessionEvents)    // SSE stream
 	mux.HandleFunc("POST /session/event", handleSessionEvent)      // Publish event
@@ -76,13 +80,36 @@ func withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Request-ID, X-Feature-Flag")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Request-ID, X-Feature-Flag, X-Trace-ID")
+
 		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Max-Age", "86400")
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
+
+		// Record metrics for all non-metrics requests
+		if r.URL.Path != "/metrics" && r.URL.Path != "/health" {
+			start := time.Now()
+			lrw := &loggingResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+			next.ServeHTTP(lrw, r)
+			metricsCollector.Record(time.Since(start), lrw.statusCode >= 500)
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
+}
+
+// loggingResponseWriter wraps http.ResponseWriter to capture the status code.
+type loggingResponseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (lrw *loggingResponseWriter) WriteHeader(code int) {
+	lrw.statusCode = code
+	lrw.ResponseWriter.WriteHeader(code)
 }
 
 type ErrorResponse struct {

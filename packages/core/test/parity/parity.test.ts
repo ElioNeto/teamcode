@@ -425,4 +425,24 @@ describe("Go Core Parity", () => {
       expect(typeof status.sessions).toBe("number")
     })
   })
+
+  // ---- Metrics & Circuit Breaker ----
+
+  describe("metrics", () => {
+    test("GET /metrics returns snapshot with all fields", async () => {
+      if (!goCoreAvailable) return
+      const metrics = await GoCoreClient.metrics()
+      expect(typeof metrics.request_count).toBe("number")
+      expect(typeof metrics.error_count).toBe("number")
+      expect(typeof metrics.error_rate).toBe("number")
+      expect(typeof metrics.avg_latency_ms).toBe("number")
+    })
+
+    test("circuit breaker sets go-core-available to boolean", () => {
+      // The circuit breaker may have polled by now. Just verify the flag is boolean.
+      const flag = GoCoreClient.isAvailable
+      expect(flag.key).toBe("go-core-available")
+      expect(typeof flag.defaultValue).toBe("boolean")
+    })
+  })
 })
