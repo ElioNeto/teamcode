@@ -58,9 +58,10 @@ func main() {
 	mux.HandleFunc("GET /metrics", handleMetrics)
 
 	// Session event streaming (SSE)
-	mux.HandleFunc("GET /session/events", handleSessionEvents)    // SSE stream
-	mux.HandleFunc("POST /session/event", handleSessionEvent)      // Publish event
+	mux.HandleFunc("GET /session/events", handleSessionEvents)       // SSE stream
+	mux.HandleFunc("POST /session/event", handleSessionEvent)         // Publish event
 	mux.HandleFunc("GET /session/events-status", handleSessionStreamStatus) // Health
+	mux.HandleFunc("GET /session/messages", handleSessionMessages)    // Consolidated messages
 
 	server := &http.Server{
 		Addr:    ":" + port,

@@ -37,15 +37,16 @@
 | [#1038](https://github.com/ElioNeto/teamcode/issues/1038) | Branch strategy | Branch `rewrite/go-core` criada | — |
 | [#1044](https://github.com/ElioNeto/teamcode/issues/1044) | Filesystem adapter completo | 20+ operações (read/write/stat/glob/findUp/copy/move/remove/MIME), paridade TS `AppFileSystem` | 32 Go + 23 TS parity |
 | [#1045](https://github.com/ElioNeto/teamcode/issues/1045) | Session event streaming (parcial) | `internal/eventbus` (PubSub), SSE streaming, publish, health, heartbeat 10s | 9 + 7 + 3 TS parity |
-| [#1069](https://github.com/ElioNeto/teamcode/issues/1069) | Shadow mode | `isShadow()`, `setShadow()`, `routeFilesystemOp()`, `deepEqual()`, `X-Trace-ID` | 11 TS parity (shadow.test.ts) |
+| [#1069](https://github.com/ElioNeto/teamcode/issues/1069) | Shadow mode | `isShadow()`, `setShadow()`, `routeFilesystemOp()`, `deepEqual()`, `X-Trace-ID` | 11 TS parity |
 | [#1071](https://github.com/ElioNeto/teamcode/issues/1071) | Metrics + circuit breaker | `internal/metrics` (sliding window 60s), `GET /metrics`, polling 30s, auto-rollback >1% erro | 4 Go + 2 TS parity |
 | [#1043](https://github.com/ElioNeto/teamcode/issues/1043) | Process spawning | `internal/process` (spawn com timeout/env/cwd), npm/npx helpers | 10 Go + 4 TS parity |
+| [#1070](https://github.com/ElioNeto/teamcode/issues/1070) | Session message updater | `internal/updater` (state machine, 24 event types → 8 message types), GET /session/messages | 14 Go + 2 TS parity |
 
 ### Totais
-- **62 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process)
-- **50 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process)
-- **112 testes — zero falhas**
-- **8 commits** (incluindo PLAN.md)
+- **76 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 14 updater)
+- **52 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process + 2 updater)
+- **128 testes — zero falhas**
+- **9 commits** (incluindo PLAN.md)
 
 ---
 
@@ -210,18 +211,18 @@ Módulo `internal/process/`:
 
 ---
 
-### #1070 — Session Message Updater (stateful) ⚠️ SKIPPED
-**Parte do epic #1036.** Muito complexo para resolução automática (>30min, requer julgamento humano).
+### #1070 — Session Message Updater (stateful)
+**Parte do epic #1036.** ✅ COMPLETO.
 
-**Contexto:** `session-message-updater.ts` (13KB, 417 linhas, 6 tipos de evento, Immer immutability, stateful com transições de fase) foi excluído do #1045.
+**O que foi feito:**
+- `internal/updater/message.go` — 8 tipos de mensagem: agent-switched, model-switched, user, synthetic, shell, assistant, compaction + tokens, tool states, content blocks
+- `internal/updater/event.go` — 20+ tipos de evento com dados tipados
+- `internal/updater/updater.go` — State machine completa: processa eventos raw e consolida em mensagens. Handlers para todos os 24 tipos de evento (step, text, tool, reasoning, compaction, shell, agent, model, prompt, synthetic)
+- `internal/updater/updater_test.go` — 14 testes cobrindo todos os fluxos (ciclo completo de step/text/tool/reasoning/compaction, conversa multi-turn, tool fail, multiple text blocks)
+- `cmd/server/session_updater_handler.go` — GET /session/messages endpoint, integração automática com POST /session/event
+- `client.ts` — `session.messages()` method
 
-**Comportamentos a preservar (requer intervenção manual):**
-- [ ] Agregação incremental de tokens LLM → mensagem consolidada
-- [ ] Transição de fases: `reasoning` → `content` → `tool_call` → `done`
-- [ ] Persistência para reconstituição pós-reconexão SSE
-- [ ] Cancelamento mid-stream via `context.Context`
-
-**Recomendação:** Manter no TS por enquanto. Se for portar para Go, alocar sprint dedicado de 3-5 dias.
+**Testes:** 14 Go + 2 TS parity = 16 testes novos
 
 ---
 

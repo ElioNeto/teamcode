@@ -139,6 +139,11 @@ export interface GoCoreProcessResult {
   error?: string
 }
 
+export interface GoCoreMessagesResponse {
+  session_id: string
+  messages: unknown[]
+}
+
 // ---------------------------------------------------------------------------
 // Client
 // ---------------------------------------------------------------------------
@@ -279,5 +284,9 @@ export const GoCoreClient = {
       const url = `${BASE_URL}/session/events?session_id=${encodeURIComponent(sessionID)}`
       return new (EventSource as any)(url)
     },
+
+    /** Get consolidated messages for a session (processed by session message updater). */
+    messages: (sessionID: string) =>
+      request<GoCoreMessagesResponse>("GET", `/session/messages?session_id=${encodeURIComponent(sessionID)}`),
   },
 }

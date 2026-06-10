@@ -49,6 +49,9 @@ func handleSessionEvent(w http.ResponseWriter, r *http.Request) {
 	event := eventbus.NewEvent(req.EventType, req.SessionID, req.Data)
 	eventBus.Publish(event)
 
+	// Also process the event through the session message updater
+	processEventThroughUpdater(req.SessionID, req.EventType, req.Data)
+
 	w.WriteHeader(http.StatusNoContent)
 }
 

@@ -478,4 +478,84 @@ describe("Go Core Parity", () => {
       expect(result.exit_code === -1 || result.exit_code > 0).toBe(true)
     })
   })
+
+  // ---- Session Message Updater (#1070) ----
+
+  describe("session message updater", () => {
+    test("GET /session/messages returns empty list for new session", async () => {
+      if (!goCoreAvailable) return
+      const res = await GoCoreClient.session.messages("ses_new_empty")
+      expect(res.session_id).toBe("ses_new_empty")
+      expect(Array.isArray(res.messages)).toBe(true)
+      expect(res.messages.length).toBe(0)
+    })
+
+    test("publishing events populates messages", async () => {
+      if (!goCoreAvailable) return
+      const sid = "ses_parity_updater_" + Date.now()
+
+      // Publish a prompted event
+      await GoCoreClient.session.publish(sid, "session.next.prompted", {
+        timestamp: Date.now(),
+        sessionID: sid,
+        prompt: { text: "Hello!" },
+      })
+
+      // Publish a step started event
+      await GoCoreClient.session.publish(sid, "session.next.step.started", {
+        timestamp: Date.now(),
+        sessionID: sid,
+        agent: "coder",
+        model: "gpt-4",
+      })
+
+      // Publish text events
+      await GoCoreClient.session.publish(sid, "session.next.text.started", {
+        timestamp: Date.now(),
+        sessionID: sid,
+      })
+
+      await GoCoreClient.session.publish(sid, "session.next.text.delta", {
+        timestamp: Date.now(),
+        sessionID: sid,
+        delta: "Hello from ",
+      })
+
+      await GoCoreClient.session.publish(sid, "session.next.text.delta", {
+        timestamp: Date.now(),
+        sessionID: sid,
+        delta: "Go!",
+      })
+
+      await GoCoreClient.session.publish(sid, "session.next.text.ended", {
+        timestamp: Date.now(),
+        sessionID: sid,
+        text: "Hello from Go!",
+      })
+
+      // End the step
+      await GoCoreClient.session.publish(sid, "session.next.step.ended", {
+        timestamp: Date.now(),
+        sessionID: sid,
+        finish: "stop",
+        cost: 0.001,
+        tokens: { input: 5, output: 3, reasoning: 0, cache: { read: 0, write: 0 } },
+      })
+
+      // Get messages
+      const res = await GoCoreClient.session.messages(sid)
+      expect(res.session_id).toBe(sid)
+      expect(res.messages.length).toBeGreaterThanOrEqual(2)
+
+      // First message should be user prompt
+      expect(res.messages[0]).toHaveProperty("type", "user")
+      expect((res.messages[0] as any).text).toBe("Hello!")
+
+      // Should have an assistant with text content
+      const assistant = res.messages.find((m: any) => m.type === "assistant")
+      expect(assistant).toBeDefined()
+      expect((assistant as any).content?.length).toBeGreaterThanOrEqual(1)
+      expect((assistant as any).finish).toBe("stop")
+    })
+  })
 })
