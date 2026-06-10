@@ -48,8 +48,8 @@
 
 ### Totais
 - **81 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 7 session + 14 updater)
-- **65 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process + 2 updater + 10 session-crud + 3 harness)
-- **146 testes — zero falhas**
+- **70 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process + 2 updater + 10 session-crud + 3 harness + 5 schema)
+- **151 testes — zero falhas**
 - **14 commits** (incluindo PLAN.md + RELATORIO.md)
 
 ---
@@ -80,14 +80,14 @@ describeParity("meu teste", () => {
 ---
 
 ### #1039 — Contract Mapping
-**Parte do epic #1036.** Pendente.
+**Parte do epic #1036.** ✅ COMPLETO.
 
-**Objetivo:** Mapear contratos públicos entre TS e Go.
+**O que foi feito:**
+- `CONTRACTS.md` — Documentação completa de todos os 20+ endpoints: request/response JSON, TS types correspondentes, status codes, feature flags
+- `test/parity/schema.test.ts` — 5 testes de schema que validam o shape das respostas do Go core contra os types esperados (health, metrics, session CRUD, session list, events-status)
+- Inclui regras de compatibilidade (snake_case, timestamps ISO 8601, arrays vazios)
 
-- [ ] Definir interfaces/types formais compartilhados
-- [ ] Validar que `client.ts` types batem com Go structs
-- [ ] Documentar request/response de cada endpoint
-- [ ] Adicionar testes de schema
+**Testes:** 5 TS parity
 
 ---
 
@@ -326,8 +326,8 @@ Fase 5: Session Completude    ✅ CONCLUÍDO
   #1070 session-message-updater (stateful token aggregation)
   #1072 session CRUD lifecycle
 
-Fase 6: Infra & Contratos   ⬅️ AGORA
-  #1040 Parity test harness   ✅
+Fase 6: Infra & Contratos   ✅ CONCLUÍDO
+  #1040 Parity test harness
   #1039 Contract mapping
   #1073 Cleanup legado (após canary 100%)
 
