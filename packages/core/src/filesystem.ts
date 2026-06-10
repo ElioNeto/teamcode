@@ -6,6 +6,8 @@ import { lookup } from "mime-types"
 import { Effect, FileSystem, Layer, Schema, Context } from "effect"
 import type { PlatformError } from "effect/PlatformError"
 import { Glob } from "./util/glob"
+import { isShadow, routeFilesystemOp } from "./router"
+import { GoCoreClient } from "./router/client"
 
 export namespace AppFileSystem {
   export class FileSystemError extends Schema.TaggedErrorClass<FileSystemError>()("FileSystemError", {
@@ -39,51 +41,102 @@ export namespace AppFileSystem {
 
   export class Service extends Context.Service<Service, Interface>()("@opencode/FileSystem") {}
 
+  // When shadow mode is active, execute an operation through both TS and Go,
+  // compare results, and return the TS result. When inactive, run TS only.
+  const shadowIf = <T, E>(
+    opName: string,
+    args: unknown[],
+    ts: Effect.Effect<T, E>,
+    go: () => Promise<T>,
+  ): Effect.Effect<T, E> => {
+    if (!isShadow("filesystem")) return ts
+    return Effect.promise(() =>
+      routeFilesystemOp(opName, args, () => Effect.runPromise(ts as Effect.Effect<T>), go),
+    ) as unknown as Effect.Effect<T, E>
+  }
+
   export const layer = Layer.effect(
     Service,
     Effect.gen(function* () {
       const fs = yield* FileSystem.FileSystem
 
       const existsSafe = Effect.fn("FileSystem.existsSafe")(function* (path: string) {
-        return yield* fs.exists(path).pipe(Effect.orElseSucceed(() => false))
+        return yield* shadowIf(
+          "exists",
+          [path],
+          fs.exists(path).pipe(Effect.orElseSucceed(() => false)),
+          () => GoCoreClient.fs.exists(path).then((r) => r.exists),
+        )
       })
 
       const readFileStringSafe = Effect.fn("FileSystem.readFileStringSafe")(function* (path: string) {
-        return yield* fs
-          .readFileString(path)
-          .pipe(Effect.catchReason("PlatformError", "NotFound", () => Effect.succeed(undefined)))
+        return yield* shadowIf(
+          "read",
+          [path],
+          fs.readFileString(path).pipe(
+            Effect.catchReason("PlatformError", "NotFound", () => Effect.succeed(undefined)),
+          ),
+          () => GoCoreClient.fs.readSafe(path).then((r) => (r.found ? r.content : undefined)),
+        )
       })
 
       const isDir = Effect.fn("FileSystem.isDir")(function* (path: string) {
-        const info = yield* fs.stat(path).pipe(Effect.catch(() => Effect.void))
-        return info?.type === "Directory"
+        return yield* shadowIf(
+          "isDir",
+          [path],
+          fs.stat(path).pipe(
+            Effect.catch(() => Effect.void),
+            Effect.map((info) => info?.type === "Directory"),
+          ),
+          () => GoCoreClient.fs.isDir(path).then((r) => r.dir),
+        )
       })
 
       const isFile = Effect.fn("FileSystem.isFile")(function* (path: string) {
-        const info = yield* fs.stat(path).pipe(Effect.catch(() => Effect.void))
-        return info?.type === "File"
+        return yield* shadowIf(
+          "isFile",
+          [path],
+          fs.stat(path).pipe(
+            Effect.catch(() => Effect.void),
+            Effect.map((info) => info?.type === "File"),
+          ),
+          () => GoCoreClient.fs.isFile(path).then((r) => r.file),
+        )
       })
 
       const readDirectoryEntries = Effect.fn("FileSystem.readDirectoryEntries")(function* (dirPath: string) {
-        return yield* Effect.tryPromise({
-          try: async () => {
-            const entries = await NFS.readdir(dirPath, { withFileTypes: true })
-            return entries.map(
-              (e): DirEntry => ({
-                name: e.name,
-                type: e.isDirectory() ? "directory" : e.isSymbolicLink() ? "symlink" : e.isFile() ? "file" : "other",
-              }),
-            )
-          },
-          catch: (cause) => new FileSystemError({ method: "readDirectoryEntries", cause }),
-        })
+        return yield* shadowIf(
+          "readdir",
+          [dirPath],
+          Effect.tryPromise({
+            try: async () => {
+              const entries = await NFS.readdir(dirPath, { withFileTypes: true })
+              return entries.map(
+                (e): DirEntry => ({
+                  name: e.name,
+                  type: e.isDirectory() ? "directory" : e.isSymbolicLink() ? "symlink" : e.isFile() ? "file" : "other",
+                }),
+              )
+            },
+            catch: (cause) => new FileSystemError({ method: "readDirectoryEntries", cause }),
+          }),
+          () => GoCoreClient.fs.readdir(dirPath).then((r) =>
+            r.entries.map((e) => ({ name: e.name, type: e.type }) as DirEntry),
+          ),
+        )
       })
 
       const readJson = Effect.fn("FileSystem.readJson")(function* (path: string) {
-        const text = yield* fs.readFileString(path)
+        const text = yield* shadowIf(
+          "readJson",
+          [path],
+          fs.readFileString(path),
+          () => GoCoreClient.fs.readJSON(path) as Promise<string>,
+        )
         return JSON.parse(text)
       })
 
+      // Write operations — no shadow mode (don't write twice)
       const writeJson = Effect.fn("FileSystem.writeJson")(function* (path: string, data: unknown, mode?: number) {
         const content = JSON.stringify(data, null, 2)
         yield* fs.writeFileString(path, content)
