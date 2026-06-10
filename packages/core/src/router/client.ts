@@ -131,6 +131,14 @@ export interface GoCoreFindUpResponse {
   results: string[]
 }
 
+export interface GoCoreProcessResult {
+  stdout: string
+  stderr: string
+  exit_code: number
+  timeout: boolean
+  error?: string
+}
+
 // ---------------------------------------------------------------------------
 // Client
 // ---------------------------------------------------------------------------
@@ -237,6 +245,22 @@ export const GoCoreClient = {
     /** Remove a file or directory tree. */
     removeAll: (path: string) =>
       request<void>("POST", "/fs/remove-all", { path }),
+  },
+
+  // ---- Process Spawning (parity with cross-spawn-spawner.ts + npm.ts) ----
+
+  process: {
+    /** Spawn a process with args, env, cwd, and timeout. */
+    spawn: (command: string, args?: string[], env?: Record<string, string>, cwd?: string, timeoutMs?: number) =>
+      request<GoCoreProcessResult>("POST", "/process/spawn", { command, args, env, cwd, timeout_ms: timeoutMs }),
+
+    /** Run npm install in a directory, optionally adding packages. */
+    npmInstall: (dir: string, add?: string[]) =>
+      request<GoCoreProcessResult>("POST", "/process/npm-install", { dir, args: add, timeout_ms: 300000 }),
+
+    /** Run a command via npx. */
+    npx: (dir: string, args: string[], timeoutMs?: number) =>
+      request<GoCoreProcessResult>("POST", "/process/npx", { dir, args, timeout_ms: timeoutMs }),
   },
 
   // ---- Session Events ----

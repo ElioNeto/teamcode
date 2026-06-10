@@ -445,4 +445,37 @@ describe("Go Core Parity", () => {
       expect(typeof flag.defaultValue).toBe("boolean")
     })
   })
+
+  // ---- Process Spawning ----
+
+  describe("process spawning", () => {
+    test("spawn echo returns exit code 0", async () => {
+      if (!goCoreAvailable) return
+      const result = await GoCoreClient.process.spawn("echo", ["hello"])
+      expect(result.exit_code).toBe(0)
+      expect(result.stdout.length).toBeGreaterThan(0)
+    })
+
+    test("spawn with exit code 42", async () => {
+      if (!goCoreAvailable) return
+      const shell = os.platform() === "win32" ? "cmd" : "/bin/sh"
+      const arg = os.platform() === "win32" ? "/c" : "-c"
+      const result = await GoCoreClient.process.spawn(shell, [arg, "exit 42"])
+      expect(result.exit_code).toBe(42)
+    })
+
+    test("spawn with missing command returns error", async () => {
+      if (!goCoreAvailable) return
+      const result = await GoCoreClient.process.spawn("nonexistent-cmd-xyz")
+      expect(result.exit_code).toBe(-1)
+      expect(result.error?.length).toBeGreaterThan(0)
+    })
+
+    test("npm install in nonexistent dir fails gracefully", async () => {
+      if (!goCoreAvailable) return
+      const result = await GoCoreClient.process.npmInstall("/nonexistent-path-xyz")
+      // Should fail with non-zero exit or error
+      expect(result.exit_code === -1 || result.exit_code > 0).toBe(true)
+    })
+  })
 })

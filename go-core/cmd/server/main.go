@@ -49,6 +49,11 @@ func main() {
 	mux.HandleFunc("POST /fs/remove-all", handleFSRemoveAll)
 	mux.HandleFunc("POST /fs/watch", handleFSWatch)
 
+	// Process spawning (parity with cross-spawn-spawner.ts + npm.ts)
+	mux.HandleFunc("POST /process/spawn", handleSpawn)
+	mux.HandleFunc("POST /process/npm-install", handleNpmInstall)
+	mux.HandleFunc("POST /process/npx", handleNpx)
+
 	// Metrics endpoint (used by circuit breaker)
 	mux.HandleFunc("GET /metrics", handleMetrics)
 
