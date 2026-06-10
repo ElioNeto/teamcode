@@ -37,14 +37,15 @@
 | [#1038](https://github.com/ElioNeto/teamcode/issues/1038) | Branch strategy | Branch `rewrite/go-core` criada | — |
 | [#1044](https://github.com/ElioNeto/teamcode/issues/1044) | Filesystem adapter completo | 20+ operações (read/write/stat/glob/findUp/copy/move/remove/MIME), paridade TS `AppFileSystem` | 32 Go + 23 TS parity |
 | [#1045](https://github.com/ElioNeto/teamcode/issues/1045) | Session event streaming (parcial) | `internal/eventbus` (PubSub), SSE streaming, publish, health, heartbeat 10s | 9 + 7 + 3 TS parity |
-
-> **⚠️ #1045 excluiu `session-message-updater.ts` do escopo** — a consolidação de tokens em mensagem final ainda roda no TS. Ver #1070.
+| [#1069](https://github.com/ElioNeto/teamcode/issues/1069) | Shadow mode | `isShadow()`, `setShadow()`, `routeFilesystemOp()`, `deepEqual()`, `X-Trace-ID` | 11 TS parity (shadow.test.ts) |
+| [#1071](https://github.com/ElioNeto/teamcode/issues/1071) | Metrics + circuit breaker | `internal/metrics` (sliding window 60s), `GET /metrics`, polling 30s, auto-rollback >1% erro | 4 Go + 2 TS parity |
+| [#1043](https://github.com/ElioNeto/teamcode/issues/1043) | Process spawning | `internal/process` (spawn com timeout/env/cwd), npm/npx helpers | 10 Go + 4 TS parity |
 
 ### Totais
-- **48 testes Go** (9 eventbus + 7 server + 32 filesystem)
-- **33 testes TS parity** (7 flag + 23 filesystem + 3 session)
-- **81 testes — zero falhas**
-- **4 commits** (incluindo PLAN.md)
+- **62 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process)
+- **50 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process)
+- **112 testes — zero falhas**
+- **8 commits** (incluindo PLAN.md)
 
 ---
 
@@ -112,34 +113,74 @@ if (metrics.filesystem.error_rate_last_5m > 0.01) {
 ---
 
 ### #1046 — Plano de Cutover & Rollback
-**Parte do epic #1036.** Depende de: #1043, #1044, #1045.
+**Parte do epic #1036.** ✅ COMPLETO (#1069 + #1071 + #1043).
 
 **Processo de cutover por módulo:**
 ```
 1. Feature flag: 0% Go / 100% TS   (desenvolvimento)
-2. Shadow mode:  Go paralelo, descartado
+2. Shadow mode:  Go paralelo, descartado  ← ESTAMOS AQUI (Q3/2026)
 3. Canary:       5% → 25% → 50% → 75% → 100%
 4. Remoção do legado TS
 ```
 
-**Análise do ElioNeto (#1046, comment 2026-06-10) — 3 lacunas críticas:**
+**Análise do ElioNeto (#1046, comment 2026-06-10) — 3 lacunas resolvidas:**
 
-| # | Lacuna | Impacto | Solução |
-|---|--------|---------|---------|
-| 1 | Shadow mode não implementado | Não é possível validar Go em produção sem risco | Implementar #1069 |
-| 2 | Sem métricas no Go server | Rollback automático não funciona | Implementar #1071 |
-| 3 | Sem `X-Trace-ID` cross-runtime | Divergências não correlacionáveis | Adicionar trace ID nos requests |
+| # | Lacuna | Impacto | Resolução |
+|---|--------|---------|-----------|
+| 1 | Shadow mode não implementado | Não é possível validar Go em produção sem risco | ✅ #1069: `routeFilesystemOp()` + `deepEqual()` + `isShadow()` |
+| 2 | Sem métricas no Go server | Rollback automático não funciona | ✅ #1071: `internal/metrics` + `GET /metrics` + circuit breaker polling |
+| 3 | Sem `X-Trace-ID` cross-runtime | Divergências não correlacionáveis | ✅ #1069: `X-Trace-ID` em todos os requests, logado no Go server |
 
-**Ordem de cutover recomendada:**
+#### Runbook: Ativar Shadow Mode para Filesystem
+
+```bash
+# 1. Ativar shadow mode para filesystem via env var
+export FLAG_filesystem_shadow=true
+
+# 2. Observar divergências nos logs
+#    Logs aparecem como:
+#   [shadow] divergence filesystem.<op> trace=<uuid> { ts: ..., go: ... }
+#   [shadow] go_error filesystem.<op> trace=<uuid> { error: ... }
+
+# 3. Verificar métricas do Go core
+curl http://127.0.0.1:43001/metrics
+#   Retorna: { request_count, error_count, error_rate, avg_latency_ms }
+
+# 4. Rollback (se error_rate > 1%)
+export FLAG_filesystem_shadow=false
+#   OU automaticamente via circuit breaker (threshold 1%, 30s polling)
 ```
-Módulo       Shadow    Canary   Critério
-─────────────────────────────────────────────
-filesystem   Agora     5%       Parity tests passam 48h CI
-session/SSE  Depois    5%       Latência p95 ≤ legado TS 24h
-process      Depois    5%       Linux + macOS + Windows
+
+#### Runbook: Promover para Canary (após 48h sem divergências)
+
+```bash
+# 1. Aumentar canary gradualmente
+export FLAG_go_core_filesystem=5    # 5%
+# monitorar 24h
+export FLAG_go_core_filesystem=25   # 25%
+# monitorar 24h
+export FLAG_go_core_filesystem=50   # 50%
+# monitorar 24h
+export FLAG_go_core_filesystem=75   # 75%
+# monitorar 24h
+export FLAG_go_core_filesystem=100  # 100%
+
+# 2. Rollback rápido
+export FLAG_go_core_filesystem=0    # volta para TS imediatamente
 ```
 
-**Rollback:** `export GO_CORE_X_ENABLED=false` — sem redeploy.
+#### Ordem de cutover recomendada:
+```
+Módulo       Shadow      Canary      Critério
+──────────────────────────────────────────────────────
+filesystem   ✅ ATIVO   🔄 Próximo  Parity tests passam 48h CI
+session/SSE  ⏳ Pendente ⏳ Pendente Latência p95 ≤ legado TS 24h
+process      ⏳ Pendente ⏳ Pendente Testado Linux + macOS + Windows
+npm          ⏳ Pendente ⏳ Pendente Testado Linux + macOS + Windows
+```
+
+**Rollback:** `export FLAG_<modulo>_enabled=0` — sem redeploy.  
+**Rollback automático:** Circuit breaker desabilita Go core se `error_rate > 1%` por 30s.
 
 ---
 
@@ -169,26 +210,18 @@ Módulo `internal/process/`:
 
 ---
 
-### #1070 — Session Message Updater (stateful)
-**Parte do epic #1036.** Depende de: #1045.
+### #1070 — Session Message Updater (stateful) ⚠️ SKIPPED
+**Parte do epic #1036.** Muito complexo para resolução automática (>30min, requer julgamento humano).
 
-**Contexto:** `session-message-updater.ts` (13KB) foi excluído do #1045. O Event Bus Go emite eventos raw — a consolidação de tokens ainda roda no TS.
+**Contexto:** `session-message-updater.ts` (13KB, 417 linhas, 6 tipos de evento, Immer immutability, stateful com transições de fase) foi excluído do #1045.
 
-**Comportamentos a preservar:**
+**Comportamentos a preservar (requer intervenção manual):**
 - [ ] Agregação incremental de tokens LLM → mensagem consolidada
 - [ ] Transição de fases: `reasoning` → `content` → `tool_call` → `done`
 - [ ] Persistência para reconstituição pós-reconexão SSE
 - [ ] Cancelamento mid-stream via `context.Context`
 
-**Desafio:** Estado distribuído. Recomendação: memória + flush periódico para SQLite.
-
-**Estrutura proposta:**
-```
-internal/updater/
-  message.go    # MessageUpdater: agrega tokens, detecta fases
-  state.go      # Estado parcial por sessão
-  updater_test.go
-```
+**Recomendação:** Manter no TS por enquanto. Se for portar para Go, alocar sprint dedicado de 3-5 dias.
 
 ---
 
