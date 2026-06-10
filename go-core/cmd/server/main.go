@@ -142,3 +142,12 @@ func writeError(w http.ResponseWriter, msg string, code int) {
 	w.WriteHeader(code)
 	w.Write([]byte(`{"error":"` + msg + `"}`))
 }
+
+// writeErrorWithCode returns 404 for ENOENT, 500 for other errors
+func writeErrorWithCode(w http.ResponseWriter, err error) {
+	if os.IsNotExist(err) {
+		writeError(w, "file not found", http.StatusNotFound)
+		return
+	}
+	writeError(w, err.Error(), http.StatusInternalServerError)
+}

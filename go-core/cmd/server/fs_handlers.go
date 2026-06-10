@@ -77,13 +77,15 @@ func handleFSRead(w http.ResponseWriter, r *http.Request) {
 
 	result, err := filesystem.Read(req.Path, req.Offset, req.Limit)
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
 	writeJSON(w, result)
 }
 
+// ---------------------------------------------------------------------------
+// /fs/list
 // ---------------------------------------------------------------------------
 // /fs/write
 // ---------------------------------------------------------------------------
@@ -100,7 +102,7 @@ func handleFSWrite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := filesystem.Write(req.Path, []byte(req.Content)); err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -124,7 +126,7 @@ func handleFSList(w http.ResponseWriter, r *http.Request) {
 
 	files, err := filesystem.List(req.Path, req.Pattern, req.Recursive)
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -148,7 +150,7 @@ func handleFSStat(w http.ResponseWriter, r *http.Request) {
 
 	info, err := filesystem.StatResultJSON(req.Path)
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -168,7 +170,7 @@ func handleFSExists(w http.ResponseWriter, r *http.Request) {
 
 	exists, err := filesystem.Exists(req.Path)
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -188,7 +190,7 @@ func handleFSIsDir(w http.ResponseWriter, r *http.Request) {
 
 	isDir, err := filesystem.IsDir(req.Path)
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -204,7 +206,7 @@ func handleFSIsFile(w http.ResponseWriter, r *http.Request) {
 
 	isFile, err := filesystem.IsFile(req.Path)
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -224,7 +226,7 @@ func handleFSReadSafe(w http.ResponseWriter, r *http.Request) {
 
 	content, found, err := filesystem.ReadFileStringSafe(req.Path)
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -247,7 +249,7 @@ func handleFSReadJSON(w http.ResponseWriter, r *http.Request) {
 
 	var data interface{}
 	if err := filesystem.ReadJSON(req.Path, &data); err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -273,7 +275,7 @@ func handleFSWriteJSON(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := filesystem.WriteJSON(req.Path, req.Data); err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -296,7 +298,7 @@ func handleFSEnsureDir(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := filesystem.EnsureDir(req.Path); err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -316,7 +318,7 @@ func handleFSReaddir(w http.ResponseWriter, r *http.Request) {
 
 	entries, err := filesystem.ReadDirectoryEntries(req.Path)
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -343,7 +345,7 @@ func handleFSGlob(w http.ResponseWriter, r *http.Request) {
 		Dot: req.Dot,
 	})
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -381,7 +383,7 @@ func handleFSFindUp(w http.ResponseWriter, r *http.Request) {
 
 	results, err := filesystem.FindUp(req.Target, req.Start, req.Stop)
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -401,7 +403,7 @@ func handleFSUp(w http.ResponseWriter, r *http.Request) {
 
 	results, err := filesystem.Up(req.Targets, req.Start, req.Stop)
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -425,7 +427,7 @@ func handleFSGlobUp(w http.ResponseWriter, r *http.Request) {
 
 	results, err := filesystem.GlobUp(req.Pattern, req.Start, req.Stop)
 	if err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -448,7 +450,7 @@ func handleFSCopy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := filesystem.Copy(req.Src, req.Dst); err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -467,7 +469,7 @@ func handleFSMove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := filesystem.Move(req.Src, req.Dst); err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -486,7 +488,7 @@ func handleFSRemove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := filesystem.Remove(req.Path); err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
@@ -501,7 +503,7 @@ func handleFSRemoveAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := filesystem.RemoveAll(req.Path); err != nil {
-		writeError(w, err.Error(), http.StatusInternalServerError)
+		writeErrorWithCode(w, err)
 		return
 	}
 
