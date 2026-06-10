@@ -1,0 +1,8 @@
+# Go binary output
+/server
+/build/
+
+# IDE
+.idea/
+.vscode/
+*.swp

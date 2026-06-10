@@ -12,8 +12,6 @@
  *   return yield* legacy.readFile(path)
  */
 
-import { Config, Effect } from "effect"
-
 export interface Flag<T> {
   readonly key: string
   readonly defaultValue: T

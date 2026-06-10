@@ -24,12 +24,29 @@ func main() {
 	// Health check
 	mux.HandleFunc("GET /health", handleHealth)
 
-	// Filesystem operations
+	// Filesystem operations — complete adapter (parity with TS AppFileSystem)
 	mux.HandleFunc("POST /fs/read", handleFSRead)
+	mux.HandleFunc("POST /fs/read-safe", handleFSReadSafe)
+	mux.HandleFunc("POST /fs/read-json", handleFSReadJSON)
 	mux.HandleFunc("POST /fs/write", handleFSWrite)
-	mux.HandleFunc("POST /fs/watch", handleFSWatch)
+	mux.HandleFunc("POST /fs/write-json", handleFSWriteJSON)
 	mux.HandleFunc("POST /fs/list", handleFSList)
 	mux.HandleFunc("POST /fs/stat", handleFSStat)
+	mux.HandleFunc("POST /fs/exists", handleFSExists)
+	mux.HandleFunc("POST /fs/is-dir", handleFSIsDir)
+	mux.HandleFunc("POST /fs/is-file", handleFSIsFile)
+	mux.HandleFunc("POST /fs/ensure-dir", handleFSEnsureDir)
+	mux.HandleFunc("POST /fs/readdir", handleFSReaddir)
+	mux.HandleFunc("POST /fs/glob", handleFSGlob)
+	mux.HandleFunc("POST /fs/glob-match", handleFSGlobMatch)
+	mux.HandleFunc("POST /fs/find-up", handleFSFindUp)
+	mux.HandleFunc("POST /fs/up", handleFSUp)
+	mux.HandleFunc("POST /fs/glob-up", handleFSGlobUp)
+	mux.HandleFunc("POST /fs/copy", handleFSCopy)
+	mux.HandleFunc("POST /fs/move", handleFSMove)
+	mux.HandleFunc("POST /fs/remove", handleFSRemove)
+	mux.HandleFunc("POST /fs/remove-all", handleFSRemoveAll)
+	mux.HandleFunc("POST /fs/watch", handleFSWatch)
 
 	// Session operations
 	mux.HandleFunc("POST /session/stream", handleSessionStream)
