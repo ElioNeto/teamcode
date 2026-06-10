@@ -63,6 +63,13 @@ func main() {
 	mux.HandleFunc("GET /session/events-status", handleSessionStreamStatus) // Health
 	mux.HandleFunc("GET /session/messages", handleSessionMessages)    // Consolidated messages
 
+	// Session CRUD lifecycle
+	mux.HandleFunc("POST /session/create", handleSessionCreate)
+	mux.HandleFunc("GET /session/get", handleSessionGet)
+	mux.HandleFunc("POST /session/update", handleSessionUpdate)
+	mux.HandleFunc("POST /session/delete", handleSessionDelete)
+	mux.HandleFunc("GET /session/list", handleSessionList)
+
 	server := &http.Server{
 		Addr:    ":" + port,
 		Handler: withCORS(mux),

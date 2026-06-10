@@ -43,14 +43,14 @@
 | [#1043](https://github.com/ElioNeto/teamcode/issues/1043) | Process spawning | `internal/process` (spawn com timeout/env/cwd), npm/npx helpers | 10 Go + 4 TS parity |
 | [#1070](https://github.com/ElioNeto/teamcode/issues/1070) | Session message updater | `internal/updater` (state machine, 24 event types → 8 message types), GET /session/messages | 14 Go + 2 TS parity |
 | — | Engine indicator visual | Indicador `⚡Go`/`TS` no footer do TUI (home, sidebar e `run --interactive`); `tcdev-go` alias inicia servidor Go automaticamente | — |
-| [#1072](https://github.com/ElioNeto/teamcode/issues/1072) | Session CRUD lifecycle | Pendente — CRUD de sessões no Go core | — |
+| [#1072](https://github.com/ElioNeto/teamcode/issues/1072) | Session CRUD lifecycle | `internal/session` (store Go com CRUD), endpoints REST + client.ts + 7 Go tests + 10 TS parity | 7 Go + 10 TS parity |
 | [#1073](https://github.com/ElioNeto/teamcode/issues/1073) | Remove legacy TS | Pendente — remover módulos TS após paridade Go | — |
 
 ### Totais
-- **76 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 14 updater)
-- **52 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process + 2 updater)
-- **128 testes — zero falhas**
-- **10 commits** (incluindo PLAN.md + RELATORIO.md)
+- **83 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 7 session + 14 updater)
+- **62 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process + 2 updater + 10 session-crud)
+- **145 testes — zero falhas**
+- **11 commits** (incluindo PLAN.md + RELATORIO.md)
 
 ---
 
@@ -216,17 +216,16 @@ Módulo `internal/process/`:
 ---
 
 ### #1072 — Session CRUD Lifecycle
-**Parte do epic #1036.** Pendente.
+**Parte do epic #1036.** ✅ COMPLETO.
 
-**Objetivo:** Implementar CRUD completo de sessões no Go core.
+**O que foi feito:**
+- `internal/session/store.go` — Store thread-safe com mutex, operações CRUD + list por diretório
+- `internal/session/store_test.go` — 7 testes (create, get, update, delete, count, list, concorrência)
+- `cmd/server/session_crud_handlers.go` — 5 endpoints REST: `POST /session/create`, `GET /session/get`, `POST /session/update`, `POST /session/delete`, `GET /session/list`
+- `client.ts` — `session.create()`, `.get()`, `.update()`, `.delete()`, `.list()`
+- `test/parity/session-crud.test.ts` — 10 testes de paridade (CRUD completo + list por diretório + 404 handling)
 
-- `internal/session/` — Create, Read, Update, Delete, List
-- Endpoints REST: `POST /session/create`, `GET /session/get`, `POST /session/update`, `POST /session/delete`, `GET /session/list`
-- `client.ts`: `session.create()`, `.get()`, `.update()`, `.delete()`, `.list()`
-- Feature flag `go-core-session` + shadow mode
-
-**Paridade com:** `session.ts`
-**Esforço:** Alto
+**Testes:** 7 Go + 10 TS parity = 17 testes novos
 
 ---
 
@@ -323,7 +322,7 @@ Fase 3: Observabilidade    ✅ CONCLUÍDO
 Fase 4: Process Spawning    ✅ CONCLUÍDO
   #1043 process.ts + cross-spawn-spawner.ts
 
-Fase 5: Session Completude
+Fase 5: Session Completude    ✅ CONCLUÍDO
   #1070 session-message-updater (stateful token aggregation)
   #1072 session CRUD lifecycle
 

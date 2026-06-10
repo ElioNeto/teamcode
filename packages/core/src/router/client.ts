@@ -144,6 +144,21 @@ export interface GoCoreMessagesResponse {
   messages: unknown[]
 }
 
+export interface GoCoreSession {
+  id: string
+  title: string
+  directory: string
+  agent: string
+  model: string
+  created_at: string
+  updated_at: string
+}
+
+export interface GoCoreSessionListResponse {
+  sessions: GoCoreSession[]
+  count: number
+}
+
 // ---------------------------------------------------------------------------
 // Client
 // ---------------------------------------------------------------------------
@@ -288,5 +303,36 @@ export const GoCoreClient = {
     /** Get consolidated messages for a session (processed by session message updater). */
     messages: (sessionID: string) =>
       request<GoCoreMessagesResponse>("GET", `/session/messages?session_id=${encodeURIComponent(sessionID)}`),
+
+    // ---- Session CRUD Lifecycle ----
+
+    /** Create a new session with metadata. */
+    create: (sessionID: string, title: string, directory: string, agent: string, model: string) =>
+      request<GoCoreSession>("POST", "/session/create", {
+        session_id: sessionID,
+        title,
+        directory,
+        agent,
+        model,
+      }),
+
+    /** Get session metadata by ID. */
+    get: (sessionID: string) =>
+      request<GoCoreSession>("GET", `/session/get?session_id=${encodeURIComponent(sessionID)}`),
+
+    /** Update session title. */
+    update: (sessionID: string, title: string) =>
+      request<GoCoreSession>("POST", "/session/update", {
+        session_id: sessionID,
+        title,
+      }),
+
+    /** Delete a session. */
+    delete: (sessionID: string) =>
+      request<void>("POST", "/session/delete", { session_id: sessionID }),
+
+    /** List sessions, optionally filtered by directory. */
+    list: (directory?: string) =>
+      request<GoCoreSessionListResponse>("GET", `/session/list${directory ? `?directory=${encodeURIComponent(directory)}` : ""}`),
   },
 }
