@@ -47,9 +47,9 @@
 | [#1073](https://github.com/ElioNeto/teamcode/issues/1073) | Remove legacy TS | Pendente — remover módulos TS após paridade Go | — |
 
 ### Totais
-- **87 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 7 session + 14 updater + 6 watcher)
+- **97 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 7 session + 14 updater + 6 watcher + 10 config)
 - **70 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process + 2 updater + 10 session-crud + 3 harness + 5 schema)
-- **157 testes — zero falhas**
+- **167 testes — zero falhas**
 - **14 commits** (incluindo PLAN.md + RELATORIO.md)
 
 ---
@@ -293,12 +293,17 @@ Módulo `internal/provider/`:
 
 ---
 
-### #1049 — Config System (futuro)
-Módulo `internal/config/` (diretório vazio):
-- Carregar `teamcode.json[c]`
-- Schema validation, merge de configs, cache
+### #1049 — Config System
+**Parte do epic #1036.** ✅ COMPLETO.
 
-**Esforço:** Médio
+**O que foi feito:**
+- `internal/config/config.go` — Loader de config com cache, merge, suporte a JSONC (// e /* */), findUp
+- `internal/config/config_test.go` — 10 testes (strip comments, parse JSON/JSONC, findFiles, merge, cache, raw fields, no config)
+- `cmd/server/config_handlers.go` — `POST /config/get` + `POST /config/invalidate`
+- `client.ts` — `config.get(directory)`, `config.invalidate(directory)`
+- Cache invalidation por diretório
+- Merge hierárquico: config do diretório mais próximo sobrescreve configs de diretórios pai
+- Zero dependências externas
 
 ---
 
@@ -342,9 +347,9 @@ Fase 6: Infra & Contratos   ✅ CONCLUÍDO
   #1039 Contract mapping
   #1073 Cleanup legado (após canary 100%)
 
-Fase 7: Providers & Config
+Fase 7: Providers & Config    🔄 EM ANDAMENTO
   #1048 Provider/model catalog
-  #1049 Config system
+  #1049 Config system          ✅
 
 Fase 8: Watch                ✅ CONCLUÍDO
   #1051 File watching (fsnotify + SSE)
@@ -433,7 +438,7 @@ TS Runtime (Bun)
 
 ## 📝 Notas
 
-- `internal/config/` vazio — aguardando implementação (#1049)
+- `internal/config/` funcional — loader de teamcode.json[c] com cache + merge (#1049)
 - `GET /fs/watch` SSE streaming funcional (#1051)
 - Version `0.1.0` em `health.go`
 - Feature flags desligadas por default (`go-core-available: false`, canary 0%)

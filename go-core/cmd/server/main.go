@@ -54,6 +54,10 @@ func main() {
 	mux.HandleFunc("POST /process/npm-install", handleNpmInstall)
 	mux.HandleFunc("POST /process/npx", handleNpx)
 
+	// Config system
+	mux.HandleFunc("POST /config/get", handleConfigGet)
+	mux.HandleFunc("POST /config/invalidate", handleConfigInvalidate)
+
 	// Metrics endpoint (used by circuit breaker)
 	mux.HandleFunc("GET /metrics", handleMetrics)
 

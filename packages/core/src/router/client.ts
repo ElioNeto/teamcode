@@ -291,6 +291,18 @@ export const GoCoreClient = {
       request<GoCoreProcessResult>("POST", "/process/npx", { dir, args, timeout_ms: timeoutMs }),
   },
 
+  // ---- Config System ----
+
+  config: {
+    /** Get merged config for a directory. */
+    get: (directory: string) =>
+      request<Record<string, unknown>>("POST", "/config/get", { directory }),
+
+    /** Invalidate cached config for a directory. */
+    invalidate: (directory: string) =>
+      request<void>("POST", "/config/invalidate", { directory }),
+  },
+
   // ---- Session Events ----
 
   session: {
