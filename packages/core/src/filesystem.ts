@@ -127,13 +127,12 @@ export namespace AppFileSystem {
       })
 
       const readJson = Effect.fn("FileSystem.readJson")(function* (path: string) {
-        const text = yield* shadowIf(
+        return yield* shadowIf(
           "readJson",
           [path],
-          fs.readFileString(path),
-          () => GoCoreClient.fs.readJSON(path) as Promise<string>,
+          fs.readFileString(path).pipe(Effect.map((text) => JSON.parse(text))),
+          () => GoCoreClient.fs.readJSON(path) as Promise<unknown>,
         )
-        return JSON.parse(text)
       })
 
       // Write operations — no shadow mode (don't write twice)
