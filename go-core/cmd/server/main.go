@@ -54,6 +54,10 @@ func main() {
 	mux.HandleFunc("POST /process/npm-install", handleNpmInstall)
 	mux.HandleFunc("POST /process/npx", handleNpx)
 
+	// Provider catalog
+	mux.HandleFunc("GET /providers", handleProviderList)
+	mux.HandleFunc("GET /providers/{name}/models", handleProviderModels)
+
 	// Config system
 	mux.HandleFunc("POST /config/get", handleConfigGet)
 	mux.HandleFunc("POST /config/invalidate", handleConfigInvalidate)

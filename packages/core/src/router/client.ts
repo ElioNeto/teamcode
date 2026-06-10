@@ -159,6 +159,38 @@ export interface GoCoreSessionListResponse {
   count: number
 }
 
+export interface GoCoreProvider {
+  id: string
+  name: string
+  description?: string
+  website?: string
+  model_count: number
+  models?: GoCoreModel[]
+}
+
+export interface GoCoreModel {
+  id: string
+  name: string
+  provider: string
+  description?: string
+  context_length: number
+  max_output?: number
+  input_price?: string
+  output_price?: string
+}
+
+export interface GoCoreProviderListResponse {
+  providers: GoCoreProvider[]
+  count: number
+}
+
+export interface GoCoreProviderModelsResponse {
+  provider: string
+  name: string
+  models: GoCoreModel[]
+  count: number
+}
+
 // ---------------------------------------------------------------------------
 // Client
 // ---------------------------------------------------------------------------
@@ -289,6 +321,18 @@ export const GoCoreClient = {
     /** Run a command via npx. */
     npx: (dir: string, args: string[], timeoutMs?: number) =>
       request<GoCoreProcessResult>("POST", "/process/npx", { dir, args, timeout_ms: timeoutMs }),
+  },
+
+  // ---- Provider Catalog ----
+
+  providers: {
+    /** List all providers. */
+    list: () =>
+      request<GoCoreProviderListResponse>("GET", "/providers"),
+
+    /** Get models for a provider. */
+    models: (name: string) =>
+      request<GoCoreProviderModelsResponse>("GET", `/providers/${encodeURIComponent(name)}/models`),
   },
 
   // ---- Config System ----

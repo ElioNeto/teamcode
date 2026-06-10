@@ -47,9 +47,9 @@
 | [#1073](https://github.com/ElioNeto/teamcode/issues/1073) | Remove legacy TS | Pendente — remover módulos TS após paridade Go | — |
 
 ### Totais
-- **97 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 7 session + 14 updater + 6 watcher + 10 config)
-- **70 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process + 2 updater + 10 session-crud + 3 harness + 5 schema)
-- **167 testes — zero falhas**
+- **103 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 7 session + 14 updater + 6 watcher + 10 config + 6 provider)
+- **75 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process + 2 updater + 10 session-crud + 3 harness + 5 schema + 5 provider)
+- **178 testes — zero falhas**
 - **14 commits** (incluindo PLAN.md + RELATORIO.md)
 
 ---
@@ -282,14 +282,19 @@ Módulo `internal/process/`:
 
 ---
 
-### #1048 — Provider & Model Catalog (futuro)
-**Parte do epic #1036.** Pendente.
+### #1048 — Provider & Model Catalog
+**Parte do epic #1036.** ✅ COMPLETO.
 
-Módulo `internal/provider/`:
-- `catalog.go`, `config.go`, `router.go`
-- Endpoints: `GET /providers`, `GET /providers/:name/models`, `POST /providers/:name/chat`
+**O que foi feito:**
+- `internal/provider/catalog.go` — Catálogo estático com 8 providers: OpenAI, Anthropic, Google, Mistral, DeepSeek, Groq, Together AI, GitHub Models
+- `internal/provider/catalog_test.go` — 6 testes (list, get, models, provider fill, description)
+- `cmd/server/provider_handlers.go` — `GET /providers` + `GET /providers/{name}/models` (Go 1.22 path params)
+- `client.ts` — `providers.list()`, `providers.models(name)` com tipos
+- `test/parity/provider.test.ts` — 5 testes de paridade
+- Auto-fill do campo `Provider` em cada modelo via `addProvider()`
+- Descrições default para providers sem descrição explícita
 
-**Esforço:** Alto (integração com múltiplas APIs externas)
+**Próximo passo (futuro):** `POST /providers/:name/chat` para chat via provider
 
 ---
 
@@ -347,9 +352,9 @@ Fase 6: Infra & Contratos   ✅ CONCLUÍDO
   #1039 Contract mapping
   #1073 Cleanup legado (após canary 100%)
 
-Fase 7: Providers & Config    🔄 EM ANDAMENTO
+Fase 7: Providers & Config    ✅ CONCLUÍDO
   #1048 Provider/model catalog
-  #1049 Config system          ✅
+  #1049 Config system
 
 Fase 8: Watch                ✅ CONCLUÍDO
   #1051 File watching (fsnotify + SSE)
