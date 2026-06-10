@@ -265,6 +265,14 @@ export const GoCoreClient = {
     /** Remove a file or directory tree. */
     removeAll: (path: string) =>
       request<void>("POST", "/fs/remove-all", { path }),
+
+    /** Watch a file or directory for changes via SSE. */
+    watch: (path: string, intervalMs?: number): EventSource => {
+      const params = new URLSearchParams({ path })
+      if (intervalMs) params.set("interval_ms", String(intervalMs))
+      const url = `${BASE_URL}/fs/watch?${params.toString()}`
+      return new (EventSource as any)(url)
+    },
   },
 
   // ---- Process Spawning (parity with cross-spawn-spawner.ts + npm.ts) ----

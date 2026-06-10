@@ -47,9 +47,9 @@
 | [#1073](https://github.com/ElioNeto/teamcode/issues/1073) | Remove legacy TS | Pendente — remover módulos TS após paridade Go | — |
 
 ### Totais
-- **81 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 7 session + 14 updater)
+- **87 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 7 session + 14 updater + 6 watcher)
 - **70 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process + 2 updater + 10 session-crud + 3 harness + 5 schema)
-- **151 testes — zero falhas**
+- **157 testes — zero falhas**
 - **14 commits** (incluindo PLAN.md + RELATORIO.md)
 
 ---
@@ -112,8 +112,19 @@ Módulo `internal/config/` (diretório vazio).
 **Esforço:** Médio
 
 ### #1051 — File Watching (futuro)
-Substituir placeholder `POST /fs/watch` com `fsnotify` + SSE.
-**Esforço:** Médio
+**Parte do epic #1036.** ✅ COMPLETO.
+
+**O que foi feito:**
+- `internal/watcher/watcher.go` — Polling-based file watcher usando apenas stdlib Go
+- `internal/watcher/watcher_test.go` — 6 testes (watch, delete, directory, unwatch, non-existent, multiple)
+- `cmd/server/fs_handlers.go` — `GET /fs/watch` SSE endpoint substitui placeholder
+- `client.ts` — `fs.watch(path, intervalMs?)` retorna EventSource
+- Polling com intervalo configurável (default 1s, mínimo 100ms)
+- Eventos: `modify` (conteúdo/metadata alterado), `delete` (arquivo removido)
+- Non-blocking: eventos descartados se buffer cheio
+- Zero dependências externas
+
+**Testes:** 6 Go
 
 ---
 
@@ -335,7 +346,7 @@ Fase 7: Providers & Config
   #1048 Provider/model catalog
   #1049 Config system
 
-Fase 8: Watch
+Fase 8: Watch                ✅ CONCLUÍDO
   #1051 File watching (fsnotify + SSE)
 ```
 
@@ -423,7 +434,7 @@ TS Runtime (Bun)
 ## 📝 Notas
 
 - `internal/config/` vazio — aguardando implementação (#1049)
-- `POST /fs/watch` retorna placeholder `{"status": "not_implemented"}` (#1051)
+- `GET /fs/watch` SSE streaming funcional (#1051)
 - Version `0.1.0` em `health.go`
 - Feature flags desligadas por default (`go-core-available: false`, canary 0%)
 - Todos os módulos Go implementados (Fases 1-5 concluídas)

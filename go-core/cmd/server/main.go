@@ -47,7 +47,7 @@ func main() {
 	mux.HandleFunc("POST /fs/move", handleFSMove)
 	mux.HandleFunc("POST /fs/remove", handleFSRemove)
 	mux.HandleFunc("POST /fs/remove-all", handleFSRemoveAll)
-	mux.HandleFunc("POST /fs/watch", handleFSWatch)
+	mux.HandleFunc("GET /fs/watch", handleFSWatch)
 
 	// Process spawning (parity with cross-spawn-spawner.ts + npm.ts)
 	mux.HandleFunc("POST /process/spawn", handleSpawn)

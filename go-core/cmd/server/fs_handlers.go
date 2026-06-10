@@ -2,9 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/ElioNeto/teamcode/go-core/internal/filesystem"
+	"github.com/ElioNeto/teamcode/go-core/internal/watcher"
 )
 
 // ---------------------------------------------------------------------------
@@ -504,14 +509,72 @@ func handleFSRemoveAll(w http.ResponseWriter, r *http.Request) {
 }
 
 // ---------------------------------------------------------------------------
-// /fs/watch (placeholder)
+// GET /fs/watch — SSE stream of file system changes
+//
+// Query params: ?path=/home/user/project&interval_ms=1000
+//
+// Response: text/event-stream
+// Events are sent as SSE data frames.
 // ---------------------------------------------------------------------------
 
 func handleFSWatch(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, map[string]string{
-		"status":  "not_implemented",
-		"message": "File watching requires WebSocket/SSE support - planned for phase 2",
-	})
+	path := r.URL.Query().Get("path")
+	intervalStr := r.URL.Query().Get("interval_ms")
+
+	if path == "" {
+		writeError(w, "path query parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	// Verify the path exists
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		writeError(w, "path does not exist", http.StatusBadRequest)
+		return
+	}
+
+	interval := 1 * time.Second
+	if intervalStr != "" {
+		if ms, err := strconv.Atoi(intervalStr); err == nil && ms >= 100 {
+			interval = time.Duration(ms) * time.Millisecond
+		}
+	}
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		writeError(w, "streaming not supported", http.StatusInternalServerError)
+		return
+	}
+
+	// Set SSE headers
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	// Create watcher
+	wtr := watcher.New(interval)
+	if err := wtr.Watch(path); err != nil {
+		writeError(w, "failed to watch path: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	wtr.Start()
+	defer wtr.Stop()
+
+	// Send initial connected event
+	evData, _ := json.Marshal(map[string]string{"path": path})
+	fmt.Fprintf(w, "event: connected\ndata: %s\n\n", string(evData))
+	flusher.Flush()
+
+	for {
+		select {
+		case <-r.Context().Done():
+			return
+		case ev := <-wtr.Events():
+			data, _ := json.Marshal(ev)
+			fmt.Fprintf(w, "event: %s\ndata: %s\n\n", ev.Type, string(data))
+			flusher.Flush()
+		}
+	}
 }
 
 // ---------------------------------------------------------------------------
