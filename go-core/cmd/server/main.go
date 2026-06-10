@@ -48,9 +48,10 @@ func main() {
 	mux.HandleFunc("POST /fs/remove-all", handleFSRemoveAll)
 	mux.HandleFunc("POST /fs/watch", handleFSWatch)
 
-	// Session operations
-	mux.HandleFunc("POST /session/stream", handleSessionStream)
-	mux.HandleFunc("POST /session/event", handleSessionEvent)
+	// Session event streaming (SSE)
+	mux.HandleFunc("GET /session/events", handleSessionEvents)    // SSE stream
+	mux.HandleFunc("POST /session/event", handleSessionEvent)      // Publish event
+	mux.HandleFunc("GET /session/events-status", handleSessionStreamStatus) // Health
 
 	server := &http.Server{
 		Addr:    ":" + port,

@@ -29,6 +29,8 @@ lint:
 build-ci:
 	CGO_ENABLED=0 go build -o $(BUILD_DIR)/go-core-server-linux-amd64 ./cmd/server
 
-# Run parity tests (builds Go binary first, then runs TS tests)
-parity-test: build
+# Run parity tests (clean build Go binary first, then runs TS tests)
+parity-test: clean
+	mkdir -p $(BUILD_DIR)
+	go build -o $(SERVER_BIN) ./cmd/server
 	cd ../packages/core && GO_CORE_BINARY=../../go-core/$(SERVER_BIN) bun test test/parity/ --timeout 30000

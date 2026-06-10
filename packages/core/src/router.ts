@@ -7,4 +7,10 @@
 export { flag, listFlags } from "./router/flag"
 export type { Flag } from "./router/flag"
 export { GoCoreClient } from "./router/client"
-export type { GoCoreReadResult, GoCoreStatResult, GoCoreDirEntry, GoCoreGlobResponse, GoCoreFindUpResponse } from "./router/client"
+export type {
+  GoCoreReadResult,
+  GoCoreStatResult,
+  GoCoreDirEntry,
+  GoCoreGlobResponse,
+  GoCoreFindUpResponse,
+} from "./router/client"

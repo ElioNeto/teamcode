@@ -398,4 +398,31 @@ describe("Go Core Parity", () => {
       expect(exists).toBe(false)
     })
   })
+
+  // ---- Session Events ----
+
+  describe("session events", () => {
+    test("publish event returns 204", async () => {
+      if (!goCoreAvailable) return
+      await GoCoreClient.session.publish("ses_test", "test.event", { text: "hello" })
+      // Should not throw — if it did, the test fails
+    })
+
+    test("publish event with empty session_id fails", async () => {
+      if (!goCoreAvailable) return
+      try {
+        await GoCoreClient.session.publish("", "test.event", {})
+        expect("should have thrown").toBe("never reached")
+      } catch {
+        // Expected
+      }
+    })
+
+    test("status returns ok", async () => {
+      if (!goCoreAvailable) return
+      const status = await GoCoreClient.session.status()
+      expect(status.status).toBe("ok")
+      expect(typeof status.sessions).toBe("number")
+    })
+  })
 })

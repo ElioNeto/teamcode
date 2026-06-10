@@ -171,4 +171,22 @@ export const GoCoreClient = {
     removeAll: (path: string) =>
       request<void>("POST", "/fs/remove-all", { path }),
   },
+
+  // ---- Session Events ----
+
+  session: {
+    /** Publish a session event to the Go core event bus. */
+    publish: (sessionID: string, eventType: string, data: unknown) =>
+      request<void>("POST", "/session/event", { session_id: sessionID, event_type: eventType, data }),
+
+    /** Get the status of the event streaming system. */
+    status: () =>
+      request<{ status: string; sessions: number }>("GET", "/session/events-status"),
+
+    /** Create an SSE EventSource for a session's event stream. */
+    stream: (sessionID: string): EventSource => {
+      const url = `${BASE_URL}/session/events?session_id=${encodeURIComponent(sessionID)}`
+      return new (EventSource as any)(url)
+    },
+  },
 }
