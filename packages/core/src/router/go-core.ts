@@ -13,6 +13,7 @@
 import { spawn, type ChildProcess } from "child_process"
 import path from "path"
 import fs from "fs"
+import { triggerCbPoll } from "./client"
 
 const GO_CORE_PORT = process.env["GO_CORE_PORT"] ?? "43001"
 const HEALTH_URL = `http://127.0.0.1:${GO_CORE_PORT}/health`
@@ -100,6 +101,8 @@ export async function startGoCore(): Promise<boolean> {
         if (resp.ok) {
           goCoreReady = true
           console.log(`[go-core] server ready on port ${GO_CORE_PORT}`)
+          // Trigger immediate circuit breaker poll so Go core becomes available now
+          triggerCbPoll()
           return true
         }
       } catch {

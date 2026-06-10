@@ -15,6 +15,7 @@ import { lazyCmd } from "./cli/cmd/lazy"
 import { EOL } from "os"
 import path from "path"
 import { Global } from "@teamcode-ai/core/global"
+import { startGoCore } from "@teamcode-ai/core/router"
 
 const processMetadata = ensureProcessMetadata("main")
 
@@ -42,6 +43,15 @@ process.on("SIGPIPE", () => {})
 process.on("SIGCHLD", () => {})
 
 const args = hideBin(process.argv)
+
+// Start the Go core server in the background (non-blocking).
+// If successful, filesystem ops will route through the Go core;
+// if not, the system runs 100% TypeScript with feature flags defaulting to false.
+startGoCore()
+  .then((ok) => {
+    if (ok) console.log("[go-core] server started on port " + (process.env["GO_CORE_PORT"] ?? "43001"))
+  })
+  .catch(() => {})
 
 function show(out: string) {
   const text = out.trimStart()

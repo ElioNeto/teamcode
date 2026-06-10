@@ -12,7 +12,7 @@ const BASE_URL = `http://127.0.0.1:${GO_CORE_PORT}`
 
 const CB_POLL_INTERVAL = parseInt(process.env["GO_CORE_CB_POLL"] ?? "30000", 10)
 const CB_ERROR_RATE_THRESHOLD = 1.0 // 1% error rate triggers circuit breaker
-const CB_RECOVERY_POLLS = 2 // consecutive healthy polls to re-enable
+const CB_RECOVERY_POLLS = 1 // consecutive healthy polls to re-enable
 
 async function request<T>(
   method: string,
@@ -99,6 +99,29 @@ function startCircuitBreaker(): void {
   // Use unref so this timer doesn't keep subprocesses alive
   const timer = setInterval(poll, CB_POLL_INTERVAL)
   timer.unref()
+
+}
+
+/** Trigger an immediate circuit breaker health check.
+ *  Called by startGoCore() after the Go core becomes ready. */
+export function triggerCbPoll(): void {
+  if (!cbStarted) return
+  const poll = async () => {
+    try {
+      const metrics = await request<GoCoreMetrics>("GET", "/metrics")
+      if (metrics.error_rate > CB_ERROR_RATE_THRESHOLD) {
+        setFlag("go-core-available", false)
+        healthyCount = 0
+      } else {
+        healthyCount++
+        if (healthyCount >= CB_RECOVERY_POLLS) setFlag("go-core-available", true)
+      }
+    } catch {
+      setFlag("go-core-available", false)
+      healthyCount = 0
+    }
+  }
+  poll()
 }
 
 // ---------------------------------------------------------------------------

@@ -11,13 +11,22 @@ import { isShadow } from "./router/flag"
 
 export { flag, listFlags, isShadow, setShadow, clearShadow, getFlag, setFlag, clearFlag } from "./router/flag"
 export type { Flag } from "./router/flag"
-export { GoCoreClient } from "./router/client"
+export { GoCoreClient, triggerCbPoll } from "./router/client"
+export { startGoCore, stopGoCore, isGoCoreReady } from "./router/go-core"
 export type {
   GoCoreReadResult,
   GoCoreStatResult,
   GoCoreDirEntry,
   GoCoreGlobResponse,
   GoCoreFindUpResponse,
+  GoCoreSession,
+  GoCoreSessionListResponse,
+  GoCoreProcessResult,
+  GoCoreMessagesResponse,
+  GoCoreProvider,
+  GoCoreModel,
+  GoCoreProviderListResponse,
+  GoCoreProviderModelsResponse,
 } from "./router/client"
 
 // ---------------------------------------------------------------------------
