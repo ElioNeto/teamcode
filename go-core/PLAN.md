@@ -47,73 +47,73 @@
 | [#1073](https://github.com/ElioNeto/teamcode/issues/1073) | Remove legacy TS | Pendente — remover módulos TS após paridade Go | — |
 
 ### Totais
-- **83 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 7 session + 14 updater)
-- **62 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process + 2 updater + 10 session-crud)
-- **145 testes — zero falhas**
-- **11 commits** (incluindo PLAN.md + RELATORIO.md)
+- **81 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 7 session + 14 updater)
+- **65 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process + 2 updater + 10 session-crud + 3 harness)
+- **146 testes — zero falhas**
+- **14 commits** (incluindo PLAN.md + RELATORIO.md)
 
 ---
 
 ## 🔜 Issues Abertas (por ordem recomendada)
 
-### #1069 — Shadow Mode no Router TS
-**Parte do epic #1036.** Depende de: #1044, #1045. Bloqueado por: #1039.
+### #1040 — Parity Test Harness
+**Parte do epic #1036.** ✅ COMPLETO.
 
-**Objetivo:** Implementar shadow mode no router TS para validar Go em produção sem risco.
+**O que foi feito:**
+- `test/parity/harness.ts` — Harness reutilizável com `describeParity()` + lifecycle automático do Go server
+- `test/parity/harness.test.ts` — 3 testes de integração do próprio harness
+- Migração do `session-crud.test.ts` para usar o harness (10 testes)
+- Não requer mais código duplicado de setup/teardown em novos testes
 
+**Uso:**
+```ts
+import { describeParity, getGoCoreAvailable } from "./harness"
+
+describeParity("meu teste", () => {
+  test("algo", async () => {
+    if (!getGoCoreAvailable()) return
+    // test with GoCoreClient
+  })
+})
 ```
-flag = 'shadow'      → executa TS + Go, usa resultado TS, loga divergências
-flag = 'canary:5%'   → 5% requests vão para Go
-flag = 'enabled'     → 100% Go
-flag = 'disabled'    → 100% TS (padrão)
-```
-
-**Tarefas:**
-- [ ] Adicionar modo `shadow` em `flag.ts`
-- [ ] Implementar `routeFilesystemOp` com shadow mode em `router.ts`
-- [ ] Adicionar `X-Trace-ID` (UUID) em todos os requests do `GoCoreClient`
-- [ ] Logar divergências com trace ID, operação e diff
-- [ ] Testes: divergência detectada, erro Go ignorado, Go down, TS down
-- [ ] Ativar `filesystem = shadow` em staging
-
-**Critérios:** Shadow mode nunca altera resultado do usuário; erros Go são silenciosos.
 
 ---
 
-### #1071 — Métricas de Health & Circuit Breaker
-**Parte do epic #1036.** Depende de: #1041, #1069. Pré-requisito para: #1046.
+### #1039 — Contract Mapping
+**Parte do epic #1036.** Pendente.
 
-**Objetivo:** Implementar endpoint de métricas no Go server e circuit breaker no router TS para rollback automático.
+**Objetivo:** Mapear contratos públicos entre TS e Go.
 
-**Go server (`internal/metrics/`):**
-```go
-// GET /metrics
-type Metrics struct {
-    TotalRequests   int64          `json:"total_requests"`
-    TotalErrors     int64          `json:"total_errors"`
-    ErrorRateLast5m float64        `json:"error_rate_last_5m"`
-    Filesystem      MetricsModule  `json:"filesystem"`
-    Session         MetricsModule  `json:"session"`
-}
-```
-Contadores com janela deslizante de 5min (ring buffer 30 buckets de 10s). Sem dependências externas.
+- [ ] Definir interfaces/types formais compartilhados
+- [ ] Validar que `client.ts` types batem com Go structs
+- [ ] Documentar request/response de cada endpoint
+- [ ] Adicionar testes de schema
 
-**Router TS (circuit breaker):**
-```typescript
-// polling a cada 30s
-if (metrics.filesystem.error_rate_last_5m > 0.01) {
-  flagStore.set('filesystem', 'disabled') // rollback automático
-}
-```
+---
 
-**Tarefas:**
-- [ ] Implementar `internal/metrics/` com contadores + janela deslizante
-- [ ] Expor `GET /metrics`
-- [ ] Middleware de métricas nos handlers
-- [ ] Polling de health no `GoCoreClient` (30s)
-- [ ] Circuit breaker desativa flag se error rate > 1% por 5min
-- [ ] Adicionar `X-Trace-ID` em todos os requests (partilhado com #1069)
-- [ ] Logar trace ID no Go server
+### #1073 — Remoção do Legado TypeScript
+**Parte do epic #1036.** Pendente (após canary 100% estável em produção).
+
+**Ordem:**
+1. Filesystem (#1044) após canary 100% estável
+2. Session events (#1045) após canary 100% estável
+3. Process spawning (#1043) após canary 100% estável
+4. Session CRUD (#1072) após implementação
+5. Provider & Config (#1048, #1049)
+
+---
+
+### #1048 — Provider & Model Catalog (futuro)
+Módulo `internal/provider/` (diretório vazio).
+**Esforço:** Alto
+
+### #1049 — Config System (futuro)
+Módulo `internal/config/` (diretório vazio).
+**Esforço:** Médio
+
+### #1051 — File Watching (futuro)
+Substituir placeholder `POST /fs/watch` com `fsnotify` + SSE.
+**Esforço:** Médio
 
 ---
 
@@ -326,8 +326,10 @@ Fase 5: Session Completude    ✅ CONCLUÍDO
   #1070 session-message-updater (stateful token aggregation)
   #1072 session CRUD lifecycle
 
-Fase 6: Legacy Cleanup
-  #1073 Remove legacy TypeScript modules
+Fase 6: Infra & Contratos   ⬅️ AGORA
+  #1040 Parity test harness   ✅
+  #1039 Contract mapping
+  #1073 Cleanup legado (após canary 100%)
 
 Fase 7: Providers & Config
   #1048 Provider/model catalog
@@ -359,17 +361,17 @@ TS Runtime (Bun)
 │  │  /health      │  /metrics     │ │
 │  └────┬──────────┴──────────┬─────┘ │
 │       │                     │       │
-│  ┌────┴──────────┐  ┌──────┴─────┐ │
+│  ┌───────────────┐  ┌────────────┐ │
 │  │  filesystem/  │  │  eventbus/  │ │
 │  │  (completo)   │  │  (completo) │ │
 │  └───────────────┘  └────────────┘ │
 │  ┌───────────────┐  ┌────────────┐ │
 │  │  metrics/     │  │  updater/  │ │
-│  │  (planejado)  │  │(planejado) │ │
+│  │  (completo)   │  │ (completo) │ │
 │  └───────────────┘  └────────────┘ │
 │  ┌───────────────┐  ┌────────────┐ │
 │  │  session/     │  │  process/  │ │
-│  │  (vazio)      │  │(planejado) │ │
+│  │  (completo)   │  │ (completo) │ │
 │  └───────────────┘  └────────────┘ │
 └─────────────────────────────────────┘
 ```
@@ -392,7 +394,7 @@ TS Runtime (Bun)
 | `session.ts` (event streaming) | 3º | ✅ SSE | #1045 |
 | `process.ts` / `npm.ts` | 1º | ✅ 100% | #1043 |
 | `session-message-updater.ts` | 3º | ✅ 100% | #1070 |
-| `session.ts` (CRUD lifecycle) | 3º | ❌ 0% | #1072 |
+| `session.ts` (CRUD lifecycle) | 3º | ✅ 100% | #1072 |
 | `session-message.ts` | 3º | ❌ 0% | — |
 | `session-prompt.ts` | 3º | ❌ 0% | — |
 | `provider.ts` | 4º | ❌ 0% | #1048 |
@@ -420,10 +422,11 @@ TS Runtime (Bun)
 
 ## 📝 Notas
 
-- `internal/session/` e `internal/config/` vazios — aguardando implementação
-- `POST /fs/watch` retorna placeholder `{"status": "not_implemented"}`
+- `internal/config/` vazio — aguardando implementação (#1049)
+- `POST /fs/watch` retorna placeholder `{"status": "not_implemented"}` (#1051)
 - Version `0.1.0` em `health.go`
 - Feature flags desligadas por default (`go-core-available: false`, canary 0%)
-- Issues #1069, #1070, #1071 adicionadas em 2026-06-10 após análise do cutover
-- Shadow mode (#1069) e métricas (#1071) são pré-requisitos para cutover real (#1046)
+- Todos os módulos Go implementados (Fases 1-5 concluídas)
+- Próximo: parity test harness (#1040) e contract mapping (#1039)
+- Futuro: providers, config, file watching (#1048, #1049, #1051)
 - Este plano reflete as issues do GitHub em https://github.com/ElioNeto/teamcode/issues

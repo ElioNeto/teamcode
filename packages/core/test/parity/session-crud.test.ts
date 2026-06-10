@@ -4,12 +4,13 @@
  * Tests that the Go core session CRUD endpoints behave correctly:
  * create, get, update, delete, and list operations.
  *
- * Run with: GO_CORE_BINARY=../../go-core/server bun test test/parity/session-crud.test.ts
+ * Uses the parity test harness for server lifecycle management.
+ * Run with: GO_CORE_BINARY=../../go-core/server bun test test/parity/
  */
-import { describe, expect, test, beforeAll, afterAll } from "bun:test"
-import path from "path"
-import fs from "fs/promises"
+import { describe, expect, test } from "bun:test"
+import { describeParity, getGoCoreAvailable } from "./harness"
 import { GoCoreClient } from "@teamcode-ai/core/router"
+
 // Session type defined locally to avoid barrel export resolution issues with tsgo
 interface GoCoreSession {
   id: string
@@ -21,72 +22,17 @@ interface GoCoreSession {
   updated_at: string
 }
 
-// ---------------------------------------------------------------------------
-// Setup
-// ---------------------------------------------------------------------------
-
-const GO_CORE_BINARY =
-  process.env["GO_CORE_BINARY"] ?? path.join(import.meta.dir, "..", "..", "..", "..", "go-core", "server")
-const GO_CORE_PORT = process.env["GO_CORE_PORT"] ?? "43001"
-
-let goCoreProcess: ReturnType<typeof Bun.spawn> | null = null
-let goCoreAvailable = false
-
-beforeAll(async () => {
-  try {
-    await fs.access(GO_CORE_BINARY, fs.constants.X_OK)
-  } catch {
-    console.log(`Go core binary not found: ${GO_CORE_BINARY}`)
-    return
-  }
-
-  try {
-    goCoreProcess = Bun.spawn([GO_CORE_BINARY], {
-      env: { ...process.env, GO_CORE_PORT },
-      stdout: "pipe",
-      stderr: "pipe",
-    })
-    let attempts = 0
-    while (attempts < 15) {
-      try {
-        const resp = await fetch(`http://127.0.0.1:${GO_CORE_PORT}/health`)
-        if (resp.ok) {
-          goCoreAvailable = true
-          break
-        }
-      } catch {}
-      await new Promise((r) => setTimeout(r, 300))
-      attempts++
-    }
-    if (!goCoreAvailable) {
-      console.warn("Go core server did not become ready — tests will be skipped.")
-    }
-  } catch (err) {
-    console.warn(`Error starting Go core: ${err}`)
-  }
-})
-
-afterAll(() => {
-  if (goCoreProcess) {
-    goCoreProcess.kill()
-  }
-})
-
-// ---------------------------------------------------------------------------
-// Session CRUD tests (only if Go core is available)
-// ---------------------------------------------------------------------------
-
 const testDir = "/tmp/parity-test-session-" + Date.now()
 
-describe("session CRUD", () => {
+describeParity("session CRUD", () => {
   test("go core is available", () => {
-    expect(goCoreAvailable).toBe(true)
+    expect(getGoCoreAvailable()).toBe(true)
   })
 
   let created: GoCoreSession
 
   test("create session", async () => {
-    if (!goCoreAvailable) return
+    if (!getGoCoreAvailable()) return
 
     created = await GoCoreClient.session.create(
       "ses_parity_test_001",
@@ -107,7 +53,7 @@ describe("session CRUD", () => {
   })
 
   test("get session", async () => {
-    if (!goCoreAvailable) return
+    if (!getGoCoreAvailable()) return
 
     const sess = await GoCoreClient.session.get("ses_parity_test_001")
     expect(sess).toBeDefined()
@@ -116,7 +62,7 @@ describe("session CRUD", () => {
   })
 
   test("get non-existent session returns 404", async () => {
-    if (!goCoreAvailable) return
+    if (!getGoCoreAvailable()) return
 
     try {
       await GoCoreClient.session.get("ses_nonexistent")
@@ -127,7 +73,7 @@ describe("session CRUD", () => {
   })
 
   test("update session title", async () => {
-    if (!goCoreAvailable) return
+    if (!getGoCoreAvailable()) return
 
     const updated = await GoCoreClient.session.update("ses_parity_test_001", "Updated Title")
     expect(updated.title).toBe("Updated Title")
@@ -139,7 +85,7 @@ describe("session CRUD", () => {
   })
 
   test("update non-existent session returns 404", async () => {
-    if (!goCoreAvailable) return
+    if (!getGoCoreAvailable()) return
 
     try {
       await GoCoreClient.session.update("ses_nonexistent", "Nope")
@@ -150,7 +96,7 @@ describe("session CRUD", () => {
   })
 
   test("delete session", async () => {
-    if (!goCoreAvailable) return
+    if (!getGoCoreAvailable()) return
 
     await GoCoreClient.session.delete("ses_parity_test_001")
 
@@ -164,7 +110,7 @@ describe("session CRUD", () => {
   })
 
   test("delete non-existent session returns 404", async () => {
-    if (!goCoreAvailable) return
+    if (!getGoCoreAvailable()) return
 
     try {
       await GoCoreClient.session.delete("ses_nonexistent")
@@ -175,7 +121,7 @@ describe("session CRUD", () => {
   })
 
   test("list sessions by directory", async () => {
-    if (!goCoreAvailable) return
+    if (!getGoCoreAvailable()) return
 
     // Create several sessions
     await GoCoreClient.session.create("ses_list_a", "A", "/dir-a", "agent", "model")
@@ -185,7 +131,7 @@ describe("session CRUD", () => {
     const listA = await GoCoreClient.session.list("/dir-a")
     expect(listA.count).toBe(2)
     expect(listA.sessions).toHaveLength(2)
-    expect(listA.sessions.map((s) => s.id).sort()).toEqual(["ses_list_a", "ses_list_a2"])
+    expect(listA.sessions.map((s: GoCoreSession) => s.id).sort()).toEqual(["ses_list_a", "ses_list_a2"])
 
     const listB = await GoCoreClient.session.list("/dir-b")
     expect(listB.count).toBe(1)
@@ -203,7 +149,7 @@ describe("session CRUD", () => {
   })
 
   test("list returns empty array for directory with no sessions", async () => {
-    if (!goCoreAvailable) return
+    if (!getGoCoreAvailable()) return
 
     const result = await GoCoreClient.session.list("/nonexistent-path")
     expect(result.count).toBe(0)
