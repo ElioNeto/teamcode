@@ -29,6 +29,9 @@ import type {
 } from "./types"
 import { formatModelLabel } from "./variant.shared"
 
+const GO_CORE_PORT = process.env["GO_CORE_PORT"] ?? "43001"
+const GO_HEALTH_URL = `http://127.0.0.1:${GO_CORE_PORT}/health`
+
 const FOOTER_HEIGHT = 7
 
 type SplashState = {
@@ -46,6 +49,18 @@ type CycleResult = {
 type FooterLabels = {
   agentLabel: string
   modelLabel: string
+  coreLabel: string
+}
+
+/** Resolve the engine indicator label by checking Go core health. */
+async function resolveCoreLabel(): Promise<string> {
+  try {
+    const resp = await fetch(GO_HEALTH_URL, { signal: AbortSignal.timeout(1000) })
+    if (resp.ok) return "⚡Go"
+    return "TS"
+  } catch {
+    return "TS"
+  }
 }
 
 export type LifecycleInput = {
@@ -114,19 +129,22 @@ function splashInfo(title: string | undefined, history: RunPrompt[]) {
   }
 }
 
-function footerLabels(input: Pick<RunInput, "agent" | "model" | "variant">): FooterLabels {
+async function footerLabels(input: Pick<RunInput, "agent" | "model" | "variant">): Promise<FooterLabels> {
   const agentLabel = Locale.titlecase(input.agent ?? "build")
+  const coreLabel = await resolveCoreLabel()
 
   if (!input.model) {
     return {
       agentLabel,
       modelLabel: "Model default",
+      coreLabel,
     }
   }
 
   return {
     agentLabel,
     modelLabel: formatModelLabel(input.model, input.variant),
+    coreLabel,
   }
 }
 
@@ -212,7 +230,7 @@ export async function createRuntimeLifecycle(input: LifecycleInput): Promise<Lif
 
         const { RunFooter } = await footerTask
 
-        const labels = footerLabels({
+        const labels = await footerLabels({
           agent: input.agent,
           model: input.model,
           variant: input.variant,

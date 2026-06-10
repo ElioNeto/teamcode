@@ -1,12 +1,23 @@
 import type { TuiPlugin, TuiPluginApi } from "@teamcode-ai/plugin/tui"
 import type { InternalTuiPlugin } from "../../plugin/internal"
-import { createMemo, Show } from "solid-js"
+import { createMemo, createSignal, onMount, Show } from "solid-js"
 import { Global } from "@teamcode-ai/core/global"
 
 const id = "internal:sidebar-footer"
 
 function View(props: { api: TuiPluginApi }) {
   const theme = () => props.api.theme.current
+  const [coreLabel, setCoreLabel] = createSignal("")
+
+  onMount(async () => {
+    const port = process.env["GO_CORE_PORT"] ?? "43001"
+    try {
+      const resp = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(1000) })
+      setCoreLabel(resp.ok ? "⚡Go" : "TS")
+    } catch {
+      setCoreLabel("TS")
+    }
+  })
   const has = createMemo(() =>
     props.api.state.provider.some(
       (item) => item.id !== "teamcode" || Object.values(item.models).some((model) => model.cost?.input !== 0),
@@ -64,6 +75,11 @@ function View(props: { api: TuiPluginApi }) {
         <span style={{ fg: theme().textMuted }}>{path().parent}/</span>
         <span style={{ fg: theme().text }}>{path().name}</span>
       </text>
+      <Show when={coreLabel().length > 0}>
+        <text flexShrink={0} fg={coreLabel() === "TS" ? theme().textMuted : theme().success}>
+          {coreLabel()}
+        </text>
+      </Show>
       <text fg={theme().textMuted}>
         <span style={{ fg: theme().success }}>•</span>{" "}
         <span style={{ fg: theme().text }}>

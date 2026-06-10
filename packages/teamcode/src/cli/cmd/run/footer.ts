@@ -75,6 +75,7 @@ type RunFooterOptions = {
   sessionID: () => string | undefined
   agentLabel: string
   modelLabel: string
+  coreLabel: string
   model: RunInput["model"]
   variant: string | undefined
   first: boolean
@@ -202,7 +203,7 @@ export class RunFooter implements FooterApi {
     private renderer: CliRenderer,
     private options: RunFooterOptions,
   ) {
-    const [state, setState] = createSignal<FooterState>({
+    const initialState: FooterState = {
       phase: "idle",
       status: "",
       queue: 0,
@@ -212,7 +213,9 @@ export class RunFooter implements FooterApi {
       first: options.first,
       interrupt: 0,
       exit: 0,
-    })
+      core: options.coreLabel,
+    }
+    const [state, setState] = createSignal<FooterState>(initialState)
     this.state = state
     this.setState = setState
     const [view, setView] = createSignal<FooterView>({ type: "prompt" })
@@ -404,6 +407,7 @@ export class RunFooter implements FooterApi {
           : prev.interrupt,
       exit:
         typeof next.exit === "number" && Number.isFinite(next.exit) ? Math.max(0, Math.floor(next.exit)) : prev.exit,
+      core: typeof next.core === "string" ? next.core : prev.core,
     }
 
     if (state.phase === "idle") {

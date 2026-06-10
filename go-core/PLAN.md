@@ -8,6 +8,7 @@
 > **Feature flags:** `packages/core/src/router/flag.ts`
 > **Epic:** [#1036](https://github.com/ElioNeto/teamcode/issues/1036)
 > **Issues abertas:** https://github.com/ElioNeto/teamcode/issues?q=label%3Aenhancement+is%3Aopen+rewrite
+> **Relatório:** https://github.com/ElioNeto/teamcode/blob/rewrite/go-core/go-core/RELATORIO.md
 
 ---
 
@@ -41,12 +42,15 @@
 | [#1071](https://github.com/ElioNeto/teamcode/issues/1071) | Metrics + circuit breaker | `internal/metrics` (sliding window 60s), `GET /metrics`, polling 30s, auto-rollback >1% erro | 4 Go + 2 TS parity |
 | [#1043](https://github.com/ElioNeto/teamcode/issues/1043) | Process spawning | `internal/process` (spawn com timeout/env/cwd), npm/npx helpers | 10 Go + 4 TS parity |
 | [#1070](https://github.com/ElioNeto/teamcode/issues/1070) | Session message updater | `internal/updater` (state machine, 24 event types → 8 message types), GET /session/messages | 14 Go + 2 TS parity |
+| — | Engine indicator visual | Indicador `⚡Go`/`TS` no footer do TUI (home, sidebar e `run --interactive`); `tcdev-go` alias inicia servidor Go automaticamente | — |
+| [#1072](https://github.com/ElioNeto/teamcode/issues/1072) | Session CRUD lifecycle | Pendente — CRUD de sessões no Go core | — |
+| [#1073](https://github.com/ElioNeto/teamcode/issues/1073) | Remove legacy TS | Pendente — remover módulos TS após paridade Go | — |
 
 ### Totais
 - **76 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 14 updater)
 - **52 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process + 2 updater)
 - **128 testes — zero falhas**
-- **9 commits** (incluindo PLAN.md)
+- **10 commits** (incluindo PLAN.md + RELATORIO.md)
 
 ---
 
@@ -211,6 +215,37 @@ Módulo `internal/process/`:
 
 ---
 
+### #1072 — Session CRUD Lifecycle
+**Parte do epic #1036.** Pendente.
+
+**Objetivo:** Implementar CRUD completo de sessões no Go core.
+
+- `internal/session/` — Create, Read, Update, Delete, List
+- Endpoints REST: `POST /session/create`, `GET /session/get`, `POST /session/update`, `POST /session/delete`, `GET /session/list`
+- `client.ts`: `session.create()`, `.get()`, `.update()`, `.delete()`, `.list()`
+- Feature flag `go-core-session` + shadow mode
+
+**Paridade com:** `session.ts`
+**Esforço:** Alto
+
+---
+
+### #1073 — Remoção do Legado TypeScript
+**Parte do epic #1036.** Pendente.
+
+**Objetivo:** Remover módulos TS após confirmação de paridade com Go.
+
+**Ordem:**
+1. Filesystem (#1044) após canary 100% estável
+2. Session events (#1045) após canary 100% estável
+3. Process spawning (#1043) após canary 100% estável
+4. Session CRUD (#1072) após implementação
+5. Provider & Config (#1048, #1049)
+
+**Esforço:** Baixo (cada fase)
+
+---
+
 ### #1070 — Session Message Updater (stateful)
 **Parte do epic #1036.** ✅ COMPLETO.
 
@@ -279,23 +314,27 @@ Fase 2: I/O Pesado         ✅ CONCLUÍDO
   #1040 Parity test harness (pendente)
   #1045 Session event streaming (parcial)
 
-Fase 3: Observabilidade    ⬅️ AGORA
-  #1069 Shadow mode (pré-requisito cutover)
-  #1071 Métricas + circuit breaker (pré-requisito cutover)
+Fase 3: Observabilidade    ✅ CONCLUÍDO
+  #1069 Shadow mode
+  #1071 Métricas + circuit breaker
   #1046 Cutover plan + rollback
-  #1039 Contract mapping
+  #1039 Contract mapping (pendente)
 
-Fase 4: Process Spawning
+Fase 4: Process Spawning    ✅ CONCLUÍDO
   #1043 process.ts + cross-spawn-spawner.ts
 
 Fase 5: Session Completude
   #1070 session-message-updater (stateful token aggregation)
+  #1072 session CRUD lifecycle
 
-Fase 6: Providers & Config
+Fase 6: Legacy Cleanup
+  #1073 Remove legacy TypeScript modules
+
+Fase 7: Providers & Config
   #1048 Provider/model catalog
   #1049 Config system
 
-Fase 7: Watch
+Fase 8: Watch
   #1051 File watching (fsnotify + SSE)
 ```
 
@@ -352,9 +391,9 @@ TS Runtime (Bun)
 |--------|----------------|-----|-------|
 | `filesystem.ts` | 2º | ✅ 100% | #1044 |
 | `session.ts` (event streaming) | 3º | ✅ SSE | #1045 |
-| `process.ts` | 1º | ❌ 0% | #1043 |
-| `session-message-updater.ts` | 3º | ❌ 0% | #1070 |
-| `session.ts` (CRUD lifecycle) | 3º | ❌ 0% | — |
+| `process.ts` / `npm.ts` | 1º | ✅ 100% | #1043 |
+| `session-message-updater.ts` | 3º | ✅ 100% | #1070 |
+| `session.ts` (CRUD lifecycle) | 3º | ❌ 0% | #1072 |
 | `session-message.ts` | 3º | ❌ 0% | — |
 | `session-prompt.ts` | 3º | ❌ 0% | — |
 | `provider.ts` | 4º | ❌ 0% | #1048 |
@@ -362,7 +401,6 @@ TS Runtime (Bun)
 | `catalog.ts` | 4º | ❌ 0% | #1048 |
 | `aisdk.ts` | 4º | ❌ 0% | — |
 | `npm-config.ts` | — | ❌ 0% | #1049 |
-| `npm.ts` | — | ❌ 0% | — |
 | `config.ts` (implícito) | — | ❌ 0% | #1049 |
 | `event.ts` | — | ✅ via eventbus | #1045 |
 | `auth.ts` | Fora de escopo | ❌ | — |

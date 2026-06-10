@@ -151,6 +151,7 @@ export function RunFooterView(props: RunFooterViewProps) {
   const queue = createMemo(() => props.state().queue)
   const duration = createMemo(() => props.state().duration)
   const usage = createMemo(() => props.state().usage)
+  const core = createMemo(() => props.state().core)
   const interruptKey = createMemo(() => interrupt() || "/exit")
   const runTheme = createMemo(() => props.theme ?? RUN_THEME_FALLBACK)
   const theme = createMemo(() => runTheme().footer)
@@ -570,6 +571,19 @@ export function RunFooterView(props: RunFooterViewProps) {
                     gap={1}
                     flexShrink={0}
                   >
+                    <Show when={core().length > 0}>
+                      <text
+                        id="run-direct-footer-core"
+                        fg={core() === "TS" ? theme().muted : theme().highlight}
+                        wrapMode="none"
+                        truncate
+                        marginLeft={1}
+                        flexShrink={0}
+                      >
+                        {core()}
+                      </text>
+                    </Show>
+
                     <Show when={busy() || exiting()}>
                       <box id="run-direct-footer-hint-left" flexDirection="row" gap={1} flexShrink={0}>
                         <Show when={exiting()}>

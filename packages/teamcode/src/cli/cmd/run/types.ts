@@ -79,6 +79,8 @@ export type FooterState = {
   first: boolean
   interrupt: number
   exit: number
+  /** Engine indicator: "⚡Go", "TS", or empty string. */
+  core: string
 }
 
 // A partial update to FooterState. The footer merges this onto the current state.

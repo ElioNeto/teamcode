@@ -1,6 +1,6 @@
 import type { TuiPlugin, TuiPluginApi } from "@teamcode-ai/plugin/tui"
 import type { InternalTuiPlugin } from "../../plugin/internal"
-import { createMemo, Match, Show, Switch } from "solid-js"
+import { createMemo, createSignal, Match, onMount, Show, Switch } from "solid-js"
 import { Global } from "@teamcode-ai/core/global"
 
 const id = "internal:home-footer"
@@ -45,6 +45,29 @@ function Mcp(props: { api: TuiPluginApi }) {
   )
 }
 
+function Core(props: { api: TuiPluginApi }) {
+  const theme = () => props.api.theme.current
+  const [label, setLabel] = createSignal("")
+
+  onMount(async () => {
+    const port = process.env["GO_CORE_PORT"] ?? "43001"
+    try {
+      const resp = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(1000) })
+      setLabel(resp.ok ? "⚡Go" : "TS")
+    } catch {
+      setLabel("TS")
+    }
+  })
+
+  return (
+    <Show when={label().length > 0}>
+      <text flexShrink={0} fg={label() === "TS" ? theme().textMuted : theme().success}>
+        {label()}
+      </text>
+    </Show>
+  )
+}
+
 function Version(props: { api: TuiPluginApi }) {
   const theme = () => props.api.theme.current
 
@@ -69,6 +92,7 @@ function View(props: { api: TuiPluginApi }) {
     >
       <Directory api={props.api} />
       <Mcp api={props.api} />
+      <Core api={props.api} />
       <box flexGrow={1} />
       <Version api={props.api} />
     </box>
