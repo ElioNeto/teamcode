@@ -9,7 +9,17 @@
 import { describe, expect, test, beforeAll, afterAll } from "bun:test"
 import path from "path"
 import fs from "fs/promises"
-import { GoCoreClient, type GoCoreSession } from "@teamcode-ai/core/router"
+import { GoCoreClient } from "@teamcode-ai/core/router"
+// Session type defined locally to avoid barrel export resolution issues with tsgo
+interface GoCoreSession {
+  id: string
+  title: string
+  directory: string
+  agent: string
+  model: string
+  created_at: string
+  updated_at: string
+}
 
 // ---------------------------------------------------------------------------
 // Setup
