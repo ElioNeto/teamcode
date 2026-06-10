@@ -1,6 +1,5 @@
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
-import * as Log from "@teamcode-ai/core/util/log"
 import { UI } from "./cli/ui"
 import { Installation } from "./installation"
 import { InstallationVersion } from "@teamcode-ai/core/installation/version"
@@ -15,6 +14,7 @@ import { lazyCmd } from "./cli/cmd/lazy"
 import { EOL } from "os"
 import path from "path"
 import { Global } from "@teamcode-ai/core/global"
+import * as Log from "@teamcode-ai/core/util/log"
 import { startGoCore } from "@teamcode-ai/core/router"
 
 const processMetadata = ensureProcessMetadata("main")
@@ -45,11 +45,10 @@ process.on("SIGCHLD", () => {})
 const args = hideBin(process.argv)
 
 // Start the Go core server in the background (non-blocking).
-// If successful, filesystem ops will route through the Go core;
-// if not, the system runs 100% TypeScript with feature flags defaulting to false.
+// Uses file logger so it doesn't interfere with TUI stdout capture.
 startGoCore()
   .then((ok) => {
-    if (ok) console.log("[go-core] server started on port " + (process.env["GO_CORE_PORT"] ?? "43001"))
+    if (ok) Log.Default.info("go-core", { port: process.env["GO_CORE_PORT"] ?? "43001" })
   })
   .catch(() => {})
 
