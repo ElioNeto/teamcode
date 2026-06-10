@@ -14,12 +14,14 @@ async function request<T>(
   method: string,
   path: string,
   body?: unknown,
-  options?: { sessionID?: string },
+  options?: { sessionID?: string; traceId?: string },
 ): Promise<T> {
+  const traceId = options?.traceId ?? crypto.randomUUID()
   const resp = await fetch(`${BASE_URL}${path}`, {
     method,
     headers: {
       "Content-Type": "application/json",
+      "X-Trace-ID": traceId,
       ...(options?.sessionID ? { "X-Session-ID": options.sessionID } : {}),
     },
     body: body ? JSON.stringify(body) : undefined,

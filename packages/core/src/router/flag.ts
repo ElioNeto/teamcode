@@ -85,4 +85,72 @@ export function listFlags(): Array<{ key: string; value: unknown }> {
   }))
 }
 
+// ---------------------------------------------------------------------------
+// Shadow mode — run Go in parallel, compare results, always use TS output
+// ---------------------------------------------------------------------------
+
+const shadowRegistry = new Map<string, boolean>()
+const flagOverride = new Map<string, string | number | boolean>()
+
+/**
+ * Check if a module is in shadow mode.
+ *
+ * Shadow mode can be enabled via environment variable:
+ *   FLAG_filesystem_shadow=true
+ *
+ * Or programmatically via setFlag():
+ *   setFlag("go-core-filesystem", "shadow")
+ */
+export function isShadow(module: string): boolean {
+  const fromOverride = shadowRegistry.get(module)
+  if (fromOverride !== undefined) return fromOverride
+
+  const envKey = `FLAG_${module}_shadow`
+  const envValue = typeof process !== "undefined" ? process.env[envKey] : undefined
+  return envValue === "true" || envValue === "1"
+}
+
+/**
+ * Get the current value of a flag (respecting runtime overrides).
+ */
+export function getFlag(key: string): string | number | boolean | undefined {
+  if (flagOverride.has(key)) return flagOverride.get(key)
+
+  const f = registry.get(key)
+  if (!f) return undefined
+  return f.defaultValue as string | number | boolean
+}
+
+/**
+ * Set a flag value at runtime (overrides env vars and defaults).
+ * Used by circuit breaker to disable flags on error.
+ *
+ * Set to undefined to clear the override.
+ */
+export function setFlag(key: string, value: string | number | boolean): void {
+  flagOverride.set(key, value)
+}
+
+/**
+ * Clear a runtime flag override (reverts to env var / registered default).
+ */
+export function clearFlag(key: string): void {
+  flagOverride.delete(key)
+}
+
+/**
+ * Enable or disable shadow mode for a module at runtime.
+ * Use clearFlag to reset shadow mode.
+ */
+export function setShadow(module: string, enabled: boolean): void {
+  shadowRegistry.set(module, enabled)
+}
+
+/**
+ * Clear a shadow mode override (reverts to env var).
+ */
+export function clearShadow(module: string): void {
+  shadowRegistry.delete(module)
+}
+
 export * as RouterFlag from "./flag"
