@@ -406,8 +406,13 @@ export const layer = Layer.effect(
         { context: [], prompt: undefined },
       )
       const nextPrompt = compacting.prompt ?? buildPrompt({ previousSummary, context: compacting.context })
-      const msgs = structuredClone(selected.head)
-      yield* plugin.trigger("experimental.chat.messages.transform", {}, { messages: msgs })
+      let msgs = structuredClone(selected.head)
+      const transformed = yield* plugin.trigger(
+        "experimental.chat.messages.transform",
+        {},
+        { messages: msgs },
+      )
+      msgs = transformed.messages
       const modelMessages = yield* MessageV2.toModelMessagesEffect(msgs, model, {
         stripMedia: true,
         toolOutputMaxChars: TOOL_OUTPUT_MAX_CHARS,
