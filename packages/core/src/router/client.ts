@@ -41,6 +41,46 @@ async function request<T>(
   return resp.json() as Promise<T>
 }
 
+// ---- Agent Swarm Types (ADR #1074, impl #1075, contract #1076) ----
+
+/** Specification for a single agent in a swarm. */
+export interface GoCoreAgentSpec {
+  id: string
+  name: string
+  input: unknown
+  depends_on?: string[]
+  timeout?: number
+  model?: { provider: string; model: string }
+}
+
+/** Request body for POST /swarm/run. */
+export interface GoCoreSwarmRunRequest {
+  swarm_id?: string
+  agents: GoCoreAgentSpec[]
+  max_concurrency?: number
+}
+
+/** Response from POST /swarm/run. */
+export interface GoCoreSwarmRunResponse {
+  swarm_id: string
+}
+
+/** Agent status string — "pending" | "running" | "done" | "failed" | "canceled" */
+export type GoCoreAgentStatus = "pending" | "running" | "done" | "failed" | "canceled"
+
+/** Response from GET /swarm/:id/status. */
+export interface GoCoreSwarmStatusResponse {
+  swarm_id: string
+  agents: GoCoreAgentStatus[]
+}
+
+/** Payload for POST /swarm/:id/agent/:agentId/tool_result. */
+export interface GoCoreToolResultPayload {
+  call_id: string
+  output?: unknown
+  error?: string
+}
+
 // ---- Circuit breaker state ----
 //
 // The circuit breaker polls GET /metrics on the Go core every 30s.
@@ -236,6 +276,9 @@ export const GoCoreClient = {
   /** Feature flag to enable go-core session streaming */
   sessionCanary: flag<number>("go-core-session", 0),
 
+  /** Feature flag to enable go-core agent swarm (0-100 canary %) */
+  swarmCanary: flag<number>("go-core-swarm", 0),
+
   // ---- Filesystem (parity with AppFileSystem.Interface) ----
 
   fs: {
@@ -423,5 +466,25 @@ export const GoCoreClient = {
     /** List sessions, optionally filtered by directory. */
     list: (directory?: string) =>
       request<GoCoreSessionListResponse>("GET", `/session/list${directory ? `?directory=${encodeURIComponent(directory)}` : ""}`),
+  },
+
+  // ---- Agent Swarm (ADR #1074, impl #1075, contract #1076) ----
+
+  swarm: {
+    /** Start a swarm with the given agent specs and return the swarm ID. */
+    run: (req: GoCoreSwarmRunRequest) =>
+      request<GoCoreSwarmRunResponse>("POST", "/swarm/run", req),
+
+    /** Cancel a running swarm by ID. */
+    cancel: (swarmId: string) =>
+      request<void>("DELETE", `/swarm/${encodeURIComponent(swarmId)}`),
+
+    /** Get the current status of all agents in a swarm. */
+    status: (swarmId: string) =>
+      request<GoCoreSwarmStatusResponse>("GET", `/swarm/${encodeURIComponent(swarmId)}/status`),
+
+    /** Submit a tool result back to an agent in a swarm. */
+    toolResult: (swarmId: string, agentId: string, result: GoCoreToolResultPayload) =>
+      request<void>("POST", `/swarm/${encodeURIComponent(swarmId)}/agent/${encodeURIComponent(agentId)}/tool_result`, result),
   },
 }
