@@ -1,5 +1,5 @@
 import path from "path"
-import { Effect, Option, Schema } from "effect"
+import { Effect, Option, Schema, Semaphore } from "effect"
 import * as Stream from "effect/Stream"
 import { InstanceState } from "@/effect/instance-state"
 import { AppFileSystem } from "@teamcode-ai/core/filesystem"
@@ -8,6 +8,8 @@ import { assertExternalDirectoryEffect } from "./external-directory"
 import DESCRIPTION from "./glob.txt"
 import * as Tool from "./tool"
 import { Reference } from "@/reference/reference"
+
+const semaphore = Semaphore.makeUnsafe(4)
 
 export const Parameters = Schema.Struct({
   pattern: Schema.String.annotate({ description: "The glob pattern to match files against" }),
@@ -53,22 +55,24 @@ export const GlobTool = Tool.define(
 
           const limit = 100
           let truncated = false
-          const files = yield* rg.files({ cwd: search, glob: [params.pattern], signal: ctx.abort }).pipe(
-            Stream.mapEffect((file) =>
-              Effect.gen(function* () {
-                const full = path.resolve(search, file)
-                const info = yield* fs.stat(full).pipe(Effect.catch(() => Effect.succeed(undefined)))
-                const mtime =
-                  info?.mtime.pipe(
-                    Option.map((date) => date.getTime()),
-                    Option.getOrElse(() => 0),
-                  ) ?? 0
-                return { path: full, mtime }
-              }),
+          const files = yield* semaphore.withPermits(1)(
+            rg.files({ cwd: search, glob: [params.pattern], signal: ctx.abort }).pipe(
+              Stream.mapEffect((file) =>
+                Effect.gen(function* () {
+                  const full = path.resolve(search, file)
+                  const info = yield* fs.stat(full).pipe(Effect.catch(() => Effect.succeed(undefined)))
+                  const mtime =
+                    info?.mtime.pipe(
+                      Option.map((date) => date.getTime()),
+                      Option.getOrElse(() => 0),
+                    ) ?? 0
+                  return { path: full, mtime }
+                }),
+              ),
+              Stream.take(limit + 1),
+              Stream.runCollect,
+              Effect.map((chunk) => [...chunk]),
             ),
-            Stream.take(limit + 1),
-            Stream.runCollect,
-            Effect.map((chunk) => [...chunk]),
           )
 
           if (files.length > limit) {

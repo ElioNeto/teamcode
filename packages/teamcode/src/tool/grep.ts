@@ -1,6 +1,6 @@
 import path from "path"
 import { Schema } from "effect"
-import { Effect, Option } from "effect"
+import { Effect, Option, Semaphore } from "effect"
 import { InstanceState } from "@/effect/instance-state"
 import { AppFileSystem } from "@teamcode-ai/core/filesystem"
 import { Ripgrep } from "../file/ripgrep"
@@ -10,6 +10,7 @@ import * as Tool from "./tool"
 import { Reference } from "@/reference/reference"
 
 const MAX_LINE_LENGTH = 2000
+const semaphore = Semaphore.makeUnsafe(4)
 
 export const Parameters = Schema.Struct({
   pattern: Schema.String.annotate({ description: "The regex pattern to search for in file contents" }),
@@ -70,13 +71,15 @@ export const GrepTool = Tool.define(
           const cwd = info?.type === "Directory" ? search : path.dirname(search)
           const file = info?.type === "Directory" ? undefined : [path.relative(cwd, search)]
 
-          const result = yield* rg.search({
-            cwd,
-            pattern: params.pattern,
-            glob: params.include ? [params.include] : undefined,
-            file,
-            signal: ctx.abort,
-          })
+          const result = yield* semaphore.withPermits(1)(
+            rg.search({
+              cwd,
+              pattern: params.pattern,
+              glob: params.include ? [params.include] : undefined,
+              file,
+              signal: ctx.abort,
+            }),
+          )
           if (result.items.length === 0) return empty
 
           const rows = result.items.map((item) => ({
