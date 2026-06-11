@@ -174,6 +174,10 @@ export function resolveFilePath(root: string, file: string): string {
 
 export function windowsPath(p: string): string {
   if (process.platform !== "win32") return p
+  // WSL2 UNC paths (e.g. //wsl.localhost/Ubuntu/... or \\wsl.localhost\Ubuntu\...)
+  // are valid Windows network paths. Normalise separators and leave them as-is
+  // so the rest of the pipeline does not mangle them.
+  if (/^[/\\]{2}wsl\.localhost[/\\]/i.test(p)) return p.replace(/\\/g, "/")
   return (
     p
       .replace(/^\/([a-zA-Z]):(?:[\\/]|$)/, (_, drive) => `${drive.toUpperCase()}:/`)
@@ -181,7 +185,7 @@ export function windowsPath(p: string): string {
       .replace(/^\/([a-zA-Z])(?:\/|$)/, (_, drive) => `${drive.toUpperCase()}:/`)
       // Cygwin git paths are typically /cygdrive/<drive>/...
       .replace(/^\/cygdrive\/([a-zA-Z])(?:\/|$)/, (_, drive) => `${drive.toUpperCase()}:/`)
-      // WSL paths are typically /mnt/<drive>/...
+      // WSL1 paths are typically /mnt/<drive>/...
       .replace(/^\/mnt\/([a-zA-Z])(?:\/|$)/, (_, drive) => `${drive.toUpperCase()}:/`)
   )
 }
