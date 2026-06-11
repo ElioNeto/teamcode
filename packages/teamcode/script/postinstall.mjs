@@ -131,12 +131,34 @@ function installPackage(name) {
 
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), "opencode-install-"))
   try {
-    const result = childProcess.spawnSync(
-      "npm",
-      ["install", "--ignore-scripts", "--no-save", "--loglevel=error", "--prefix", temp, `${name}@${version}`],
-      { stdio: "inherit", windowsHide: true },
-    )
-    if (result.status !== 0) return
+    // Detect which runtime is running us — Bun, pnpm, or plain Node/npm.
+    // Bun does not always set process.versions.bun, so also check alternative signals.
+    const isBun =
+      typeof process.versions?.bun === "string" ||
+      process.env.BUN_INSTALL ||
+      (process.argv0 || "").includes("bun")
+
+    // Try package managers in priority order. On Bun, start with bunx since
+    // that's the most reliable way to invoke npm subcommands.
+    const candidates = isBun
+      ? [
+          ["bunx", ["npm", "install", "--ignore-scripts", "--no-save", "--loglevel=error", "--prefix", temp, `${name}@${version}`]],
+          ["bun", ["install", "--ignore-scripts", "--no-save", "--loglevel=error", "--prefix", temp, `${name}@${version}`]],
+          ["npm", ["install", "--ignore-scripts", "--no-save", "--loglevel=error", "--prefix", temp, `${name}@${version}`]],
+          ["pnpm", ["install", "--ignore-scripts", "--no-save", "--loglevel=error", "--prefix", temp, `${name}@${version}`]],
+        ]
+      : [
+          ["npm", ["install", "--ignore-scripts", "--no-save", "--loglevel=error", "--prefix", temp, `${name}@${version}`]],
+          ["bunx", ["npm", "install", "--ignore-scripts", "--no-save", "--loglevel=error", "--prefix", temp, `${name}@${version}`]],
+          ["pnpm", ["install", "--ignore-scripts", "--no-save", "--loglevel=error", "--prefix", temp, `${name}@${version}`]],
+        ]
+
+    let result = null
+    for (const [cmd, args] of candidates) {
+      result = childProcess.spawnSync(cmd, args, { stdio: "inherit", windowsHide: true })
+      if (result.status === 0) break
+    }
+    if (!result || result.status !== 0) return
     const packageDir = path.join(temp, "node_modules", name)
     copyBinary(path.join(packageDir, "bin", sourceBinary), targetBinary)
     // Also copy Go core binary if present
