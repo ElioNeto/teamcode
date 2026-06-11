@@ -202,6 +202,12 @@ export function QuestionPrompt(props: { request: QuestionRequest }) {
     const total = opts.length + (custom() ? 1 : 0)
     const max = Math.min(total, 9)
 
+    const appExitBindings = tuiConfig.keybinds.get("app.exit").filter((b) => {
+      // Filter out ctrl+d so it doesn't double as a cancel shortcut
+      if (typeof b.key === "string") return b.key !== "ctrl+d"
+      return typeof b.key === "object" && b.key !== null ? !(b.key.ctrl && b.key.name === "d") : true
+    })
+
     return {
       enabled: dialog.stack.length === 0 && !store.editing,
       commands: [
@@ -241,7 +247,7 @@ export function QuestionPrompt(props: { request: QuestionRequest }) {
           ? [
               { key: "return", desc: "Submit answer", group: "Question", cmd: () => submit() },
               { key: "escape", desc: "Reject question", group: "Question", cmd: () => reject() },
-              ...tuiConfig.keybinds.get("app.exit"),
+              ...appExitBindings,
             ]
           : [
               ...Array.from({ length: max }, (_, index) => ({
@@ -269,7 +275,7 @@ export function QuestionPrompt(props: { request: QuestionRequest }) {
               { key: "j", desc: "Next answer", group: "Question", cmd: () => moveTo((store.selected + 1) % total) },
               { key: "return", desc: "Select answer", group: "Question", cmd: () => selectOption() },
               { key: "escape", desc: "Reject question", group: "Question", cmd: () => reject() },
-              ...tuiConfig.keybinds.get("app.exit"),
+              ...appExitBindings,
             ]),
       ],
     }
