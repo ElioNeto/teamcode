@@ -393,6 +393,9 @@ export const layer = Layer.effect(
           }
 
           case "tool-result": {
+            if (ctx.assistantMessage.summary) {
+              return
+            }
             const toolCall = yield* readToolCall(value.toolCallId)
             const rawOutput = isRecord(value.output) ? value.output : {}
             const toolAttachments: MessageV2.FilePart[] = (
@@ -463,6 +466,9 @@ export const layer = Layer.effect(
           }
 
           case "tool-error": {
+            if (ctx.assistantMessage.summary) {
+              return
+            }
             const toolCall = yield* readToolCall(value.toolCallId)
             // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
             if (flags.experimentalEventSystem) {
@@ -484,6 +490,9 @@ export const layer = Layer.effect(
           }
 
           case "error":
+            if (ctx.assistantMessage.summary) {
+              return
+            }
             throw value.error
 
           case "start-step":
