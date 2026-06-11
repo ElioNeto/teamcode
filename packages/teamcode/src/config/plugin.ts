@@ -2,6 +2,7 @@ import { Glob } from "@teamcode-ai/core/util/glob"
 import { Schema } from "effect"
 import { pathToFileURL } from "url"
 import { isPathPluginSpec, parsePluginSpecifier, resolvePathPluginTarget } from "@/plugin/shared"
+import os from "os"
 import path from "path"
 
 export const Options = Schema.Record(Schema.String, Schema.Unknown)
@@ -48,7 +49,13 @@ export function pluginOptions(plugin: Spec): Options | undefined {
 // Path-like specs are resolved relative to the config file that declared them so merges later on do not
 // accidentally reinterpret `./plugin.ts` relative to some other directory.
 export async function resolvePluginSpec(plugin: Spec, configFilepath: string): Promise<Spec> {
-  const spec = pluginSpecifier(plugin)
+  let spec = pluginSpecifier(plugin)
+
+  // Expand tilde (~/) to the user's home directory
+  if (spec.startsWith("~/") || spec === "~") {
+    spec = spec === "~" ? os.homedir() : path.join(os.homedir(), spec.slice(2))
+  }
+
   if (!isPathPluginSpec(spec)) return plugin
 
   const base = path.dirname(configFilepath)
