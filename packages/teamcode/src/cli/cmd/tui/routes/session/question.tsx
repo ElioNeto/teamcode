@@ -12,7 +12,7 @@ import { useBindings } from "../../keymap"
 
 export function QuestionPrompt(props: { request: QuestionRequest }) {
   const sdk = useSDK()
-  const { theme } = useTheme()
+  const { theme, syntax } = useTheme()
   const renderer = useRenderer()
   const tuiConfig = useTuiConfig()
 
@@ -344,12 +344,16 @@ export function QuestionPrompt(props: { request: QuestionRequest }) {
 
         <Show when={!confirm()}>
           <box paddingLeft={1} gap={1}>
-            <box>
-              <text fg={theme.text}>
-                {question()?.question}
-                {multi() ? " (select all that apply)" : ""}
-              </text>
-            </box>
+            <scrollbox maxHeight={10} flexShrink={0}>
+              <markdown
+                content={(question()?.question ?? "") + (multi() ? "\n\n*Select all that apply*" : "")}
+                syntaxStyle={syntax()}
+                streaming={false}
+                internalBlockMode="top-level"
+                fg={theme.markdownText}
+                bg={theme.background}
+              />
+            </scrollbox>
             <box>
               <For each={options()}>
                 {(opt, i) => {

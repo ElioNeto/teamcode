@@ -8,6 +8,7 @@ import { showToast } from "@teamcode-ai/ui/toast"
 import type { QuestionAnswer, QuestionRequest } from "@teamcode-ai/sdk/v2"
 import { useLanguage } from "@/context/language"
 import { useSDK } from "@/context/sdk"
+import { Markdown } from "@teamcode-ai/ui/markdown"
 import { makeEventListener } from "@solid-primitives/event-listener"
 import { createResizeObserver } from "@solid-primitives/resize-observer"
 
@@ -469,7 +470,9 @@ export const SessionQuestionDock: Component<{ request: QuestionRequest; onSubmit
         </>
       }
     >
-      <div data-slot="question-text">{question()?.question}</div>
+      <div data-slot="question-text" style="overflow-y: auto; max-height: 300px;">
+        <Markdown text={question()?.question ?? ""} />
+      </div>
       <Show when={multi()} fallback={<div data-slot="question-hint">{language.t("ui.question.singleHint")}</div>}>
         <div data-slot="question-hint">{language.t("ui.question.multiHint")}</div>
       </Show>
