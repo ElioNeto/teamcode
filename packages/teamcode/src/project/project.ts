@@ -249,6 +249,11 @@ export const layer: Layer.Layer<
 
           id = roots[0] ? ProjectID.make(roots[0]) : undefined
           if (id) {
+            // Include a short hash of the git directory path to disambiguate
+            // independent clones of the same repo in different directories.
+            // This hash is stable per-clone since the git dir path doesn't move.
+            const dirHash = Buffer.from(pathSvc.resolve(common)).toString("base64url").slice(0, 8)
+            id = ProjectID.make(`${id}-${dirHash}`)
             yield* fs.writeFileString(pathSvc.join(common, "teamcode"), id).pipe(Effect.ignore)
           }
         }
