@@ -129,10 +129,10 @@ async function showRemovalSummary(targets: RemovalTargets, method: Installation.
 
   if (method !== "curl" && method !== "unknown") {
     const cmds: Record<string, string> = {
-      npm: "npm uninstall -g teamcode-ai",
-      pnpm: "pnpm uninstall -g teamcode-ai",
-      bun: "bun remove -g teamcode-ai",
-      yarn: "yarn global remove teamcode-ai",
+      npm: "npm uninstall -g @teamcode-ai/teamcode",
+      pnpm: "pnpm uninstall -g @teamcode-ai/teamcode",
+      bun: "bun remove -g @teamcode-ai/teamcode",
+      yarn: "yarn global remove @teamcode-ai/teamcode",
       brew: "brew uninstall teamcode",
       choco: "choco uninstall teamcode",
       scoop: "scoop uninstall teamcode",
@@ -180,10 +180,10 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
 
   if (method !== "curl" && method !== "unknown") {
     const cmds: Record<string, string[]> = {
-      npm: ["npm", "uninstall", "-g", "teamcode-ai"],
-      pnpm: ["pnpm", "uninstall", "-g", "teamcode-ai"],
-      bun: ["bun", "remove", "-g", "teamcode-ai"],
-      yarn: ["yarn", "global", "remove", "teamcode-ai"],
+      npm: ["npm", "uninstall", "-g", "@teamcode-ai/teamcode"],
+      pnpm: ["pnpm", "uninstall", "-g", "@teamcode-ai/teamcode"],
+      bun: ["bun", "remove", "-g", "@teamcode-ai/teamcode"],
+      yarn: ["yarn", "global", "remove", "@teamcode-ai/teamcode"],
       brew: ["brew", "uninstall", "teamcode"],
       choco: ["choco", "uninstall", "teamcode"],
       scoop: ["scoop", "uninstall", "teamcode"],

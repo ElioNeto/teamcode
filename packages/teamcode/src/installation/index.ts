@@ -166,7 +166,7 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
         if (process.execPath.includes(path.join(".local", "bin"))) return "curl" as Method
         const exec = process.execPath.toLowerCase()
 
-        const checks: Array<{ name: Method; command: () => Effect.Effect<string> }> = [
+          const checks: Array<{ name: Method; command: () => Effect.Effect<string> }> = [
           { name: "npm", command: () => text(["npm", "list", "-g", "--depth=0"]) },
           { name: "yarn", command: () => text(["yarn", "global", "list"]) },
           { name: "pnpm", command: () => text(["pnpm", "list", "-g", "--depth=0"]) },
@@ -186,9 +186,14 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
 
         for (const check of checks) {
           const output = yield* check.command()
-          const installedName =
-            check.name === "brew" || check.name === "choco" || check.name === "scoop" ? "teamcode" : "teamcode-ai"
-          if (output.includes(installedName)) {
+          // The published package is now @teamcode-ai/teamcode (scoped).
+          // Check for either the old unscoped name (backward compat) or the
+          // new scoped name.
+          const installedNames =
+            check.name === "brew" || check.name === "choco" || check.name === "scoop"
+              ? ["teamcode"]
+              : ["@teamcode-ai/teamcode", "teamcode-ai"]
+          if (installedNames.some((name) => output.includes(name))) {
             return check.name
           }
         }
@@ -217,7 +222,7 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
         if (detectedMethod === "npm" || detectedMethod === "bun" || detectedMethod === "pnpm") {
           const response = yield* httpOk.execute(
             HttpClientRequest.get(
-              `${yield* NpmConfig.registry(process.cwd())}/teamcode-ai/${InstallationChannel}`,
+              `${yield* NpmConfig.registry(process.cwd())}/@teamcode-ai%2Fteamcode/${InstallationChannel}`,
             ).pipe(HttpClientRequest.acceptJson),
           )
           const data = yield* HttpClientResponse.schemaBodyJson(NpmPackage)(response)
@@ -259,13 +264,13 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
             upgradeResult = yield* upgradeCurl(target)
             break
           case "npm":
-            upgradeResult = yield* run(["npm", "install", "-g", `teamcode-ai@${target}`])
+            upgradeResult = yield* run(["npm", "install", "-g", `@teamcode-ai/teamcode@${target}`])
             break
           case "pnpm":
-            upgradeResult = yield* run(["pnpm", "install", "-g", `teamcode-ai@${target}`])
+            upgradeResult = yield* run(["pnpm", "install", "-g", `@teamcode-ai/teamcode@${target}`])
             break
           case "bun":
-            upgradeResult = yield* run(["bun", "install", "-g", `teamcode-ai@${target}`])
+            upgradeResult = yield* run(["bun", "install", "-g", `@teamcode-ai/teamcode@${target}`])
             break
           case "brew": {
             const formula = yield* getBrewFormula()
