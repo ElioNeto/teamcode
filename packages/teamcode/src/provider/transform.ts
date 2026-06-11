@@ -307,6 +307,11 @@ function normalizeMessages(
     model.api.npm !== "@openrouter/ai-sdk-provider"
   ) {
     const field = model.capabilities.interleaved.field
+    // Only DeepSeek models require reasoning_content/reasoning_details to be
+    // sent back in subsequent request messages. Other models with interleaved
+    // capability (e.g. kimi-k2.6) reject this extra field through the proxy
+    // gateway with "Extra inputs not permitted".
+    if (!model.api.id.toLowerCase().includes("deepseek")) return msgs
     return msgs.map((msg) => {
       if (msg.role === "assistant" && Array.isArray(msg.content)) {
         const reasoningParts = msg.content.filter((part: any) => part.type === "reasoning")
@@ -644,10 +649,14 @@ function openaiCompatibleReasoningEfforts(id: string) {
 }
 
 function anthropicAdaptiveEfforts(apiId: string): string[] | null {
-  if (["opus-4-7", "opus-4.7"].some((v) => apiId.includes(v))) {
+  // Use prefix-based matching so any current or future Claude Opus model
+  // (e.g. claude-opus-4, opus-4-8, opus-4.9) automatically gets adaptive
+  // thinking support instead of requiring hardcoded version strings.
+  const lowerId = apiId.toLowerCase()
+  if (lowerId.includes("opus")) {
     return ["low", "medium", "high", "xhigh", "max"]
   }
-  if (["opus-4-6", "opus-4.6", "sonnet-4-6", "sonnet-4.6"].some((v) => apiId.includes(v))) {
+  if (["sonnet-4-6", "sonnet-4.6"].some((v) => apiId.includes(v))) {
     return ["low", "medium", "high", "max"]
   }
   return null
@@ -1181,14 +1190,12 @@ export function options(input: {
     result["enable_thinking"] = true
   }
 
-  if (input.model.api.npm === "@ai-sdk/azure" && input.model.api.id.includes("gpt-5.5")) {
-    result["reasoningSummary"] = "auto"
-    return result
-  }
-
   if (input.model.api.id.includes("gpt-5") && !input.model.api.id.includes("gpt-5-chat")) {
     if (!input.model.api.id.includes("gpt-5-pro")) {
       result["reasoningEffort"] = "medium"
+    }
+    // Azure's OpenAI API does not support the reasoningSummary parameter.
+    if (input.model.providerID !== "azure") {
       result["reasoningSummary"] = "auto"
     }
 

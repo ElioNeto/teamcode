@@ -41,7 +41,9 @@ export const gpt5DefaultOptions = (
   if (!id.includes("gpt-5") || id.includes("gpt-5-chat") || id.includes("gpt-5-pro")) return undefined
   return openAIProviderOptions({
     reasoningEffort: "medium",
-    reasoningSummary: "auto",
+    // reasoningSummary is intentionally omitted as the default — Azure's OpenAI
+    // API does not support the reasoning.summary field. The teamcode layer
+    // (transform.ts) adds it for non-Azure providers where supported.
     textVerbosity:
       options.textVerbosity === true && id.includes("gpt-5.") && !id.includes("codex") && !id.includes("-chat")
         ? "low"
