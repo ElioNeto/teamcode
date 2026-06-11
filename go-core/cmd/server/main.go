@@ -78,6 +78,12 @@ func main() {
 	mux.HandleFunc("POST /session/delete", handleSessionDelete)
 	mux.HandleFunc("GET /session/list", handleSessionList)
 
+	// Agent Swarm — goroutine-based scheduler (ADR #1074, impl #1075)
+	mux.HandleFunc("POST /swarm/run", handleSwarmRun)
+	mux.HandleFunc("DELETE /swarm/{id}", handleSwarmCancel)
+	mux.HandleFunc("GET /swarm/{id}/status", handleSwarmStatus)
+	mux.HandleFunc("POST /swarm/{id}/agent/{agentId}/tool_result", handleSwarmToolResult)
+
 	server := &http.Server{
 		Addr:    ":" + port,
 		Handler: withCORS(mux),
