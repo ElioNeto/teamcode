@@ -9,6 +9,7 @@
 // Also wires SIGINT so Ctrl-c clears a live prompt draft first, then falls
 // back to the usual two-press exit sequence through RunFooter.requestExit().
 import { createCliRenderer, type CliRenderer, type ScrollbackWriter } from "@opentui/core"
+import type { ReadStream } from "node:tty"
 import { Session as SessionApi } from "@/session/session"
 import * as Locale from "@/util/locale"
 import { withRunSpan } from "./otel"
@@ -187,6 +188,35 @@ export async function createRuntimeLifecycle(input: LifecycleInput): Promise<Lif
     },
     async () => {
       const source = resolveInteractiveStdin()
+
+      // Wrap setRawMode on the resolved stdin to handle EBADF (errno 9)
+      // on macOS where the TTY fd may not support raw mode.
+      const stdinInput = source.stdin as ReadStream
+      if (stdinInput.isTTY && typeof stdinInput.setRawMode === "function") {
+        const originalSetRawMode = stdinInput.setRawMode.bind(stdinInput)
+        stdinInput.setRawMode = (mode: boolean) => {
+          try {
+            return originalSetRawMode(mode)
+          } catch (error: unknown) {
+            if (
+              (typeof error === "object" &&
+                error !== null &&
+                "code" in error &&
+                error.code === "EBADF") ||
+              (typeof error === "object" &&
+                error !== null &&
+                "errno" in error &&
+                error.errno === 9)
+            ) {
+              console.warn(
+                "Warning: stdin setRawMode failed (EBADF). Running without raw mode. Keyboard input may be limited.",
+              )
+              return stdinInput
+            }
+            throw error
+          }
+        }
+      }
 
       try {
         const renderer = await createCliRenderer({

@@ -1,4 +1,5 @@
 import { render, TimeToFirstDraw, useRenderer, useTerminalDimensions } from "@opentui/solid"
+import type { ReadStream } from "node:tty"
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui"
 import * as Clipboard from "@tui/util/clipboard"
 import * as Selection from "@tui/util/selection"
@@ -180,6 +181,37 @@ export function tui(input: {
       offKeymap()
       await TuiPluginRuntime.dispose()
       TuiAudio.dispose()
+    }
+
+    // On macOS (and some Linux terminals) setRawMode can throw EBADF (errno 9)
+    // when the underlying TTY fd is valid but not available for raw mode (e.g.
+    // IDE integrated terminals, Terminal.app). Wrap it so the TUI can still
+    // launch — keyboard input may be limited but the app should not crash.
+    const stdin = process.stdin as ReadStream
+    if (stdin.isTTY && typeof stdin.setRawMode === "function") {
+      const originalSetRawMode = stdin.setRawMode.bind(stdin)
+      stdin.setRawMode = (mode: boolean) => {
+        try {
+          return originalSetRawMode(mode)
+        } catch (error: unknown) {
+          if (
+            (typeof error === "object" &&
+              error !== null &&
+              "code" in error &&
+              error.code === "EBADF") ||
+            (typeof error === "object" &&
+              error !== null &&
+              "errno" in error &&
+              error.errno === 9)
+          ) {
+            console.warn(
+              "Warning: stdin setRawMode failed (EBADF). Running without raw mode. Keyboard input may be limited.",
+            )
+            return stdin
+          }
+          throw error
+        }
+      }
     }
 
     let renderer: CliRenderer
