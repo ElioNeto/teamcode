@@ -2,7 +2,7 @@ export * as Log from "./log"
 
 import path from "path"
 import fs from "fs/promises"
-import { createWriteStream } from "fs"
+import { createWriteStream, mkdirSync } from "fs"
 import * as Global from "../global"
 import { Schema } from "effect"
 import { Glob } from "./glob"
@@ -72,6 +72,11 @@ export async function init(options: Options) {
     Global.Path.log,
     options.dev ? "dev.log" : new Date().toISOString().split(".")[0].replace(/:/g, "") + ".log",
   )
+  // Ensure the log directory exists before creating the write stream.
+  // Global.ensure() above already creates it asynchronously, but a
+  // synchronous fallback guarantees the directory exists even if a caller
+  // did not await init().
+  mkdirSync(path.dirname(logpath), { recursive: true })
   const runID = process.env.TEAMCODE_RUN_ID ?? process.env.TEAMCODE_RUN_ID
   const shouldTruncate = !options.dev || !runID || process.env[initializedRunID] !== runID
   if (shouldTruncate) await fs.truncate(logpath).catch(() => {})

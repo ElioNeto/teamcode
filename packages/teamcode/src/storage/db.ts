@@ -6,7 +6,7 @@ import { LocalContext } from "@/util/local-context"
 import { Global } from "@teamcode-ai/core/global"
 import * as Log from "@teamcode-ai/core/util/log"
 import path from "path"
-import { readFileSync, readdirSync, existsSync } from "fs"
+import { readFileSync, readdirSync, existsSync, mkdirSync } from "fs"
 import { InstallationChannel } from "@teamcode-ai/core/installation/version"
 import { EffectBridge } from "@/effect/bridge"
 import { init } from "#db"
@@ -103,7 +103,7 @@ export const Client = Object.assign(
     if (loaded) return client as Client
 
     // Ensure Global paths exist before opening the database
-    void Global.ensure()
+    mkdirSync(Global.Path.data, { recursive: true })
 
     const dbPath = getPath(flags)
     log.info("opening database", { path: dbPath })
