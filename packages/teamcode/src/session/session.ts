@@ -70,6 +70,23 @@ export function fromRow(row: SessionRow): Info | undefined {
         : undefined
     const share = row.share_url ? { url: row.share_url } : undefined
     const revert = row.revert ?? undefined
+
+    // Parse model defensively — old-format sessions may have model data in
+    // a shape that no longer decodes cleanly (e.g. missing id/providerID).
+    let model: Info["model"]
+    try {
+      model = row.model
+        ? {
+            id: ModelID.make(row.model.id),
+            providerID: ProviderID.make(row.model.providerID),
+            variant: row.model.variant,
+          }
+        : undefined
+    } catch {
+      log.warn("failed to parse session model, skipping model field", { id: row.id, model: row.model })
+      model = undefined
+    }
+
     return {
       id: row.id,
       slug: row.slug,
@@ -80,13 +97,7 @@ export function fromRow(row: SessionRow): Info | undefined {
       parentID: row.parent_id ?? undefined,
       title: row.title,
       agent: row.agent ?? undefined,
-      model: row.model
-        ? {
-            id: ModelID.make(row.model.id),
-            providerID: ProviderID.make(row.model.providerID),
-            variant: row.model.variant,
-          }
-        : undefined,
+      model,
       version: row.version,
       summary,
       cost: row.cost ?? 0,
@@ -110,8 +121,34 @@ export function fromRow(row: SessionRow): Info | undefined {
       },
     }
   } catch (e) {
-    log.error("failed to parse session row, skipping", { id: row.id, error: e })
-    return undefined
+    // Last resort: log the error but still return a minimal session so it
+    // is visible in the session list rather than silently disappearing.
+    log.error("failed to parse session row, returning minimal entry", { id: row.id, error: e })
+    return {
+      id: row.id,
+      slug: row.slug ?? "",
+      projectID: row.project_id,
+      workspaceID: undefined,
+      directory: row.directory,
+      path: undefined,
+      parentID: undefined,
+      title: row.title,
+      agent: undefined,
+      model: undefined,
+      version: row.version,
+      summary: undefined,
+      cost: 0,
+      tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+      share: undefined,
+      revert: undefined,
+      permission: undefined,
+      time: {
+        created: row.time_created,
+        updated: row.time_updated,
+        compacting: undefined,
+        archived: undefined,
+      },
+    }
   }
 }
 
