@@ -3,6 +3,7 @@ import { Bus } from "../bus"
 import { Snapshot } from "../snapshot"
 import { Storage } from "@/storage/storage"
 import { SyncEvent } from "../sync"
+import { FileWatcher } from "../file/watcher"
 import * as Log from "@teamcode-ai/core/util/log"
 import * as Session from "./session"
 import { Todo } from "./todo"
@@ -78,6 +79,7 @@ export const layer = Layer.effect(
       rev.snapshot = session.revert?.snapshot ?? (yield* snap.track())
       if (session.revert?.snapshot) yield* snap.restore(session.revert.snapshot)
       yield* snap.revert(patches)
+      FileWatcher.suppressWatcherFor(500)
       if (rev.snapshot) rev.diff = yield* snap.diff(rev.snapshot)
       // Store current todos so cleanup can restore them
       rev.todos = currentTodos.length > 0 ? currentTodos : undefined
@@ -127,8 +129,10 @@ export const layer = Layer.effect(
         }
         if (patches.length > 0) {
           yield* snap.revert(patches.map((p) => ({ hash: rev.snapshot!, files: p.files })))
+          FileWatcher.suppressWatcherFor(500)
         } else {
           yield* snap.restore(rev.snapshot)
+          FileWatcher.suppressWatcherFor(500)
         }
       }
       yield* sessions.clearRevert(input.sessionID)

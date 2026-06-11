@@ -21,6 +21,14 @@ declare const TEAMCODE_LIBC: string | undefined
 const log = Log.create({ service: "file.watcher" })
 const SUBSCRIBE_TIMEOUT_MS = 10_000
 
+// Suppress file-watcher-triggered reloads for a period after a user-initiated
+// revert (undo), preventing the watcher from reloading files from disk and
+// overwriting the undo buffer in the editor. See #817.
+let suppressWatcherUntil = 0
+export function suppressWatcherFor(ms: number) {
+  suppressWatcherUntil = Date.now() + ms
+}
+
 export const Event = {
   Updated: BusEvent.define(
     "file.watcher.updated",
@@ -113,6 +121,10 @@ export const layer = Layer.effect(
               debounceTimer = null
               const batch = pending
               pending = []
+              // Skip watcher events during the suppression window to prevent
+              // fighting undo operations (the watcher would reload files from
+              // disk and overwrite the undo buffer in the editor). See #817.
+              if (Date.now() < suppressWatcherUntil) return
               for (const evt of batch) {
                 if (evt.type === "create") void Bus.publish(ctx, Event.Updated, { file: evt.path, event: "add" })
                 if (evt.type === "update") void Bus.publish(ctx, Event.Updated, { file: evt.path, event: "change" })
