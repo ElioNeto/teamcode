@@ -356,7 +356,7 @@ export const layer = Layer.effect(
         .stream({
           agent: ag,
           user: firstInfo,
-          system: [],
+          system: ag.prompt ? [ag.prompt] : [],
           small: true,
           tools: {},
           model: mdl,
@@ -1908,7 +1908,13 @@ NOTE: At any point in time through this workflow you should feel free to ask the
               instruction.system().pipe(Effect.orDie),
               MessageV2.toModelMessagesEffect(msgs, model),
             ])
-            const system = [...env, ...instructions, ...(skills ? [skills] : [])]
+            const defaultPrompt = SystemPrompt.provider(model)
+            const system = [
+              ...(agent.prompt ? [agent.prompt] : defaultPrompt),
+              ...env,
+              ...instructions,
+              ...(skills ? [skills] : []),
+            ]
             const format = lastUser.format ?? { type: "text" as const }
             if (format.type === "json_schema") system.push(STRUCTURED_OUTPUT_SYSTEM_PROMPT)
             const result = yield* handle.process({
