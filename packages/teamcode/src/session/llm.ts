@@ -11,7 +11,6 @@ import { InstanceState } from "@/effect/instance-state"
 import type { Agent } from "@/agent/agent"
 import type { MessageV2 } from "./message-v2"
 import { Plugin } from "@/plugin"
-import { SystemPrompt } from "./system"
 import { Permission } from "@/permission"
 import { PermissionID } from "@/permission/schema"
 import { Bus } from "@/bus"
@@ -99,9 +98,7 @@ const live: Layer.Layer<
       const system: string[] = []
       system.push(
         [
-          // use agent prompt otherwise provider prompt
-          ...(input.agent.prompt ? [input.agent.prompt] : SystemPrompt.provider(input.model)),
-          // any custom prompt passed into this call
+          // any custom prompt passed into this call (includes agent prompt from caller)
           ...input.system,
           // any custom prompt from last user message
           ...(input.user.system ? [input.user.system] : []),
@@ -319,6 +316,24 @@ const live: Layer.Layer<
             return {
               ...failed.toolCall,
               toolName: lower,
+            }
+          }
+
+          // Normalize underscores — model may call `web_search` when tool is `websearch`
+          // or vice versa. Match against all tool names ignoring underscores.
+          const stripUnderscores = (s: string) => s.replace(/_/g, "")
+          const modelNoUnderscores = stripUnderscores(failed.toolCall.toolName)
+          const matchNoUnderscores = Object.keys(sortedTools).find(
+            (k) => k !== failed.toolCall.toolName && stripUnderscores(k) === modelNoUnderscores,
+          )
+          if (matchNoUnderscores) {
+            l.info("repairing tool call", {
+              tool: failed.toolCall.toolName,
+              repaired: matchNoUnderscores,
+            })
+            return {
+              ...failed.toolCall,
+              toolName: matchNoUnderscores,
             }
           }
 
