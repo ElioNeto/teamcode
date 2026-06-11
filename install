@@ -443,6 +443,11 @@ if [ -n "${GITHUB_ACTIONS-}" ] && [ "${GITHUB_ACTIONS}" == "true" ]; then
     print_message info "Added $INSTALL_DIR to \$GITHUB_PATH"
 fi
 
+echo ""
+echo "  ⚡ Please restart your terminal or run: source ~/.zshrc"
+echo "     (or the equivalent for your shell: source ~/.bashrc, etc.)"
+echo ""
+
 echo -e ""
 echo -e "${MUTED}                    ${NC}             ▄     "
 echo -e "${MUTED}█▀▀█ █▀▀█ █▀▀█ █▀▀▄ ${NC}█▀▀▀ █▀▀█ █▀▀█ █▀▀█"
