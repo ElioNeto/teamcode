@@ -491,18 +491,15 @@ export function Prompt(props: PromptProps) {
           }
           if (!props.sessionID) return
 
-          setStore("interrupt", store.interrupt + 1)
+          // Debounce: ignore if we already called abort within 500ms.
+          // Prevents double-fire from two events dispatched for a single ESC press.
+          const now = Date.now()
+          if (store.interrupt > 0 && now - store.interrupt < 500) return
 
-          setTimeout(() => {
-            setStore("interrupt", 0)
-          }, 5000)
-
-          if (store.interrupt >= 2) {
-            void sdk.client.session.abort({
-              sessionID: props.sessionID,
-            })
-            setStore("interrupt", 0)
-          }
+          setStore("interrupt", now)
+          void sdk.client.session.abort({
+            sessionID: props.sessionID,
+          })
           dialog.clear()
         },
       },
