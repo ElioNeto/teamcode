@@ -199,10 +199,10 @@ export const TuiThreadCommand = cmd({
       process.on("unhandledRejection", error)
       process.on("SIGUSR2", reload)
       process.on("SIGINT", () => {
-        stop().finally(() => process.exit(0))
+        stop()
       })
       process.on("SIGTERM", () => {
-        stop().finally(() => process.exit(0))
+        stop()
       })
 
       let stopped = false
@@ -296,7 +296,6 @@ export const TuiThreadCommand = cmd({
     } finally {
       unguard?.()
     }
-    process.exit(0)
   },
 })
 // scratch
