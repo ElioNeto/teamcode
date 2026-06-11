@@ -1,6 +1,9 @@
 import { Schema } from "effect"
+import * as Log from "@teamcode-ai/core/util/log"
 import matter from "gray-matter"
 import { Filesystem } from "@/util/filesystem"
+
+const log = Log.create({ service: "config-markdown" })
 
 export const FILE_REGEX = /(?<![\w`])@(\.?[^\s`,.]*(?:\.[^\s`,.]+)*)/g
 export const SHELL_REGEX = /!`([^`]+)`/g
@@ -72,7 +75,11 @@ export async function parse(filePath: string) {
   try {
     const md = matter(template)
     return md
-  } catch {
+  } catch (err) {
+    log.warn("invalid YAML frontmatter, attempting fallback parse", {
+      filePath,
+      error: err instanceof Error ? err.message : String(err),
+    })
     try {
       return matter(fallbackSanitization(template))
     } catch (err) {
