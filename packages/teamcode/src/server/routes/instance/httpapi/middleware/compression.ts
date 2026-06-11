@@ -1,4 +1,4 @@
-import { deflateSync, gzipSync } from "node:zlib"
+import { deflateSync, gzipSync, zstdCompressSync } from "node:zlib"
 import { Effect } from "effect"
 import { HttpBody, HttpRouter, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
 
@@ -13,11 +13,14 @@ const STREAMING_POST_REGEX = /^\/session\/[^/]+\/(?:message|prompt_async)$/
 
 const THRESHOLD_BYTES = 1024
 
-type Encoding = "gzip" | "deflate"
+type Encoding = "zstd" | "gzip" | "deflate"
 
 function pickEncoding(acceptEncoding: string | undefined): Encoding | undefined {
   if (!acceptEncoding) return undefined
   const lower = acceptEncoding.toLowerCase()
+  // Prefer zstd when available — ~30-40% better compression than gzip at similar speeds.
+  // Modern browsers (Chrome 123+, Firefox 126+, Safari 18+) send it in Accept-Encoding.
+  if (lower.includes("zstd")) return "zstd"
   if (lower.includes("gzip")) return "gzip"
   if (lower.includes("deflate")) return "deflate"
   return undefined
@@ -55,7 +58,10 @@ export const compressionLayer = HttpRouter.middleware(
       const encoding = pickEncoding(request.headers["accept-encoding"])
       if (!encoding) return response
 
-      const compressed = encoding === "gzip" ? gzipSync(body.body) : deflateSync(body.body)
+      const compressed =
+        encoding === "zstd" ? zstdCompressSync(body.body) :
+          encoding === "gzip" ? gzipSync(body.body) :
+            deflateSync(body.body)
       return HttpServerResponse.setHeader(
         HttpServerResponse.setBody(response, HttpBody.uint8Array(compressed, contentType)),
         "content-encoding",

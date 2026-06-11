@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { gunzipSync, inflateSync } from "node:zlib"
+import { gunzipSync, inflateSync, zstdDecompressSync } from "node:zlib"
 import * as Log from "@teamcode-ai/core/util/log"
 import { Server } from "../../src/server/server"
 import { resetDatabase } from "../fixture/db"
@@ -56,6 +56,19 @@ describe("HttpApi compression", () => {
       expect(response.headers.get("content-encoding")).toBe("deflate")
       const compressed = new Uint8Array(await response.arrayBuffer())
       const decompressed = inflateSync(compressed)
+      const json = JSON.parse(new TextDecoder().decode(decompressed))
+      expect(json).toMatchObject({ username: "compression-test-user" })
+    })
+
+    test("prefers zstd when Accept-Encoding includes zstd", async () => {
+      await using tmp = await tmpdir({ config: fatConfig() })
+      const response = await app().request("/config", {
+        headers: { "x-teamcode-directory": tmp.path, "accept-encoding": "zstd, gzip, deflate" },
+      })
+      expect(response.status).toBe(200)
+      expect(response.headers.get("content-encoding")).toBe("zstd")
+      const compressed = new Uint8Array(await response.arrayBuffer())
+      const decompressed = zstdDecompressSync(compressed)
       const json = JSON.parse(new TextDecoder().decode(decompressed))
       expect(json).toMatchObject({ username: "compression-test-user" })
     })
