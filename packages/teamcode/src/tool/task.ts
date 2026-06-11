@@ -112,10 +112,13 @@ export const TaskTool = Tool.define(
     const status = yield* SessionStatus.Service
     const flags = yield* RuntimeFlags.Service
 
+    const sanitize = (s: string) => s.replace(/[\u200B-\u200D\uFEFF]/g, "")
+
     const run = Effect.fn("TaskTool.execute")(function* (
-      params: Schema.Schema.Type<typeof Parameters>,
+      params_: Schema.Schema.Type<typeof Parameters>,
       ctx: Tool.Context,
     ) {
+      const params = { ...params_, subagent_type: sanitize(params_.subagent_type) }
       const cfg = yield* config.get()
       const runInBackground = params.background === true
       if (runInBackground && !flags.experimentalBackgroundSubagents) {
