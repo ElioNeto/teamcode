@@ -382,11 +382,13 @@ export const Terminal = (props: TerminalProps) => {
           return true
         }
 
-        // allow for toggle terminal keybinds in parent
+        // Let the terminal handle the toggle shortcut; return false for all
+        // other keys so they propagate to the parent IDE normally.
         const config = settings.keybinds.get(TOGGLE_TERMINAL_ID) ?? DEFAULT_TOGGLE_TERMINAL_KEYBIND
         const keybinds = parseKeybind(config)
 
-        return matchKeybind(keybinds, event)
+        if (matchKeybind(keybinds, event)) return true
+        return false
       })
 
       const fit = new mod.FitAddon()
