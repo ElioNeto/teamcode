@@ -857,6 +857,10 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
           apiKey: "ollama",
         },
       }),
+    lmstudio: () =>
+      Effect.succeed({
+        autoload: true,
+      }),
   }
 }
 
