@@ -1073,7 +1073,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
         yield* bus.publish(Session.Event.Error, {
           sessionID,
           error: new NamedError.Unknown({
-            message: `Model not found: ${err.providerID}/${err.modelID}.${hint}`,
+            message: `Model not found: ${err.providerID}/${err.modelID}.${hint} Try \`teamcode models --refresh\` to refresh the model cache.`,
           }).toObject(),
         })
       }
@@ -1895,7 +1895,12 @@ NOTE: At any point in time through this workflow you should feel free to ask the
               }
             }
 
-            yield* plugin.trigger("experimental.chat.messages.transform", {}, { messages: msgs })
+            const transformed = yield* plugin.trigger(
+              "experimental.chat.messages.transform",
+              {},
+              { messages: msgs },
+            )
+            msgs = transformed.messages
 
             const [skills, env, instructions, modelMsgs] = yield* Effect.all([
               sys.skills(agent),

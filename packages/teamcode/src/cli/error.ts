@@ -64,7 +64,7 @@ export function FormatError(input: unknown): string | undefined {
     return [
       `Model not found: ${stringField(providerModelNotFound, "providerID")}/${stringField(providerModelNotFound, "modelID")}`,
       ...(suggestions.length ? ["Did you mean: " + suggestions.join(", ")] : []),
-      `Try: \`teamcode models\` to list available models`,
+      `Try: \`teamcode models --refresh\` to refresh the model cache from models.dev`,
       `Or check your config (teamcode.json) provider/model names`,
     ].join("\n")
   }
