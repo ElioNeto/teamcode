@@ -713,10 +713,12 @@ export async function runInteractiveLocalMode(input: RunLocalInput): Promise<voi
       "opencode.demo": input.demo,
     },
     async () => {
+      const { ServerAuth } = await import("@/server/auth")
       const sdk = createOpencodeClient({
         baseUrl: "http://teamcode.internal",
         fetch: input.fetch,
         directory: input.directory,
+        headers: ServerAuth.headers(),
       })
       let session: Promise<ResolvedSession> | undefined
 

@@ -891,6 +891,7 @@ export const RunCommand = effectCmd({
         baseUrl: "http://teamcode.internal",
         fetch: fetchFn,
         directory,
+        headers: ServerAuth.headers(),
       })
       await execute(sdk)
     })
