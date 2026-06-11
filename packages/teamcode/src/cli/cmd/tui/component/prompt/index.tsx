@@ -728,6 +728,7 @@ export function Prompt(props: PromptProps) {
       stashed = snapshot
       if (props.sessionID) sessionDrafts.set(props.sessionID, snapshot)
     }
+    if (input && !input.isDestroyed && input.focused) input.blur()
     setInputTarget(undefined)
     props.ref?.(undefined)
   })
