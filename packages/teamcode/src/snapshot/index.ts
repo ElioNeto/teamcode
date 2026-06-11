@@ -31,8 +31,11 @@ export type FileDiff = typeof FileDiff.Type
 const log = Log.create({ service: "snapshot" })
 const prune = "7.days"
 const limit = 2 * 1024 * 1024
-const core = ["-c", "core.longpaths=true", "-c", "core.symlinks=true"]
-const cfg = ["-c", "core.autocrlf=false", ...core]
+const core = [
+  "-c", "core.longpaths=true",
+  "-c", `core.symlinks=${process.platform === "win32" ? "false" : "true"}`,
+]
+const cfg = ["-c", "core.autocrlf=input", ...core]
 const quote = [...cfg, "-c", "core.quotepath=false"]
 interface GitResult {
   readonly code: ChildProcessSpawner.ExitCode
@@ -218,7 +221,7 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
             yield* sync()
             const [diff, other] = yield* Effect.all(
               [
-                git([...quote, ...args(["diff-files", "--name-only", "-z", "--", "."])], {
+                git([...quote, ...args(["diff-files", "--ignore-cr-at-eol", "--name-only", "-z", "--", "."])], {
                   cwd: state.worktree,
                 }),
                 git([...quote, ...args(["ls-files", "--others", "--exclude-standard", "-z", "--", "."])], {
@@ -307,9 +310,9 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
                   yield* git(["init"], {
                     env: { GIT_DIR: state.gitdir, GIT_WORK_TREE: state.worktree },
                   })
-                  yield* git(["--git-dir", state.gitdir, "config", "core.autocrlf", "false"])
+                  yield* git(["--git-dir", state.gitdir, "config", "core.autocrlf", "input"])
                   yield* git(["--git-dir", state.gitdir, "config", "core.longpaths", "true"])
-                  yield* git(["--git-dir", state.gitdir, "config", "core.symlinks", "true"])
+                  yield* git(["--git-dir", state.gitdir, "config", "core.symlinks", process.platform === "win32" ? "false" : "true"])
                   yield* git(["--git-dir", state.gitdir, "config", "core.fsmonitor", "false"])
                   log.info("initialized")
                 }
