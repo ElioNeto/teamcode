@@ -985,26 +985,6 @@ export const page = Effect.fn("MessageV2.page")(function* (input: {
   }
 })
 
-export function* stream(sessionID: SessionID) {
-  const size = 50
-  let before: string | undefined
-  while (true) {
-    const next = Effect.runSync(
-      page({ sessionID, limit: size, before }).pipe(
-        Effect.catchIf(NotFoundError.isInstance, () =>
-          Effect.succeed({ items: [] as WithParts[], more: false, cursor: undefined }),
-        ),
-      ),
-    )
-    if (next.items.length === 0) break
-    for (let i = next.items.length - 1; i >= 0; i--) {
-      yield next.items[i]
-    }
-    if (!next.more || !next.cursor) break
-    before = next.cursor
-  }
-}
-
 export function parts(message_id: MessageID) {
   const rows = Database.use((db) =>
     db.select().from(PartTable).where(eq(PartTable.message_id, message_id)).orderBy(PartTable.id).all(),
@@ -1088,8 +1068,49 @@ export function filterCompacted(msgs: Iterable<WithParts>) {
   return result
 }
 
+/**
+ * @deprecated Use filterCompactedEffect instead. This generator exists for
+ * backward compatibility with tests. It internally runs Effect.runSync and
+ * should not be used in production code.
+ */
+export function* stream(sessionID: SessionID): Generator<WithParts, void, unknown> {
+  const size = 50
+  let before: string | undefined
+  while (true) {
+    const next = Effect.runSync(
+      page({ sessionID, limit: size, before }).pipe(
+        Effect.catchIf(NotFoundError.isInstance, () =>
+          Effect.succeed({ items: [] as WithParts[], more: false, cursor: undefined }),
+        ),
+      ),
+    )
+    if (next.items.length === 0) break
+    for (let i = next.items.length - 1; i >= 0; i--) {
+      yield next.items[i]
+    }
+    if (!next.more || !next.cursor) break
+    before = next.cursor
+  }
+}
+
 export const filterCompactedEffect = Effect.fnUntraced(function* (sessionID: SessionID) {
-  return filterCompacted(stream(sessionID))
+  const size = 50
+  let before: string | undefined
+  const allMsgs: WithParts[] = []
+  while (true) {
+    const next = yield* page({ sessionID, limit: size, before }).pipe(
+      Effect.catchIf(NotFoundError.isInstance, () =>
+        Effect.succeed({ items: [] as WithParts[], more: false, cursor: undefined }),
+      ),
+    )
+    if (next.items.length === 0) break
+    for (let i = next.items.length - 1; i >= 0; i--) {
+      allMsgs.push(next.items[i])
+    }
+    if (!next.more || !next.cursor) break
+    before = next.cursor
+  }
+  return filterCompacted(allMsgs)
 })
 
 // filterCompacted reorders messages for model consumption
@@ -1176,6 +1197,9 @@ export function fromError(
     case e instanceof TypeError &&
       typeof e.message === "string" &&
       /ECONNRESET|connection (reset|closed|terminated|was closed)|socket (.+ )?closed|socket (hang|reset|interrupt)|interrupted|connection was (reset|closed)|read ECONNRESET|closed unexpectedly/i.test(e.message):
+    case e instanceof Error &&
+      typeof e.message === "string" &&
+      /peer closed connection/i.test(e.message):
       const connErr = e as SystemError & { cause?: { code?: string } }
       return toObj(new APIError({
         message: "Connection reset by server",
