@@ -1,19 +1,19 @@
 # Contract Mapping — TS ↔ Go Core
 
 > Issue: [#1039](https://github.com/ElioNeto/teamcode/issues/1039)
-> Documenta todos os contratos HTTP entre o runtime TypeScript e o Go core.
+> Documents all HTTP contracts between the TypeScript runtime and the Go core.
 
 ---
 
-## Convenções
+## Conventions
 
-- **Base URL:** `http://127.0.0.1:43001` (configurável via `GO_CORE_PORT`)
+- **Base URL:** `http://127.0.0.1:43001` (configurable via `GO_CORE_PORT`)
 - **Content-Type:** `application/json`
-- **Headers comuns:**
-  - `X-Trace-ID: <uuid>` — trace ID cross-runtime (shadow mode)
-  - `X-Session-ID: <session_id>` — para operações de sessão
-- **Erro padrão:** `{"error": "<mensagem>"}` com status HTTP apropriado
-- **Métricas:** endpoints com status ≥500 contam como erro no circuit breaker
+- **Common headers:**
+  - `X-Trace-ID: <uuid>` — cross-runtime trace ID (shadow mode)
+  - `X-Session-ID: <session_id>` — for session operations
+- **Standard error:** `{"error": "<message>"}` with appropriate HTTP status
+- **Metrics:** endpoints with status ≥500 count as errors in the circuit breaker
 
 ---
 
@@ -21,7 +21,7 @@
 
 ### `GET /health`
 
-**Request:** nenhum body
+**Request:** no body
 
 **Response (200):**
 ```json
@@ -41,10 +41,10 @@
 
 ## 2. Filesystem
 
-Todas as operações de filesystem seguem o contrato do `AppFileSystem.Interface` do TS.
+All filesystem operations follow the TS `AppFileSystem.Interface` contract.
 
 ### `POST /fs/read`
-Leitura de arquivo com offset/limit opcionais.
+Read file with optional offset/limit.
 
 **Request:**
 ```json
@@ -70,7 +70,7 @@ Leitura de arquivo com offset/limit opcionais.
 ---
 
 ### `POST /fs/read-safe`
-Leitura segura — retorna `{ content, found }` em vez de 404.
+Safe read — returns `{ content, found }` instead of 404.
 
 **Request:**
 ```json
@@ -85,7 +85,7 @@ Leitura segura — retorna `{ content, found }` em vez de 404.
 ---
 
 ### `POST /fs/write`
-Escrita de arquivo (cria diretórios pai automaticamente).
+Write file (creates parent directories automatically).
 
 **Request:**
 ```json
@@ -97,7 +97,7 @@ Escrita de arquivo (cria diretórios pai automaticamente).
 ---
 
 ### `POST /fs/stat`
-Metadata do arquivo/diretório.
+File/directory metadata.
 
 **Request:**
 ```json
@@ -120,7 +120,7 @@ Metadata do arquivo/diretório.
 ---
 
 ### `POST /fs/exists`
-Verifica se caminho existe.
+Checks if path exists.
 
 **Request:** `{ "path": "/home/user/file.txt" }`
 **Response:** `{ "exists": true }`
@@ -128,7 +128,7 @@ Verifica se caminho existe.
 ---
 
 ### `POST /fs/is-dir`
-Verifica se é diretório.
+Checks if it is a directory.
 
 **Request:** `{ "path": "/home/user/dir" }`
 **Response:** `{ "dir": true }`
@@ -136,7 +136,7 @@ Verifica se é diretório.
 ---
 
 ### `POST /fs/is-file`
-Verifica se é arquivo.
+Checks if it is a file.
 
 **Request:** `{ "path": "/home/user/file.txt" }`
 **Response:** `{ "file": true }`
@@ -144,7 +144,7 @@ Verifica se é arquivo.
 ---
 
 ### `POST /fs/list`
-Lista arquivos em diretório.
+Lists files in a directory.
 
 **Request:**
 ```json
@@ -159,7 +159,7 @@ Lista arquivos em diretório.
 ---
 
 ### `POST /fs/readdir`
-Lista entries com tipo.
+Lists entries with type.
 
 **Request:** `{ "path": "/home/user" }`
 
@@ -178,7 +178,7 @@ Lista entries com tipo.
 ---
 
 ### `POST /fs/glob`
-Glob com suporte a **.
+Glob with ** support.
 
 **Request:**
 ```json
@@ -195,7 +195,7 @@ Glob com suporte a **.
 ---
 
 ### `POST /fs/find-up`
-Sobe a partir de `start` procurando `target`.
+Walks up from `start` looking for `target`.
 
 **Request:**
 ```json
@@ -213,7 +213,7 @@ Sobe a partir de `start` procurando `target`.
 
 ### `POST /fs/copy` / `POST /fs/move` / `POST /fs/remove` / `POST /fs/remove-all`
 
-**Request:** `{ "path": "/home/user/file.txt" }` (ou `{ "src": ..., "dst": ... }` para copy/move)
+**Request:** `{ "path": "/home/user/file.txt" }` (or `{ "src": ..., "dst": ... }` for copy/move)
 **Response:** `204 No Content`
 
 ---
@@ -221,7 +221,7 @@ Sobe a partir de `start` procurando `target`.
 ## 3. Process Spawning
 
 ### `POST /process/spawn`
-Spawn de processo com timeout.
+Spawn a process with timeout.
 
 **Request:**
 ```json
@@ -249,7 +249,7 @@ Spawn de processo com timeout.
 ---
 
 ### `POST /process/npm-install`
-npm install em diretório.
+npm install in a directory.
 
 **Request:**
 ```json
@@ -261,7 +261,7 @@ npm install em diretório.
 ---
 
 ### `POST /process/npx`
-Executa comando via npx.
+Executes command via npx.
 
 **Request:**
 ```json
@@ -275,7 +275,7 @@ Executa comando via npx.
 ## 4. Session Events
 
 ### `POST /session/event`
-Publica evento no barramento de sessão.
+Publishes event on the session bus.
 
 **Request:**
 ```json
@@ -291,7 +291,7 @@ Publica evento no barramento de sessão.
 ---
 
 ### `GET /session/events`
-SSE stream de eventos para uma sessão.
+SSE stream of events for a session.
 
 **Query:** `?session_id=ses_abc123`
 
@@ -307,7 +307,7 @@ data: {"id":"evt_...","type":"server.heartbeat","session_id":"ses_...","data":{}
 ---
 
 ### `GET /session/events-status`
-Status do sistema de eventos.
+Event system status.
 
 **Response:**
 ```json
@@ -317,7 +317,7 @@ Status do sistema de eventos.
 ---
 
 ### `GET /session/messages`
-Mensagens consolidadas da sessão.
+Consolidated session messages.
 
 **Query:** `?session_id=ses_abc123`
 
@@ -336,7 +336,7 @@ Mensagens consolidadas da sessão.
 ## 5. Session CRUD
 
 ### `POST /session/create`
-Cria nova sessão com metadata.
+Creates a new session with metadata.
 
 **Request:**
 ```json
@@ -367,7 +367,7 @@ Cria nova sessão com metadata.
 ---
 
 ### `GET /session/get`
-Obtém metadata da sessão.
+Gets session metadata.
 
 **Query:** `?session_id=ses_abc123`
 
@@ -377,20 +377,20 @@ Obtém metadata da sessão.
 ---
 
 ### `POST /session/update`
-Atualiza título da sessão.
+Updates session title.
 
 **Request:**
 ```json
 { "session_id": "ses_abc123", "title": "New Title" }
 ```
 
-**Response (200):** `GoCoreSession` (com `updated_at` atualizado)
+**Response (200):** `GoCoreSession` (with `updated_at` updated)
 **Response (404):** `{"error": "session not found"}`
 
 ---
 
 ### `POST /session/delete`
-Deleta sessão.
+Deletes a session.
 
 **Request:** `{ "session_id": "ses_abc123" }`
 **Response:** `204 No Content`
@@ -399,7 +399,7 @@ Deleta sessão.
 ---
 
 ### `GET /session/list`
-Lista sessões por diretório.
+Lists sessions by directory.
 
 **Query:** `?directory=/home/user/project`
 
@@ -418,7 +418,7 @@ Lista sessões por diretório.
 ## 6. Metrics
 
 ### `GET /metrics`
-Métricas do circuit breaker (sliding window 60s).
+Circuit breaker metrics (sliding window 60s).
 
 **Response (200):**
 ```json
@@ -436,24 +436,24 @@ Métricas do circuit breaker (sliding window 60s).
 
 ## 7. Feature Flags
 
-| Flag | Tipo | Default | Uso |
-|------|------|---------|-----|
-| `go-core-available` | boolean | `false` | Circuit breaker habilita/desabilita Go core |
-| `go-core-filesystem` | number (canary %) | `0` | % de requests de filesystem roteados para Go |
-| `go-core-session` | number (canary %) | `0` | % de requests de sessão roteados para Go |
-| `go-core-shadow` | boolean | `false` | Shadow mode (ativa via env `FLAG_filesystem_shadow=true`) |
+| Flag | Type | Default | Usage |
+|------|------|---------|-------|
+| `go-core-available` | boolean | `false` | Circuit breaker enables/disables Go core |
+| `go-core-filesystem` | number (canary %) | `0` | % of filesystem requests routed to Go |
+| `go-core-session` | number (canary %) | `0` | % of session requests routed to Go |
+| `go-core-shadow` | boolean | `false` | Shadow mode (enable via env `FLAG_filesystem_shadow=true`) |
 
-**Override via env var:** `FLAG_<flag-name> = true|false|<number>` (underscores substituem hífens)
+**Override via env var:** `FLAG_<flag-name> = true|false|<number>` (underscores replace hyphens)
 
 ---
 
-## Validação de Tipos
+## Type Validation
 
-Os tipos no `client.ts` devem corresponder exatamente às structs Go.
-A validação é feita via testes de paridade que verificam o shape do JSON retornado.
+The types in `client.ts` must exactly match the Go structs.
+Validation is done via parity tests that verify the shape of the returned JSON.
 
-### Regras de compatibilidade:
-1. **Snake case no Go** → **Camel case no TS?** — ambos usam snake_case nos campos JSON
-2. **Timestamps** — formato ISO 8601 (`time.RFC3339`) tanto no Go quanto no TS
-3. **Nulos/omissão** — campos ausentes são `undefined` no TS, zero-values no Go (omitempty)
-4. **Arrays vazios** — Go retorna `[]` (nunca `null`) para slices vazias
+### Compatibility rules:
+1. **Snake case in Go** → **Camel case in TS?** — both use snake_case in JSON fields
+2. **Timestamps** — ISO 8601 format (`time.RFC3339`) in both Go and TS
+3. **Nulls/omission** — absent fields are `undefined` in TS, zero-values in Go (omitempty)
+4. **Empty arrays** — Go returns `[]` (never `null`) for empty slices

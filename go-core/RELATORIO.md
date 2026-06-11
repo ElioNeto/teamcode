@@ -1,102 +1,102 @@
-# Relatório da Implementação Go Core
+# Go Core Implementation Report
 
 > **Branch:** `rewrite/go-core`
 > **Epic:** [#1036](https://github.com/ElioNeto/teamcode/issues/1036)
-> **Data:** 10/06/2026
+> **Date:** 06/10/2026
 
 ---
 
-## 📊 Visão Geral
+## 📊 Overview
 
-| Métrica | Valor |
-|---------|-------|
-| Arquivos Go | 22 (16 src + 7 test) |
-| Arquivos TS afetados | 10+ (router, flags, client, parity tests) |
-| Linhas de código Go | ~4.850 |
-| Testes Go | **76** — zero falhas |
-| Testes TS parity | **52** — zero falhas |
-| Total testes | **128** — zero falhas |
-| Commits | 10 (incluindo PLAN.md + RELATORIO.md) |
+| Metric | Value |
+|--------|-------|
+| Go files | 22 (16 src + 7 test) |
+| TS files affected | 10+ (router, flags, client, parity tests) |
+| Go lines of code | ~4,850 |
+| Go tests | **76** — zero failures |
+| TS parity tests | **52** — zero failures |
+| Total tests | **128** — zero failures |
+| Commits | 10 (including PLAN.md + RELATORIO.md) |
 
 ---
 
-## ✅ Módulos Implementados (100%)
+## ✅ Implemented Modules (100%)
 
 ### 1. Filesystem Adapter (`internal/filesystem/`) — #1044
-**Paridade completa com `AppFileSystem` do TS**
+**Full parity with TS `AppFileSystem`**
 
-| Operação | Go | TS Parity | Status |
-|----------|-----|-----------|--------|
-| read/write | ✅ | ✅ | Completo |
-| stat | ✅ | ✅ | Completo |
-| list/readdir | ✅ | ✅ | Completo |
-| glob (**, findUp, up, globUp) | ✅ | ✅ | Completo |
-| exists/isDir/isFile | ✅ | ✅ | Completo |
-| copy/move/remove/removeAll | ✅ | ✅ | Completo |
-| ensureDir | ✅ | ✅ | Completo |
-| MIME detection | ✅ | — | Completo |
-| readJSON/writeJSON | ✅ | ✅ | Completo |
+| Operation | Go | TS Parity | Status |
+|-----------|-----|-----------|--------|
+| read/write | ✅ | ✅ | Complete |
+| stat | ✅ | ✅ | Complete |
+| list/readdir | ✅ | ✅ | Complete |
+| glob (**, findUp, up, globUp) | ✅ | ✅ | Complete |
+| exists/isDir/isFile | ✅ | ✅ | Complete |
+| copy/move/remove/removeAll | ✅ | ✅ | Complete |
+| ensureDir | ✅ | ✅ | Complete |
+| MIME detection | ✅ | — | Complete |
+| readJSON/writeJSON | ✅ | ✅ | Complete |
 
-**Testes:** 32 Go + 23 TS parity
+**Tests:** 32 Go + 23 TS parity
 
 ### 2. Session Event Streaming (`internal/eventbus/`) — #1045
 **PubSub + SSE + heartbeat 10s**
 
-- `PubSub` thread-safe com canais
+- Thread-safe `PubSub` with channels
 - SSE streaming (`GET /session/events`)
-- Publish eventos (`POST /session/event`)
+- Publish events (`POST /session/event`)
 - Health check (`GET /session/events-status`)
-- Heartbeat a cada 10s
+- Heartbeat every 10s
 
-**Testes:** 9 Go + 3 TS parity
+**Tests:** 9 Go + 3 TS parity
 
 ### 3. Shadow Mode (`packages/core/src/router/`) — #1069
-**Roteamento seguro entre TS e Go**
+**Safe routing between TS and Go**
 
-- `isShadow()`, `setShadow()`, `clearShadow()` — controle programático
-- `routeFilesystemOp()` — executa TS + Go em paralelo, usa resultado TS
-- `deepEqual()` — compara resultados, loga divergências com trace ID
-- `X-Trace-ID` em todos os requests (UUID cross-runtime)
-- Erros Go são silenciosos — nunca afetam o usuário
+- `isShadow()`, `setShadow()`, `clearShadow()` — programmatic control
+- `routeFilesystemOp()` — runs TS + Go in parallel, uses TS result
+- `deepEqual()` — compares results, logs divergences with trace ID
+- `X-Trace-ID` on all requests (cross-runtime UUID)
+- Go errors are silent — never affect the user
 
-**Testes:** 11 TS parity
+**Tests:** 11 TS parity
 
 ### 4. Metrics + Circuit Breaker (`internal/metrics/`) — #1071
-**Rollback automático sem intervenção**
+**Automatic rollback without intervention**
 
-- `SlidingWindow` — 60s com prune in-place, thread-safe
+- `SlidingWindow` — 60s with in-place prune, thread-safe
 - `Record()`, `Snapshot()` — request_count, error_count, error_rate, avg_latency_ms
-- `GET /metrics` — snapshot JSON
-- Middleware `withCORS` registra métricas em cada request (status ≥500 = erro)
-- Circuit breaker no TS: polling a cada 30s, desativa `go-core-available` se error_rate > 1%
-- Reabilita após 2 polls saudáveis consecutivos
+- `GET /metrics` — JSON snapshot
+- `withCORS` middleware records metrics on each request (status ≥500 = error)
+- Circuit breaker in TS: polling every 30s, disables `go-core-available` if error_rate > 1%
+- Re-enables after 2 consecutive healthy polls
 
-**Testes:** 4 Go + 2 TS parity
+**Tests:** 4 Go + 2 TS parity
 
 ### 5. Process Spawning (`internal/process/`) — #1043
-**Substituição do `cross-spawn` + `npm.ts`**
+**Replacement for `cross-spawn` + `npm.ts`**
 
-- `Spawn()` com timeout, env vars, cwd, exit code, stdout/stderr
+- `Spawn()` with timeout, env vars, cwd, exit code, stdout/stderr
 - `NpmInstall()`, `Npx()`, `BunX()` helpers
-- Endpoints REST: `POST /process/spawn`, `/process/npm-install`, `/process/npx`
-- Timeout default 300s para npm install
+- REST endpoints: `POST /process/spawn`, `/process/npm-install`, `/process/npx`
+- Default timeout 300s for npm install
 
-**Testes:** 10 Go + 4 TS parity
+**Tests:** 10 Go + 4 TS parity
 
 ### 6. Session Message Updater (`internal/updater/`) — #1070
-**State machine de consolidação de mensagens**
+**Message consolidation state machine**
 
-- 8 tipos de mensagem: assistant, user, shell, compaction, synthetic, agent-switched, model-switched
-- 24+ tipos de evento com dados tipados
-- Handlers para todos os tipos: step, text, tool, reasoning, compaction, shell, agent/model, prompt, synthetic
-- `GET /session/messages?session_id=` — mensagens consolidadas
-- Integração automática: `POST /session/event` alimenta o updater
+- 8 message types: assistant, user, shell, compaction, synthetic, agent-switched, model-switched
+- 24+ event types with typed data
+- Handlers for all types: step, text, tool, reasoning, compaction, shell, agent/model, prompt, synthetic
+- `GET /session/messages?session_id=` — consolidated messages
+- Automatic integration: `POST /session/event` feeds the updater
 
-**Testes:** 14 Go + 2 TS parity
+**Tests:** 14 Go + 2 TS parity
 
 ---
 
-## 🏗️ Arquitetura Atual
+## 🏗️ Current Architecture
 
 ```
 TS Runtime (Bun) ─── HTTP (localhost:43001) ───→ Go Core Server
@@ -115,98 +115,98 @@ TS Runtime (Bun) ─── HTTP (localhost:43001) ───→ Go Core Server
                     │                               │                      │
               ┌─────┴──────┐                ┌───────┴──────┐        ┌──────┴──────┐
               │ filesystem │                │ eventbus     │        │  process    │
-              │ (completo) │                │ (completo)   │        │  (completo) │
+              │ (complete) │                │ (complete)   │        │  (complete) │
               └────────────┘                ├──────────────┤        └─────────────┘
                                             │ updater      │
-                                            │ (completo)   │
+                                            │ (complete)   │
                                             └──────────────┘
               ┌────────────┐
               │  metrics   │
-              │ (completo) │
+              │ (complete) │
               └────────────┘
 ```
 
-### Decisões de Arquitetura
+### Architecture Decisions
 
-1. **Zero dependências externas** — apenas stdlib Go
-2. **Comunicação HTTP REST (JSON)** — sem protobuf, sem gRPC
-3. **PubSub non-blocking** — eventos descartados para subscribers lentos
-4. **Feature flags no TS** — controle de rollout centralizado
-5. **Shadow mode como estágio obrigatório** — antes de qualquer canary
-6. **Rollback automático via circuit breaker** — sem intervenção humana
+1. **Zero external dependencies** — only Go stdlib
+2. **HTTP REST (JSON) communication** — no protobuf, no gRPC
+3. **Non-blocking PubSub** — events dropped for slow subscribers
+4. **Feature flags in TS** — centralized rollout control
+5. **Shadow mode as mandatory stage** — before any canary
+6. **Automatic rollback via circuit breaker** — no human intervention
 
 ---
 
-## 🔜 Próximos Passos
+## 🔜 Next Steps
 
-### Curto Prazo (dias)
+### Short Term (days)
 
-1. **Ativar Shadow Mode para Filesystem**
+1. **Enable Shadow Mode for Filesystem**
    ```bash
    export FLAG_filesystem_shadow=true
    tcdev-go
    ```
-   Observar divergências nos logs, validar que TS não é afetado.
+   Observe divergences in logs, validate that TS is not affected.
 
-2. **Migrar o `tcdev-go` para usar branch `rewrite/go-core`**  
-   O alias atual roda Go core com a branch atual (dev). Para usar as implementações mais recentes do Go, idealmente o `tcdev-go` deveria fazer checkout da branch `rewrite/go-core` e buildar o Go core de lá.
+2. **Migrate `tcdev-go` to use branch `rewrite/go-core`**  
+   The current alias runs Go core with the current branch (dev). To use the latest Go implementations, ideally `tcdev-go` should checkout the `rewrite/go-core` branch and build Go core from there.
 
-3. **Testar Canary 5% para Filesystem**
+3. **Test Canary 5% for Filesystem**
    ```bash
    export FLAG_go_core_filesystem=5
    tcdev
    ```
-   5% dos requests de filesystem vão para o Go core.
+   5% of filesystem requests go to the Go core.
 
-### Médio Prazo (semanas)
+### Medium Term (weeks)
 
-4. **Contract Mapping (#1039)** — Mapear formalmente contratos TS ↔ Go
-   - Validar que tipos do `client.ts` batem com structs Go
-   - Testes de schema para request/response
+4. **Contract Mapping (#1039)** — Formally map TS ↔ Go contracts
+   - Validate that `client.ts` types match Go structs
+   - Schema tests for request/response
 
-5. **Parity Test Harness (#1040)** — Harness oficial de testes de paridade
-   - Harness reutilizável em `test/parity/harness.ts`
-   - CI: rodar parity tests automaticamente a cada PR
-   - Report de cobertura de paridade
+5. **Parity Test Harness (#1040)** — Official parity test harness
+   - Reusable harness in `test/parity/harness.ts`
+   - CI: run parity tests automatically on every PR
+   - Parity coverage report
 
-6. **Filesystem Canary 100%** — Filesystem 100% Go em produção
-   - Após 48h sem divergências em shadow mode
+6. **Filesystem Canary 100%** — Filesystem 100% Go in production
+   - After 48h with no divergences in shadow mode
    - Gradual: 5% → 25% → 50% → 75% → 100%
 
-### Longo Prazo (meses)
+### Long Term (months)
 
-7. **Session CRUD Lifecycle** — Sessões no Go
-8. **Provider & Model Catalog (#1048)** — Catálogo de providers e modelos
-9. **Config System (#1049)** — Leitura de `teamcode.json` pelo Go
-10. **File Watching (#1051)** — Watcher real com `fsnotify` + SSE
-11. **Remoção do Legado TS** — Após estabilização de todos os módulos
-
----
-
-## 🐛 Problemas Conhecidos
-
-- Nenhum bug aberto — 128 testes passando, zero falhas
-- `POST /fs/watch` retorna placeholder `{"status": "not_implemented"}`
-- `internal/session/` e `internal/config/` vazios
+7. **Session CRUD Lifecycle** — Sessions in Go
+8. **Provider & Model Catalog (#1048)** — Provider and model catalog
+9. **Config System (#1049)** — Reading `teamcode.json` from Go
+10. **File Watching (#1051)** — Real watcher with `fsnotify` + SSE
+11. **Legacy TS Removal** — After stabilization of all modules
 
 ---
 
-## 🧪 Como Executar
+## 🐛 Known Issues
+
+- No open bugs — 128 tests passing, zero failures
+- `POST /fs/watch` returns placeholder `{"status": "not_implemented"}`
+- `internal/session/` and `internal/config/` are empty
+
+---
+
+## 🧪 How to Run
 
 ```bash
-# Go core com Go server + TUI
+# Go core with Go server + TUI
 source ~/.bashrc
 tcdev-go
 
-# TUI sem Go core
+# TUI without Go core
 tcdev
 
-# Apenos testes Go
+# Go tests only
 cd go-core && make test
 
-# Testes de paridade (sobe Go server + roda TS)
+# Parity tests (starts Go server + runs TS)
 cd go-core && make parity-test
 
-# Verificar indicador visual
-# No footer do TUI: ⚡Go (verde) ou TS (cinza)
+# Check visual indicator
+# In TUI footer: ⚡Go (green) or TS (gray)
 ```

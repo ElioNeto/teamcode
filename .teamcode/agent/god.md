@@ -44,7 +44,7 @@ You have **zero restrictions**. Every tool, every permission, every resource is 
 - Document your reasoning in commits so others understand why drastic measures were taken.
 
 ## Git commit rules (MANDATORY — applies even to God)
-- **NUNCA** use `--no-verify`, `--no-hooks`, ou qualquer flag que pule hooks
-- **SEMPRE** execute os hooks do Husky/lint-staged antes de criar commits
-- Se um hook falhar, corrija o problema — nunca contorne a validação
+- **NEVER** use `--no-verify`, `--no-hooks`, or any flag that skips hooks
+- **ALWAYS** run the Husky/lint-staged hooks before creating commits
+- If a hook fails, fix the problem — never bypass validation
 - `git commit --amend` só com autorização explícita do usuário, e apenas se o commit ainda não tiver sido enviado ao remoto

@@ -1,18 +1,18 @@
-# ADR: Agent Swarm — Ruptura Limpa com Goroutines em Go
+# ADR: Agent Swarm — Clean Break with Goroutines in Go
 
-**Data:** 2026-06-11
-**Autor:** Delivery-loop pipeline
-**Status:** Aprovado
+**Date:** 2026-06-11
+**Author:** Delivery-loop pipeline
+**Status:** Approved
 **Epic:** #1036
 **Issues:** #1074, #1075, #1076
 
 ---
 
-## Contexto
+## Context
 
-O agent swarm atual no TypeScript é modelado com **Effect fibers** — um scheduler
-cooperativo gerenciado pela biblioteca Effect. Cada agent é uma fiber que pode ser
-pausada, cancelada e composta com outras:
+The current agent swarm in TypeScript is modeled with **Effect fibers** — a cooperative
+scheduler managed by the Effect library. Each agent is a fiber that can be
+paused, canceled, and composed with others:
 
 ```
 SwarmRunner
@@ -22,15 +22,15 @@ SwarmRunner
         └── composição via Effect.fork / Effect.join
 ```
 
-Na migração incremental (Strangler Fig, #1036), preservar esse modelo em Go
-significaria reimplementar um scheduler cooperativo em cima de goroutines —
-complexidade alta com ganho marginal.
+In the incremental migration (Strangler Fig, #1036), preserving this model in Go
+would mean reimplementing a cooperative scheduler on top of goroutines —
+high complexity with marginal gain.
 
-## Decisão
+## Decision
 
-**Ruptura limpa:** o swarm em Go **não** vai emular Effect fibers. Vai ser
-modelado como um **scheduler de goroutines nativo com comunicação via channels**
-— o modelo que Go foi projetado para ter.
+**Clean break:** the Go swarm will **not** emulate Effect fibers. It will be
+modeled as a **native goroutine scheduler with communication via channels**
+— the model Go was designed for.
 
 ```
 SwarmScheduler
@@ -40,23 +40,23 @@ SwarmScheduler
         └── coordenação via errgroup.Group
 ```
 
-## Justificativa
+## Rationale
 
-1. **Maior acoplamento interno** — O swarm é o módulo de maior acoplamento.
-   Paridade de interface pública (HTTP + SSE) é suficiente; paridade de
-   implementação não é necessária.
+1. **Higher internal coupling** — The swarm is the most tightly coupled module.
+   Public interface parity (HTTP + SSE) is sufficient; implementation parity
+   is not necessary.
 
-2. **Goroutines + channels** expressam o mesmo modelo mental (agentes concorrentes
-   que se comunicam) de forma mais idiomática e performática em Go.
+2. **Goroutines + channels** express the same mental model (concurrent agents
+   communicating with each other) more idiomatically and with better performance in Go.
 
-3. **Contrato externo preservado** — SSE streaming, cancelamento, e resultado
-   podem ser mantidos mesmo com internals completamente diferentes.
+3. **External contract preserved** — SSE streaming, cancellation, and result
+   can be maintained even with completely different internals.
 
-4. **Menor risco** — Ruptura em um módulo isolado (swarm) é mais segura que
-   reimplementar Effect fibers em Go, que teria riscos de race conditions e
-   deadlocks difíceis de depurar.
+4. **Lower risk** — Breaking change in an isolated module (swarm) is safer than
+   reimplementing Effect fibers in Go, which would carry risks of race conditions and
+   deadlocks that are difficult to debug.
 
-## Modelo de Comunicação
+## Communication Model
 
 ```
 POST /swarm/run (AgentSpec[])
@@ -84,7 +84,7 @@ SwarmScheduler.Run()
         └── swarm.done (Event Bus)
 ```
 
-## Contratos Externos
+## External Contracts
 
 | Contrato | TypeScript | Go |
 |----------|-----------|-----|
@@ -95,8 +95,8 @@ SwarmScheduler.Run()
 
 ## Tool Execution Strategy
 
-**Opção A (recomendada):** Go emite `agent.tool_call`, TS executa a ferramenta,
-e posta o resultado de volta via `POST /swarm/:id/agent/:agentId/tool_result`.
+**Option A (recommended):** Go emits `agent.tool_call`, TS executes the tool,
+and posts the result back via `POST /swarm/:id/agent/:agentId/tool_result`.
 
 ```
 Go agent ──► agent.tool_call (SSE)
@@ -111,12 +111,12 @@ Go agent ──► agent.tool_call (SSE)
           Go agent processa resultado e continua
 ```
 
-Esta opção foi escolhida porque:
-- Tools permanecem no TS (sem duplicação de tool logic)
-- Simplicidade de implementação
-- Latência de roundtrip aceitável para tool calls (tipicamente > 1s)
+This option was chosen because:
+- Tools remain in TS (no duplication of tool logic)
+- Simplicity of implementation
+- Roundtrip latency is acceptable for tool calls (typically > 1s)
 
-## Diagrama de Dependências
+## Dependency Diagram
 
 ```
 AgentSpec (input)
@@ -139,19 +139,19 @@ AgentEvent (output via SSE)
   └── swarm.canceled
 ```
 
-## Limitações
+## Limitations
 
-- Esta ADR **não** cobre a implementação do scheduler (issue #1075)
-- Esta ADR **não** cobre o contrato TS ↔ Go (issue #1076)
-- A troca de Effect fibers por goroutines é exclusiva do módulo swarm;
-  outros módulos continuam com paridade total
-- Tool calls via roundtrip (opção A) é uma decisão inicial — pode evoluir
-  para opção C (tools nativas em Go) se a latência se provar gargalo
+- This ADR does **not** cover the scheduler implementation (issue #1075)
+- This ADR does **not** cover the TS ↔ Go contract (issue #1076)
+- The replacement of Effect fibers with goroutines is exclusive to the swarm module;
+  other modules continue with full parity
+- Tool calls via roundtrip (option A) is an initial decision — it may evolve
+  to option C (native Go tools) if latency becomes a bottleneck
 
-## Critérios de Aceite
+## Acceptance Criteria
 
-- [x] Decisão documentada e revisada
-- [x] Contratos externos documentados com tipos explícitos
-- [x] Diagrama de comunicação entre agents (channels + goroutines)
-- [x] Tool execution strategy definida
-- [x] Limites de escopo claros
+- [x] Decision documented and reviewed
+- [x] External contracts documented with explicit types
+- [x] Communication diagram between agents (channels + goroutines)
+- [x] Tool execution strategy defined
+- [x] Clear scope boundaries

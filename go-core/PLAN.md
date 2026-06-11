@@ -1,76 +1,76 @@
-# Go Core Rewrite — Plano
+# Go Core Rewrite — Plan
 
 > **Branch:** `rewrite/go-core`
-> **Versão:** 0.1.0
+> **Version:** 0.1.0
 > **Go Module:** `github.com/ElioNeto/teamcode/go-core` (go 1.22.2)
-> **Porta:** 43001 (env `GO_CORE_PORT`)
-> **Comunicação:** HTTP REST (JSON) via localhost
+> **Port:** 43001 (env `GO_CORE_PORT`)
+> **Communication:** HTTP REST (JSON) via localhost
 > **Feature flags:** `packages/core/src/router/flag.ts`
 > **Epic:** [#1036](https://github.com/ElioNeto/teamcode/issues/1036)
-> **Issues abertas:** https://github.com/ElioNeto/teamcode/issues?q=label%3Aenhancement+is%3Aopen+rewrite
-> **Relatório:** https://github.com/ElioNeto/teamcode/blob/rewrite/go-core/go-core/RELATORIO.md
+> **Open issues:** https://github.com/ElioNeto/teamcode/issues?q=label%3Aenhancement+is%3Aopen+rewrite
+> **Report:** https://github.com/ElioNeto/teamcode/blob/rewrite/go-core/go-core/RELATORIO.md
 
 ---
 
-## 🎯 Estratégia: Strangler Fig Pattern
+## 🎯 Strategy: Strangler Fig Pattern
 
-> **Epic #1036** — Reescrita incremental do core sem interromper o runtime atual.
+> **Epic #1036** — Incremental rewrite of the core without disrupting the current runtime.
 
-- Runtime TypeScript continua 100% funcional durante toda migração
-- Novos módulos Go introduzidos por trás de contratos HTTP estáveis
-- Cada módulo convive com o antigo até paridade total validada
-- Rollback via feature flag (sem redeploy)
-- Código legado removido apenas após estabilização confirmada
+- TypeScript runtime remains 100% functional throughout the migration
+- New Go modules introduced behind stable HTTP contracts
+- Each module coexists with the old one until full parity is validated
+- Rollback via feature flag (no redeploy)
+- Legacy code removed only after confirmed stabilization
 
-### Fora de escopo
+### Out of scope
 - TUI / frontend (`packages/app`, `packages/ui`)
 - Desktop Tauri (`packages/desktop`)
-- Integrações ativas (`packages/slack`, `packages/mcp-security-tools`)
+- Active integrations (`packages/slack`, `packages/mcp-security-tools`)
 
 ---
 
-## ✅ Concluído
+## ✅ Completed
 
-| Issue | Título | O que foi feito | Testes |
-|-------|--------|----------------|--------|
-| [#1042](https://github.com/ElioNeto/teamcode/issues/1042) | Bootstrap go-core | Servidor HTTP, graceful shutdown, CORS, adapter mínimo | — |
-| [#1041](https://github.com/ElioNeto/teamcode/issues/1041) | Feature flags | `flag.ts` (boolean + canary %), `client.ts` (GoCoreClient), roteamento TS ↔ Go | 7 TS parity |
-| [#1038](https://github.com/ElioNeto/teamcode/issues/1038) | Branch strategy | Branch `rewrite/go-core` criada | — |
-| [#1044](https://github.com/ElioNeto/teamcode/issues/1044) | Filesystem adapter completo | 20+ operações (read/write/stat/glob/findUp/copy/move/remove/MIME), paridade TS `AppFileSystem` | 32 Go + 23 TS parity |
-| [#1045](https://github.com/ElioNeto/teamcode/issues/1045) | Session event streaming (parcial) | `internal/eventbus` (PubSub), SSE streaming, publish, health, heartbeat 10s | 9 + 7 + 3 TS parity |
+| Issue | Title | What was done | Tests |
+|-------|-------|---------------|--------|
+| [#1042](https://github.com/ElioNeto/teamcode/issues/1042) | Bootstrap go-core | HTTP server, graceful shutdown, CORS, minimal adapter | — |
+| [#1041](https://github.com/ElioNeto/teamcode/issues/1041) | Feature flags | `flag.ts` (boolean + canary %), `client.ts` (GoCoreClient), TS ↔ Go routing | 7 TS parity |
+| [#1038](https://github.com/ElioNeto/teamcode/issues/1038) | Branch strategy | Branch `rewrite/go-core` created | — |
+| [#1044](https://github.com/ElioNeto/teamcode/issues/1044) | Complete filesystem adapter | 20+ operations (read/write/stat/glob/findUp/copy/move/remove/MIME), TS `AppFileSystem` parity | 32 Go + 23 TS parity |
+| [#1045](https://github.com/ElioNeto/teamcode/issues/1045) | Session event streaming (partial) | `internal/eventbus` (PubSub), SSE streaming, publish, health, heartbeat 10s | 9 + 7 + 3 TS parity |
 | [#1069](https://github.com/ElioNeto/teamcode/issues/1069) | Shadow mode | `isShadow()`, `setShadow()`, `routeFilesystemOp()`, `deepEqual()`, `X-Trace-ID` | 11 TS parity |
-| [#1071](https://github.com/ElioNeto/teamcode/issues/1071) | Metrics + circuit breaker | `internal/metrics` (sliding window 60s), `GET /metrics`, polling 30s, auto-rollback >1% erro | 4 Go + 2 TS parity |
-| [#1043](https://github.com/ElioNeto/teamcode/issues/1043) | Process spawning | `internal/process` (spawn com timeout/env/cwd), npm/npx helpers | 10 Go + 4 TS parity |
+| [#1071](https://github.com/ElioNeto/teamcode/issues/1071) | Metrics + circuit breaker | `internal/metrics` (sliding window 60s), `GET /metrics`, polling 30s, auto-rollback >1% error | 4 Go + 2 TS parity |
+| [#1043](https://github.com/ElioNeto/teamcode/issues/1043) | Process spawning | `internal/process` (spawn with timeout/env/cwd), npm/npx helpers | 10 Go + 4 TS parity |
 | [#1070](https://github.com/ElioNeto/teamcode/issues/1070) | Session message updater | `internal/updater` (state machine, 24 event types → 8 message types), GET /session/messages | 14 Go + 2 TS parity |
-| — | Engine indicator visual | Indicador `⚡Go`/`TS` no footer do TUI (home, sidebar e `run --interactive`); `tcdev-go` alias inicia servidor Go automaticamente | — |
-| [#1072](https://github.com/ElioNeto/teamcode/issues/1072) | Session CRUD lifecycle | `internal/session` (store Go com CRUD), endpoints REST + client.ts + 7 Go tests + 10 TS parity | 7 Go + 10 TS parity |
-| [#1073](https://github.com/ElioNeto/teamcode/issues/1073) | Remove legacy TS | Pendente — remover módulos TS após paridade Go | — |
+| — | Visual engine indicator | `⚡Go`/`TS` indicator in TUI footer (home, sidebar and `run --interactive`); `tcdev-go` alias starts Go server automatically | — |
+| [#1072](https://github.com/ElioNeto/teamcode/issues/1072) | Session CRUD lifecycle | `internal/session` (Go store with CRUD), REST endpoints + client.ts + 7 Go tests + 10 TS parity | 7 Go + 10 TS parity |
+| [#1073](https://github.com/ElioNeto/teamcode/issues/1073) | Remove legacy TS | Pending — remove TS modules after Go parity | — |
 
-### Totais
-- **103 testes Go** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 7 session + 14 updater + 6 watcher + 10 config + 6 provider)
-- **75 testes TS parity** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process + 2 updater + 10 session-crud + 3 harness + 5 schema + 5 provider)
-- **178 testes — zero falhas**
-- **14 commits** (incluindo PLAN.md + RELATORIO.md)
+### Totals
+- **103 Go tests** (9 eventbus + 7 server + 32 filesystem + 4 metrics + 10 process + 7 session + 14 updater + 6 watcher + 10 config + 6 provider)
+- **75 TS parity tests** (7 flag + 23 filesystem + 3 session + 11 shadow + 2 metrics + 4 process + 2 updater + 10 session-crud + 3 harness + 5 schema + 5 provider)
+- **178 tests — zero failures**
+- **14 commits** (including PLAN.md + RELATORIO.md)
 
 ---
 
-## 🔜 Issues Abertas (por ordem recomendada)
+## 🔜 Open Issues (in recommended order)
 
 ### #1040 — Parity Test Harness
-**Parte do epic #1036.** ✅ COMPLETO.
+**Part of epic #1036.** ✅ COMPLETE.
 
-**O que foi feito:**
-- `test/parity/harness.ts` — Harness reutilizável com `describeParity()` + lifecycle automático do Go server
-- `test/parity/harness.test.ts` — 3 testes de integração do próprio harness
-- Migração do `session-crud.test.ts` para usar o harness (10 testes)
-- Não requer mais código duplicado de setup/teardown em novos testes
+**What was done:**
+- `test/parity/harness.ts` — Reusable harness with `describeParity()` + automatic Go server lifecycle
+- `test/parity/harness.test.ts` — 3 integration tests for the harness itself
+- Migration of `session-crud.test.ts` to use the harness (10 tests)
+- No more duplicated setup/teardown code in new tests
 
-**Uso:**
+**Usage:**
 ```ts
 import { describeParity, getGoCoreAvailable } from "./harness"
 
-describeParity("meu teste", () => {
-  test("algo", async () => {
+describeParity("my test", () => {
+  test("something", async () => {
     if (!getGoCoreAvailable()) return
     // test with GoCoreClient
   })
@@ -80,289 +80,289 @@ describeParity("meu teste", () => {
 ---
 
 ### #1039 — Contract Mapping
-**Parte do epic #1036.** ✅ COMPLETO.
+**Part of epic #1036.** ✅ COMPLETE.
 
-**O que foi feito:**
-- `CONTRACTS.md` — Documentação completa de todos os 20+ endpoints: request/response JSON, TS types correspondentes, status codes, feature flags
-- `test/parity/schema.test.ts` — 5 testes de schema que validam o shape das respostas do Go core contra os types esperados (health, metrics, session CRUD, session list, events-status)
-- Inclui regras de compatibilidade (snake_case, timestamps ISO 8601, arrays vazios)
+**What was done:**
+- `CONTRACTS.md` — Full documentation of all 20+ endpoints: request/response JSON, corresponding TS types, status codes, feature flags
+- `test/parity/schema.test.ts` — 5 schema tests that validate the shape of Go core responses against expected types (health, metrics, session CRUD, session list, events-status)
+- Includes compatibility rules (snake_case, ISO 8601 timestamps, empty arrays)
 
-**Testes:** 5 TS parity
+**Tests:** 5 TS parity
 
 ---
 
-### #1073 — Remoção do Legado TypeScript
-**Parte do epic #1036.** Pendente (após canary 100% estável em produção).
+### #1073 — Legacy TypeScript Removal
+**Part of epic #1036.** Pending (after canary 100% stable in production).
 
-**Ordem:**
-1. Filesystem (#1044) após canary 100% estável
-2. Session events (#1045) após canary 100% estável
-3. Process spawning (#1043) após canary 100% estável
-4. Session CRUD (#1072) após implementação
+**Order:**
+1. Filesystem (#1044) after canary 100% stable
+2. Session events (#1045) after canary 100% stable
+3. Process spawning (#1043) after canary 100% stable
+4. Session CRUD (#1072) after implementation
 5. Provider & Config (#1048, #1049)
 
 ---
 
-### #1048 — Provider & Model Catalog (futuro)
-Módulo `internal/provider/` (diretório vazio).
-**Esforço:** Alto
+### #1048 — Provider & Model Catalog (future)
+Module `internal/provider/` (empty directory).
+**Effort:** High
 
-### #1049 — Config System (futuro)
-Módulo `internal/config/` (diretório vazio).
-**Esforço:** Médio
+### #1049 — Config System (future)
+Module `internal/config/` (empty directory).
+**Effort:** Medium
 
-### #1051 — File Watching (futuro)
-**Parte do epic #1036.** ✅ COMPLETO.
+### #1051 — File Watching (future)
+**Part of epic #1036.** ✅ COMPLETE.
 
-**O que foi feito:**
-- `internal/watcher/watcher.go` — Polling-based file watcher usando apenas stdlib Go
-- `internal/watcher/watcher_test.go` — 6 testes (watch, delete, directory, unwatch, non-existent, multiple)
-- `cmd/server/fs_handlers.go` — `GET /fs/watch` SSE endpoint substitui placeholder
-- `client.ts` — `fs.watch(path, intervalMs?)` retorna EventSource
-- Polling com intervalo configurável (default 1s, mínimo 100ms)
-- Eventos: `modify` (conteúdo/metadata alterado), `delete` (arquivo removido)
-- Non-blocking: eventos descartados se buffer cheio
-- Zero dependências externas
+**What was done:**
+- `internal/watcher/watcher.go` — Polling-based file watcher using only Go stdlib
+- `internal/watcher/watcher_test.go` — 6 tests (watch, delete, directory, unwatch, non-existent, multiple)
+- `cmd/server/fs_handlers.go` — `GET /fs/watch` SSE endpoint replaces placeholder
+- `client.ts` — `fs.watch(path, intervalMs?)` returns EventSource
+- Polling with configurable interval (default 1s, minimum 100ms)
+- Events: `modify` (content/metadata changed), `delete` (file removed)
+- Non-blocking: events dropped if buffer is full
+- Zero external dependencies
 
-**Testes:** 6 Go
+**Tests:** 6 Go
 
 ---
 
-### #1046 — Plano de Cutover & Rollback
-**Parte do epic #1036.** ✅ COMPLETO (#1069 + #1071 + #1043).
+### #1046 — Cutover & Rollback Plan
+**Part of epic #1036.** ✅ COMPLETE (#1069 + #1071 + #1043).
 
-**Processo de cutover por módulo:**
+**Cutover process per module:**
 ```
-1. Feature flag: 0% Go / 100% TS   (desenvolvimento)
-2. Shadow mode:  Go paralelo, descartado  ← ESTAMOS AQUI (Q3/2026)
+1. Feature flag: 0% Go / 100% TS   (development)
+2. Shadow mode:  Go parallel, discarded  ← WE ARE HERE (Q3/2026)
 3. Canary:       5% → 25% → 50% → 75% → 100%
-4. Remoção do legado TS
+4. Legacy TS removal
 ```
 
-**Análise do ElioNeto (#1046, comment 2026-06-10) — 3 lacunas resolvidas:**
+**ElioNeto analysis (#1046, comment 2026-06-10) — 3 gaps resolved:**
 
-| # | Lacuna | Impacto | Resolução |
-|---|--------|---------|-----------|
-| 1 | Shadow mode não implementado | Não é possível validar Go em produção sem risco | ✅ #1069: `routeFilesystemOp()` + `deepEqual()` + `isShadow()` |
-| 2 | Sem métricas no Go server | Rollback automático não funciona | ✅ #1071: `internal/metrics` + `GET /metrics` + circuit breaker polling |
-| 3 | Sem `X-Trace-ID` cross-runtime | Divergências não correlacionáveis | ✅ #1069: `X-Trace-ID` em todos os requests, logado no Go server |
+| # | Gap | Impact | Resolution |
+|---|-----|--------|------------|
+| 1 | Shadow mode not implemented | Cannot validate Go in production without risk | ✅ #1069: `routeFilesystemOp()` + `deepEqual()` + `isShadow()` |
+| 2 | No metrics on Go server | Automatic rollback doesn't work | ✅ #1071: `internal/metrics` + `GET /metrics` + circuit breaker polling |
+| 3 | No `X-Trace-ID` cross-runtime | Divergences cannot be correlated | ✅ #1069: `X-Trace-ID` on all requests, logged on Go server |
 
-#### Runbook: Ativar Shadow Mode para Filesystem
+#### Runbook: Enable Shadow Mode for Filesystem
 
 ```bash
-# 1. Ativar shadow mode para filesystem via env var
+# 1. Enable shadow mode for filesystem via env var
 export FLAG_filesystem_shadow=true
 
-# 2. Observar divergências nos logs
-#    Logs aparecem como:
+# 2. Observe divergences in logs
+#    Logs appear as:
 #   [shadow] divergence filesystem.<op> trace=<uuid> { ts: ..., go: ... }
 #   [shadow] go_error filesystem.<op> trace=<uuid> { error: ... }
 
-# 3. Verificar métricas do Go core
+# 3. Check Go core metrics
 curl http://127.0.0.1:43001/metrics
-#   Retorna: { request_count, error_count, error_rate, avg_latency_ms }
+#   Returns: { request_count, error_count, error_rate, avg_latency_ms }
 
-# 4. Rollback (se error_rate > 1%)
+# 4. Rollback (if error_rate > 1%)
 export FLAG_filesystem_shadow=false
-#   OU automaticamente via circuit breaker (threshold 1%, 30s polling)
+#   OR automatically via circuit breaker (threshold 1%, 30s polling)
 ```
 
-#### Runbook: Promover para Canary (após 48h sem divergências)
+#### Runbook: Promote to Canary (after 48h with no divergences)
 
 ```bash
-# 1. Aumentar canary gradualmente
+# 1. Increase canary gradually
 export FLAG_go_core_filesystem=5    # 5%
-# monitorar 24h
+# monitor 24h
 export FLAG_go_core_filesystem=25   # 25%
-# monitorar 24h
+# monitor 24h
 export FLAG_go_core_filesystem=50   # 50%
-# monitorar 24h
+# monitor 24h
 export FLAG_go_core_filesystem=75   # 75%
-# monitorar 24h
+# monitor 24h
 export FLAG_go_core_filesystem=100  # 100%
 
-# 2. Rollback rápido
-export FLAG_go_core_filesystem=0    # volta para TS imediatamente
+# 2. Quick rollback
+export FLAG_go_core_filesystem=0    # back to TS immediately
 ```
 
-#### Ordem de cutover recomendada:
+#### Recommended cutover order:
 ```
-Módulo       Shadow      Canary      Critério
+Module       Shadow      Canary      Criteria
 ──────────────────────────────────────────────────────
-filesystem   ✅ ATIVO   🔄 Próximo  Parity tests passam 48h CI
-session/SSE  ⏳ Pendente ⏳ Pendente Latência p95 ≤ legado TS 24h
-process      ⏳ Pendente ⏳ Pendente Testado Linux + macOS + Windows
-npm          ⏳ Pendente ⏳ Pendente Testado Linux + macOS + Windows
+filesystem   ✅ ACTIVE  🔄 Next     Parity tests pass 48h CI
+session/SSE  ⏳ Pending ⏳ Pending  Latency p95 ≤ legacy TS 24h
+process      ⏳ Pending ⏳ Pending  Tested Linux + macOS + Windows
+npm          ⏳ Pending ⏳ Pending  Tested Linux + macOS + Windows
 ```
 
-**Rollback:** `export FLAG_<modulo>_enabled=0` — sem redeploy.  
-**Rollback automático:** Circuit breaker desabilita Go core se `error_rate > 1%` por 30s.
+**Rollback:** `export FLAG_<module>_enabled=0` — no redeploy.  
+**Automatic rollback:** Circuit breaker disables Go core if `error_rate > 1%` for 30s.
 
 ---
 
 ### #1039 — Contract Mapping
-**Parte do epic #1036.**
+**Part of epic #1036.**
 
-**Objetivo:** Mapear contratos públicos entre TS e Go.
+**Objective:** Map public contracts between TS and Go.
 
-- [ ] Definir interfaces/types formais compartilhados
-- [ ] Validar que `client.ts` types batem com Go structs
-- [ ] Documentar request/response de cada endpoint
-- [ ] Adicionar testes de schema
-- [ ] **Blocker de #1069** (path absoluto no findUp precisa de contrato)
+- [ ] Define shared formal interfaces/types
+- [ ] Validate that `client.ts` types match Go structs
+- [ ] Document request/response for each endpoint
+- [ ] Add schema tests
+- [ ] **Blocker for #1069** (absolute path in findUp needs a contract)
 
 ---
 
 ### #1043 — Process Spawning
-**Parte do epic #1036.** Pendente.
+**Part of epic #1036.** Pending.
 
-Módulo `internal/process/`:
-- [ ] `spawn.go`: Spawn com timeout, env vars, cwd
-- [ ] `npm.go`: Helper para `npm install`, `npx`, `bun x`
-- [ ] Testes
+Module `internal/process/`:
+- [ ] `spawn.go`: Spawn with timeout, env vars, cwd
+- [ ] `npm.go`: Helper for `npm install`, `npx`, `bun x`
+- [ ] Tests
 
-**Paridade com:** `process.ts`, `cross-spawn-spawner.ts`, `npm.ts`
-**Esforço:** Médio
+**Parity with:** `process.ts`, `cross-spawn-spawner.ts`, `npm.ts`
+**Effort:** Medium
 
 ---
 
 ### #1072 — Session CRUD Lifecycle
-**Parte do epic #1036.** ✅ COMPLETO.
+**Part of epic #1036.** ✅ COMPLETE.
 
-**O que foi feito:**
-- `internal/session/store.go` — Store thread-safe com mutex, operações CRUD + list por diretório
-- `internal/session/store_test.go` — 7 testes (create, get, update, delete, count, list, concorrência)
-- `cmd/server/session_crud_handlers.go` — 5 endpoints REST: `POST /session/create`, `GET /session/get`, `POST /session/update`, `POST /session/delete`, `GET /session/list`
+**What was done:**
+- `internal/session/store.go` — Thread-safe store with mutex, CRUD operations + list by directory
+- `internal/session/store_test.go` — 7 tests (create, get, update, delete, count, list, concurrency)
+- `cmd/server/session_crud_handlers.go` — 5 REST endpoints: `POST /session/create`, `GET /session/get`, `POST /session/update`, `POST /session/delete`, `GET /session/list`
 - `client.ts` — `session.create()`, `.get()`, `.update()`, `.delete()`, `.list()`
-- `test/parity/session-crud.test.ts` — 10 testes de paridade (CRUD completo + list por diretório + 404 handling)
+- `test/parity/session-crud.test.ts` — 10 parity tests (full CRUD + list by directory + 404 handling)
 
-**Testes:** 7 Go + 10 TS parity = 17 testes novos
+**Tests:** 7 Go + 10 TS parity = 17 new tests
 
 ---
 
-### #1073 — Remoção do Legado TypeScript
-**Parte do epic #1036.** Pendente.
+### #1073 — Legacy TypeScript Removal
+**Part of epic #1036.** Pending.
 
-**Objetivo:** Remover módulos TS após confirmação de paridade com Go.
+**Objective:** Remove TS modules after confirming parity with Go.
 
-**Ordem:**
-1. Filesystem (#1044) após canary 100% estável
-2. Session events (#1045) após canary 100% estável
-3. Process spawning (#1043) após canary 100% estável
-4. Session CRUD (#1072) após implementação
+**Order:**
+1. Filesystem (#1044) after canary 100% stable
+2. Session events (#1045) after canary 100% stable
+3. Process spawning (#1043) after canary 100% stable
+4. Session CRUD (#1072) after implementation
 5. Provider & Config (#1048, #1049)
 
-**Esforço:** Baixo (cada fase)
+**Effort:** Low (each phase)
 
 ---
 
 ### #1070 — Session Message Updater (stateful)
-**Parte do epic #1036.** ✅ COMPLETO.
+**Part of epic #1036.** ✅ COMPLETE.
 
-**O que foi feito:**
-- `internal/updater/message.go` — 8 tipos de mensagem: agent-switched, model-switched, user, synthetic, shell, assistant, compaction + tokens, tool states, content blocks
-- `internal/updater/event.go` — 20+ tipos de evento com dados tipados
-- `internal/updater/updater.go` — State machine completa: processa eventos raw e consolida em mensagens. Handlers para todos os 24 tipos de evento (step, text, tool, reasoning, compaction, shell, agent, model, prompt, synthetic)
-- `internal/updater/updater_test.go` — 14 testes cobrindo todos os fluxos (ciclo completo de step/text/tool/reasoning/compaction, conversa multi-turn, tool fail, multiple text blocks)
-- `cmd/server/session_updater_handler.go` — GET /session/messages endpoint, integração automática com POST /session/event
+**What was done:**
+- `internal/updater/message.go` — 8 message types: agent-switched, model-switched, user, synthetic, shell, assistant, compaction + tokens, tool states, content blocks
+- `internal/updater/event.go` — 20+ event types with typed data
+- `internal/updater/updater.go` — Complete state machine: processes raw events and consolidates into messages. Handlers for all 24 event types (step, text, tool, reasoning, compaction, shell, agent, model, prompt, synthetic)
+- `internal/updater/updater_test.go` — 14 tests covering all flows (complete step/text/tool/reasoning/compaction cycle, multi-turn conversation, tool fail, multiple text blocks)
+- `cmd/server/session_updater_handler.go` — GET /session/messages endpoint, automatic integration with POST /session/event
 - `client.ts` — `session.messages()` method
 
-**Testes:** 14 Go + 2 TS parity = 16 testes novos
+**Tests:** 14 Go + 2 TS parity = 16 new tests
 
 ---
 
 ### #1040 — Parity Test Harness
-**Parte do epic #1036.** Pendente.
+**Part of epic #1036.** Pending.
 
-**Objetivo:** Criar harness oficial de testes de paridade legado vs Go.
+**Objective:** Create official parity test harness for legacy vs Go.
 
-- [ ] Harness reutilizável (`test/parity/harness.ts`)
-- [ ] CI: rodar parity tests automaticamente
-- [ ] Report de cobertura de paridade
+- [ ] Reusable harness (`test/parity/harness.ts`)
+- [ ] CI: run parity tests automatically
+- [ ] Parity coverage report
 
 ---
 
 ### #1048 — Provider & Model Catalog
-**Parte do epic #1036.** ✅ COMPLETO.
+**Part of epic #1036.** ✅ COMPLETE.
 
-**O que foi feito:**
-- `internal/provider/catalog.go` — Catálogo estático com 8 providers: OpenAI, Anthropic, Google, Mistral, DeepSeek, Groq, Together AI, GitHub Models
-- `internal/provider/catalog_test.go` — 6 testes (list, get, models, provider fill, description)
+**What was done:**
+- `internal/provider/catalog.go` — Static catalog with 8 providers: OpenAI, Anthropic, Google, Mistral, DeepSeek, Groq, Together AI, GitHub Models
+- `internal/provider/catalog_test.go` — 6 tests (list, get, models, provider fill, description)
 - `cmd/server/provider_handlers.go` — `GET /providers` + `GET /providers/{name}/models` (Go 1.22 path params)
-- `client.ts` — `providers.list()`, `providers.models(name)` com tipos
-- `test/parity/provider.test.ts` — 5 testes de paridade
-- Auto-fill do campo `Provider` em cada modelo via `addProvider()`
-- Descrições default para providers sem descrição explícita
+- `client.ts` — `providers.list()`, `providers.models(name)` with types
+- `test/parity/provider.test.ts` — 5 parity tests
+- Auto-fill of `Provider` field in each model via `addProvider()`
+- Default descriptions for providers without explicit description
 
-**Próximo passo (futuro):** `POST /providers/:name/chat` para chat via provider
+**Next step (future):** `POST /providers/:name/chat` for chat via provider
 
 ---
 
 ### #1049 — Config System
-**Parte do epic #1036.** ✅ COMPLETO.
+**Part of epic #1036.** ✅ COMPLETE.
 
-**O que foi feito:**
-- `internal/config/config.go` — Loader de config com cache, merge, suporte a JSONC (// e /* */), findUp
-- `internal/config/config_test.go` — 10 testes (strip comments, parse JSON/JSONC, findFiles, merge, cache, raw fields, no config)
+**What was done:**
+- `internal/config/config.go` — Config loader with cache, merge, JSONC support (// and /* */), findUp
+- `internal/config/config_test.go` — 10 tests (strip comments, parse JSON/JSONC, findFiles, merge, cache, raw fields, no config)
 - `cmd/server/config_handlers.go` — `POST /config/get` + `POST /config/invalidate`
 - `client.ts` — `config.get(directory)`, `config.invalidate(directory)`
-- Cache invalidation por diretório
-- Merge hierárquico: config do diretório mais próximo sobrescreve configs de diretórios pai
-- Zero dependências externas
+- Cache invalidation by directory
+- Hierarchical merge: nearest directory config overrides parent directory configs
+- Zero external dependencies
 
 ---
 
-### #1051 — File Watching (futuro)
-Substituir placeholder `POST /fs/watch`:
-- Watcher real (`fsnotify`)
-- SSE streaming de eventos de arquivo
+### #1051 — File Watching (future)
+Replace placeholder `POST /fs/watch`:
+- Real watcher (`fsnotify`)
+- SSE streaming of file events
 
-**Esforço:** Médio
+**Effort:** Medium
 
 ---
 
 ## 🗺️ Roadmap
 
 ```
-Fase 1: Fundação           ✅ CONCLUÍDO
+Phase 1: Foundation         ✅ COMPLETED
   #1042 Bootstrap HTTP server
   #1041 Feature flags
   #1038 Branch strategy
 
-Fase 2: I/O Pesado         ✅ CONCLUÍDO
+Phase 2: Heavy I/O          ✅ COMPLETED
   #1044 Filesystem adapter (32 Go + 23 TS parity tests)
-  #1040 Parity test harness (pendente)
-  #1045 Session event streaming (parcial)
+  #1040 Parity test harness (pending)
+  #1045 Session event streaming (partial)
 
-Fase 3: Observabilidade    ✅ CONCLUÍDO
+Phase 3: Observability      ✅ COMPLETED
   #1069 Shadow mode
-  #1071 Métricas + circuit breaker
+  #1071 Metrics + circuit breaker
   #1046 Cutover plan + rollback
-  #1039 Contract mapping (pendente)
+  #1039 Contract mapping (pending)
 
-Fase 4: Process Spawning    ✅ CONCLUÍDO
+Phase 4: Process Spawning   ✅ COMPLETED
   #1043 process.ts + cross-spawn-spawner.ts
 
-Fase 5: Session Completude    ✅ CONCLUÍDO
+Phase 5: Session Completeness ✅ COMPLETED
   #1070 session-message-updater (stateful token aggregation)
   #1072 session CRUD lifecycle
 
-Fase 6: Infra & Contratos   ✅ CONCLUÍDO
+Phase 6: Infra & Contracts  ✅ COMPLETED
   #1040 Parity test harness
   #1039 Contract mapping
-  #1073 Cleanup legado (após canary 100%)
+  #1073 Legacy cleanup (after canary 100%)
 
-Fase 7: Providers & Config    ✅ CONCLUÍDO
+Phase 7: Providers & Config ✅ COMPLETED
   #1048 Provider/model catalog
   #1049 Config system
 
-Fase 8: Watch                ✅ CONCLUÍDO
+Phase 8: Watch              ✅ COMPLETED
   #1051 File watching (fsnotify + SSE)
 ```
 
 ---
 
-## 🏗️ Arquitetura
+## 🏗️ Architecture
 
 ```
 TS Runtime (Bun)
@@ -384,56 +384,56 @@ TS Runtime (Bun)
 │       │                     │       │
 │  ┌───────────────┐  ┌────────────┐ │
 │  │  filesystem/  │  │  eventbus/  │ │
-│  │  (completo)   │  │  (completo) │ │
+│  │  (complete)   │  │  (complete) │ │
 │  └───────────────┘  └────────────┘ │
 │  ┌───────────────┐  ┌────────────┐ │
 │  │  metrics/     │  │  updater/  │ │
-│  │  (completo)   │  │ (completo) │ │
+│  │  (complete)   │  │ (complete) │ │
 │  └───────────────┘  └────────────┘ │
 │  ┌───────────────┐  ┌────────────┐ │
 │  │  session/     │  │  process/  │ │
-│  │  (completo)   │  │ (completo) │ │
+│  │  (complete)   │  │ (complete) │ │
 │  └───────────────┘  └────────────┘ │
 └─────────────────────────────────────┘
 ```
 
-### Decisões de Arquitetura
-1. **Sem dependências externas**: Apenas stdlib Go
-2. **PubSub non-blocking**: Eventos descartados para subscribers lentos
-3. **SSE > WebSocket**: Simplicidade, compatibilidade EventSource
-4. **Feature flags no TS**: Controle de rollout no lado TS
-5. **httptest.Server para integração**: Goroutines + canais para SSE
-6. **X-Trace-ID cross-runtime**: UUID gerado no TS, propagado no header, logado no Go
+### Architecture Decisions
+1. **No external dependencies**: Only Go stdlib
+2. **Non-blocking PubSub**: Events dropped for slow subscribers
+3. **SSE > WebSocket**: Simplicity, EventSource compatibility
+4. **Feature flags in TS**: Rollout control on the TS side
+5. **httptest.Server for integration**: Goroutines + channels for SSE
+6. **X-Trace-ID cross-runtime**: UUID generated in TS, propagated in header, logged in Go
 
 ---
 
-## 📊 Status dos Módulos TS
+## 📊 TS Module Status
 
-| Módulo | Prioridade Epic | Go | Issue |
-|--------|----------------|-----|-------|
-| `filesystem.ts` | 2º | ✅ 100% | #1044 |
-| `session.ts` (event streaming) | 3º | ✅ SSE | #1045 |
-| `process.ts` / `npm.ts` | 1º | ✅ 100% | #1043 |
-| `session-message-updater.ts` | 3º | ✅ 100% | #1070 |
-| `session.ts` (CRUD lifecycle) | 3º | ✅ 100% | #1072 |
-| `session-message.ts` | 3º | ❌ 0% | — |
-| `session-prompt.ts` | 3º | ❌ 0% | — |
-| `provider.ts` | 4º | ❌ 0% | #1048 |
-| `model.ts` / `models.ts` | 4º | ❌ 0% | #1048 |
-| `catalog.ts` | 4º | ❌ 0% | #1048 |
-| `aisdk.ts` | 4º | ❌ 0% | — |
+| Module | Epic Priority | Go | Issue |
+|--------|---------------|-----|-------|
+| `filesystem.ts` | 2nd | ✅ 100% | #1044 |
+| `session.ts` (event streaming) | 3rd | ✅ SSE | #1045 |
+| `process.ts` / `npm.ts` | 1st | ✅ 100% | #1043 |
+| `session-message-updater.ts` | 3rd | ✅ 100% | #1070 |
+| `session.ts` (CRUD lifecycle) | 3rd | ✅ 100% | #1072 |
+| `session-message.ts` | 3rd | ❌ 0% | — |
+| `session-prompt.ts` | 3rd | ❌ 0% | — |
+| `provider.ts` | 4th | ❌ 0% | #1048 |
+| `model.ts` / `models.ts` | 4th | ❌ 0% | #1048 |
+| `catalog.ts` | 4th | ❌ 0% | #1048 |
+| `aisdk.ts` | 4th | ❌ 0% | — |
 | `npm-config.ts` | — | ❌ 0% | #1049 |
-| `config.ts` (implícito) | — | ❌ 0% | #1049 |
+| `config.ts` (implicit) | — | ❌ 0% | #1049 |
 | `event.ts` | — | ✅ via eventbus | #1045 |
-| `auth.ts` | Fora de escopo | ❌ | — |
-| `plugin/*` | Fora de escopo | ❌ | — |
+| `auth.ts` | Out of scope | ❌ | — |
+| `plugin/*` | Out of scope | ❌ | — |
 
 ---
 
 ## 🔗 Commits
 
-| Commit | Data | Descrição |
-|--------|------|-----------|
+| Commit | Date | Description |
+|--------|------|-------------|
 | `6c3cc87` | 2026-06-10 | docs(go-core): create comprehensive rewrite plan |
 | `cfe1756` | 2026-06-10 | feat(go-core): implement session event streaming + PubSub |
 | `7113849` | 2026-06-08 | feat(go-core): implement complete filesystem adapter |
@@ -441,13 +441,13 @@ TS Runtime (Bun)
 
 ---
 
-## 📝 Notas
+## 📝 Notes
 
-- `internal/config/` funcional — loader de teamcode.json[c] com cache + merge (#1049)
-- `GET /fs/watch` SSE streaming funcional (#1051)
-- Version `0.1.0` em `health.go`
-- Feature flags desligadas por default (`go-core-available: false`, canary 0%)
-- Todos os módulos Go implementados (Fases 1-5 concluídas)
-- Próximo: parity test harness (#1040) e contract mapping (#1039)
-- Futuro: providers, config, file watching (#1048, #1049, #1051)
-- Este plano reflete as issues do GitHub em https://github.com/ElioNeto/teamcode/issues
+- `internal/config/` functional — teamcode.json[c] loader with cache + merge (#1049)
+- `GET /fs/watch` SSE streaming functional (#1051)
+- Version `0.1.0` in `health.go`
+- Feature flags disabled by default (`go-core-available: false`, canary 0%)
+- All Go modules implemented (Phases 1-5 completed)
+- Next up: parity test harness (#1040) and contract mapping (#1039)
+- Future: providers, config, file watching (#1048, #1049, #1051)
+- This plan reflects the GitHub issues at https://github.com/ElioNeto/teamcode/issues
