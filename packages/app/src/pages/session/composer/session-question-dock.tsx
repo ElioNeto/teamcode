@@ -429,6 +429,23 @@ export const SessionQuestionDock: Component<{ request: QuestionRequest; onSubmit
       header={
         <>
           <div data-slot="question-header-title">{summary()}</div>
+          <button
+            type="button"
+            data-slot="question-copy"
+            aria-label="Copy question text"
+            onClick={async () => {
+              const text = question()?.question ?? ""
+              if (!text) return
+              try {
+                await navigator.clipboard.writeText(text)
+                showToast({ title: "Copied" })
+              } catch {
+                showToast({ title: "Copy failed", variant: "error" })
+              }
+            }}
+          >
+            <Icon name="copy" size="small" />
+          </button>
           <div data-slot="question-progress">
             <For each={questions()}>
               {(_, i) => (
