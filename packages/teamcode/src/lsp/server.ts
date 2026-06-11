@@ -60,6 +60,7 @@ export interface Info {
   extensions: string[]
   global?: boolean
   root: RootFunction
+  languageId?: string
   spawn(root: string, ctx: InstanceContext, flags: RuntimeFlags.Info): Promise<Handle | undefined>
 }
 
@@ -194,10 +195,15 @@ export const ESLint: Info = {
       log.info("installed VS Code ESLint server", { serverPath })
     }
 
+    // Point NODE_PATH at the project's node_modules so the globally-installed
+    // ESLint server can still require('eslint') from the project.
+    const nmPath = path.join(root, "node_modules")
+
     const proc = spawn("node", [serverPath, "--stdio"], {
       cwd: root,
       env: {
         ...process.env,
+        ...(nmPath ? { NODE_PATH: nmPath } : {}),
       },
     })
 
@@ -248,16 +254,20 @@ export const Oxlint: Info = {
     }
 
     if (lintBin) {
+      // Spawn oxlint --help to detect whether the binary supports LSP mode.
+      // Some versions (e.g. standalone linter) lack --lsp while the language
+      // server binary (oxc_language_server) is the dedicated LSP entry point.
       const proc = spawn(lintBin, ["--help"])
+      const [stdout, stderr] = await Promise.all([
+        text(proc.stdout!).catch(() => ""),
+        text(proc.stderr!).catch(() => ""),
+      ])
       await proc.exited
-      if (proc.stdout) {
-        const help = await text(proc.stdout)
-        if (help.includes("--lsp")) {
-          return {
-            process: spawn(lintBin, ["--lsp"], {
-              cwd: root,
-            }),
-          }
+      if ((stdout + stderr).includes("--lsp")) {
+        return {
+          process: spawn(lintBin, ["--lsp"], {
+            cwd: root,
+          }),
         }
       }
     }

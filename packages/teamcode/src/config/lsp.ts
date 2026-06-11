@@ -15,6 +15,7 @@ export const Entry = Schema.Union([
     disabled: Schema.optional(Schema.Boolean),
     env: Schema.optional(Schema.Record(Schema.String, Schema.String)),
     initialization: Schema.optional(Schema.Record(Schema.String, Schema.Unknown)),
+    languageId: Schema.optional(Schema.String),
   }),
 ]).pipe((schema) => schema)
 

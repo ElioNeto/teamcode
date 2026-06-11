@@ -144,6 +144,7 @@ export async function create(input: {
   root: string
   directory: string
   instance: InstanceContext
+  languageId?: string
 }) {
   const logger = log.clone().tag("serverID", input.serverID)
   logger.info("starting client")
@@ -598,7 +599,7 @@ export async function create(input: {
         )
         const text = await Filesystem.readText(request.path)
         const extension = path.extname(request.path)
-        const languageId = LANGUAGE_EXTENSIONS[extension] ?? "plaintext"
+        const languageId = input.languageId ?? LANGUAGE_EXTENSIONS[extension] ?? (extension ? extension.slice(1) : "plaintext")
 
         const document = files[request.path]
         if (document !== undefined) {
