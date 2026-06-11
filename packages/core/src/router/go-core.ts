@@ -16,12 +16,37 @@ import fs from "fs"
 import { triggerCbPoll } from "./client"
 
 const GO_CORE_PORT = process.env["GO_CORE_PORT"] ?? "43001"
-const HEALTH_URL = `http://127.0.0.1:${GO_CORE_PORT}/health`
 const HEALTH_TIMEOUT = 5000 // 5 seconds to wait for Go core to be ready
 const POLL_INTERVAL = 200 // 200ms between health checks
 
 let goCoreProcess: ChildProcess | null = null
 let goCoreReady = false
+let goCorePort: string = GO_CORE_PORT
+
+/**
+ * Find an available port starting from the given base port.
+ * Checks if the health endpoint of the port responds — if another Go core
+ * instance is already running on that port, try the next one.
+ * Avoids the race condition of TCP-bind-then-release by looking for
+ * a running Go core rather than a free TCP port.
+ */
+async function findAvailablePort(base: number, maxAttempts = 100): Promise<number> {
+  for (let port = base; port < base + maxAttempts; port++) {
+    try {
+      const resp = await fetch(`http://127.0.0.1:${port}/health`, {
+        signal: AbortSignal.timeout(1000),
+      })
+      if (resp.ok) {
+        // Another Go core is running on this port — try the next
+        continue
+      }
+    } catch {
+      // Connection refused — port is free
+    }
+    return port
+  }
+  return base // fallback: let Go core try the base port
+}
 
 /**
  * Resolve the path to the go-core-server binary.
@@ -75,8 +100,14 @@ export async function startGoCore(): Promise<boolean> {
   console.log(`[go-core] starting server from ${binary}`)
 
   try {
+    // Find an available port by checking health endpoints of running Go cores
+    const basePort = parseInt(GO_CORE_PORT, 10)
+    const availablePort = await findAvailablePort(basePort)
+    goCorePort = String(availablePort)
+    const healthUrl = `http://127.0.0.1:${goCorePort}/health`
+
     goCoreProcess = spawn(binary, [], {
-      env: { ...process.env, GO_CORE_PORT },
+      env: { ...process.env, GO_CORE_PORT: goCorePort },
       stdio: ["ignore", "pipe", "pipe"],
     })
 
@@ -93,14 +124,18 @@ export async function startGoCore(): Promise<boolean> {
       goCoreReady = false
     })
 
-    // Wait for health endpoint
+    // Wait for health endpoint, but bail early if the process dies
     const deadline = Date.now() + HEALTH_TIMEOUT
     while (Date.now() < deadline) {
+      if (!goCoreProcess) {
+        console.warn("[go-core] process exited before health check succeeded")
+        return false
+      }
       try {
-        const resp = await fetch(HEALTH_URL)
+        const resp = await fetch(healthUrl)
         if (resp.ok) {
           goCoreReady = true
-          console.log(`[go-core] server ready on port ${GO_CORE_PORT}`)
+          console.log(`[go-core] server ready on port ${goCorePort}`)
           // Trigger immediate circuit breaker poll so Go core becomes available now
           triggerCbPoll()
           return true
