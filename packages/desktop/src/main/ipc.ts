@@ -142,8 +142,9 @@ export function registerIpcHandlers(deps: Deps) {
         title: opts?.title ?? "Choose a folder",
         defaultPath: opts?.defaultPath,
       })
-      if (result.canceled) return null
-      return opts?.multiple ? result.filePaths : result.filePaths[0]
+      const dirPath = result.canceled || !result.filePaths?.length ? null : result.filePaths[0]
+      if (!dirPath) return null
+      return opts?.multiple ? result.filePaths : dirPath
     },
   )
 
@@ -159,8 +160,9 @@ export function registerIpcHandlers(deps: Deps) {
         defaultPath: opts?.defaultPath,
         filters: pickerFilters(opts?.extensions),
       })
-      if (result.canceled) return null
-      return opts?.multiple ? result.filePaths : result.filePaths[0]
+      const fileChosen = result.canceled || !result.filePaths?.length ? null : result.filePaths[0]
+      if (!fileChosen) return null
+      return opts?.multiple ? result.filePaths : fileChosen
     },
   )
 
