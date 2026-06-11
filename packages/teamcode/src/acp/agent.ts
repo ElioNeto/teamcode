@@ -1466,7 +1466,7 @@ export class Agent implements ACPAgent {
 
       if (!text.startsWith("/")) return
 
-      const [name, ...rest] = text.slice(1).split(/\s+/)
+      const [name, ...rest] = text.slice(1).split(/[ \t]+/)
       return { name, args: rest.join(" ").trim() }
     })()
 
