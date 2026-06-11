@@ -286,7 +286,7 @@ export const layer = Layer.effect(
 
           case "tool-input-start":
             if (ctx.assistantMessage.summary) {
-              throw new Error(`Tool call not allowed while generating summary: ${value.toolName}`)
+              return
             }
             // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
             if (flags.experimentalEventSystem) {
@@ -333,7 +333,7 @@ export const layer = Layer.effect(
 
           case "tool-call": {
             if (ctx.assistantMessage.summary) {
-              throw new Error(`Tool call not allowed while generating summary: ${value.toolName}`)
+              return
             }
             const toolCall = yield* readToolCall(value.toolCallId)
             // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
