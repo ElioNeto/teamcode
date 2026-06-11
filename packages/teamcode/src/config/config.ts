@@ -302,6 +302,22 @@ export const Info = Schema.Struct({
       mcp_timeout: Schema.optional(PositiveInt).annotate({
         description: "Timeout in milliseconds for model context protocol (MCP) requests",
       }),
+      apex_store: Schema.optional(
+        Schema.Struct({
+          enabled: Schema.optional(Schema.Boolean).annotate({
+            description: "Enable ApexStore LSM-Tree KV engine for caching and storage",
+          }),
+          port: Schema.optional(PositiveInt).annotate({
+            description: "Port for the ApexStore sidecar (default: 8080, 0 = OS-assigned)",
+          }),
+          memtable_max_size: Schema.optional(PositiveInt).annotate({
+            description: "Maximum size of the MemTable in bytes before flush (default: 4MB)",
+          }),
+          block_cache_size_mb: Schema.optional(PositiveInt).annotate({
+            description: "Block cache size in MB for SSTable reads (default: 64)",
+          }),
+        }),
+      ),
     }),
   ),
 }).annotate({ identifier: "Config" })

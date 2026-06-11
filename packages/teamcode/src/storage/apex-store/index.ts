@@ -26,6 +26,8 @@ import { startSidecar, type SidecarHandle, type SidecarOptions } from "./sidecar
 import { ApexStoreClient } from "./client"
 
 export { ApexStoreClient } from "./client"
+export { Service, layer, noopLayer } from "./service"
+export type { ApexStoreInterface as ServiceInterface, ApexStoreConfig } from "./service"
 export type { ApexStoreStats, AdminCompactResult } from "./client"
 
 export interface ApexStoreOptions {
