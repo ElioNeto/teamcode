@@ -11,7 +11,6 @@ import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Config } from "@/config/config"
 import { lazy } from "@/util/lazy"
 import * as Log from "@teamcode-ai/core/util/log"
-import { UI } from "@/cli/ui"
 
 const log = Log.create({ service: "config.watcher" })
 const SUBSCRIBE_TIMEOUT_MS = 10_000
@@ -110,23 +109,11 @@ export const layer = Layer.effect(
           // Debounce: track pending invalidation timer
           let pendingInvalidate: ReturnType<typeof setTimeout> | undefined
 
-          const scheduleInvalidate = (changedFile: string, evt: "add" | "change" | "unlink") => {
+          const scheduleInvalidate = () => {
             if (pendingInvalidate) clearTimeout(pendingInvalidate)
             pendingInvalidate = setTimeout(() => {
               pendingInvalidate = undefined
-              bridge.fork(
-                Effect.gen(function* () {
-                  yield* Effect.logInfo("config changed, reloading").pipe(
-                    Effect.annotateLogs("file", changedFile),
-                  )
-                  UI.println()
-                  UI.println(UI.Style.TEXT_INFO_BOLD + "~  Config changed, reloading..." + UI.Style.TEXT_NORMAL)
-                  UI.println(UI.Style.TEXT_DIM + "   file: " + changedFile + UI.Style.TEXT_NORMAL)
-                  yield* config.invalidate()
-                  UI.println(UI.Style.TEXT_SUCCESS_BOLD + "✓  Config reloaded" + UI.Style.TEXT_NORMAL)
-                  UI.println()
-                }),
-              )
+              bridge.fork(config.invalidate())
             }, DEBOUNCE_MS)
           }
 
@@ -139,7 +126,7 @@ export const layer = Layer.effect(
               const filePath = evt.path
               if (!isConfigFile(filePath)) continue
               const eventType = evt.type === "create" ? "add" : evt.type === "update" ? "change" : "unlink"
-              scheduleInvalidate(filePath, eventType)
+              scheduleInvalidate()
             }
           })
 
