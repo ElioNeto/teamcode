@@ -24,6 +24,7 @@ import { AppFileSystem } from "@teamcode-ai/core/filesystem"
 import { isRecord } from "@/util/record"
 import { optionalOmitUndefined } from "@teamcode-ai/core/schema"
 import * as ProviderTransform from "./transform"
+import { ModelCacheApexStore } from "./models-cache"
 import { ModelID, ProviderID } from "./schema"
 import { ModelStatus } from "./model-status"
 import { RuntimeFlags } from "@/effect/runtime-flags"
@@ -1868,6 +1869,7 @@ export const defaultLayer = Layer.suspend(() =>
     Layer.provide(Auth.defaultLayer),
     Layer.provide(Plugin.defaultLayer),
     Layer.provide(ModelsDev.defaultLayer),
+    Layer.provide(ModelCacheApexStore.layer),
     Layer.provide(RuntimeFlags.defaultLayer),
   ),
 )

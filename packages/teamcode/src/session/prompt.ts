@@ -8,7 +8,7 @@ import * as Session from "./session"
 import { Agent } from "../agent/agent"
 import { Provider } from "@/provider/provider"
 import { ModelID, ProviderID } from "../provider/schema"
-import { type Tool as AITool, tool, jsonSchema, type ToolExecutionOptions, asSchema } from "ai"
+import { type Tool as AITool, tool, jsonSchema, type ToolExecutionOptions, asSchema, type ModelMessage } from "ai"
 import type { JSONSchema7 } from "@ai-sdk/provider"
 import { SessionCompaction } from "./compaction"
 import { Bus } from "../bus"
@@ -41,7 +41,9 @@ import { LLM } from "./llm"
 import { Shell } from "@/shell/shell"
 import { ShellID } from "@/tool/shell/id"
 import { AppFileSystem } from "@teamcode-ai/core/filesystem"
+import { Hash } from "@teamcode-ai/core/util/hash"
 import { Truncate } from "@/tool/truncate"
+import { ApexStore } from "@/storage/apex-store"
 import { Image } from "@/image/image"
 import { decodeDataUrl } from "@/util/data-url"
 import { Process } from "@/util/process"
@@ -205,6 +207,7 @@ export const layer = Layer.effect(
     const sys = yield* SystemPrompt.Service
     const llm = yield* LLM.Service
     const references = yield* Reference.Service
+    const store = yield* ApexStore.Service
     const events = yield* EventV2Bridge.Service
     const flags = yield* RuntimeFlags.Service
     const runner = Effect.fn("SessionPrompt.runner")(function* () {
@@ -1902,19 +1905,49 @@ NOTE: At any point in time through this workflow you should feel free to ask the
             )
             msgs = transformed.messages
 
-            const [skills, env, instructions, modelMsgs] = yield* Effect.all([
-              sys.skills(agent),
-              sys.environment(model),
-              instruction.system().pipe(Effect.orDie),
-              MessageV2.toModelMessagesEffect(msgs, model),
-            ])
-            const defaultPrompt = SystemPrompt.provider(model)
-            const system = [
-              ...(agent.prompt ? [agent.prompt] : defaultPrompt),
-              ...env,
-              ...instructions,
-              ...(skills ? [skills] : []),
-            ]
+            // --- ApexStore system prompt cache ---
+            const cacheCtx = yield* InstanceState.context
+            const cacheKeyInput = JSON.stringify({
+              a: agent.name,
+              ap: agent.prompt ?? "",
+              m: model.api.id,
+              v: lastUser.model.variant ?? "",
+              d: cacheCtx.directory,
+              w: cacheCtx.worktree,
+              vcs: cacheCtx.project.vcs,
+              pl: process.platform,
+            })
+            const cacheKey = Hash.fast(cacheKeyInput)
+            const timeSlot = Math.floor(Date.now() / 300000)
+            const cachedSystem = yield* store.cacheGet("prompts", `${cacheKey}:${timeSlot}`).pipe(
+              Effect.catch(() => Effect.succeed(null)),
+            )
+
+            let system: string[]
+            let modelMsgs: ModelMessage[]
+            if (cachedSystem) {
+              system = JSON.parse(cachedSystem)
+              modelMsgs = yield* MessageV2.toModelMessagesEffect(msgs, model)
+            } else {
+              const [skills, env, instructions, msgs2] = yield* Effect.all([
+                sys.skills(agent),
+                sys.environment(model),
+                instruction.system().pipe(Effect.orDie),
+                MessageV2.toModelMessagesEffect(msgs, model),
+              ])
+              modelMsgs = msgs2
+              const defaultPrompt = SystemPrompt.provider(model)
+              system = [
+                ...(agent.prompt ? [agent.prompt] : defaultPrompt),
+                ...env,
+                ...instructions,
+                ...(skills ? [skills] : []),
+              ]
+              yield* store.cacheSet("prompts", `${cacheKey}:${timeSlot}`, JSON.stringify(system)).pipe(
+                Effect.ignore,
+                Effect.forkIn(scope),
+              )
+            }
             const format = lastUser.format ?? { type: "text" as const }
             if (format.type === "json_schema") system.push(STRUCTURED_OUTPUT_SYSTEM_PROMPT)
             const result = yield* handle.process({
@@ -2153,6 +2186,7 @@ export const defaultLayer = Layer.suspend(() =>
         Bus.layer,
         CrossSpawnSpawner.defaultLayer,
         RuntimeFlags.defaultLayer,
+        ApexStore.noopLayer,
       ),
     ),
   ),

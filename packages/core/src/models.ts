@@ -8,6 +8,25 @@ import { Hash } from "./util/hash"
 import { AppFileSystem } from "./filesystem"
 import { InstallationChannel, InstallationVersion } from "./installation/version"
 
+// ---------------------------------------------------------------------------
+// Optional cache service — provided by the host application (e.g. ApexStore
+// in the teamcode package) to make the model catalog survive restarts.
+// ---------------------------------------------------------------------------
+
+export interface ModelCacheInterface {
+  readonly get: (ns: string, key: string) => Effect.Effect<string | null>
+  readonly set: (ns: string, key: string, value: string) => Effect.Effect<void>
+}
+
+export class ModelCache extends Context.Service<ModelCache, ModelCacheInterface>()("@opencode/ModelCache") {}
+
+const noopModelCache: ModelCacheInterface = {
+  get: () => Effect.succeed(null),
+  set: () => Effect.void,
+}
+
+export const noopModelCacheLayer = Layer.succeed(ModelCache, ModelCache.of(noopModelCache))
+
 export const CatalogModelStatus = Schema.Literals(["alpha", "beta", "deprecated"])
 export type CatalogModelStatus = typeof CatalogModelStatus.Type
 
@@ -171,6 +190,21 @@ export const layer: Layer.Layer<Service, never, Requirements> = Layer.effect(
     })
 
     const populate = Effect.gen(function* () {
+      // Check the optional persistent cache (e.g. ApexStore) before disk/API.
+      // This survives restarts, unlike the file-system cache which is per-machine.
+      const cacheOpt = yield* Effect.serviceOption(ModelCache)
+      if (Option.isSome(cacheOpt)) {
+        const cached = yield* cacheOpt.value.get("models", "catalog").pipe(
+          Effect.catch(() => Effect.succeed(null)),
+        )
+        if (cached) {
+          const parsed = JSON.parse(cached) as { fetchedAt: number; data: Record<string, Provider> | undefined }
+          if (parsed.data && Date.now() - parsed.fetchedAt < Duration.toMillis(ttl)) {
+            return parsed.data
+          }
+        }
+      }
+
       const fromDisk = yield* loadFromDisk
       if (fromDisk) return fromDisk
       const snapshot = yield* loadSnapshot
@@ -183,7 +217,16 @@ export const layer: Layer.Layer<Service, never, Requirements> = Layer.effect(
           return yield* fetchAndWrite()
         }),
       )
-      return JSON.parse(text) as Record<string, Provider>
+      const data = JSON.parse(text) as Record<string, Provider>
+
+      // Persist to the optional cache (fire-and-forget).
+      if (Option.isSome(cacheOpt)) {
+        yield* cacheOpt.value
+          .set("models", "catalog", JSON.stringify({ fetchedAt: Date.now(), data }))
+          .pipe(Effect.catch(() => Effect.void))
+      }
+
+      return data
     }).pipe(Effect.withSpan("ModelsDev.populate"), Effect.orDie)
 
     const [cachedGet, invalidate] = yield* Effect.cachedInvalidateWithTTL(populate, Duration.infinity)
@@ -192,14 +235,24 @@ export const layer: Layer.Layer<Service, never, Requirements> = Layer.effect(
 
     const refresh = Effect.fn("ModelsDev.refresh")(function* (force = false) {
       if (!force && (yield* fresh())) return
+      const cacheOpt = yield* Effect.serviceOption(ModelCache)
       yield* Effect.scoped(
         Effect.gen(function* () {
           yield* Flock.effect(lockKey)
           // Re-check under the lock: another process may have refreshed between
           // our outer check and lock acquisition.
           if (!force && (yield* fresh())) return
-          yield* fetchAndWrite()
+          const text = yield* fetchAndWrite()
           yield* invalidate
+          // Keep the persistent cache in sync so refresh + subsequent get()
+          // returns the latest data rather than stale ApexStore content.
+          if (Option.isSome(cacheOpt)) {
+            yield* Effect.forkScoped(
+              cacheOpt.value
+                .set("models", "catalog", JSON.stringify({ fetchedAt: Date.now(), data: JSON.parse(text) }))
+                .pipe(Effect.catch(() => Effect.void)),
+            )
+          }
         }),
       ).pipe(
         Effect.tapCause((cause) =>

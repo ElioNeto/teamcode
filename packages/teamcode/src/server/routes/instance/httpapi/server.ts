@@ -30,6 +30,7 @@ import { Plugin } from "@/plugin"
 import { Project } from "@/project/project"
 import { ProviderAuth } from "@/provider/auth"
 import { ModelsDev } from "@teamcode-ai/core/models"
+import { ModelCacheApexStore } from "@/provider/models-cache"
 import { Provider } from "@/provider/provider"
 import { Pty } from "@/pty"
 import { PtyTicket } from "@/pty/ticket"
@@ -182,6 +183,7 @@ export function createRoutes(
     Installation.defaultLayer,
     MCP.defaultLayer,
     ModelsDev.defaultLayer,
+    ModelCacheApexStore.layer,
     Permission.defaultLayer,
     Plugin.defaultLayer,
     Project.defaultLayer,

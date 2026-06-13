@@ -60,6 +60,7 @@ import { Ripgrep } from "../../src/file/ripgrep"
 import { Format } from "../../src/format"
 import { Reference } from "../../src/reference/reference"
 import { SyncEvent } from "@/sync"
+import { ApexStore } from "@/storage/apex-store"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { EventV2Bridge } from "@/event-v2-bridge"
 
@@ -131,6 +132,7 @@ function makeHttp() {
     status,
     SyncEvent.defaultLayer,
     EventV2Bridge.defaultLayer,
+    ApexStore.noopLayer,
   ).pipe(Layer.provideMerge(infra))
   const question = Question.layer.pipe(Layer.provideMerge(deps))
   const todo = Todo.layer.pipe(Layer.provideMerge(deps))
