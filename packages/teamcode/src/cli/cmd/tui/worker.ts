@@ -16,10 +16,12 @@ import { disposeAllInstancesAndEmitGlobalDisposed } from "@/server/global-lifecy
 
 ensureProcessMetadata("worker")
 
+const debugMode = process.env.TEAMCODE_DEBUG === "1"
 await Log.init({
-  print: process.argv.includes("--print-logs"),
+  print: debugMode || process.argv.includes("--print-logs"),
   dev: Installation.isLocal(),
   level: (() => {
+    if (debugMode) return "DEBUG"
     if (Installation.isLocal()) return "DEBUG"
     return "INFO"
   })(),

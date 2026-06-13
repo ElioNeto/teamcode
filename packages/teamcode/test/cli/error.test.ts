@@ -73,7 +73,7 @@ describe("cli.error", () => {
     const expected = [
       "Model not found: anthropic/claude-sonet-4",
       "Did you mean: claude-sonnet-4",
-      "Try: `teamcode models` to list available models",
+      "Try: `teamcode models --refresh` to refresh the model cache from models.dev",
       "Or check your config (teamcode.json) provider/model names",
     ].join("\n")
 

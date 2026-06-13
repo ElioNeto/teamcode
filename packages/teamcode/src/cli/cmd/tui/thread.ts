@@ -133,10 +133,11 @@ export const TuiThreadCommand = cmd({
       // instead of stderr. Without this, every Log.Default call (e.g. on
       // bootstrap failure during config reload) would leak raw text into the
       // TUI's alternate screen and corrupt the display.
+      const debugMode = process.env.TEAMCODE_DEBUG === "1"
       await Log.init({
-        print: process.argv.includes("--print-logs"),
+        print: debugMode || process.argv.includes("--print-logs"),
         dev: Installation.isLocal(),
-        level: Installation.isLocal() ? "DEBUG" : "INFO",
+        level: debugMode ? "DEBUG" : Installation.isLocal() ? "DEBUG" : "INFO",
       })
 
       // Resolve relative --project paths from PWD, then use the real cwd after
@@ -169,6 +170,7 @@ export const TuiThreadCommand = cmd({
       const env = sanitizedProcessEnv({
         [TEAMCODE_PROCESS_ROLE]: "worker",
         [TEAMCODE_RUN_ID]: ensureRunID(),
+        ...(debugMode ? { TEAMCODE_DEBUG: "1" } : {}),
       })
 
       const worker = new Worker(file, {

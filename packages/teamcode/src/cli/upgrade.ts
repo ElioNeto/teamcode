@@ -8,7 +8,7 @@ export async function upgrade(autoupdate: boolean | "notify" | undefined) {
   const flags = Effect.runSync(
     RuntimeFlags.Service.useSync((flags) => flags).pipe(Effect.provide(RuntimeFlags.defaultLayer)),
   )
-  if (autoupdate === false || flags.disableAutoupdate) return
+  if (!autoupdate || flags.disableAutoupdate) return
   const method = await Installation.method()
   const latest = await Installation.latest(method).catch(() => {})
   if (!latest) return

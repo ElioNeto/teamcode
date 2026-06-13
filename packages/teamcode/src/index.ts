@@ -70,6 +70,10 @@ const cli = yargs(args)
   .alias("help", "h")
   .version("version", "show version number", InstallationVersion)
   .alias("version", "v")
+  .option("debug", {
+    describe: "enable debug logging (verbose output to stderr)",
+    type: "boolean",
+  })
   .option("print-logs", {
     describe: "print logs to stderr",
     type: "boolean",
@@ -105,10 +109,14 @@ const cli = yargs(args)
     // Ensure Global directories exist before Log/Database init
     await Global.ensure()
 
+    const debugMode = opts.debug || process.env.TEAMCODE_DEBUG === "1"
+    if (debugMode) process.env.TEAMCODE_DEBUG = "1"
+
     await Log.init({
-      print: process.argv.includes("--print-logs"),
+      print: debugMode || process.argv.includes("--print-logs"),
       dev: Installation.isLocal(),
       level: (() => {
+        if (debugMode) return "DEBUG"
         if (opts.logLevel) return opts.logLevel as Log.Level
         if (Installation.isLocal()) return "DEBUG"
         return "INFO"

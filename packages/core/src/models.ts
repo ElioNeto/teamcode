@@ -211,9 +211,11 @@ export const layer: Layer.Layer<Service, never, Requirements> = Layer.effect(
       if (snapshot) return snapshot
       if (Flag.TEAMCODE_DISABLE_MODELS_FETCH) return {}
       // Flock is cross-process: concurrent opencode CLIs can race on this cache file.
+      // Use a per-file lock with a timeout matching the TTL so stale lock holders
+      // do not block process startup for more than 60 seconds.
       const text = yield* Effect.scoped(
         Effect.gen(function* () {
-          yield* Flock.effect(lockKey)
+          yield* Flock.effect(lockKey, { timeoutMs: 60_000, staleMs: 60_000 })
           return yield* fetchAndWrite()
         }),
       )
