@@ -368,14 +368,14 @@ describe("ProviderTransform.options - gpt-5 reasoningEffort", () => {
     expect(result.reasoningEffort).toBeUndefined()
   })
 
-  test("gpt-5.5 should NOT set reasoningEffort", () => {
+  test("gpt-5.5 should set reasoningEffort to medium", () => {
     const result = ProviderTransform.options({
       model: createModel("gpt-5.5"),
       sessionID,
       providerOptions: {},
     })
 
-    expect(result.reasoningEffort).toBeUndefined()
+    expect(result.reasoningEffort).toBe("medium")
   })
 })
 
@@ -2614,7 +2614,7 @@ describe("ProviderTransform.variants", () => {
         },
       })
       const result = ProviderTransform.variants(model)
-      expect(Object.keys(result)).toEqual(["low", "medium", "high", "max"])
+      expect(Object.keys(result)).toEqual(["low", "medium", "high", "xhigh", "max"])
       expect(result.high).toEqual({
         thinking: {
           type: "adaptive",
@@ -3159,8 +3159,8 @@ describe("ProviderTransform.variants", () => {
       {
         name: "opus 4.5",
         apiIds: ["claude-opus-4-5-20251101", "claude-opus-4.5-20251101"],
-        efforts: ["low", "medium", "high"],
-        expectedHigh: { effort: "high" },
+        efforts: ["low", "medium", "high", "xhigh", "max"],
+        expectedHigh: { thinking: { type: "adaptive" }, effort: "high" },
       },
       {
         name: "sonnet 4.6",
@@ -3171,7 +3171,7 @@ describe("ProviderTransform.variants", () => {
       {
         name: "opus 4.6",
         apiIds: ["claude-opus-4-6", "claude-opus-4.6"],
-        efforts: ["low", "medium", "high", "max"],
+        efforts: ["low", "medium", "high", "xhigh", "max"],
         expectedHigh: { thinking: { type: "adaptive" }, effort: "high" },
       },
       {
