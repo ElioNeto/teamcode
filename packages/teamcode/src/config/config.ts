@@ -154,7 +154,7 @@ export const Info = Schema.Struct({
   }),
   autoupdate: Schema.optional(Schema.Union([Schema.Boolean, Schema.Literal("notify")])).annotate({
     description:
-      "Automatically update to the latest version. Set to true to auto-update, false to disable, or 'notify' to show update notifications",
+      "Automatically update to the latest version. Set to true to auto-update, false to disable, or 'notify' to show update notifications. Defaults to false when not set.",
   }),
   disabled_providers: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
     description: "Disable providers that are loaded automatically",
@@ -783,6 +783,9 @@ export const layer = Layer.effect(
             enabled: true,
             level: level === "lite" || level === "ultra" ? level : "full",
           }
+        } else if (!result.caveman) {
+          // Enable caveman by default with full compression level
+          result.caveman = { enabled: true, level: "full" }
         }
 
         // Validate custom model config — catch typos/missing fields at startup
