@@ -61,6 +61,10 @@ teamcode run "explain this codebase"
 
 # List available providers and models
 teamcode providers
+
+# Enable debug logging (verbose output to stderr)
+teamcode --debug
+teamcode --debug run "describe this codebase"
 ```
 
 ### Engine indicator
@@ -106,6 +110,22 @@ This is used internally and can be invoked using `@general` in messages.
 └─────────────────────────────────────────────────────┘
 ```
 
+### Debug Mode
+
+Pass `--debug` to any command to enable verbose logging. This forces log level to `DEBUG` and prints logs to stderr, helping diagnose initialization bottlenecks, provider connection issues, and tool execution:
+
+```bash
+# Interactive TUI with debug logging
+teamcode --debug
+
+# Single prompt with debug logging
+teamcode --debug run "explain this codebase"
+
+# Debug persists into the TUI worker process
+```
+
+The debug flag is automatically forwarded to the background worker when using the TUI, so both the main thread and the server worker produce verbose output.
+
 ### Shadow mode
 
 Before routing traffic to the Go core, TeamCode runs both engines in parallel, compares results, and logs divergences. This **shadow mode** validates correctness without affecting your workflow:
@@ -123,19 +143,26 @@ Divergences are logged to stderr:
 
 ## 🧪 Test Suite
 
-**178+ tests** spanning both TypeScript and Go:
+**500+ tests** spanning both TypeScript and Go:
 
 | Layer | Tests | Stack |
 |-------|-------|-------|
 | Go unit | 103 | `go test` |
+| TS core | 426 | `bun test` (core package) |
 | TS parity | 75 | `bun test` + Go core |
 
 ```bash
 # Run Go tests
 cd go-core && make test
 
+# Run core package tests
+cd packages/core && bun test
+
 # Run parity tests (requires Go core binary)
 cd packages/core && GO_CORE_BINARY=../../go-core/server bun test test/parity/
+
+# Run a specific test file
+cd packages/core && bun test test/models.test.ts
 
 # Full typecheck across all packages
 bun turbo typecheck

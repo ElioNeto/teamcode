@@ -38,7 +38,7 @@ export const layer = Layer.effect(
                     .from(SessionTable)
                     .where(cursor ? gt(SessionTable.id, cursor) : undefined)
                     .orderBy(asc(SessionTable.id))
-                    .limit(100)
+                    .limit(500)
                     .all(),
                 ),
               )
