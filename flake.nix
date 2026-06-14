@@ -42,7 +42,7 @@
             opencode = final.callPackage ./nix/opencode.nix {
               inherit node_modules;
             };
-            opencode-desktop = final.callPackage ./nix/desktop.nix {
+            teamcode-desktop = final.callPackage ./nix/desktop.nix {
               inherit opencode;
             };
           };
@@ -60,7 +60,7 @@
           opencode = pkgs.callPackage ./nix/opencode.nix {
             inherit node_modules;
           };
-          opencode-desktop = pkgs.callPackage ./nix/desktop.nix {
+          teamcode-desktop = pkgs.callPackage ./nix/desktop.nix {
             inherit opencode;
           };
           # Updater derivation with fakeHash - build fails and reveals correct hash

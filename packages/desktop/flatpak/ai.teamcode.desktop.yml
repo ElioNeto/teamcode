@@ -1,4 +1,4 @@
-id: ai.opencode.desktop
+id: ai.teamcode.desktop
 runtime: org.freedesktop.Sdk
 runtime-version: '24.08'
 sdk: org.freedesktop.Sdk//24.08
@@ -6,8 +6,8 @@ base: org.electronjs.Electron2.BaseApp
 base-version: '24.08'
 separate-locales: false
 
-command: opencode-desktop
-rename-icon: ai.opencode.desktop
+command: teamcode-desktop
+rename-icon: ai.teamcode.desktop
 
 build-options:
   env:
@@ -50,10 +50,10 @@ modules:
     buildsystem: simple
     build-commands:
       # Install workspace dependencies
-      - bun install --frozen-lockfile --filter '!./' --filter './packages/opencode'
+      - bun install --frozen-lockfile --filter '!./' --filter './packages/teamcode'
         --filter './packages/desktop' --filter './packages/app' --ignore-scripts
       # Build the CLI binary
-      - cd packages/opencode && TEAMCODE_DISABLE_MODELS_FETCH=true bun run script/build.ts
+      - cd packages/teamcode && TEAMCODE_DISABLE_MODELS_FETCH=true bun run script/build.ts
         --single --skip-install
       # Build the desktop app
       - cd packages/desktop && bun run build
@@ -64,39 +64,39 @@ modules:
   - name: launcher
     buildsystem: simple
     build-commands:
-      - install -Dm755 opencode-desktop.sh /app/bin/opencode-desktop
-      - install -Dm644 ai.opencode.desktop.desktop /app/share/applications/ai.opencode.desktop.desktop
-      - install -Dm644 ai.opencode.desktop.metainfo.xml /app/share/metainfo/ai.opencode.desktop.metainfo.xml
+      - install -Dm755 teamcode-desktop.sh /app/bin/teamcode-desktop
+      - install -Dm644 ai.teamcode.desktop.desktop /app/share/applications/ai.teamcode.desktop.desktop
+      - install -Dm644 ai.teamcode.desktop.metainfo.xml /app/share/metainfo/ai.teamcode.desktop.metainfo.xml
       - for size in 64 128 256 512; do
-          install -Dm644 icon.png /app/share/icons/hicolor/${size}x${size}/apps/ai.opencode.desktop.png;
+          install -Dm644 icon.png /app/share/icons/hicolor/${size}x${size}/apps/ai.teamcode.desktop.png;
         done
     sources:
       - type: script
-        dest-filename: opencode-desktop.sh
+        dest-filename: teamcode-desktop.sh
         commands:
           - |
             #!/bin/sh
             export TMPDIR="${XDG_RUNTIME_DIR}/app/${FLATPAK_ID}"
-            exec zypak-wrapper /app/extra/opencode-desktop/opencode-desktop "$@"
+            exec zypak-wrapper /app/extra/teamcode-desktop/teamcode-desktop "$@"
       - type: inline
-        dest-filename: ai.opencode.desktop.desktop
+        dest-filename: ai.teamcode.desktop.desktop
         contents: |
           [Desktop Entry]
           Name=OpenCode
           Comment=AI-powered development tool
-          Exec=/app/bin/opencode-desktop %U
-          Icon=ai.opencode.desktop
+          Exec=/app/bin/teamcode-desktop %U
+          Icon=ai.teamcode.desktop
           Terminal=false
           Type=Application
           Categories=Development;IDE;
           MimeType=x-scheme-handler/opencode;
           StartupNotify=true
       - type: inline
-        dest-filename: ai.opencode.desktop.metainfo.xml
+        dest-filename: ai.teamcode.desktop.metainfo.xml
         contents: |
           <?xml version="1.0" encoding="UTF-8"?>
           <component type="desktop-application">
-            <id>ai.opencode.desktop</id>
+            <id>ai.teamcode.desktop</id>
             <metadata_license>CC0-1.0</metadata_license>
             <project_license>MIT</project_license>
             <name>OpenCode</name>
@@ -107,7 +107,7 @@ modules:
             <description>
               <p>OpenCode is an open source AI-powered development tool that helps you write and run code with any AI model.</p>
             </description>
-            <launchable type="desktop-id">ai.opencode.desktop.desktop</launchable>
+            <launchable type="desktop-id">ai.teamcode.desktop.desktop</launchable>
             <content_rating type="oars-1.1"/>
             <url type="homepage">https://opencode.ai</url>
             <url type="vcs-browser">https://github.com/teamcode/teamcode</url>
