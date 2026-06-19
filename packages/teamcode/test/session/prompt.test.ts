@@ -1684,7 +1684,8 @@ unix(
 
       const run = yield* prompt.loop({ sessionID: chat.id }).pipe(Effect.forkChild)
       yield* llm.wait(1)
-      yield* Effect.sleep(150)
+      // Wait for enough output to accumulate so truncation kicks in
+      yield* Effect.sleep(2000)
       yield* prompt.cancel(chat.id)
 
       const exit = yield* Fiber.await(run)
