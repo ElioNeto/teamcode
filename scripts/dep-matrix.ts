@@ -119,6 +119,7 @@ export function resolveWorkspaceDeps(pkgJson: Record<string, unknown>): Record<s
   const result = { ...pkgJson }
   const name = result.name as string | undefined
   if (!name) return result
+  if (skipPackages.has(name)) return result
 
   for (const section of ["dependencies", "peerDependencies", "optionalDependencies"] as const) {
     const deps = result[section] as Record<string, string> | undefined
