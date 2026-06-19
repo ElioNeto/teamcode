@@ -657,9 +657,31 @@ export const layer: Layer.Layer<
         )
 
         if (hasInstance) yield* cancelBackgroundJobs(background, sessionID)
-        const kids = yield* children(sessionID)
-        for (const child of kids) {
-          yield* remove(child.id)
+
+        // Collect all descendant session IDs recursively so we can batch-
+        // delete them instead of recursing one-by-one. This avoids O(n)
+        // transactions per child and consolidates sync events into a batch.
+        const collectIDs = (
+          acc: SessionID[],
+          parentID: SessionID,
+        ): Effect.Effect<readonly SessionID[]> =>
+          Effect.gen(function* () {
+            const kids = yield* children(parentID)
+            for (const child of kids) {
+              acc.push(child.id)
+              yield* collectIDs(acc, child.id)
+            }
+            return acc
+          })
+
+        const descendantIDs = yield* collectIDs([], sessionID)
+        // Fetch all descendant session info in parallel for sync events
+        const descendantSessions = yield* Effect.forEach(descendantIDs, (id) => get(id), {
+          concurrency: 10,
+        })
+        for (const child of descendantSessions) {
+          yield* sync.run(Event.Deleted, { sessionID: child.id, info: child }, { publish: hasInstance })
+          yield* sync.remove(child.id)
         }
 
         yield* sync.run(Event.Deleted, { sessionID, info: session }, { publish: hasInstance })
