@@ -29,24 +29,34 @@ export const { use: useExit, provider: ExitProvider } = createSimpleContext({
       },
       get: () => message,
     }
+    const sighup = () => exit()
+    const sigterm = () => exit()
+    const sigint = () => exit()
+
     const exit: Exit = Object.assign(
       (reason?: unknown) => {
         if (task) return task
         task = (async () => {
-          await input.onBeforeExit?.()
-          // Reset window title before destroying renderer
-          renderer.setTerminalTitle("")
-          renderer.destroy()
-          win32FlushInputBuffer()
-          if (reason) {
-            const formatted = FormatError(reason) ?? FormatUnknownError(reason)
-            if (formatted) {
-              process.stderr.write(formatted + "\n")
+          try {
+            await input.onBeforeExit?.()
+            // Reset window title before destroying renderer
+            renderer.setTerminalTitle("")
+            renderer.destroy()
+            win32FlushInputBuffer()
+            if (reason) {
+              const formatted = FormatError(reason) ?? FormatUnknownError(reason)
+              if (formatted) {
+                process.stderr.write(formatted + "\n")
+              }
             }
+            const text = store.get()
+            if (text) process.stdout.write(text + "\n")
+            await input.onExit?.()
+          } finally {
+            process.off("SIGHUP", sighup)
+            process.off("SIGTERM", sigterm)
+            process.off("SIGINT", sigint)
           }
-          const text = store.get()
-          if (text) process.stdout.write(text + "\n")
-          await input.onExit?.()
         })()
         return task
       },
@@ -54,9 +64,9 @@ export const { use: useExit, provider: ExitProvider } = createSimpleContext({
         message: store,
       },
     )
-    process.on("SIGHUP", () => exit())
-    process.on("SIGTERM", () => exit())
-    process.on("SIGINT", () => exit())
+    process.on("SIGHUP", sighup)
+    process.on("SIGTERM", sigterm)
+    process.on("SIGINT", sigint)
     return exit
   },
 })

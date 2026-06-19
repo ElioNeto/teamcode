@@ -97,7 +97,7 @@ export async function tmpdir<T>(options?: TmpDirOptions<T>) {
         path.join(dirpath, "teamcode.json"),
         JSON.stringify(
           {
-            $schema: "https://opencode.ai/config.json",
+            $schema: "/schema/config.json",
             ...options.config,
           },
           null,
@@ -153,7 +153,7 @@ export function tmpdirScoped(options?: { git?: boolean; config?: Partial<Config.
       yield* Effect.promise(() =>
         fs.writeFile(
           path.join(dir, "teamcode.json"),
-          JSON.stringify({ $schema: "https://opencode.ai/config.json", ...options.config }),
+          JSON.stringify({ $schema: "/schema/config.json", ...options.config }),
         ),
       )
     }

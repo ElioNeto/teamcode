@@ -6,7 +6,7 @@ const CavemanLevel = Schema.Literals(["lite", "full", "ultra"])
 
 export const Info = Schema.Struct({
   enabled: Schema.optional(Schema.Boolean).annotate({
-    description: "Enable caveman mode (default: false)",
+    description: "Enable caveman mode (default: true)",
   }),
   level: Schema.optional(CavemanLevel).annotate({
     description: "Compression level: 'lite' (remove filler), 'full' (fragments, default), 'ultra' (telegraphic)",

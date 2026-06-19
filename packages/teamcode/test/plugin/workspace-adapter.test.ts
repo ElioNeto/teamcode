@@ -104,7 +104,7 @@ describe("plugin.workspace", () => {
             path.join(dir, "teamcode.json"),
             JSON.stringify(
               {
-                $schema: "https://opencode.ai/config.json",
+                $schema: "/schema/config.json",
                 plugin: [pathToFileURL(file).href],
               },
               null,

@@ -1,6 +1,6 @@
 # Effect Guide
 
-How we write Effect code in `packages/opencode`. The companion roadmap is
+How we write Effect code in `packages/teamcode`. The companion roadmap is
 [`todo.md`](./todo.md).
 
 This guide describes the preferred shape for new work and migrations. If a
@@ -237,7 +237,7 @@ Rules:
 
 ## Verification
 
-From `packages/opencode`:
+From `packages/teamcode`:
 
 ```bash
 bun run typecheck

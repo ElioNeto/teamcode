@@ -1,19 +1,8 @@
 import { execFile } from "node:child_process"
-import { access, chmod, mkdir, writeFile } from "node:fs/promises"
-import { homedir } from "node:os"
-import { dirname, join } from "node:path"
-import { fileURLToPath } from "node:url"
 import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, shell } from "electron"
 import type { IpcMainEvent, IpcMainInvokeEvent } from "electron"
 
-import type {
-  InitStep,
-  ServerReadyData,
-  SqliteMigrationProgress,
-  TitlebarTheme,
-  WindowConfig,
-  WslConfig,
-} from "../preload/types"
+import type { TitlebarTheme } from "../preload/types"
 import { getStore } from "./store"
 import { setTitlebar, updateTitlebar } from "./windows"
 
@@ -23,88 +12,12 @@ const pickerFilters = (ext?: string[]) => {
 }
 
 type Deps = {
-  killSidecar: () => Promise<void> | void
-  awaitInitialization: (sendStep: (step: InitStep) => void) => Promise<ServerReadyData>
-  getWindowConfig: () => Promise<WindowConfig> | WindowConfig
-  consumeInitialDeepLinks: () => Promise<string[]> | string[]
-  getDefaultServerUrl: () => Promise<string | null> | string | null
-  setDefaultServerUrl: (url: string | null) => Promise<void> | void
-  getWslConfig: () => Promise<WslConfig>
-  setWslConfig: (config: WslConfig) => Promise<void> | void
-  getDisplayBackend: () => Promise<string | null>
-  setDisplayBackend: (backend: string | null) => Promise<void> | void
-  parseMarkdown: (markdown: string) => Promise<string> | string
-  checkAppExists: (appName: string) => Promise<boolean> | boolean
-  wslPath: (path: string, mode: "windows" | "linux" | null) => Promise<string>
-  resolveAppPath: (appName: string) => Promise<string | null>
-  loadingWindowComplete: () => void
-  runUpdater: (alertOnFail: boolean) => Promise<void> | void
-  checkUpdate: () => Promise<{ updateAvailable: boolean; version?: string }>
-  installUpdate: () => Promise<void> | void
-  setBackgroundColor: (color: string) => void
+  killSidecar: () => Promise<void>
+  getServerPort: () => number
 }
 
 export function registerIpcHandlers(deps: Deps) {
-  ipcMain.handle("kill-sidecar", () => deps.killSidecar())
-  ipcMain.handle("await-initialization", (event: IpcMainInvokeEvent) => {
-    const send = (step: InitStep) => event.sender.send("init-step", step)
-    return deps.awaitInitialization(send)
-  })
-  ipcMain.handle("get-window-config", () => deps.getWindowConfig())
-  ipcMain.handle("consume-initial-deep-links", () => deps.consumeInitialDeepLinks())
-  ipcMain.handle("get-default-server-url", () => deps.getDefaultServerUrl())
-  ipcMain.handle("set-default-server-url", (_event: IpcMainInvokeEvent, url: string | null) =>
-    deps.setDefaultServerUrl(url),
-  )
-  ipcMain.handle("get-wsl-config", () => deps.getWslConfig())
-  ipcMain.handle("set-wsl-config", (_event: IpcMainInvokeEvent, config: WslConfig) => deps.setWslConfig(config))
-  ipcMain.handle("get-display-backend", () => deps.getDisplayBackend())
-  ipcMain.handle("set-display-backend", (_event: IpcMainInvokeEvent, backend: string | null) =>
-    deps.setDisplayBackend(backend),
-  )
-  ipcMain.handle("parse-markdown", (_event: IpcMainInvokeEvent, markdown: string) => deps.parseMarkdown(markdown))
-  ipcMain.handle("check-app-exists", (_event: IpcMainInvokeEvent, appName: string) => deps.checkAppExists(appName))
-  ipcMain.handle("wsl-path", (_event: IpcMainInvokeEvent, path: string, mode: "windows" | "linux" | null) =>
-    deps.wslPath(path, mode),
-  )
-  ipcMain.handle("resolve-app-path", (_event: IpcMainInvokeEvent, appName: string) => deps.resolveAppPath(appName))
-  ipcMain.on("loading-window-complete", () => deps.loadingWindowComplete())
-  ipcMain.handle("run-updater", (_event: IpcMainInvokeEvent, alertOnFail: boolean) => deps.runUpdater(alertOnFail))
-  ipcMain.handle("check-update", () => deps.checkUpdate())
-  ipcMain.handle("install-update", () => deps.installUpdate())
-  ipcMain.handle("set-background-color", (_event: IpcMainInvokeEvent, color: string) => deps.setBackgroundColor(color))
-
-  ipcMain.handle("install-cli", async () => {
-    // Locate the server bundle — in dev it lives in packages/teamcode/dist/node/node.js
-    // relative to the desktop package; in production it's bundled into out/main/chunks/
-    const mainDir = dirname(fileURLToPath(import.meta.url))
-    const dev = join(mainDir, "../../teamcode/dist/node/node.js")
-    const prod = join(mainDir, "chunks/node-*.js")
-    const serverPath = await access(dev).then(() => dev).catch(() => prod)
-
-    const binDir = process.platform === "win32"
-      ? join(process.env.APPDATA ?? join(homedir(), "AppData", "Roaming"), "opencode")
-      : join(homedir(), ".local", "bin")
-    const cliName = process.platform === "win32" ? "opencode.cmd" : "opencode"
-    const cliPath = join(binDir, cliName)
-
-    await mkdir(binDir, { recursive: true })
-
-    if (process.platform === "win32") {
-      await writeFile(cliPath, [
-        `@echo off`,
-        `"${process.execPath}" "${serverPath}" %*`,
-      ].join("\r\n"), "utf-8")
-    } else {
-      await writeFile(cliPath, [
-        `#!/usr/bin/env sh`,
-        `exec "${process.execPath}" "${serverPath}" "$@"`,
-      ].join("\n"), "utf-8")
-      await chmod(cliPath, 0o755)
-    }
-
-    return cliPath
-  })
+  // ── Store ────────────────────────────────────────────
 
   ipcMain.handle("store-get", (_event: IpcMainInvokeEvent, name: string, key: string) => {
     try {
@@ -116,23 +29,30 @@ export function registerIpcHandlers(deps: Deps) {
       return null
     }
   })
+
   ipcMain.handle("store-set", (_event: IpcMainInvokeEvent, name: string, key: string, value: string) => {
     getStore(name).set(key, value)
   })
+
   ipcMain.handle("store-delete", (_event: IpcMainInvokeEvent, name: string, key: string) => {
     getStore(name).delete(key)
   })
+
   ipcMain.handle("store-clear", (_event: IpcMainInvokeEvent, name: string) => {
     getStore(name).clear()
   })
+
   ipcMain.handle("store-keys", (_event: IpcMainInvokeEvent, name: string) => {
     const store = getStore(name)
     return Object.keys(store.store)
   })
+
   ipcMain.handle("store-length", (_event: IpcMainInvokeEvent, name: string) => {
     const store = getStore(name)
     return Object.keys(store.store).length
   })
+
+  // ── Dialogs ──────────────────────────────────────────
 
   ipcMain.handle(
     "open-directory-picker",
@@ -152,7 +72,7 @@ export function registerIpcHandlers(deps: Deps) {
     "open-file-picker",
     async (
       _event: IpcMainInvokeEvent,
-      opts?: { multiple?: boolean; title?: string; defaultPath?: string; accept?: string[]; extensions?: string[] },
+      opts?: { multiple?: boolean; title?: string; defaultPath?: string; extensions?: string[] },
     ) => {
       const result = await dialog.showOpenDialog({
         properties: ["openFile", ...(opts?.multiple ? ["multiSelections" as const] : [])],
@@ -178,22 +98,17 @@ export function registerIpcHandlers(deps: Deps) {
     },
   )
 
+  // ── Links & Paths ────────────────────────────────────
+
   ipcMain.on("open-link", (_event: IpcMainEvent, url: string) => {
     void shell.openExternal(url)
   })
 
-  ipcMain.handle("open-path", async (_event: IpcMainInvokeEvent, path: string, app?: string) => {
-    if (!app) return shell.openPath(path)
-    await new Promise<void>((resolve, reject) => {
-      if (process.platform === "darwin") {
-        execFile("open", ["-a", app, path], (err) => (err ? reject(err) : resolve()))
-      } else if (process.platform === "win32" && (app.endsWith(".cmd") || app.endsWith(".bat"))) {
-        execFile("cmd.exe", ["/c", app, path], (err) => (err ? reject(err) : resolve()))
-      } else {
-        execFile(app, [path], (err) => (err ? reject(err) : resolve()))
-      }
-    })
+  ipcMain.handle("open-path", async (_event: IpcMainInvokeEvent, path: string) => {
+    return shell.openPath(path)
   })
+
+  // ── Clipboard ─────────────────────────────────────────
 
   ipcMain.handle("read-clipboard-image", () => {
     const image = clipboard.readImage()
@@ -203,9 +118,13 @@ export function registerIpcHandlers(deps: Deps) {
     return { buffer, width: size.width, height: size.height }
   })
 
+  // ── Notifications ─────────────────────────────────────
+
   ipcMain.on("show-notification", (_event: IpcMainEvent, title: string, body?: string) => {
     new Notification({ title, body }).show()
   })
+
+  // ── Window management ─────────────────────────────────
 
   ipcMain.handle("get-window-count", () => BrowserWindow.getAllWindows().length)
 
@@ -236,21 +155,43 @@ export function registerIpcHandlers(deps: Deps) {
     if (!win) return
     updateTitlebar(win)
   })
+
   ipcMain.handle("set-titlebar", (event: IpcMainInvokeEvent, theme: TitlebarTheme) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     if (!win) return
     setTitlebar(win, theme)
   })
-}
 
-export function sendSqliteMigrationProgress(win: BrowserWindow, progress: SqliteMigrationProgress) {
-  win.webContents.send("sqlite-migration-progress", progress)
+  ipcMain.handle("set-background-color", (event: IpcMainInvokeEvent, color: string) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) return
+    win.setBackgroundColor(color)
+  })
+
+  // ── Server ────────────────────────────────────────────
+
+  ipcMain.handle("kill-sidecar", () => deps.killSidecar())
+
+  ipcMain.handle("get-server-port", () => deps.getServerPort())
+
+  // ── Updater ───────────────────────────────────────────
+
+  ipcMain.handle("run-updater", async (_event: IpcMainInvokeEvent, alertOnFail: boolean) => {
+    const { checkForUpdates } = await import("./updater")
+    await checkForUpdates(alertOnFail, () => deps.killSidecar())
+  })
+
+  ipcMain.handle("check-update", async () => {
+    const { checkUpdate } = await import("./updater")
+    return checkUpdate()
+  })
+
+  ipcMain.handle("install-update", async () => {
+    const { installUpdate } = await import("./updater")
+    await installUpdate(() => deps.killSidecar())
+  })
 }
 
 export function sendMenuCommand(win: BrowserWindow, id: string) {
   win.webContents.send("menu-command", id)
-}
-
-export function sendDeepLinks(win: BrowserWindow, urls: string[]) {
-  win.webContents.send("deep-link", urls)
 }

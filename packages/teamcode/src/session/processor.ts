@@ -28,6 +28,7 @@ import { ModelV2 } from "@teamcode-ai/core/model"
 import { ProviderV2 } from "@teamcode-ai/core/provider"
 import * as DateTime from "effect/DateTime"
 import { RuntimeFlags } from "@/effect/runtime-flags"
+import { Caveman } from "@/caveman"
 
 const DOOM_LOOP_THRESHOLD = 3
 const log = Log.create({ service: "session.processor" })
@@ -640,6 +641,19 @@ export const layer = Layer.effect(
               },
               { text: ctx.currentText.text },
             )).text
+            // Apply caveman compression if enabled in config
+            {
+              const cfg = yield* config.get()
+              const cavemanCfg = cfg.caveman
+              if (cavemanCfg?.enabled) {
+                const level = cavemanCfg.level ?? "full"
+                const original = ctx.currentText.text
+                const compressed = Caveman.compress(original, level)
+                if (compressed !== original) {
+                  ctx.currentText.text = compressed
+                }
+              }
+            }
             if (!ctx.assistantMessage.summary) {
               // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
               if (flags.experimentalEventSystem) {

@@ -5,6 +5,7 @@ import { UI } from "../ui"
 import { effectCmd } from "../effect-cmd"
 import { Effect } from "effect"
 import { detect, type ProjectProfile } from "@/config/detect"
+import { CONFIG_SCHEMA_URL, TUI_SCHEMA_URL } from "@/config/config"
 
 const TEAMCODE_DIR = ".teamcode"
 
@@ -65,7 +66,7 @@ function generateConfig(d: ProjectProfile): string {
 
   return JSON.stringify(
     {
-      $schema: "https://opencode.ai/config.json",
+      $schema: CONFIG_SCHEMA_URL,
       default_agent: "god",
       instructions: ["AGENTS.md"],
       tools: {},
@@ -541,7 +542,6 @@ async function scaffold(dir: string, force: boolean): Promise<{ created: boolean
     p(dir, "themes", "mytheme.json"),
     JSON.stringify(
       {
-        $schema: "https://opencode.ai/theme.json",
         defs: {
           bg: "#1a1a2e",
           surface: "#16213e",
@@ -581,7 +581,7 @@ async function scaffold(dir: string, force: boolean): Promise<{ created: boolean
     p(dir, "tui.json"),
     JSON.stringify(
       {
-        $schema: "https://opencode.ai/tui.json",
+        $schema: TUI_SCHEMA_URL,
         plugin: [],
       },
       null,
@@ -598,7 +598,7 @@ async function scaffold(dir: string, force: boolean): Promise<{ created: boolean
         private: true,
         type: "module",
         dependencies: {
-          "@opencode-ai/plugin": "*",
+          "@teamcode-ai/plugin": "*",
         },
       },
       null,

@@ -85,7 +85,7 @@ export function createMainWindow() {
     height: state.height,
     show: false,
     autoHideMenuBar: true,
-    title: "OpenCode",
+    title: "TeamCode",
     icon: iconPath(),
     backgroundColor,
     ...(process.platform === "darwin"
@@ -132,40 +132,6 @@ export function createMainWindow() {
   win.once("ready-to-show", () => {
     win.show()
   })
-
-  return win
-}
-
-export function createLoadingWindow() {
-  const mode = tone()
-  const win = new BrowserWindow({
-    width: 640,
-    height: 480,
-    resizable: false,
-    center: true,
-    show: true,
-    autoHideMenuBar: true,
-    icon: iconPath(),
-    backgroundColor,
-    ...(process.platform === "darwin" ? { titleBarStyle: "hidden" as const } : {}),
-    ...(process.platform === "win32"
-      ? {
-          frame: false,
-          titleBarStyle: "hidden" as const,
-          titleBarOverlay: overlay({ mode }),
-        }
-      : {}),
-    webPreferences: {
-      preload: join(root, "../preload/index.js"),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-    },
-  })
-
-  allowClipboardWrite(win)
-
-  loadWindow(win, "loading.html")
 
   return win
 }

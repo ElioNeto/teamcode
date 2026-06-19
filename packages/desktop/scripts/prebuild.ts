@@ -7,4 +7,6 @@ const channel = resolveChannel()
 await $`bun ./scripts/copy-icons.ts ${channel}`
 await $`bun ./scripts/copy-metainfo.ts ${channel}`
 
-await $`cd ../teamcode && bun script/build-node.ts`
+// Build Go core for production
+console.log("Building Go core server for production...")
+await $`cd ../go-core && make build`

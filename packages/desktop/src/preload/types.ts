@@ -1,40 +1,14 @@
-export type InitStep = { phase: "server_waiting" } | { phase: "sqlite_waiting" } | { phase: "done" } | { phase: "error"; message: string }
+export type InitStep =
+  | { phase: "server_waiting" }
+  | { phase: "done" }
+  | { phase: "error"; message: string }
 
-export type ServerReadyData = {
-  url: string
-  username: string | null
-  password: string | null
-}
-
-export type SqliteMigrationProgress = { type: "InProgress"; value: number } | { type: "Done" }
-
-export type WslConfig = { enabled: boolean }
-
-export type LinuxDisplayBackend = "wayland" | "auto"
 export type TitlebarTheme = {
   mode: "light" | "dark"
 }
 
-export type WindowConfig = {
-  updaterEnabled: boolean
-}
-
-export type ElectronAPI = {
-  killSidecar: () => Promise<void>
-  installCli: () => Promise<string>
-  awaitInitialization: (onStep: (step: InitStep) => void) => Promise<ServerReadyData>
-  getWindowConfig: () => Promise<WindowConfig>
-  consumeInitialDeepLinks: () => Promise<string[]>
-  getDefaultServerUrl: () => Promise<string | null>
-  setDefaultServerUrl: (url: string | null) => Promise<void>
-  getWslConfig: () => Promise<WslConfig>
-  setWslConfig: (config: WslConfig) => Promise<void>
-  getDisplayBackend: () => Promise<LinuxDisplayBackend | null>
-  setDisplayBackend: (backend: LinuxDisplayBackend | null) => Promise<void>
-  parseMarkdownCommand: (markdown: string) => Promise<string>
-  checkAppExists: (appName: string) => Promise<boolean>
-  wslPath: (path: string, mode: "windows" | "linux" | null) => Promise<string>
-  resolveAppPath: (appName: string) => Promise<string | null>
+export type TeamCoreAPI = {
+  // ── Store ──────────────────────────────────────────
   storeGet: (name: string, key: string) => Promise<string | null>
   storeSet: (name: string, key: string, value: string) => Promise<void>
   storeDelete: (name: string, key: string) => Promise<void>
@@ -42,11 +16,7 @@ export type ElectronAPI = {
   storeKeys: (name: string) => Promise<string[]>
   storeLength: (name: string) => Promise<number>
 
-  getWindowCount: () => Promise<number>
-  onSqliteMigrationProgress: (cb: (progress: SqliteMigrationProgress) => void) => () => void
-  onMenuCommand: (cb: (id: string) => void) => () => void
-  onDeepLink: (cb: (urls: string[]) => void) => () => void
-
+  // ── Dialogs ────────────────────────────────────────
   openDirectoryPicker: (opts?: {
     multiple?: boolean
     title?: string
@@ -56,24 +26,46 @@ export type ElectronAPI = {
     multiple?: boolean
     title?: string
     defaultPath?: string
-    accept?: string[]
     extensions?: string[]
   }) => Promise<string | string[] | null>
   saveFilePicker: (opts?: { title?: string; defaultPath?: string }) => Promise<string | null>
+
+  // ── Links & Paths ──────────────────────────────────
   openLink: (url: string) => void
-  openPath: (path: string, app?: string) => Promise<void>
+  openPath: (path: string) => Promise<string>
+
+  // ── Clipboard ──────────────────────────────────────
   readClipboardImage: () => Promise<{ buffer: ArrayBuffer; width: number; height: number } | null>
+
+  // ── Notifications ──────────────────────────────────
   showNotification: (title: string, body?: string) => void
+
+  // ── Window ─────────────────────────────────────────
+  getWindowCount: () => Promise<number>
   getWindowFocused: () => Promise<boolean>
   setWindowFocus: () => Promise<void>
   showWindow: () => Promise<void>
-  relaunch: () => void
   getZoomFactor: () => Promise<number>
   setZoomFactor: (factor: number) => Promise<void>
   setTitlebar: (theme: TitlebarTheme) => Promise<void>
-  loadingWindowComplete: () => void
+  setBackgroundColor: (color: string) => Promise<void>
+
+  // ── App ────────────────────────────────────────────
+  relaunch: () => void
+  onMenuCommand: (cb: (id: string) => void) => () => void
+
+  // ── Server ─────────────────────────────────────────
+  killSidecar: () => Promise<void>
+  getServerPort: () => Promise<number>
+
+  // ── Updater ────────────────────────────────────────
   runUpdater: (alertOnFail: boolean) => Promise<void>
   checkUpdate: () => Promise<{ updateAvailable: boolean; version?: string }>
   installUpdate: () => Promise<void>
-  setBackgroundColor: (color: string) => Promise<void>
+}
+
+declare global {
+  interface Window {
+    api: TeamCoreAPI
+  }
 }

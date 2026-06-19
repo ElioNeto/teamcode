@@ -190,7 +190,7 @@ export type CavemanSessionInfo = {
 
 export function defaultSessionInfo(configLevel?: CavemanLevel): CavemanSessionInfo {
   return {
-    enabled: false,
+    enabled: true,
     level: configLevel ?? "full",
     tokens_saved: 0,
   }

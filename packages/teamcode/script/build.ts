@@ -14,6 +14,15 @@ process.chdir(dir)
 
 await import("./generate.ts")
 
+// Read schema files for embedding (dev fallback reads from schemas/ at runtime)
+const schemasDir = path.resolve(dir, "../../schemas")
+const configSchemaJson = fs.existsSync(path.join(schemasDir, "teamcode.json"))
+  ? await Bun.file(path.join(schemasDir, "teamcode.json")).text()
+  : "{}"
+const tuiSchemaJson = fs.existsSync(path.join(schemasDir, "tui.json"))
+  ? await Bun.file(path.join(schemasDir, "tui.json")).text()
+  : "{}"
+
 import { Script } from "@teamcode-ai/script"
 import pkg from "../package.json"
 
@@ -218,6 +227,8 @@ for (const item of targets) {
     define: {
       TEAMCODE_VERSION: `'${Script.version}'`,
       TEAMCODE_MIGRATIONS: JSON.stringify(migrations),
+      TEAMCODE_CONFIG_SCHEMA_JSON: JSON.stringify(configSchemaJson),
+      TEAMCODE_TUI_SCHEMA_JSON: JSON.stringify(tuiSchemaJson),
       OTUI_TREE_SITTER_WORKER_PATH: bunfsRoot + workerRelativePath,
       TEAMCODE_WORKER_PATH: workerPath,
       TEAMCODE_CHANNEL: `'${Script.channel}'`,

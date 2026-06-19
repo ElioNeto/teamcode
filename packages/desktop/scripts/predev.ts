@@ -15,6 +15,12 @@ if (!existsSync(resolve(electronDir, "dist", binName))) {
   process.exit(1)
 }
 
-await $`bun ./scripts/copy-icons.ts ${process.env.OPENCODE_CHANNEL ?? "dev"}`
+await $`bun ./scripts/copy-icons.ts ${process.env.TEAMCODE_CHANNEL ?? "dev"}`
 
-await $`cd ../teamcode && bun script/build-node.ts`
+// Build Go core for dev if not already built
+const goCoreRoot = resolve(import.meta.dir, "../../../go-core")
+const goCoreBinary = resolve(goCoreRoot, "build/go-core-server")
+if (!existsSync(goCoreBinary)) {
+  console.log("Building Go core server...")
+  await $`cd ${goCoreRoot} && make build`
+}
