@@ -1,6 +1,6 @@
 import { test, type TestOptions } from "bun:test"
-import { Cause, Duration, Effect, Exit, Layer } from "effect"
-import type * as Scope from "effect/Scope"
+import { Cause, Duration, Effect, Exit, Layer, Scope } from "effect"
+import type * as Scope_ from "effect/Scope"
 import * as TestClock from "effect/testing/TestClock"
 import * as TestConsole from "effect/testing/TestConsole"
 import type { Config } from "@/config/config"
@@ -22,76 +22,104 @@ function instanceArgs(
   return { instanceOptions: undefined, testOptions: options }
 }
 
-const body = <A, E, R>(value: Body<A, E, R>) => Effect.suspend(() => (typeof value === "function" ? value() : value))
+const toEffect = <A, E, R>(value: Body<A, E, R>) =>
+  Effect.suspend(() => (typeof value === "function" ? value() : value))
 
-const run = <A, E, R, E2>(value: Body<A, E, R | Scope.Scope>, layer: Layer.Layer<R, E2>) =>
-  Effect.gen(function* () {
-    const exit = yield* body(value).pipe(Effect.scoped, Effect.provide(layer), Effect.exit)
-    if (Exit.isFailure(exit)) {
-      for (const err of Cause.prettyErrors(exit.cause)) {
-        yield* Effect.logError(err)
+/**
+ * Build a layer context once using a shared MemoMap, then provide that
+ * context to every test via Effect.provideContext. The MemoMap ensures
+ * the layer graph is evaluated ONCE per file. Each test still gets its
+ * own scope via Effect.scoped so scoped resources are properly isolated.
+ */
+const buildContext = <R>(layer: Layer.Layer<R, never>) => {
+  const scope = Scope.makeUnsafe()
+  const memoMap = Layer.makeMemoMapUnsafe()
+  const ctx = Effect.runSync(Layer.buildWithMemoMap(layer, memoMap, scope))
+  return { ctx, scope }
+}
+
+const make = <R>(testLayer: Layer.Layer<R, never>, liveLayer: Layer.Layer<R, never>) => {
+  const { ctx: testCtx } = buildContext(testLayer)
+  const { ctx: liveCtx } = buildContext(liveLayer)
+
+  const runTest = <A, E2>(value: Effect.Effect<A, E2, R | Scope_.Scope>) =>
+    Effect.gen(function* () {
+      const exit = yield* toEffect(value).pipe(Effect.provideContext(testCtx), Effect.scoped, Effect.exit)
+      if (Exit.isFailure(exit)) {
+        for (const err of Cause.prettyErrors(exit.cause)) {
+          yield* Effect.logError(err)
+        }
       }
-    }
-    return yield* exit
-  }).pipe(Effect.runPromise)
+      return yield* exit
+    }).pipe(Effect.runPromise)
 
-const make = <R, E>(testLayer: Layer.Layer<R, E>, liveLayer: Layer.Layer<R, E>) => {
-  const effect = <A, E2>(name: string, value: Body<A, E2, R | Scope.Scope>, opts?: number | TestOptions) =>
-    test(name, () => run(value, testLayer), opts)
+  const runLive = <A, E2>(value: Effect.Effect<A, E2, R | Scope_.Scope>) =>
+    Effect.gen(function* () {
+      const exit = yield* toEffect(value).pipe(Effect.provideContext(liveCtx), Effect.scoped, Effect.exit)
+      if (Exit.isFailure(exit)) {
+        for (const err of Cause.prettyErrors(exit.cause)) {
+          yield* Effect.logError(err)
+        }
+      }
+      return yield* exit
+    }).pipe(Effect.runPromise)
 
-  effect.only = <A, E2>(name: string, value: Body<A, E2, R | Scope.Scope>, opts?: number | TestOptions) =>
-    test.only(name, () => run(value, testLayer), opts)
+  const effect = <A, E2>(name: string, value: Body<A, E2, R | Scope_.Scope>, opts?: number | TestOptions) =>
+    test(name, () => runTest(toEffect(value)), opts)
 
-  effect.skip = <A, E2>(name: string, value: Body<A, E2, R | Scope.Scope>, opts?: number | TestOptions) =>
-    test.skip(name, () => run(value, testLayer), opts)
+  effect.only = <A, E2>(name: string, value: Body<A, E2, R | Scope_.Scope>, opts?: number | TestOptions) =>
+    test.only(name, () => runTest(toEffect(value)), opts)
 
-  const live = <A, E2>(name: string, value: Body<A, E2, R | Scope.Scope>, opts?: number | TestOptions) =>
-    test(name, () => run(value, liveLayer), opts)
+  effect.skip = <A, E2>(name: string, value: Body<A, E2, R | Scope_.Scope>, opts?: number | TestOptions) =>
+    test.skip(name, () => runTest(toEffect(value)), opts)
 
-  live.only = <A, E2>(name: string, value: Body<A, E2, R | Scope.Scope>, opts?: number | TestOptions) =>
-    test.only(name, () => run(value, liveLayer), opts)
+  const live = <A, E2>(name: string, value: Body<A, E2, R | Scope_.Scope>, opts?: number | TestOptions) =>
+    test(name, () => runLive(toEffect(value)), opts)
 
-  live.skip = <A, E2>(name: string, value: Body<A, E2, R | Scope.Scope>, opts?: number | TestOptions) =>
-    test.skip(name, () => run(value, liveLayer), opts)
+  live.only = <A, E2>(name: string, value: Body<A, E2, R | Scope_.Scope>, opts?: number | TestOptions) =>
+    test.only(name, () => runLive(toEffect(value)), opts)
+
+  live.skip = <A, E2>(name: string, value: Body<A, E2, R | Scope_.Scope>, opts?: number | TestOptions) =>
+    test.skip(name, () => runLive(toEffect(value)), opts)
 
   const instance = <A, E2>(
     name: string,
-    value: Body<A, E2, R | TestInstance | Scope.Scope>,
+    value: Body<A, E2, R | TestInstance | Scope_.Scope>,
     options?: InstanceOptions | number | TestOptions,
     opts?: number | TestOptions,
   ) => {
     const args = instanceArgs(options, opts)
     return test(
       name,
-      () => run(body(value).pipe(withTmpdirInstance(args.instanceOptions)), liveLayer),
+      () => runLive(toEffect(value).pipe(withTmpdirInstance(args.instanceOptions))),
       args.testOptions,
     )
   }
 
   instance.only = <A, E2>(
     name: string,
-    value: Body<A, E2, R | TestInstance | Scope.Scope>,
+    value: Body<A, E2, R | TestInstance | Scope_.Scope>,
     options?: InstanceOptions | number | TestOptions,
     opts?: number | TestOptions,
   ) => {
     const args = instanceArgs(options, opts)
     return test.only(
       name,
-      () => run(body(value).pipe(withTmpdirInstance(args.instanceOptions)), liveLayer),
+      () => runLive(toEffect(value).pipe(withTmpdirInstance(args.instanceOptions))),
       args.testOptions,
     )
   }
 
   instance.skip = <A, E2>(
     name: string,
-    value: Body<A, E2, R | TestInstance | Scope.Scope>,
+    value: Body<A, E2, R | TestInstance | Scope_.Scope>,
     options?: InstanceOptions | number | TestOptions,
     opts?: number | TestOptions,
   ) => {
     const args = instanceArgs(options, opts)
     return test.skip(
       name,
-      () => run(body(value).pipe(withTmpdirInstance(args.instanceOptions)), liveLayer),
+      () => runLive(toEffect(value).pipe(withTmpdirInstance(args.instanceOptions))),
       args.testOptions,
     )
   }
@@ -108,7 +136,10 @@ const liveEnv = TestConsole.layer
 export const it = make(testEnv, liveEnv)
 
 export const testEffect = <R, E>(layer: Layer.Layer<R, E>) =>
-  make(Layer.provideMerge(layer, testEnv), Layer.provideMerge(layer, liveEnv))
+  make(
+    Layer.provideMerge(layer, testEnv) as unknown as Layer.Layer<R, never>,
+    Layer.provideMerge(layer, liveEnv) as unknown as Layer.Layer<R, never>,
+  )
 
 export const awaitWithTimeout = <A, E, R>(
   self: Effect.Effect<A, E, R>,
