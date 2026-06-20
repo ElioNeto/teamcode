@@ -1079,37 +1079,38 @@ export function* listGlobal(input?: {
     const query =
       conditions.length > 0
         ? db
-            .select()
+            .select({
+              session: SessionTable,
+              project_name: ProjectTable.name,
+              project_worktree: ProjectTable.worktree,
+            })
             .from(SessionTable)
+            .leftJoin(ProjectTable, eq(SessionTable.project_id, ProjectTable.id))
             .where(and(...conditions))
-        : db.select().from(SessionTable)
+        : db
+            .select({
+              session: SessionTable,
+              project_name: ProjectTable.name,
+              project_worktree: ProjectTable.worktree,
+            })
+            .from(SessionTable)
+            .leftJoin(ProjectTable, eq(SessionTable.project_id, ProjectTable.id))
     return query.orderBy(desc(SessionTable.time_updated), desc(SessionTable.id)).limit(limit).all()
   })
 
-  const ids = [...new Set(rows.map((row) => row.project_id))]
-  const projects = new Map<string, ProjectInfo>()
-
-  if (ids.length > 0) {
-    const items = Database.use((db) =>
-      db
-        .select({ id: ProjectTable.id, name: ProjectTable.name, worktree: ProjectTable.worktree })
-        .from(ProjectTable)
-        .where(inArray(ProjectTable.id, ids))
-        .all(),
-    )
-    for (const item of items) {
-      projects.set(item.id, {
-        id: item.id,
-        name: item.name ?? undefined,
-        worktree: item.worktree,
-      })
-    }
-  }
-
   for (const row of rows) {
-    const project = projects.get(row.project_id) ?? null
-    const parsed = fromRow(row)
-    if (parsed) yield { ...parsed, project }
+    const parsed = fromRow(row.session)
+    if (parsed)
+      yield {
+        ...parsed,
+        project: row.project_name
+          ? {
+              id: row.session.project_id,
+              name: row.project_name ?? undefined,
+              worktree: row.project_worktree ?? "",
+            }
+          : null,
+      }
   }
 }
 
