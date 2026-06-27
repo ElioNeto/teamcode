@@ -39,3 +39,13 @@ export function registerAdapter(projectID: ProjectID, type: string, adapter: Wor
   adapters.set(type, adapter)
   state.set(projectID, adapters)
 }
+
+/** Remove all registered adapters for a project. Used by tests for isolation. */
+export function unregisterAdapters(projectID: ProjectID) {
+  state.delete(projectID)
+}
+
+/** Remove ALL registered adapters. Used by test cleanup to prevent cross-test leakage. */
+export function clearAllAdapters() {
+  state.clear()
+}

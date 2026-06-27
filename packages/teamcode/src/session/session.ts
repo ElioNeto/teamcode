@@ -1100,11 +1100,13 @@ export function listGlobal(input?: {
       ? [
           {
             ...parsed,
-            project: row.project_name
+            // project_worktree is NOT NULL in ProjectTable, so it serves as a
+            // reliable indicator that the LEFT JOIN found a matching project row
+            project: row.project_worktree
               ? {
                   id: row.session.project_id,
                   name: row.project_name ?? undefined,
-                  worktree: row.project_worktree ?? "",
+                  worktree: row.project_worktree,
                 }
               : null,
           } as GlobalInfo,

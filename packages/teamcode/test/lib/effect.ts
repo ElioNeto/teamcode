@@ -5,6 +5,7 @@ import * as TestClock from "effect/testing/TestClock"
 import * as TestConsole from "effect/testing/TestConsole"
 import type { Config } from "@/config/config"
 import { TestInstance, withTmpdirInstance } from "../fixture/fixture"
+import { HttpRouter } from "effect/unstable/http"
 
 /**
  * Service that test modules can provide to register a cleanup/reset effect
@@ -118,7 +119,15 @@ const make = <R>(testLayer: Layer.Layer<R, never>, liveLayer: Layer.Layer<R, nev
         // Run the BeforeEach cleanup if one is registered in the context
         const cleanup = Context.getOption(ctx, BeforeEach)
         if (cleanup._tag === "Some") yield* cleanup.value
-        const exit = yield* toEffect(value).pipe(Effect.provideContext(ctx), Effect.scoped, Effect.exit)
+        // Provide a fresh HttpRouter to prevent route leakage between tests
+        const freshRouter = yield* HttpRouter.make
+        const exit = yield* toEffect(value)
+          .pipe(
+            Effect.provideContext(ctx),
+            Effect.provideService(HttpRouter.HttpRouter, freshRouter),
+            Effect.scoped,
+            Effect.exit,
+          )
         if (Exit.isFailure(exit)) {
           for (const err of Cause.prettyErrors(exit.cause)) {
             yield* Effect.logError(err)
@@ -135,7 +144,15 @@ const make = <R>(testLayer: Layer.Layer<R, never>, liveLayer: Layer.Layer<R, nev
         // Run the BeforeEach cleanup if one is registered in the context
         const cleanup = Context.getOption(ctx, BeforeEach)
         if (cleanup._tag === "Some") yield* cleanup.value
-        const exit = yield* toEffect(value).pipe(Effect.provideContext(ctx), Effect.scoped, Effect.exit)
+        // Provide a fresh HttpRouter to prevent route leakage between tests
+        const freshRouter = yield* HttpRouter.make
+        const exit = yield* toEffect(value)
+          .pipe(
+            Effect.provideContext(ctx),
+            Effect.provideService(HttpRouter.HttpRouter, freshRouter),
+            Effect.scoped,
+            Effect.exit,
+          )
         if (Exit.isFailure(exit)) {
           for (const err of Cause.prettyErrors(exit.cause)) {
             yield* Effect.logError(err)
