@@ -24,14 +24,14 @@ const EXTERNAL_SKILL_PATTERN = "skills/**/SKILL.md"
 const TEAMCODE_SKILL_PATTERN = "{skill,skills}/**/SKILL.md"
 const SKILL_PATTERN = "**/SKILL.md"
 
-// Built-in skill that ships with opencode. The model's intuition for what an
-// opencode.json should look like is often wrong, and opencode hard-fails on
+// Built-in skill that ships with teamcode. The model's intuition for what an
+// teamcode.json should look like is often wrong, and teamcode hard-fails on
 // invalid config, so users hit cryptic startup errors. Loading this skill
-// when the model is asked to touch opencode's own config files gives it the
+// when the model is asked to touch teamcode's own config files gives it the
 // actual schemas instead of guesses.
 const CUSTOMIZE_TEAMCODE_SKILL_NAME = "customize-teamcode"
 const CUSTOMIZE_TEAMCODE_SKILL_DESCRIPTION =
-  "Use ONLY when the user is editing or creating opencode's own configuration: opencode.json, opencode.jsonc, files under .opencode/, or files under ~/.config/opencode/. Also use when creating or fixing opencode agents, subagents, skills, plugins, MCP servers, or permission rules. Do not use for the user's own application code, or for any project that is not configuring opencode itself."
+  "Use ONLY when the user is editing or creating teamcode's own configuration: teamcode.json, teamcode.jsonc, files under .teamcode/, or files under ~/.config/teamcode/. Also use when creating or fixing teamcode agents, subagents, skills, plugins, MCP servers, or permission rules. Do not use for the user's own application code, or for any project that is not configuring teamcode itself."
 
 export const Info = Schema.Struct({
   name: Schema.String,

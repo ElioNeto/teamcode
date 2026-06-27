@@ -1,13 +1,13 @@
 <!--
   Built-in skill. Name and description are registered in code at
-  packages/opencode/src/skill/index.ts (see CUSTOMIZE_OPENCODE_SKILL_NAME
-  and CUSTOMIZE_OPENCODE_SKILL_DESCRIPTION). The body below becomes the
+  packages/teamcode/src/skill/index.ts (see CUSTOMIZE_TEAMCODE_SKILL_NAME
+  and CUSTOMIZE_TEAMCODE_SKILL_DESCRIPTION). The body below becomes the
   skill's content.
 -->
 
-# Customizing opencode
+# Customizing teamcode
 
-opencode validates its own config strictly and refuses to start when a field
+teamcode validates its own config strictly and refuses to start when a field
 is wrong. The shapes below cover the common surface area, but they are a
 **summary, not the source of truth**.
 
@@ -16,15 +16,15 @@ is wrong. The shapes below cover the common surface area, but they are a
 The authoritative list of every config option — with field types, enums,
 defaults, and descriptions — lives in the published JSON Schema:
 
-**<https://opencode.ai/config.json>**
+**</schema/config.json>**
 
 If a field is not documented in this skill, or you need to confirm an exact
 shape before writing config, **fetch that URL and read the schema directly**
-rather than guessing. opencode hard-fails on invalid config, so the cost of a
+rather than guessing. teamcode hard-fails on invalid config, so the cost of a
 wrong shape is a broken startup.
 
-Independently, every `opencode.json` should declare
-`"$schema": "https://opencode.ai/config.json"` so the user's editor catches
+Independently, every `teamcode.json` should declare
+`"$schema": "/schema/config.json"` so the user's editor catches
 mistakes as they type.
 
 ## Applying changes
@@ -56,7 +56,7 @@ Every field is optional.
 
 ```json
 {
-  "$schema": "https://opencode.ai/config.json",
+  "$schema": "/schema/config.json",
   "username": "string",
   "model": "provider/model-id",
   "small_model": "provider/model-id",
@@ -255,7 +255,7 @@ function, not a plain object literal, and the function returns an object
 (return `{}` if there is nothing to register).
 
 ```ts
-import type { Plugin } from "@opencode-ai/plugin"
+import type { Plugin } from "@teamcode-ai/plugin"
 
 export default (async ({ client, project, directory, $ }) => {
   return {
@@ -354,7 +354,7 @@ When a user's config is broken and opencode won't start, these env vars help:
   and start from globals only. Run from the project directory, opencode loads,
   the user edits the broken file, then they restart without the flag.
 - `OPENCODE_CONFIG=/path/to/file.json`: load an additional explicit config.
-- `OPENCODE_CONFIG_CONTENT='{"$schema":"https://opencode.ai/config.json"}'`:
+- `TEAMCODE_CONFIG_CONTENT='{"$schema":"/schema/config.json"}'`:
   inject inline JSON as a final local-scope merge.
 - `OPENCODE_DISABLE_DEFAULT_PLUGINS=1`: skip default plugins.
 - `OPENCODE_PURE=1`: skip external plugins entirely.
@@ -366,10 +366,10 @@ When a user's config is broken and opencode won't start, these env vars help:
 
 - Validate against the schema before writing. If you are unsure of a field's
   exact shape, or the field is not covered in this skill, fetch
-  `https://opencode.ai/config.json` and read the schema rather than guessing.
+  `/schema/config.json` and read the schema rather than guessing.
 - Preserve `$schema` and any existing fields the user did not ask to change.
 - For agent, skill, and plugin definitions, prefer creating new files in the
-  correct location over inlining everything in `opencode.json`.
+  correct location over inlining everything in `teamcode.json`.
 - If the user's existing config is malformed, point them at the env-var escape
   hatches above so they can edit from inside opencode without breaking their
   session.

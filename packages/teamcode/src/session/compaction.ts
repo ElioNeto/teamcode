@@ -399,6 +399,16 @@ export const layer = Layer.effect(
         cfg,
         model,
       })
+      // Set tail_start_id on the compaction part BEFORE creating the summary
+      // assistant. This ensures filterCompacted sees a consistent state even if
+      // the process crashes between here and the tail_start_id update below.
+      if (compactionPart && selected.tail_start_id && compactionPart.tail_start_id !== selected.tail_start_id) {
+        yield* session.updatePart({
+          ...compactionPart,
+          tail_start_id: selected.tail_start_id,
+        })
+      }
+
       // Allow plugins to inject context or replace compaction prompt.
       const compacting = yield* plugin.trigger(
         "experimental.session.compacting",
@@ -478,13 +488,6 @@ export const layer = Layer.effect(
         processor.message.finish = "error"
         yield* session.updateMessage(processor.message)
         return "stop"
-      }
-
-      if (compactionPart && selected.tail_start_id && compactionPart.tail_start_id !== selected.tail_start_id) {
-        yield* session.updatePart({
-          ...compactionPart,
-          tail_start_id: selected.tail_start_id,
-        })
       }
 
       if (result === "continue" && input.auto) {

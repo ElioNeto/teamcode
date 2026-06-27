@@ -5,7 +5,7 @@ Technical reference for the current TUI plugin system.
 ## Overview
 
 - TUI plugin config lives in `tui.json`.
-- Author package entrypoint is `@opencode-ai/plugin/tui`.
+- Author package entrypoint is `@teamcode-ai/plugin/tui`.
 - Internal plugins load inside the CLI app the same way external TUI plugins do.
 - Package plugins can be installed from CLI or TUI.
 - v1 plugin modules are target-exclusive: a module can export `server` or `tui`, never both.
@@ -18,7 +18,7 @@ Example:
 
 ```json
 {
-  "$schema": "https://opencode.ai/tui.json",
+  "$schema": "/schema/tui.json",
   "theme": "smoke-theme",
   "leader_timeout": 2000,
   "keybinds": {
@@ -68,14 +68,14 @@ Example:
 
 Package entrypoint:
 
-- Import types from `@opencode-ai/plugin/tui`.
-- `@opencode-ai/plugin` exports `./tui` and declares optional peer deps on `@opentui/core` and `@opentui/solid`.
+- Import types from `@teamcode-ai/plugin/tui`.
+- `@teamcode-ai/plugin` exports `./tui` and declares optional peer deps on `@opentui/core` and `@opentui/solid`.
 
 Minimal module shape:
 
 ```tsx
 /** @jsxImportSource @opentui/solid */
-import type { TuiPlugin, TuiPluginModule } from "@opencode-ai/plugin/tui"
+import type { TuiPlugin, TuiPluginModule } from "@teamcode-ai/plugin/tui"
 
 const tui: TuiPlugin = async (api, options, meta) => {
   api.keymap.registerLayer({
@@ -213,14 +213,14 @@ npm plugins can declare a version compatibility range in `package.json` using th
 - There is no uninstall, list, or update CLI command for external plugins.
 - Local file plugins are configured directly in `tui.json`.
 
-When `plugin` entries exist in a writable `.opencode` dir or `OPENCODE_CONFIG_DIR`, OpenCode installs `@opencode-ai/plugin` into that dir and writes:
+When `plugin` entries exist in a writable `.opencode` dir or `OPENCODE_CONFIG_DIR`, OpenCode installs `@teamcode-ai/plugin` into that dir and writes:
 
 - `package.json`
 - `bun.lock`
 - `node_modules/`
 - `.gitignore`
 
-That is what makes local config-scoped plugins able to import `@opencode-ai/plugin/tui`.
+That is what makes local config-scoped plugins able to import `@teamcode-ai/plugin/tui`.
 
 ## TUI plugin API
 
@@ -260,7 +260,7 @@ Top-level API groups exposed to `tui(api, options, meta)`:
 - `api.keys` exposes host-formatted shortcut display helpers for plugin UI.
 - `formatSequence(parts)` formats parsed key sequence parts using the host's display policy.
 - `formatBindings(bindings)` formats binding lists and returns `undefined` when there is nothing to show.
-- For generic config-to-bindings helpers, import `createBindingLookup` from `@opencode-ai/plugin/tui`.
+- For generic config-to-bindings helpers, import `createBindingLookup` from `@teamcode-ai/plugin/tui`.
 
 ### Attention
 

@@ -33,6 +33,7 @@ import { emptyConsoleState, type ConsoleState } from "@/config/console-state"
 import path from "path"
 import { useKV } from "./kv"
 import { aggregateFailures } from "./aggregate-failures"
+import { Caveman } from "@/caveman"
 
 export const { use: useSync, provider: SyncProvider } = createSimpleContext({
   name: "Sync",
@@ -535,6 +536,15 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
               setStore("console_state", reconcile(consoleState))
               setStore("agent", reconcile(agents))
               setStore("config", reconcile(config))
+              // Initialize caveman state from config if not already set
+              {
+                const cavemanKey = Caveman.CAVEMAN_KV_KEY
+                if (!kv.get(cavemanKey)) {
+                  const enabled = (config as any)?.caveman?.enabled ?? true
+                  const level = (config as any)?.caveman?.level ?? "full"
+                  kv.set(cavemanKey, { enabled, level, tokens_saved: 0 })
+                }
+              }
               if (sessions !== undefined) setStore("session", reconcile(sessions))
             })
           })

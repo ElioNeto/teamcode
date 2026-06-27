@@ -57,6 +57,7 @@ import { Workspace } from "@/control-plane/workspace"
 import { CorsConfig, type CorsOptions } from "@/server/cors"
 import { serveUIEffect } from "@/server/shared/ui"
 import { ServerAuth } from "@/server/auth"
+import { getConfigSchemaJson, getTuiSchemaJson } from "@/server/schema"
 import { InstanceHttpApi, RootHttpApi } from "./api"
 import { PublicApi } from "./public"
 import { authorizationLayer, authorizationRouterMiddleware } from "./middleware/authorization"
@@ -154,6 +155,19 @@ const docRoute = HttpRouter.use((router) => router.add("GET", "/doc", () => Effe
   Layer.provide(authOnlyRouterLayer),
 )
 
+// Schema endpoints intentionally skip auth so editors can fetch them
+// for validation without credentials when the server is running.
+const configSchemaRoute = HttpRouter.use((router) =>
+  router.add("GET", "/schema/config.json", () =>
+    Effect.succeed(HttpServerResponse.text(getConfigSchemaJson(), { contentType: "application/json" })),
+  ),
+)
+const tuiSchemaRoute = HttpRouter.use((router) =>
+  router.add("GET", "/schema/tui.json", () =>
+    Effect.succeed(HttpServerResponse.text(getTuiSchemaJson(), { contentType: "application/json" })),
+  ),
+)
+
 const uiRoute = HttpRouter.use((router) =>
   Effect.gen(function* () {
     const fs = yield* AppFileSystem.Service
@@ -168,7 +182,7 @@ const uiRoute = HttpRouter.use((router) =>
 export function createRoutes(
   corsOptions?: CorsOptions,
 ): Layer.Layer<never, EffectConfig.ConfigError, any> {
-  const routeLayers = Layer.mergeAll(rootApiRoutes, eventApiRoutes, instanceRoutes, docRoute, uiRoute)
+  const routeLayers = Layer.mergeAll(rootApiRoutes, eventApiRoutes, instanceRoutes, docRoute, configSchemaRoute, tuiSchemaRoute, uiRoute)
 
   const serviceLayers = Layer.mergeAll(
     Account.defaultLayer,

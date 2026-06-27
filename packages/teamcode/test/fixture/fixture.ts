@@ -97,7 +97,7 @@ export async function tmpdir<T>(options?: TmpDirOptions<T>) {
         path.join(dirpath, "teamcode.json"),
         JSON.stringify(
           {
-            $schema: "https://opencode.ai/config.json",
+            $schema: "/schema/config.json",
             ...options.config,
           },
           null,
@@ -153,7 +153,7 @@ export function tmpdirScoped(options?: { git?: boolean; config?: Partial<Config.
       yield* Effect.promise(() =>
         fs.writeFile(
           path.join(dir, "teamcode.json"),
-          JSON.stringify({ $schema: "https://opencode.ai/config.json", ...options.config }),
+          JSON.stringify({ $schema: "/schema/config.json", ...options.config }),
         ),
       )
     }
@@ -225,6 +225,11 @@ export function provideTmpdirServer<A, E, R>(
 > {
   return Effect.gen(function* () {
     const llm = yield* TestLLMServer
+    // Reset mutable server state before each test so accumulated hits, queued
+    // responses, and wait promises from a prior test don't leak into this one.
+    // The reset includes a small delay to let in-flight background fiber
+    // requests (title generation, summarization) arrive before clearing.
+    yield* llm.reset
     return yield* provideTmpdirInstance((dir) => self({ dir, llm }), {
       git: options?.git,
       config: options?.config?.(llm.url),

@@ -161,12 +161,19 @@ export const layer = Layer.effect(
           const cfg = yield* config.get()
           const cfgIgnores = cfg.watcher?.ignore ?? []
 
-          // Watch the project directory for file changes so the file tree
-          // and open tabs auto-refresh when files are modified externally.
-          // The subscribe call gracefully handles missing native bindings.
-          yield* Effect.forkScoped(
-            subscribe(ctx.directory, [...FileIgnore.PATTERNS, ...cfgIgnores, ...protecteds(ctx.directory)]),
-          )
+          // Skip filesystem root directories — recursive inotify on "/" would
+          // register watches on the entire filesystem, causing timeouts and
+          // an infinite retry loop.
+          if (path.dirname(ctx.directory) !== ctx.directory) {
+            // Watch the project directory for file changes so the file tree
+            // and open tabs auto-refresh when files are modified externally.
+            // The subscribe call gracefully handles missing native bindings.
+            yield* Effect.forkScoped(
+              subscribe(ctx.directory, [...FileIgnore.PATTERNS, ...cfgIgnores, ...protecteds(ctx.directory)]),
+            )
+          } else {
+            log.warn("skipped filesystem root directory", { directory: ctx.directory })
+          }
 
           if (ctx.project.vcs === "git") {
             const result = yield* git.run(["rev-parse", "--git-dir"], {

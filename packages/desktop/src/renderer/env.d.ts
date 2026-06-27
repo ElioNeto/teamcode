@@ -1,10 +1,7 @@
-import type { ElectronAPI } from "../preload/types"
+import type { TeamCoreAPI } from "../preload/types"
 
 declare global {
   interface Window {
-    api: ElectronAPI
-    __TEAMCODE__?: {
-      deepLinks?: string[]
-    }
+    api: TeamCoreAPI
   }
 }

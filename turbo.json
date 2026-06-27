@@ -8,12 +8,12 @@
       "dependsOn": [],
       "outputs": ["dist/**"]
     },
-"teamcode#test": {
-      "dependsOn": ["^build"],
+    "teamcode#test": {
+      "dependsOn": [],
       "outputs": []
     },
     "teamcode#test:ci": {
-      "dependsOn": ["^build"],
+      "dependsOn": [],
       "outputs": [".artifacts/unit/junit.xml"],
       "passThroughEnv": ["*"]
     },

@@ -8,10 +8,9 @@ import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Filesystem } from "@/util/filesystem"
 import * as Log from "@teamcode-ai/core/util/log"
 import * as ConfigPaths from "@/config/paths"
+import { TUI_SCHEMA_URL } from "@/config/config"
 
 const log = Log.create({ service: "tui.migrate" })
-
-const TUI_SCHEMA_URL = "https://opencode.ai/tui.json"
 
 const decodeTheme = Schema.decodeUnknownOption(Schema.String)
 const decodeRecord = Schema.decodeUnknownOption(Schema.Record(Schema.String, Schema.Unknown))

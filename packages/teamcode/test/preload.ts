@@ -79,6 +79,11 @@ delete process.env["TEAMCODE_SERVER_USERNAME"]
 // Use in-memory sqlite
 process.env["TEAMCODE_DB"] = ":memory:"
 
+// Disable file watchers in tests — they are rarely needed and their
+// initialization (inotify on Linux, fsevents on macOS) adds ~100ms
+// per test file with no benefit in non-watcher-specific tests.
+process.env["TEAMCODE_EXPERIMENTAL_DISABLE_FILEWATCHER"] = "true"
+
 // Now safe to import from src/
 const { Log } = await import("@teamcode-ai/core/util/log")
 const { initProjectors } = await import("../src/server/projectors")

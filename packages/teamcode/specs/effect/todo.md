@@ -1,6 +1,6 @@
 # Effect TODO
 
-Short roadmap for Effect cleanup in `packages/opencode`.
+Short roadmap for Effect cleanup in `packages/teamcode`.
 
 Current patterns and examples live in [`guide.md`](./guide.md). Error
 boundary migration details live in

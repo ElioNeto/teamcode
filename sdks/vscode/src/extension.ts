@@ -6,11 +6,11 @@ import * as vscode from "vscode"
 const TERMINAL_NAME = "teamcode"
 
 export function activate(context: vscode.ExtensionContext) {
-  const openNewTerminalDisposable = vscode.commands.registerCommand("opencode.openNewTerminal", async () => {
+  const openNewTerminalDisposable = vscode.commands.registerCommand("teamcode.openNewTerminal", async () => {
     await openTerminal()
   })
 
-  const openTerminalDisposable = vscode.commands.registerCommand("opencode.openTerminal", async () => {
+  const openTerminalDisposable = vscode.commands.registerCommand("teamcode.openTerminal", async () => {
     // An opencode terminal already exists => focus it
     const existingTerminal = vscode.window.terminals.find((t) => t.name === TERMINAL_NAME)
     if (existingTerminal) {
@@ -21,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
     await openTerminal()
   })
 
-  let addFilepathDisposable = vscode.commands.registerCommand("opencode.addFilepathToTerminal", async () => {
+  let addFilepathDisposable = vscode.commands.registerCommand("teamcode.addFilepathToTerminal", async () => {
     const fileRef = getActiveFile()
     if (!fileRef) {
       return
@@ -34,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     if (terminal.name === TERMINAL_NAME) {
       // @ts-ignore
-      const port = terminal.creationOptions.env?.["_EXTENSION_OPENCODE_PORT"]
+      const port = terminal.creationOptions.env?.["_EXTENSION_TEAMCODE_PORT"]
       port ? await appendPrompt(parseInt(port), fileRef) : terminal.sendText(fileRef, false)
       terminal.show()
     }
@@ -56,8 +56,8 @@ export function activate(context: vscode.ExtensionContext) {
         preserveFocus: false,
       },
       env: {
-        _EXTENSION_OPENCODE_PORT: port.toString(),
-        OPENCODE_CALLER: "vscode",
+        _EXTENSION_TEAMCODE_PORT: port.toString(),
+        TEAMCODE_CALLER: "vscode",
       },
     })
 

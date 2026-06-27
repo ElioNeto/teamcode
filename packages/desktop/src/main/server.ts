@@ -1,275 +1,158 @@
-import { dirname, join } from "node:path"
+import { execFile, type ChildProcess } from "node:child_process"
+import { createServer } from "node:net"
+import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
-import { app, utilityProcess } from "electron"
-import type { Details } from "electron"
-import { DEFAULT_SERVER_URL_KEY, DISPLAY_BACKEND_KEY, WSL_ENABLED_KEY } from "./constants"
-import { getUserShell, loadShellEnv } from "./shell-env"
-import { getStore } from "./store"
-import type { SqliteMigrationProgress } from "../preload/types"
+import { app } from "electron"
 
-export type WslConfig = { enabled: boolean }
-
-export type HealthCheck = { wait: Promise<void> }
-
-type SidecarMessage =
-  | { type: "sqlite"; progress: SqliteMigrationProgress }
-  | { type: "ready" }
-  | { type: "stopped" }
-  | { type: "error"; error: { message: string; stack?: string } }
-
-export type SidecarListener = { stop: () => Promise<void>; kill: () => void }
-
-const SIDECAR_SERVICE_NAME = "opencode server"
 const SIDECAR_START_STALL_TIMEOUT = 60_000
 const SIDECAR_STOP_TIMEOUT = 6_000
 
-type SpawnLocalServerOptions = {
-  needsMigration: boolean
-  userDataPath: string
-  onSqliteProgress?: (progress: SqliteMigrationProgress) => void
+export type ServerHandle = { stop: () => Promise<void>; kill: () => void; port: number }
+
+type SpawnServerOptions = {
   onStdout?: (message: string) => void
   onStderr?: (message: string) => void
-  onExit?: (code: number) => void
+  onExit?: (code: number | null) => void
 }
 
-export function getDefaultServerUrl(): string | null {
-  const value = getStore().get(DEFAULT_SERVER_URL_KEY)
-  return typeof value === "string" ? value : null
-}
+/**
+ * Resolve the Go core binary path.
+ * In dev, look relative to the monorepo root.
+ * In production, check bundled resources.
+ */
+function resolveBinary(): string {
+  const envPath = process.env.GO_CORE_PATH
+  if (envPath) return envPath
 
-export function setDefaultServerUrl(url: string | null) {
-  if (url) {
-    getStore().set(DEFAULT_SERVER_URL_KEY, url)
-    return
+  if (!app.isPackaged) {
+    // In dev, look for the binary relative to the monorepo root
+    // import.meta.url is packages/desktop/src/main/server.ts → go up 4 levels to repo root
+    const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../")
+    return join(repoRoot, "go-core/build/go-core-server")
   }
 
-  getStore().delete(DEFAULT_SERVER_URL_KEY)
+  // Production: bundled via electron-builder extraResources
+  const ext = process.platform === "win32" ? ".exe" : ""
+  return join(process.resourcesPath, `go-core-server${ext}`)
 }
 
-export function getWslConfig(): WslConfig {
-  const value = getStore().get(WSL_ENABLED_KEY)
-  return { enabled: typeof value === "boolean" ? value : false }
-}
-
-export function setWslConfig(config: WslConfig) {
-  getStore().set(WSL_ENABLED_KEY, config.enabled)
-}
-
-export type DisplayBackend = "auto" | "wayland"
-
-export function getDisplayBackend(): DisplayBackend | null {
-  const value = getStore().get(DISPLAY_BACKEND_KEY)
-  return value === "auto" || value === "wayland" ? value : null
-}
-
-export function setDisplayBackend(backend: DisplayBackend | null) {
-  if (backend === "auto" || backend === "wayland") {
-    getStore().set(DISPLAY_BACKEND_KEY, backend)
-  } else {
-    getStore().delete(DISPLAY_BACKEND_KEY)
-  }
-}
-
-export function preferAppEnv(userDataPath: string) {
-  const shell = process.platform === "win32" ? null : getUserShell()
-  Object.assign(process.env, {
-    ...(shell ? loadShellEnv(shell) : null),
-    TEAMCODE_EXPERIMENTAL_ICON_DISCOVERY: "true",
-    TEAMCODE_EXPERIMENTAL_FILEWATCHER: "true",
-    TEAMCODE_CLIENT: "desktop",
-    XDG_STATE_HOME: process.env.XDG_STATE_HOME ?? userDataPath,
+function checkHealth(port: number, signal?: AbortSignal): Promise<boolean> {
+  return fetch(`http://127.0.0.1:${port}/health`, {
+    signal: signal ?? AbortSignal.timeout(3000),
   })
+    .then((r) => r.ok)
+    .catch(() => false)
 }
 
-export async function spawnLocalServer(
-  hostname: string,
+export async function spawnServer(
   port: number,
-  password: string,
-  options: SpawnLocalServerOptions,
-) {
-  const sidecar = join(dirname(fileURLToPath(import.meta.url)), "sidecar.js")
-  const child = utilityProcess.fork(sidecar, [], {
-    cwd: process.cwd(),
-    env: createSidecarEnv(),
-    serviceName: SIDECAR_SERVICE_NAME,
-    stdio: "pipe",
-  })
-  let exited = false
-  const exit = defer<number>()
-
-  const onProcessGone = (_event: unknown, details: Details) => {
-    if (details.type !== "Utility" || details.name !== SIDECAR_SERVICE_NAME) return
-    options.onStderr?.(`utility process gone reason=${details.reason} exitCode=${details.exitCode}`)
+  options: SpawnServerOptions = {},
+): Promise<ServerHandle> {
+  const binary = resolveBinary()
+  const env = {
+    ...process.env,
+    GO_CORE_PORT: String(port),
   }
 
-  app.on("child-process-gone", onProcessGone)
-  child.once("exit", (code) => {
+  const child: ChildProcess = execFile(binary, [], {
+    env: env as Record<string, string>,
+    stdio: ["ignore", "pipe", "pipe"],
+  } as any)
+
+  let exited = false
+
+  child.stdout?.on("data", (chunk: Buffer) => {
+    options.onStdout?.(chunk.toString("utf8").trimEnd())
+  })
+
+  child.stderr?.on("data", (chunk: Buffer) => {
+    options.onStderr?.(chunk.toString("utf8").trimEnd())
+  })
+
+  child.on("exit", (code) => {
     exited = true
-    app.off("child-process-gone", onProcessGone)
     options.onExit?.(code)
-    exit.resolve(code)
   })
-  child.on("error", (error) => options.onStderr?.(`utility process error: ${serializeError(error).message}`))
 
-  child.stdout?.on("data", (chunk: Buffer) => options.onStdout?.(chunk.toString("utf8").trimEnd()))
-  child.stderr?.on("data", (chunk: Buffer) => options.onStderr?.(chunk.toString("utf8").trimEnd()))
+  child.on("error", (err) => {
+    options.onStderr?.(`go-core process error: ${err.message}`)
+  })
 
-  await new Promise<void>((resolve, reject) => {
-    let done = false
-    let timeout: NodeJS.Timeout
+  // Wait for health check
+  const abort = new AbortController()
+  const healthOk = await waitForHealth(port, abort.signal)
 
-    const fail = (error: Error) => {
-      if (done) return
-      done = true
-      cleanup()
-      reject(error)
-    }
-
-    const refreshTimeout = () => {
-      clearTimeout(timeout)
-      timeout = setTimeout(() => {
-        fail(new Error(`Sidecar did not become ready within ${SIDECAR_START_STALL_TIMEOUT}ms: ${sidecar}`))
-      }, SIDECAR_START_STALL_TIMEOUT)
-    }
-
-    const onMessage = (message: SidecarMessage) => {
-      if (message.type === "sqlite") {
-        refreshTimeout()
-        options.onSqliteProgress?.(message.progress)
-        return
-      }
-      if (message.type === "ready") {
-        if (done) return
-        done = true
-        cleanup()
-        resolve()
-        return
-      }
-      if (message.type === "error") {
-        fail(Object.assign(new Error(message.error.message), { stack: message.error.stack }))
-      }
-    }
-    const onExit = (code: number) => {
-      fail(new Error(`Sidecar exited before ready with code ${code}`))
-    }
-    const cleanup = () => {
-      clearTimeout(timeout)
-      child.off("message", onMessage)
-      child.off("exit", onExit)
-    }
-
-    child.on("message", onMessage)
-    child.on("exit", onExit)
-    refreshTimeout()
-    child.postMessage({
-      type: "start",
-      hostname,
-      port,
-      password,
-      userDataPath: options.userDataPath,
-      needsMigration: options.needsMigration,
-    })
-  }).catch((error) => {
+  if (!healthOk) {
     if (!exited) child.kill()
-    throw error
-  })
-
-  const wait = (async () => {
-    const url = `http://${hostname}:${port}`
-    let healthy = false
-    const gone = exit.promise.then((code) => {
-      if (healthy) return
-      throw new Error(`Sidecar exited before health check passed with code ${code}`)
-    })
-
-    const ready = async () => {
-      while (true) {
-        await new Promise((resolve) => setTimeout(resolve, 100))
-        if (await checkHealth(url, password)) {
-          healthy = true
-          return
-        }
-      }
-    }
-
-    await Promise.race([ready(), gone])
-  })()
+    throw new Error(`Go core server failed to start on port ${port}`)
+  }
 
   let stopping: Promise<void> | undefined
 
   return {
-    listener: {
-      stop: () => {
-        if (stopping) return stopping
-        if (exited) return Promise.resolve()
-        child.postMessage({ type: "stop" })
-        stopping = Promise.race([
-          exit.promise.then(() => undefined),
-          delay(SIDECAR_STOP_TIMEOUT).then(() => {
-            if (!exited) child.kill()
-          }),
-        ])
-        return stopping
-      },
-      kill: () => {
-        if (exited) return
-        child.kill()
-      },
+    port,
+    stop: () => {
+      if (stopping) return stopping
+      if (exited) return Promise.resolve()
+      child.kill("SIGTERM")
+      stopping = new Promise<void>((resolve) => {
+        const timeout = setTimeout(() => {
+          if (!exited) child.kill("SIGKILL")
+          resolve()
+        }, SIDECAR_STOP_TIMEOUT)
+
+        child.on("exit", () => {
+          clearTimeout(timeout)
+          resolve()
+        })
+      })
+      return stopping
     },
-    health: { wait },
+    kill: () => {
+      if (exited) return
+      child.kill("SIGKILL")
+    },
   }
 }
 
-export async function checkHealth(url: string, password?: string | null): Promise<boolean> {
-  let healthUrl: URL
-  try {
-    healthUrl = new URL("/global/health", url)
-  } catch {
-    return false
+async function waitForHealth(port: number, signal: AbortSignal): Promise<boolean> {
+  const deadline = Date.now() + SIDECAR_START_STALL_TIMEOUT
+
+  while (Date.now() < deadline) {
+    if (signal.aborted) return false
+    const ok = await checkHealth(port)
+    if (ok) return true
+    await new Promise((resolve) => setTimeout(resolve, 200))
   }
 
-  const headers = new Headers()
-  if (password) {
-    const auth = Buffer.from(`opencode:${password}`).toString("base64")
-    headers.set("authorization", `Basic ${auth}`)
+  return false
+}
+
+/**
+ * Find an available port starting from the preferred port.
+ * Uses OS-assigned port (0) to probe, then uses the assigned number.
+ */
+export async function findAvailablePort(): Promise<number> {
+  const fromEnv = process.env.TEAMCODE_PORT
+  if (fromEnv) {
+    const parsed = Number.parseInt(fromEnv, 10)
+    if (!Number.isNaN(parsed)) return parsed
   }
 
-  try {
-    const res = await fetch(healthUrl, {
-      method: "GET",
-      headers,
-      signal: AbortSignal.timeout(3000),
+  const preferred = Number.parseInt(process.env.GO_CORE_PORT ?? "43001", 10)
+
+  return new Promise((resolve, reject) => {
+    const server = createServer()
+    server.on("error", reject)
+    server.listen(preferred, "127.0.0.1", () => {
+      const address = server.address()
+      if (!address || typeof address !== "object") {
+        server.close()
+        reject(new Error("Failed to get port"))
+        return
+      }
+      const port = address.port
+      server.close(() => resolve(port))
     })
-    return res.ok
-  } catch {
-    return false
-  }
-}
-
-function createSidecarEnv(): Record<string, string> {
-  const env = Object.fromEntries(
-    Object.entries(process.env).flatMap(([key, value]) => (value === undefined ? [] : [[key, String(value)]])),
-  )
-  delete env.DEBUG
-  if (process.platform === "linux") delete env.LD_PRELOAD
-  return env
-}
-
-function delay(ms: number) {
-  return new Promise<void>((resolve) => setTimeout(resolve, ms))
-}
-
-function serializeError(error: unknown) {
-  if (error instanceof Error) return { message: error.message, stack: error.stack }
-  return { message: String(error) }
-}
-
-function defer<T>() {
-  let resolve!: (value: T) => void
-  let reject!: (error: Error) => void
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res
-    reject = rej
   })
-  return { promise, resolve, reject }
 }

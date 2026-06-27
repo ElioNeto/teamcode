@@ -3,7 +3,27 @@
 - The default branch in this repo is `dev`.
 - Local `main` ref may not exist; use `dev` or `origin/dev` for diffs.
 - Prefer automation: execute requested actions without confirmation unless blocked by missing info or safety/irreversibility.
-- **Never dismiss an error as "pre-existing" or "upstream."** Every CI failure, test failure, or validation error must be investigated to its root cause and fixed. If the same error exists on `main`, fix it on `main` as part of your changes. There is no such thing as a "pre-existing" error — only errors that haven't been fixed yet.
+- **Never dismiss an error as "pre-existing" or "upstream."** Every CI failure, test failure, or validation error must be investigated to its root cause and fixed. If the same error exists on `main`, fix it on `main` as part of your changes. There is no such thing as a "pre-existing" error — only errors that haven't been fixed yet. If a fix requires deeper refactoring beyond the current scope, create an issue, document the root cause, and ensure it's tracked — never silently tolerate a single failure.
+- **A task is only complete when** the happy path AND exception flows have well-written tests that pass. Never cut corners on coverage.
+- **Never use `--no-verify`, `--no-hooks`, or any bypass flag.** Validation hooks exist for a reason and must run on every commit.
+
+## Workflow de release
+
+Para publicar uma nova versão, siga esta sequência **exatamente**:
+
+1. **Desenvolva e commit** na branch `dev` (padrão).
+2. **Aguarde as Actions passarem** em `dev` — não avance enquanto houver falha.
+3. **Abra um Pull Request** de `dev` para `main` (ou para a branch de release).
+4. **Mergeie o PR** em `main` — use merge comum (não squash) para preservar o histórico.
+5. **Aguarde as Actions passarem** em `main` após o merge.
+6. **Crie uma tag de versão** (`v*`, ex: `v2.2.1`) e faça push dela:
+   ```sh
+   git tag -a v2.2.1 -m "Release v2.2.1: descrição das mudanças"
+   git push origin v2.2.1
+   ```
+7. A **CI pipeline de publish** (`.github/workflows/publish.yml`) detecta o push da tag e publica automaticamente.
+
+**Nunca crie a tag antes do merge em `main`.** A tag deve referenciar um commit em `main`, não em `dev`. A pipeline de publish é gatilhada por tags `v*` em `main`.
 
 ## Style Guide
 

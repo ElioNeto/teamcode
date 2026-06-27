@@ -21,13 +21,13 @@ async function signWindows(configuration: { path: string }) {
 }
 
 const channel = (() => {
-  const raw = process.env.OPENCODE_CHANNEL
+  const raw = process.env.TEAMCODE_CHANNEL
   if (raw === "dev" || raw === "beta" || raw === "prod") return raw
   return "dev"
 })()
 
 const getBase = (): Configuration => ({
-  artifactName: "opencode-desktop-${os}-${arch}.${ext}",
+  artifactName: "teamcode-desktop-${os}-${arch}.${ext}",
   directories: {
     output: "dist",
     buildResources: "resources",
@@ -54,8 +54,8 @@ const getBase = (): Configuration => ({
     sign: true,
   },
   protocols: {
-    name: "OpenCode",
-    schemes: ["opencode"],
+    name: "TeamCode",
+    schemes: ["teamcode"],
   },
   win: {
     icon: `resources/icons/icon.ico`,
@@ -80,7 +80,7 @@ const getBase = (): Configuration => ({
     executableArgs: ["--no-sandbox"],
   },
   flatpak: {
-    id: channel === "prod" ? "ai.opencode.desktop" : `ai.opencode.desktop.${channel}`,
+    id: channel === "prod" ? "ai.teamcode.desktop" : `ai.teamcode.desktop.${channel}`,
     branch: channel === "prod" ? "stable" : channel,
     runtime: "org.electronjs.Electron2.BaseApp",
     runtimeVersion: "24.08",
@@ -111,29 +111,29 @@ function getConfig() {
     case "dev": {
       return {
         ...base,
-        appId: "ai.opencode.desktop.dev",
-        productName: "OpenCode Dev",
-        rpm: { packageName: "opencode-dev" },
+        appId: "ai.teamcode.desktop.dev",
+        productName: "TeamCode Dev",
+        rpm: { packageName: "teamcode-dev" },
       }
     }
     case "beta": {
       return {
         ...base,
-        appId: "ai.opencode.desktop.beta",
-        productName: "OpenCode Beta",
-        protocols: { name: "OpenCode Beta", schemes: ["opencode"] },
-        publish: { provider: "github", owner: "anomalyco", repo: "opencode-beta", channel: "latest" },
-        rpm: { packageName: "opencode-beta" },
+        appId: "ai.teamcode.desktop.beta",
+        productName: "TeamCode Beta",
+        protocols: { name: "TeamCode Beta", schemes: ["teamcode"] },
+        publish: { provider: "github", owner: "ElioNeto", repo: "teamcode", channel: "latest" },
+        rpm: { packageName: "teamcode-beta" },
       }
     }
     case "prod": {
       return {
         ...base,
-        appId: "ai.opencode.desktop",
-        productName: "OpenCode",
-        protocols: { name: "OpenCode", schemes: ["opencode"] },
-        publish: { provider: "github", owner: "anomalyco", repo: "opencode", channel: "latest" },
-        rpm: { packageName: "opencode" },
+        appId: "ai.teamcode.desktop",
+        productName: "TeamCode",
+        protocols: { name: "TeamCode", schemes: ["teamcode"] },
+        publish: { provider: "github", owner: "ElioNeto", repo: "teamcode", channel: "latest" },
+        rpm: { packageName: "teamcode" },
       }
     }
   }

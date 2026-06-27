@@ -157,11 +157,22 @@ export const layer = Layer.effect(
             return trySubscribe()
           }
 
-          for (const dir of watchedSet) {
+          // Skip filesystem root directories (e.g. "/" on Unix, "C:\\" on
+          // Windows). Attempting a recursive inotify watch on these triggers a
+          // ~10s timeout and registers watches on the entire filesystem, which
+          // freezes the event loop and causes an infinite retry loop.
+          const isRoot = (d: string) => path.dirname(d) === d
+          const filtered = [...watchedSet].filter((d) => !isRoot(d))
+          for (const dir of filtered) {
             yield* Effect.forkScoped(subscribe(dir, ["node_modules", ".git", "dist", "build", ".turbo"]))
           }
 
-          log.info("watching config directories", { count: watchedSet.size, directories: [...watchedSet] })
+          const skipped = watchedSet.size - filtered.length
+          if (skipped > 0) {
+            log.warn("skipped filesystem root directories", { skipped, directories: [...watchedSet].filter(isRoot) })
+          }
+
+          log.info("watching config directories", { count: filtered.length, directories: filtered })
         },
         Effect.catchCause((cause) => {
           log.error("failed to init config watcher", { cause: Cause.pretty(cause) })

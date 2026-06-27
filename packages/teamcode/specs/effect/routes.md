@@ -1,6 +1,6 @@
 # HTTP Route Patterns
 
-Current guidance for `packages/opencode/src/server/routes/instance/httpapi`.
+Current guidance for `packages/teamcode/src/server/routes/instance/httpapi`.
 
 ## Handler Shape
 
