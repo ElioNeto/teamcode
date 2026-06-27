@@ -1,5 +1,15 @@
 # teamcode database guide
 
+## Golden Rule
+
+**Never dismiss an error as "pre-existing" or "upstream."** Every CI failure, test
+failure, or validation error must be investigated to its root cause and fixed.
+If the same error exists on `main`, fix it on `main` as part of your changes.
+There is no such thing as a "pre-existing" error — only errors that haven't been
+fixed yet. If a fix requires deeper refactoring beyond the current scope, create
+an issue, document the root cause, and ensure it's tracked — never silently
+tolerate a single failure.
+
 ## Database
 
 - **Schema**: Drizzle schema lives in `src/**/*.sql.ts`.

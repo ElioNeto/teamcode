@@ -3,7 +3,9 @@
 - The default branch in this repo is `dev`.
 - Local `main` ref may not exist; use `dev` or `origin/dev` for diffs.
 - Prefer automation: execute requested actions without confirmation unless blocked by missing info or safety/irreversibility.
-- **Never dismiss an error as "pre-existing" or "upstream."** Every CI failure, test failure, or validation error must be investigated to its root cause and fixed. If the same error exists on `main`, fix it on `main` as part of your changes. There is no such thing as a "pre-existing" error — only errors that haven't been fixed yet.
+- **Never dismiss an error as "pre-existing" or "upstream."** Every CI failure, test failure, or validation error must be investigated to its root cause and fixed. If the same error exists on `main`, fix it on `main` as part of your changes. There is no such thing as a "pre-existing" error — only errors that haven't been fixed yet. If a fix requires deeper refactoring beyond the current scope, create an issue, document the root cause, and ensure it's tracked — never silently tolerate a single failure.
+- **A task is only complete when** the happy path AND exception flows have well-written tests that pass. Never cut corners on coverage.
+- **Never use `--no-verify`, `--no-hooks`, or any bypass flag.** Validation hooks exist for a reason and must run on every commit.
 
 ## Style Guide
 
