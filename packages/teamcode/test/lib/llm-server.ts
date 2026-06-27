@@ -666,8 +666,10 @@ export class TestLLMServer extends Context.Service<TestLLMServer, TestLLMServer.
         const body = yield* req.json.pipe(Effect.orElseSucceed(() => ({})))
         const current = hit(req.originalUrl, body)
         if (isTitleRequest(body)) {
-          hits = [...hits, current]
-          yield* notify()
+          // Title generation is a background fiber that fires an LLM request.
+          // Count it as a miss (not a hit) so test assertions on hits.length
+          // are not polluted by stray title requests from prior tests.
+          misses = [...misses, current]
           const auto: Sse = { type: "sse", head: [role()], tail: [textLine("E2E Title"), finishLine("stop")] }
           if (mode === "responses") return send(responses(auto, modelFrom(body)))
           return send(auto)
@@ -748,9 +750,17 @@ export class TestLLMServer extends Context.Service<TestLLMServer, TestLLMServer.
         hold: Effect.fn("TestLLMServer.hold")(function* (value: string, wait: PromiseLike<unknown>) {
           queue(reply().wait(wait).text(value).stop().item())
         }),
-        reset: Effect.sync(() => {
-          hits = []
+        reset: Effect.gen(function* () {
+          // Wait for any background fibers from the prior test (title
+          // generation, summarization, compaction prune) to settle.
+          // Poll: if a new hit arrives during the wait, extend the window.
+          for (let i = 0; i < 5; i++) {
+            const before = hits.length
+            yield* Effect.sleep("10 millis")
+            if (hits.length > before) i = -1 // restart counter
+          }
           list = []
+          hits = []
           waits = []
           misses = []
         }),

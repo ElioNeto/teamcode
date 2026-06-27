@@ -1,8 +1,8 @@
-# ApexStore Evolution Roadmap: v2.3 → v6
+# ApexStore Evolution Roadmap: v2.2.1 → v6
 
 ## TeamCode Migration Strategy
 
-**Last updated:** 2026-06-13  
+**Last updated:** 2026-06-20  
 **Authors:** AI-assisted analysis  
 **Repositories:** `ElioNeto/ApexStore` (Rust KV engine), `ElioNeto/teamcode` (TypeScript app)
 
@@ -18,7 +18,7 @@ the migration without disrupting users.
 
 ---
 
-## Phase 0 — Foundation (Current: ApexStore v2.3, TeamCode current)
+## Phase 0 — Foundation (Current: ApexStore v2.2.1, TeamCode current)
 
 **Goal:** Establish observability, client completeness, and developer confidence.
 

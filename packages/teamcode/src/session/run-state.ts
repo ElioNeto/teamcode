@@ -6,6 +6,9 @@ import * as Session from "./session"
 import { MessageV2 } from "./message-v2"
 import { SessionID } from "./schema"
 import { SessionStatus } from "./status"
+import * as Log from "@teamcode-ai/core/util/log"
+
+const log = Log.create({ service: "session.run-state" })
 
 export interface Interface {
   readonly assertNotBusy: (sessionID: SessionID) => Effect.Effect<void, Session.BusyError>
@@ -54,7 +57,14 @@ export const layer = Layer.effect(
     ) {
       const data = yield* InstanceState.get(state)
       const existing = data.runners.get(sessionID)
-      if (existing) return existing
+      if (existing) {
+        // Check if existing runner is stale (not busy) — replace it
+        if (!existing.busy) {
+          data.runners.delete(sessionID)
+        } else {
+          return existing
+        }
+      }
       const next = Runner.make<MessageV2.WithParts>(data.scope, {
         onIdle: Effect.gen(function* () {
           data.runners.delete(sessionID)
@@ -74,18 +84,29 @@ export const layer = Layer.effect(
     })
 
     const cancel = Effect.fn("SessionRunState.cancel")(function* (sessionID: SessionID) {
+      log.info("cancel", { sessionID })
       const childIDs = yield* cancelBackgroundJobs(background, sessionID)
-      // Cancel runners for child sessions (background agents) so their work
-      // is interrupted even though it runs in a separate Runner scope.
       const allIDs = [sessionID, ...childIDs]
       const data = yield* InstanceState.get(state)
+
       for (const id of allIDs) {
         const existing = data.runners.get(id)
         if (existing?.busy) {
-          yield* existing.cancel
+          yield* existing.cancel.pipe(
+            Effect.catchCause((cause) => {
+              log.error("cancel runner failed", { sessionID: id, cause })
+              return Effect.void
+            }),
+          )
         }
       }
-      yield* status.set(sessionID, { type: "idle" })
+
+      yield* status.set(sessionID, { type: "idle" }).pipe(
+        Effect.catchCause((cause) => {
+          log.error("cancel: status set failed", { sessionID, cause })
+          return Effect.void
+        }),
+      )
     })
 
     const ensureRunning = Effect.fn("SessionRunState.ensureRunning")(function* (

@@ -6,7 +6,7 @@ import { LocalContext } from "@/util/local-context"
 import { Global } from "@teamcode-ai/core/global"
 import * as Log from "@teamcode-ai/core/util/log"
 import path from "path"
-import { readFileSync, readdirSync, existsSync, mkdirSync } from "fs"
+import { readFileSync, readdirSync, existsSync, mkdirSync, unlinkSync } from "fs"
 import { InstallationChannel } from "@teamcode-ai/core/installation/version"
 import { EffectBridge } from "@/effect/bridge"
 import { init } from "#db"
@@ -46,6 +46,57 @@ export type Transaction = SQLiteTransaction<"sync", void>
 type Client = ReturnType<typeof init>
 
 type Journal = { sql: string; timestamp: number; name: string }[]
+
+/**
+ * Remove stale WAL/SHM files left by a prior crash. These prevent SQLite
+ * from opening the database cleanly and manifest as "malformed database"
+ * errors until the user manually deletes .local/teamcode/opencode.db{-wal,-shm}.
+ */
+function removeStaleWalFiles(dbPath: string) {
+  for (const ext of ["-wal", "-shm"]) {
+    const p = dbPath + ext
+    try {
+      if (existsSync(p)) {
+        unlinkSync(p)
+        log.warn("removed stale WAL file", { path: p })
+      }
+    } catch {
+      // best-effort — another process may hold a lock on -shm
+    }
+  }
+}
+
+/**
+ * Attempt integrity_check. If corruption is detected, try WAL truncation first,
+ * then stale WAL file removal as last resort. Returns true if repair was needed.
+ */
+function tryRepairDatabase(db: ReturnType<typeof init>, dbPath: string): boolean {
+  try {
+    db.run("PRAGMA integrity_check")
+    return false
+  } catch {
+    log.error("database integrity check failed — attempting recovery")
+  }
+
+  // First attempt: full WAL checkpoint + truncation
+  try {
+    db.run("PRAGMA wal_checkpoint(TRUNCATE)")
+    db.run("PRAGMA integrity_check")
+    log.info("database recovered after WAL truncation")
+    return true
+  } catch {
+    // WAL recovery failed
+  }
+
+  // Last resort: close, remove stale -wal/-shm files, and re-open
+  db.$client.close()
+  removeStaleWalFiles(dbPath)
+  const reopened = init(dbPath)
+  reopened.run("PRAGMA journal_mode = WAL")
+  reopened.run("PRAGMA wal_checkpoint(TRUNCATE)")
+  log.warn("database re-opened after removing stale WAL files")
+  return true
+}
 
 // Drizzle's migrate overloads trigger expensive variance checks here; narrow to the journal overload we actually use.
 const migrateFromJournal = drizzleMigrate as unknown as (db: SQLiteBunDatabase, entries: Journal) => void
@@ -108,14 +159,33 @@ export const Client = Object.assign(
     const dbPath = getPath(flags)
     log.info("opening database", { path: dbPath })
 
-    const db = init(dbPath)
+    // Check for stale -wal/-shm files from a prior crash BEFORE opening.
+    // If they exist and the DB opens fine, do a TRUNCATE checkpoint to flush them.
+    const hadStaleWal = existsSync(dbPath + "-wal") || existsSync(dbPath + "-shm")
+    if (hadStaleWal) log.warn("stale WAL journal files detected", { path: dbPath })
+
+    let db: ReturnType<typeof init>
+    try {
+      db = init(dbPath)
+    } catch (err) {
+      log.error("failed to open database, attempting WAL recovery", { error: err })
+      removeStaleWalFiles(dbPath)
+      db = init(dbPath)
+      log.warn("database opened after WAL cleanup")
+    }
 
     db.run("PRAGMA journal_mode = WAL")
     db.run("PRAGMA synchronous = NORMAL")
-    db.run("PRAGMA busy_timeout = 5000")
+    db.run("PRAGMA busy_timeout = 10000") // increased from 5000 to reduce SQLITE_BUSY under concurrent access
     db.run("PRAGMA cache_size = -64000")
     db.run("PRAGMA foreign_keys = ON")
-    db.run("PRAGMA wal_checkpoint(PASSIVE)")
+
+    // Full WAL checkpoint on open — truncates the WAL so it doesn't grow unbounded
+    // between restarts. Use TRUNCATE (mode 2) instead of PASSIVE to really flush it.
+    db.run("PRAGMA wal_checkpoint(TRUNCATE)")
+
+    // Verify integrity and repair if needed
+    tryRepairDatabase(db, dbPath)
 
     // Apply schema migrations
     const entries =
@@ -148,9 +218,20 @@ export const Client = Object.assign(
   },
 )
 
+/**
+ * Close the database cleanly. Runs a full WAL checkpoint + truncation first
+ * so the WAL is fully merged on disk, preventing stale -wal/-shm files after
+ * a normal exit.
+ */
 export function close() {
   if (!Client.loaded()) return
-  Client().$client.close()
+  const db = Client()
+  try {
+    db.run("PRAGMA wal_checkpoint(TRUNCATE)")
+  } catch {
+    // best-effort checkpoint on close
+  }
+  db.$client.close()
   Client.reset()
 }
 

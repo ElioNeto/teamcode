@@ -1,10 +1,17 @@
 import { test, type TestOptions } from "bun:test"
-import { Cause, Duration, Effect, Exit, Layer, Scope } from "effect"
+import { Cause, Duration, Effect, Exit, Layer, Scope, Context } from "effect"
 import type * as Scope_ from "effect/Scope"
 import * as TestClock from "effect/testing/TestClock"
 import * as TestConsole from "effect/testing/TestConsole"
 import type { Config } from "@/config/config"
 import { TestInstance, withTmpdirInstance } from "../fixture/fixture"
+
+/**
+ * Service that test modules can provide to register a cleanup/reset effect
+ * that runs before each individual test. This is used to reset mutable
+ * shared state (e.g. mock servers) between tests in the same file.
+ */
+class BeforeEach extends Context.Service<BeforeEach, Effect.Effect<void>>()("@test/BeforeEach") {}
 
 type Body<A, E, R> = Effect.Effect<A, E, R> | (() => Effect.Effect<A, E, R>)
 type InstanceOptions = { git?: boolean; config?: Partial<Config.Info> }
@@ -26,43 +33,117 @@ const toEffect = <A, E, R>(value: Body<A, E, R>) =>
   Effect.suspend(() => (typeof value === "function" ? value() : value))
 
 /**
- * Build a layer context once using a shared MemoMap, then provide that
- * context to every test via Effect.provideContext. The MemoMap ensures
- * the layer graph is evaluated ONCE per file. Each test still gets its
- * own scope via Effect.scoped so scoped resources are properly isolated.
+ * Build a layer context using runPromise. Layers that start fibers internally
+ * (e.g. watchers, background jobs) cannot use runSync, which throws
+ * AsyncFiberError. runPromise handles async initialization correctly.
  */
-const buildContext = <R>(layer: Layer.Layer<R, never>) => {
+const buildContext = <R>(layer: Layer.Layer<R, never>): Context.Context<R> => {
   const scope = Scope.makeUnsafe()
   const memoMap = Layer.makeMemoMapUnsafe()
-  const ctx = Effect.runSync(Layer.buildWithMemoMap(layer, memoMap, scope))
-  return { ctx, scope }
+  return Effect.runSync(Layer.buildWithMemoMap(layer, memoMap, scope))
+}
+
+/**
+ * Same as buildContext but tolerates AsyncFiberError by falling back to
+ * runPromise. This is used for layers known to start fibers.
+ */
+async function buildContextAsync<R>(layer: Layer.Layer<R, never>): Promise<Context.Context<R>> {
+  const scope = Scope.makeUnsafe()
+  const memoMap = Layer.makeMemoMapUnsafe()
+  return await Effect.runPromise(Layer.buildWithMemoMap(layer, memoMap, scope))
 }
 
 const make = <R>(testLayer: Layer.Layer<R, never>, liveLayer: Layer.Layer<R, never>) => {
-  const { ctx: testCtx } = buildContext(testLayer)
-  const { ctx: liveCtx } = buildContext(liveLayer)
+  // Build contexts eagerly using runSync. If a layer spawns fibers, the
+  // AsyncFiberError is caught and we fall back to building lazily with
+  // runPromise on first actual test run.
+  let testCtx: Context.Context<R> | undefined
+  let liveCtx: Context.Context<R> | undefined
+  let testBuild: Promise<void> | undefined
+  let liveBuild: Promise<void> | undefined
+  let testError: unknown
+  let liveError: unknown
+
+  try {
+    testCtx = buildContext(testLayer)
+  } catch (e) {
+    testError = e
+    testBuild = buildContextAsync(testLayer).then(
+      (ctx) => { testCtx = ctx; testError = undefined },
+      (e2) => { testError = e2 },
+    )
+  }
+
+  try {
+    liveCtx = buildContext(liveLayer)
+  } catch (e) {
+    liveError = e
+    liveBuild = buildContextAsync(liveLayer).then(
+      (ctx) => { liveCtx = ctx; liveError = undefined },
+      (e2) => { liveError = e2 },
+    )
+  }
+
+  const ensureTestCtx = async () => {
+    if (testCtx) return
+    if (testBuild) { await testBuild; if (testError) throw testError }
+    // If we get here, buildContext didn't throw but also didn't set testCtx — retry async
+    if (!testBuild) {
+      testBuild = buildContextAsync(testLayer).then(
+        (ctx) => { testCtx = ctx; testError = undefined },
+        (e2) => { testError = e2 },
+      )
+    }
+    await testBuild
+    if (testError) throw testError
+  }
+
+  const ensureLiveCtx = async () => {
+    if (liveCtx) return
+    if (liveBuild) { await liveBuild; if (liveError) throw liveError }
+    if (!liveBuild) {
+      liveBuild = buildContextAsync(liveLayer).then(
+        (ctx) => { liveCtx = ctx; liveError = undefined },
+        (e2) => { liveError = e2 },
+      )
+    }
+    await liveBuild
+    if (liveError) throw liveError
+  }
 
   const runTest = <A, E2>(value: Effect.Effect<A, E2, R | Scope_.Scope>) =>
-    Effect.gen(function* () {
-      const exit = yield* toEffect(value).pipe(Effect.provideContext(testCtx), Effect.scoped, Effect.exit)
-      if (Exit.isFailure(exit)) {
-        for (const err of Cause.prettyErrors(exit.cause)) {
-          yield* Effect.logError(err)
+    ensureTestCtx().then(() => {
+      const ctx = testCtx!
+      return Effect.gen(function* () {
+        // Run the BeforeEach cleanup if one is registered in the context
+        const cleanup = Context.getOption(ctx, BeforeEach)
+        if (cleanup._tag === "Some") yield* cleanup.value
+        const exit = yield* toEffect(value).pipe(Effect.provideContext(ctx), Effect.scoped, Effect.exit)
+        if (Exit.isFailure(exit)) {
+          for (const err of Cause.prettyErrors(exit.cause)) {
+            yield* Effect.logError(err)
+          }
         }
-      }
-      return yield* exit
-    }).pipe(Effect.runPromise)
+        return yield* exit
+      }).pipe(Effect.runPromise)
+    })
 
   const runLive = <A, E2>(value: Effect.Effect<A, E2, R | Scope_.Scope>) =>
-    Effect.gen(function* () {
-      const exit = yield* toEffect(value).pipe(Effect.provideContext(liveCtx), Effect.scoped, Effect.exit)
-      if (Exit.isFailure(exit)) {
-        for (const err of Cause.prettyErrors(exit.cause)) {
-          yield* Effect.logError(err)
+    ensureLiveCtx().then(() => {
+      const ctx = liveCtx!
+      return Effect.gen(function* () {
+        // Run the BeforeEach cleanup if one is registered in the context
+        const cleanup = Context.getOption(ctx, BeforeEach)
+        if (cleanup._tag === "Some") yield* cleanup.value
+        const exit = yield* toEffect(value).pipe(Effect.provideContext(ctx), Effect.scoped, Effect.exit)
+        if (Exit.isFailure(exit)) {
+          for (const err of Cause.prettyErrors(exit.cause)) {
+            yield* Effect.logError(err)
+          }
         }
-      }
-      return yield* exit
-    }).pipe(Effect.runPromise)
+        return yield* exit
+      }).pipe(Effect.runPromise)
+    })
 
   const effect = <A, E2>(name: string, value: Body<A, E2, R | Scope_.Scope>, opts?: number | TestOptions) =>
     test(name, () => runTest(toEffect(value)), opts)
@@ -140,6 +221,8 @@ export const testEffect = <R, E>(layer: Layer.Layer<R, E>) =>
     Layer.provideMerge(layer, testEnv) as unknown as Layer.Layer<R, never>,
     Layer.provideMerge(layer, liveEnv) as unknown as Layer.Layer<R, never>,
   )
+
+export { BeforeEach }
 
 export const awaitWithTimeout = <A, E, R>(
   self: Effect.Effect<A, E, R>,

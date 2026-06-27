@@ -1015,57 +1015,99 @@ export const get = Effect.fn("MessageV2.get")(function* (input: { sessionID: Ses
   }
 })
 
+/**
+ * Reorder messages for model consumption when compaction markers are present.
+ *
+ * Compaction replaces older conversation history with a summary. The reorder
+ * presents messages in this order for the model:
+ *   1. The compaction user-message + its summary assistant
+ *   2. The retained tail (older messages before the compaction boundary)
+ *   3. Everything after the summary (most recent messages)
+ *
+ * `msgs` must be in newest-first order (as produced by filterCompactedEffect).
+ * Returns messages in oldest-first order, with compaction reordering applied.
+ */
 export function filterCompacted(msgs: Iterable<WithParts>) {
-  const result = [] as WithParts[]
-  const completed = new Set<string>()
-  let retain: MessageID | undefined
+  // Pass 1: Find the most recent compaction boundary and collect completed
+  // compaction summaries. Iterate newest-first, collecting all messages.
+  const collected: WithParts[] = []
+  const completedParents = new Set<MessageID>()
+  let tailStartID: MessageID | undefined
+
   for (const msg of msgs) {
-    result.push(msg)
-    if (retain) {
-      if (msg.info.id === retain) break
+    collected.push(msg)
+
+    if (tailStartID) {
+      // Already found the compaction boundary; stop when we reach tail_start_id
+      if (msg.info.id === tailStartID) break
       continue
     }
-    if (msg.info.role === "user" && completed.has(msg.info.id)) {
-      const part = msg.parts.find((item): item is CompactionPart => item.type === "compaction")
-      if (!part) continue
-      if (!part.tail_start_id) break
-      retain = part.tail_start_id
-      if (msg.info.id === retain) break
-      continue
+
+    if (
+      msg.info.role === "assistant" &&
+      msg.info.summary &&
+      msg.info.finish &&
+      !msg.info.error
+    ) {
+      completedParents.add(msg.info.parentID)
     }
-    if (msg.info.role === "user" && completed.has(msg.info.id) && msg.parts.some((part) => part.type === "compaction"))
-      break
-    if (msg.info.role === "assistant" && msg.info.summary && msg.info.finish && !msg.info.error)
-      completed.add(msg.info.parentID)
+
+    if (
+      msg.info.role === "user" &&
+      completedParents.has(msg.info.id)
+    ) {
+      const part = msg.parts.find(
+        (item): item is CompactionPart => item.type === "compaction" && item.tail_start_id !== undefined,
+      )
+      if (part) tailStartID = part.tail_start_id
+      // If tail_start_id equals this user msg, there's nothing to retain
+      if (tailStartID && msg.info.id === tailStartID) break
+    }
   }
-  result.reverse()
-  const compactionIndex = result.findLastIndex(
+
+  // collected is newest-first. Reverse to get chronological (oldest-first).
+  collected.reverse()
+
+  const compIdx = collected.findLastIndex(
     (msg) =>
       msg.info.role === "user" &&
-      msg.parts.some((item): item is CompactionPart => item.type === "compaction" && item.tail_start_id !== undefined),
+      msg.parts.some(
+        (item): item is CompactionPart => item.type === "compaction" && item.tail_start_id !== undefined,
+      ),
   )
-  const compaction = result[compactionIndex]
-  const part = compaction?.parts.find(
+  const compactionMsg = compIdx >= 0 ? collected[compIdx] : undefined
+  const compactionPart = compactionMsg?.parts.find(
     (item): item is CompactionPart => item.type === "compaction" && item.tail_start_id !== undefined,
   )
-  const summaryIndex = compaction
-    ? result.findIndex(
-        (msg, index) =>
-          index > compactionIndex &&
+
+  // Find the summary assistant that follows the compaction user message
+  const summaryIdx = compactionMsg
+    ? collected.findIndex(
+        (msg, i) =>
+          i > compIdx &&
           msg.info.role === "assistant" &&
           msg.info.summary &&
-          msg.info.parentID === compaction.info.id,
+          msg.info.parentID === compactionMsg.info.id,
       )
     : -1
-  const tailIndex = part?.tail_start_id ? result.findIndex((msg) => msg.info.id === part.tail_start_id) : -1
-  if (tailIndex >= 0 && tailIndex < compactionIndex && summaryIndex > compactionIndex) {
+
+  // Find the tail start position in chronological order
+  const tailIdx =
+    compactionPart?.tail_start_id
+      ? collected.findIndex((msg) => msg.info.id === compactionPart.tail_start_id)
+      : -1
+
+  // Reorder: compaction+summary first, then tail, then everything after summary
+  if (tailIdx >= 0 && tailIdx < compIdx && summaryIdx > compIdx) {
     return [
-      ...result.slice(compactionIndex, summaryIndex + 1),
-      ...result.slice(tailIndex, compactionIndex),
-      ...result.slice(summaryIndex + 1),
+      ...collected.slice(compIdx, summaryIdx + 1),
+      ...collected.slice(tailIdx, compIdx),
+      ...collected.slice(summaryIdx + 1),
     ]
   }
-  return result
+
+  // No valid compaction boundary found — return chronological order as-is
+  return collected
 }
 
 /**
@@ -1096,6 +1138,8 @@ export function* stream(sessionID: SessionID): Generator<WithParts, void, unknow
 export const filterCompactedEffect = Effect.fnUntraced(function* (sessionID: SessionID) {
   const size = 50
   let before: string | undefined
+  // Collect all messages newest-first (as page() returns them most recent first,
+  // then reverses to oldest-first — we want newest-first for filterCompacted)
   const allMsgs: WithParts[] = []
   while (true) {
     const next = yield* page({ sessionID, limit: size, before }).pipe(
@@ -1104,6 +1148,7 @@ export const filterCompactedEffect = Effect.fnUntraced(function* (sessionID: Ses
       ),
     )
     if (next.items.length === 0) break
+    // page returns items oldest-first; iterate from end (newest) to start (oldest)
     for (let i = next.items.length - 1; i >= 0; i--) {
       allMsgs.push(next.items[i])
     }

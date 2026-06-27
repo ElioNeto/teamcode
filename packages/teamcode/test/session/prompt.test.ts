@@ -307,6 +307,9 @@ const writeConfig = Effect.fn("test.writeConfig")(function* (dir: string, config
 const useServerConfig = Effect.fn("test.useServerConfig")(function* (config: (url: string) => Partial<Config.Info>) {
   const { directory: dir } = yield* TestInstance
   const llm = yield* TestLLMServer
+  // Reset mutable server state before each test so accumulated hits, queued
+  // responses, and wait promises from a prior test don't leak into this one.
+  yield* llm.reset
   yield* writeConfig(dir, config(llm.url))
   return { dir, llm }
 })

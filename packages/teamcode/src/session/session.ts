@@ -627,9 +627,7 @@ export const layer: Layer.Layer<
 
     const list = Effect.fn("Session.list")(function* (input?: ListInput) {
       const ctx = yield* InstanceState.context
-      return Array.from(
-        listByProject({ projectID: ctx.project.id, experimentalWorkspaces: flags.experimentalWorkspaces, ...input }),
-      )
+      return listByProject({ projectID: ctx.project.id, experimentalWorkspaces: flags.experimentalWorkspaces, ...input })
     })
 
     const children = Effect.fn("Session.children")(function* (parentID: SessionID) {
@@ -856,22 +854,28 @@ export const layer: Layer.Layer<
     })
 
     const messages: Interface["messages"] = Effect.fn("Session.messages")(function* (input) {
-      // Cap unbounded requests at 1000 messages to prevent OOM on sessions
-      // with tens of thousands of messages. Callers that need more should pass
-      // an explicit limit and use cursor-based pagination.
-      const limit = input.limit ?? 1000
+      // Use a generous default limit (50000) to prevent truncation of long
+      // sessions with many compacted messages. Callers that only need the
+      // latest N messages should pass an explicit small limit.
+      const limit = input.limit ?? 50000
       if (limit <= 50) {
         return (yield* MessageV2.page({ sessionID: input.sessionID, limit })).items
       }
 
+      // Collect pages in newest-first order (each page returns oldest-first,
+      // so we iterate backwards within each page), then reverse once at the
+      // end. This is needed because cursor-based pages go from newest to
+      // oldest — page N+1 is OLDER than page N, so concatenating in page
+      // order would put older messages after newer ones.
       const size = 50
-      const result = [] as MessageV2.WithParts[]
+      const result: MessageV2.WithParts[] = []
       let before: string | undefined
       while (true) {
         const remaining = limit - result.length
         if (remaining <= 0) break
         const page = yield* MessageV2.page({ sessionID: input.sessionID, limit: Math.min(size, remaining), before })
         if (page.items.length === 0) break
+        // page returns oldest-first; iterate backwards to get newest-first
         for (let i = page.items.length - 1; i >= 0; i--) {
           const item = page.items[i]
           if (item) result.push(item)
@@ -879,6 +883,7 @@ export const layer: Layer.Layer<
         if (!page.more || !page.cursor) break
         before = page.cursor
       }
+      // result is newest-first; reverse to get chronological (oldest-first)
       return result.reverse()
     })
 
@@ -923,6 +928,7 @@ export const layer: Layer.Layer<
       while (true) {
         const page = yield* MessageV2.page({ sessionID, limit: size, before })
         if (page.items.length === 0) break
+        // page returns items oldest-first; search from newest (end) to oldest (start)
         for (let i = page.items.length - 1; i >= 0; i--) {
           const item = page.items[i]
           if (item && predicate(item)) return Option.some(item)
@@ -985,12 +991,12 @@ const cancelBackgroundJobs = Effect.fn("Session.cancelBackgroundJobs")(function*
   )
 })
 
-function* listByProject(
+function listByProject(
   input: ListInput & {
     projectID: ProjectID
     experimentalWorkspaces: boolean
   },
-) {
+): Info[] {
   const conditions = [eq(SessionTable.project_id, input.projectID)]
 
   if (input.workspaceID) {
@@ -1028,7 +1034,7 @@ function* listByProject(
 
   const limit = input.limit ?? 100
 
-  const rows = Database.use((db) =>
+  return Database.use((db) =>
     db
       .select()
       .from(SessionTable)
@@ -1036,14 +1042,13 @@ function* listByProject(
       .orderBy(desc(SessionTable.time_updated))
       .limit(limit)
       .all(),
-  )
-  for (const row of rows) {
+  ).flatMap((row) => {
     const parsed = fromRow(row)
-    if (parsed) yield parsed
-  }
+    return parsed ? [parsed] : []
+  })
 }
 
-export function* listGlobal(input?: {
+export function listGlobal(input?: {
   directory?: string
   roots?: boolean
   start?: number
@@ -1051,7 +1056,7 @@ export function* listGlobal(input?: {
   search?: string
   limit?: number
   archived?: boolean
-}) {
+}): GlobalInfo[] {
   const conditions: SQL[] = []
 
   if (input?.directory) {
@@ -1075,43 +1080,37 @@ export function* listGlobal(input?: {
 
   const limit = input?.limit ?? 100
 
+  // Always use the same base query — just add WHERE conditions dynamically
   const rows = Database.use((db) => {
-    const query =
-      conditions.length > 0
-        ? db
-            .select({
-              session: SessionTable,
-              project_name: ProjectTable.name,
-              project_worktree: ProjectTable.worktree,
-            })
-            .from(SessionTable)
-            .leftJoin(ProjectTable, eq(SessionTable.project_id, ProjectTable.id))
-            .where(and(...conditions))
-        : db
-            .select({
-              session: SessionTable,
-              project_name: ProjectTable.name,
-              project_worktree: ProjectTable.worktree,
-            })
-            .from(SessionTable)
-            .leftJoin(ProjectTable, eq(SessionTable.project_id, ProjectTable.id))
+    const query = db
+      .select({
+        session: SessionTable,
+        project_name: ProjectTable.name,
+        project_worktree: ProjectTable.worktree,
+      })
+      .from(SessionTable)
+      .leftJoin(ProjectTable, eq(SessionTable.project_id, ProjectTable.id))
+    if (conditions.length > 0) query.where(and(...conditions))
     return query.orderBy(desc(SessionTable.time_updated), desc(SessionTable.id)).limit(limit).all()
   })
 
-  for (const row of rows) {
+  return rows.flatMap((row) => {
     const parsed = fromRow(row.session)
-    if (parsed)
-      yield {
-        ...parsed,
-        project: row.project_name
-          ? {
-              id: row.session.project_id,
-              name: row.project_name ?? undefined,
-              worktree: row.project_worktree ?? "",
-            }
-          : null,
-      }
-  }
+    return parsed
+      ? [
+          {
+            ...parsed,
+            project: row.project_name
+              ? {
+                  id: row.session.project_id,
+                  name: row.project_name ?? undefined,
+                  worktree: row.project_worktree ?? "",
+                }
+              : null,
+          } as GlobalInfo,
+        ]
+      : []
+  })
 }
 
 export * as Session from "./session"
