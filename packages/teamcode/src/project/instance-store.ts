@@ -3,7 +3,7 @@ import { WorkspaceContext } from "@/control-plane/workspace-context"
 import { InstanceRef } from "@/effect/instance-ref"
 import { disposeInstance as runDisposers } from "@/effect/instance-registry"
 import { AppFileSystem } from "@teamcode-ai/core/filesystem"
-import { Context, Deferred, Duration, Effect, Exit, Layer, Scope } from "effect"
+import { Context, Deferred, Effect, Exit, Layer, Scope } from "effect"
 import { type InstanceContext } from "./instance-context"
 import { InstanceBootstrap } from "./bootstrap-service"
 import * as Project from "./project"
@@ -168,9 +168,20 @@ export const layer: Layer.Layer<Service, never, Project.Service | InstanceBootst
       )
     })
 
-    const cachedDisposeAll = yield* Effect.cachedWithTTL(disposeAllOnce(), Duration.zero)
-    const disposeAll = Effect.fn("InstanceStore.disposeAll")(function* () {
-      return yield* cachedDisposeAll
+    // Deduplicate concurrent disposeAll calls but allow re-entry after the
+    // current run completes (unlike cachedWithTTL which locks permanently).
+    // Uses a Promise-like latch: first caller creates a deferred; concurrent
+    // callers await the same deferred; after completion the latch resets.
+    let disposalDeferred: Deferred.Deferred<void> | undefined = undefined
+    const disposeAll = Effect.fnUntraced(function* () {
+      if (disposalDeferred) return yield* Deferred.await(disposalDeferred)
+      const d = yield* Deferred.make<void>()
+      disposalDeferred = d
+      try {
+        yield* disposeAllOnce()
+      } finally {
+        disposalDeferred = undefined
+      }
     })
 
     const provide = <A, E, R>(input: LoadInput, effect: Effect.Effect<A, E, R>): Effect.Effect<A, E, R> =>
