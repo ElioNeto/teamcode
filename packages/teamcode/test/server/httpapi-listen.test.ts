@@ -294,7 +294,10 @@ describe("HttpApi Server.listen", () => {
       return true
     }) as typeof process.stderr.write
     try {
-      const response = await Server.Default().app.request("/status")
+      // Use /schema/config.json — it is a public schema route that always
+      // returns 200 without auth, unlike /status (which hits the catch-all
+      // UI handler and returns 500 when the embedded UI is unavailable).
+      const response = await Server.Default().app.request("/schema/config.json")
       expect(response.status).toBe(200)
     } finally {
       process.stderr.write = original
