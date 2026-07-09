@@ -414,7 +414,7 @@ test("loads JSONC config file", async () => {
         path.join(dir, "opencode.jsonc"),
         `{
         // This is a comment
-        "$schema": "https://teamcode.ai/config.json",
+        "$schema": "/schema/config.json",
         "model": "test/model",
         "username": "testuser"
       }`,
@@ -2606,5 +2606,5 @@ test("parseManagedPlist handles empty config", async () => {
     ),
     "test:mobileconfig",
   )
-  expect(config.$schema).toBe("https://teamcode.ai/config.json")
+  expect(config.$schema).toBe("/schema/config.json")
 })
