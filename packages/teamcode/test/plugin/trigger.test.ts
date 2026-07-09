@@ -56,7 +56,7 @@ function withProject<A, E, R>(source: string, self: Effect.Effect<A, E, R>) {
               path.join(dir, "teamcode.json"),
               JSON.stringify(
                 {
-                  $schema: "https://opencode.ai/config.json",
+                  $schema: "https://teamcode.ai/config.json",
                   plugin: [pathToFileURL(file).href],
                 },
                 null,
