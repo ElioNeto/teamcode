@@ -24,6 +24,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-bun
+      - name: Copy schemas to public
+        run: |
+          mkdir -p packages/app/public/schema
+          cp schemas/teamcode.json packages/app/public/schema/config.json
+          cp schemas/tui.json packages/app/public/schema/tui.json
       - name: Build web app
         run: bun run build -- --base /teamcode/
         working-directory: packages/app
