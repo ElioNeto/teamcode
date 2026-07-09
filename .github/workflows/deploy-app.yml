@@ -1,0 +1,50 @@
+name: deploy-app
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/app/**"
+      - "packages/core/**"
+      - ".github/workflows/deploy-app.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun
+      - name: Build web app
+        run: bun run build
+        working-directory: packages/app
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          static_site_generator: next
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: packages/app/dist
+
+  deploy:
+    runs-on: ubuntu-24.04
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
