@@ -137,7 +137,7 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
     })
 
     const upgradeCurl = Effect.fnUntraced(function* (target: string) {
-      const response = yield* httpOk.execute(HttpClientRequest.get("https://opencode.ai/install"))
+      const response = yield* httpOk.execute(HttpClientRequest.get("https://teamcode.ai/install"))
       const body = yield* response.text
       const bodyBytes = new TextEncoder().encode(body)
       const result = yield* appProcess.run(

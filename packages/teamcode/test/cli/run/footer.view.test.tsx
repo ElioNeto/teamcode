@@ -51,7 +51,7 @@ function model(input: {
     providerID: "opencode",
     api: {
       id: "opencode",
-      url: "https://opencode.ai",
+      url: "https://teamcode.ai",
       npm: "@ai-sdk/openai-compatible",
     },
     name: input.name,
