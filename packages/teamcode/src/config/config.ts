@@ -47,8 +47,8 @@ const log = Log.create({ service: "config" })
  * Schema URL used in config files for editor completion and validation.
  * When the app's HTTP server is running, the schema is served at these paths.
  */
-export const CONFIG_SCHEMA_URL = "/schema/config.json"
-export const TUI_SCHEMA_URL = "/schema/tui.json"
+export const CONFIG_SCHEMA_URL = "https://elioneto.github.io/teamcode/schema/config.json"
+export const TUI_SCHEMA_URL = "https://elioneto.github.io/teamcode/schema/tui.json"
 
 // Custom merge function that concatenates array fields instead of replacing them
 // Keep remeda's deep conditional merge type out of hot config-loading paths; TS profiling showed it dominates here.
