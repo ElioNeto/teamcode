@@ -43,7 +43,19 @@
   // === AGENT CONFIGURATION ===
   "agent": {
     "god": {
-      "description": "Omnipotent agent with unrestricted access to all tools and permissions"
+      "description": "Omnipotent agent with unrestricted access to all tools and permissions",
+      "permission": {
+        "edit": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "bash": "allow",
+        "task": "allow",
+        "external_directory": "allow",
+        "question": "deny",
+        "webfetch": "allow"
+      }
     },
     "delivery-loop": {
       "description": "Autonomous pipeline that continuously resolves open GitHub issues through the Plan-Implement-Validate-Review cycle"

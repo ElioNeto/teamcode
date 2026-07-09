@@ -6,7 +6,6 @@
 import { NodeHttpServer } from "@effect/platform-node"
 import * as Log from "@teamcode-ai/core/util/log"
 import { ConfigProvider, Context, Duration, Effect, Exit, Layer, Option, Scope } from "effect"
-import { memoMap } from "@teamcode-ai/core/effect/memo-map"
 import { HttpRouter, HttpServer } from "effect/unstable/http"
 import { OpenApi } from "effect/unstable/httpapi"
 import { createServer, type Server } from "node:http"
@@ -189,7 +188,8 @@ function startWithPortFallback(opts: ListenOptions) {
 
 function startListener(opts: ListenOptions, port: number) {
   const scope = Scope.makeUnsafe()
-  return Layer.buildWithMemoMap(listenerLayer(opts, port), memoMap, scope).pipe(
+  const freshMemo = Layer.makeMemoMapUnsafe()
+  return Layer.buildWithMemoMap(listenerLayer(opts, port), freshMemo, scope).pipe(
     Effect.provide(HttpApiApp.context),
     Effect.onError(() => Scope.close(scope, Exit.void).pipe(Effect.ignore)),
     Effect.map(

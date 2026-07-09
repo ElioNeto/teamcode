@@ -195,10 +195,7 @@ describe("InstanceStore", () => {
     }),
   )
 
-  // KNOWN ISSUE: These tests rely on disposeAll being re-enterable after
-  // completion, but InstanceStore uses cachedWithTTL(disposeAllOnce, Duration.zero)
-  // which prevents re-entry. Fix tracked in Issue #1106.
-  it.live.skip("dedupes concurrent disposeAll calls", () =>
+  it.live("dedupes concurrent disposeAll calls", () =>
     Effect.gen(function* () {
       const dir = yield* tmpdirScoped({ git: true })
       const store = yield* InstanceStore.Service
@@ -226,9 +223,7 @@ describe("InstanceStore", () => {
     }),
   )
 
-  // KNOWN ISSUE: same cause as above — cachedWithTTL prevents disposeAll
-  // from running again after the first invocation.
-  it.live.skip("re-arms disposeAll after completion", () =>
+  it.live("re-arms disposeAll after completion", () =>
     Effect.gen(function* () {
       const dir1 = yield* tmpdirScoped({ git: true })
       const dir2 = yield* tmpdirScoped({ git: true })

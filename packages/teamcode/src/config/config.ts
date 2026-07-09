@@ -47,7 +47,7 @@ const log = Log.create({ service: "config" })
  * Schema URL used in config files for editor completion and validation.
  * When the app's HTTP server is running, the schema is served at these paths.
  */
-export const CONFIG_SCHEMA_URL = "/schema/config.json"
+export const CONFIG_SCHEMA_URL = "https://opencode.ai/config.json"
 export const TUI_SCHEMA_URL = "/schema/tui.json"
 
 // Custom merge function that concatenates array fields instead of replacing them

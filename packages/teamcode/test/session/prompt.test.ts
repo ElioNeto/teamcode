@@ -300,16 +300,13 @@ const ensureDir = Effect.fn("test.ensureDir")(function* (dir: string) {
 const writeConfig = Effect.fn("test.writeConfig")(function* (dir: string, config: Partial<Config.Info>) {
   yield* writeText(
     path.join(dir, "teamcode.json"),
-    JSON.stringify({ $schema: "/schema/config.json", ...config }),
+    JSON.stringify({ $schema: "https://opencode.ai/config.json", ...config }),
   )
 })
 
 const useServerConfig = Effect.fn("test.useServerConfig")(function* (config: (url: string) => Partial<Config.Info>) {
   const { directory: dir } = yield* TestInstance
   const llm = yield* TestLLMServer
-  // Reset mutable server state before each test so accumulated hits, queued
-  // responses, and wait promises from a prior test don't leak into this one.
-  yield* llm.reset
   yield* writeConfig(dir, config(llm.url))
   return { dir, llm }
 })
@@ -1687,8 +1684,7 @@ unix(
 
       const run = yield* prompt.loop({ sessionID: chat.id }).pipe(Effect.forkChild)
       yield* llm.wait(1)
-      // Wait for enough output to accumulate so truncation kicks in
-      yield* Effect.sleep(2000)
+      yield* Effect.sleep(150)
       yield* prompt.cancel(chat.id)
 
       const exit = yield* Fiber.await(run)
