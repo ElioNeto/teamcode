@@ -35,13 +35,8 @@ const order = ["Core", "TUI", "Desktop", "SDK", "Extensions"] as const
 const sections = {
   core: "Core",
   tui: "TUI",
-  app: "Desktop",
-  tauri: "Desktop",
   sdk: "SDK",
   plugin: "SDK",
-  "extensions/zed": "Extensions",
-  "extensions/vscode": "Extensions",
-  github: "Extensions",
 } as const
 
 function ref(input: string) {
@@ -75,7 +70,7 @@ async function diff(base: string, head: string) {
 }
 
 function section(areas: Set<string>) {
-  const priority = ["core", "tui", "app", "tauri", "sdk", "plugin", "extensions/zed", "extensions/vscode", "github"]
+  const priority = ["core", "tui", "sdk", "plugin"]
   for (const area of priority) {
     if (areas.has(area)) return sections[area as keyof typeof sections]
   }
@@ -121,7 +116,7 @@ async function commits(from: string, to: string) {
   }
 
   const log =
-    await $`git log ${base}..${head} --format=%H -- packages/teamcode packages/sdk packages/plugin packages/desktop packages/app sdks/vscode packages/extensions github`.text()
+    await $`git log ${base}..${head} --format=%H -- packages/teamcode packages/sdk packages/plugin`.text()
 
   const list: Commit[] = []
   for (const hash of log.split("\n").filter(Boolean)) {

@@ -1,12 +1,12 @@
-name: deploy-app
+name: deploy-site
 
 on:
   push:
     branches: [main]
     paths:
-      - "packages/app/**"
-      - "packages/core/**"
-      - ".github/workflows/deploy-app.yml"
+      - "packages/docs/**"
+      - "schemas/**"
+      - ".github/workflows/deploy-site.yml"
   workflow_dispatch:
 
 concurrency:
@@ -23,21 +23,16 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-bun
-      - name: Copy schemas to public
+      - name: Prepare site content
         run: |
-          mkdir -p packages/app/public/schema
-          cp schemas/teamcode.json packages/app/public/schema/config.json
-          cp schemas/tui.json packages/app/public/schema/tui.json
-      - name: Build web app
-        run: bun run build -- --base /teamcode/
-        working-directory: packages/app
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+          mkdir -p site/schema
+          cp -r packages/docs/* site/
+          cp schemas/teamcode.json site/schema/config.json
+          cp schemas/tui.json site/schema/tui.json
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: packages/app/dist
+          path: site
 
   deploy:
     runs-on: ubuntu-24.04
