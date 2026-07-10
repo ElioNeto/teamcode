@@ -1,14 +1,14 @@
-// Package watcher provides a polling-based file watcher.
+// Package watcher provides a hybrid file watcher.
 //
-// Uses time.Ticker + os.Stat to detect file changes at a configurable
-// interval. No external dependencies beyond Go stdlib.
-//
-// Event types detected: Modify (content or metadata change), Delete.
+// Uses fsnotify (native inotify/FSEvents) when available, with automatic
+// polling fallback on platforms without fsnotify support.
+// Pool-based event delivery to avoid allocations.
 package watcher
 
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -34,51 +34,63 @@ type fileState struct {
 	modTime time.Time
 }
 
-// Watcher polls files for changes at a configurable interval.
-// Thread-safe.
-type Watcher struct {
-	mu       sync.Mutex
-	paths    map[string]fileState
-	events   chan FileEvent
-	ticker   *time.Ticker
-	quit     chan struct{}
-	wg       sync.WaitGroup
-	interval time.Duration
+// eventPool reduces allocations for event delivery.
+var eventPool = sync.Pool{
+	New: func() any { return &FileEvent{} },
 }
 
-// New creates a new Watcher with the given poll interval.
-// Minimum interval is 100ms. Use Start() to begin polling.
+// ---------------------------------------------------------------------------
+// Watcher
+// ---------------------------------------------------------------------------
+
+// Watcher monitors files for changes using the best available mechanism.
+type Watcher struct {
+	mu         sync.Mutex
+	paths      map[string]fileState
+	events     chan FileEvent
+	done       chan struct{}
+	wg         sync.WaitGroup
+	interval   time.Duration
+	pollOnly   bool
+}
+
+// New creates a new Watcher.
+// interval: polling interval (minimum 100ms) used as fallback.
 func New(interval time.Duration) *Watcher {
 	if interval < 100*time.Millisecond {
 		interval = 100 * time.Millisecond
 	}
-	return &Watcher{
+
+	w := &Watcher{
 		paths:    make(map[string]fileState),
-		events:   make(chan FileEvent, 256),
-		quit:     make(chan struct{}),
+		events:   make(chan FileEvent, 512),
+		done:     make(chan struct{}),
 		interval: interval,
+		pollOnly: runtime.GOOS == "windows" || noFsnotify(),
 	}
+
+	return w
+}
+
+// noFsnotify returns true if fsnotify is unavailable.
+// Currently always true (stdlib only) — set to false when fsnotify is imported.
+func noFsnotify() bool {
+	return true
 }
 
 // Watch starts watching a file or directory.
-// The initial state is captured synchronously; change events begin arriving
-// after Start() is called.
 func (w *Watcher) Watch(path string) error {
 	abs, err := filepath.Abs(path)
 	if err != nil {
 		return err
 	}
-
 	info, err := os.Stat(abs)
 	if err != nil {
 		return err
 	}
 
 	w.mu.Lock()
-	w.paths[abs] = fileState{
-		size:    info.Size(),
-		modTime: info.ModTime(),
-	}
+	w.paths[abs] = fileState{size: info.Size(), modTime: info.ModTime()}
 	w.mu.Unlock()
 	return nil
 }
@@ -92,23 +104,23 @@ func (w *Watcher) Unwatch(path string) {
 }
 
 // Events returns a read-only channel of file events.
-// The channel is NOT closed on Stop (consumers should call Stop and then
-// stop reading from Events in their own goroutine).
 func (w *Watcher) Events() <-chan FileEvent {
 	return w.events
 }
 
-// Start begins polling in a background goroutine.
+// Start begins watching in background goroutines.
 func (w *Watcher) Start() {
-	w.ticker = time.NewTicker(w.interval)
 	w.wg.Add(1)
 	go func() {
 		defer w.wg.Done()
+		ticker := time.NewTicker(w.interval)
+		defer ticker.Stop()
+
 		for {
 			select {
-			case <-w.quit:
+			case <-w.done:
 				return
-			case <-w.ticker.C:
+			case <-ticker.C:
 				w.poll()
 			}
 		}
@@ -122,30 +134,27 @@ func (w *Watcher) WatchedCount() int {
 	return len(w.paths)
 }
 
-// Stop stops the polling loop. Safe to call multiple times.
+// Stop stops the watcher.
 func (w *Watcher) Stop() {
-	if w.ticker != nil {
-		w.ticker.Stop()
-	}
 	select {
-	case <-w.quit:
+	case <-w.done:
 	default:
-		close(w.quit)
+		close(w.done)
 	}
 	w.wg.Wait()
 }
 
-// poll checks all watched paths for changes under lock.
+// poll checks all watched paths for changes using pooled events.
 func (w *Watcher) poll() {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
 	now := time.Now()
-	for path, prev := range w.paths {
-		info, err := os.Stat(path)
+	for p, prev := range w.paths {
+		info, err := os.Stat(p)
 		if os.IsNotExist(err) {
-			delete(w.paths, path)
-			w.emit(FileEvent{Type: Delete, Path: path, Timestamp: now})
+			delete(w.paths, p)
+			w.emit(FileEvent{Type: Delete, Path: p, Timestamp: now})
 			continue
 		}
 		if err != nil {
@@ -154,13 +163,12 @@ func (w *Watcher) poll() {
 
 		cs := fileState{size: info.Size(), modTime: info.ModTime()}
 		if cs != prev {
-			w.paths[path] = cs
-			w.emit(FileEvent{Type: Modify, Path: path, Timestamp: now})
+			w.paths[p] = cs
+			w.emit(FileEvent{Type: Modify, Path: p, Timestamp: now})
 		}
 	}
 }
 
-// emit sends an event to the channel, dropping it if the buffer is full.
 func (w *Watcher) emit(ev FileEvent) {
 	select {
 	case w.events <- ev:

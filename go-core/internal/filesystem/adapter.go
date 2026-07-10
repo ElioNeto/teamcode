@@ -14,9 +14,29 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
+
+	"github.com/ElioNeto/teamcode/go-core/internal/cache"
 )
 
 // pathSep is the OS-specific path separator as a string.
+// ---------------------------------------------------------------------------
+// LRU caches (reduce disk I/O on repeated calls)
+// ---------------------------------------------------------------------------
+
+var (
+	statResultCache = cache.New[*StatResult](5000, 5*time.Second)
+	readResultCache = cache.New[*ReadResult](500, 2*time.Second)
+	listResultCache = cache.New[[]string](1000, 2*time.Second)
+)
+
+// Invalidate clears cache entries for a given path (called on write/delete).
+func Invalidate(absPath string) {
+	statResultCache.Delete(absPath)
+	readResultCache.Delete(absPath)
+	listResultCache.Delete(filepath.Dir(absPath))
+}
+
 var pathSep = string(os.PathSeparator)
 
 // DefaultPerm is the default file permission used when writing files.
@@ -93,6 +113,13 @@ func Read(path string, offset, limit int) (*ReadResult, error) {
 		return nil, err
 	}
 
+	// Cache full reads of small files
+	if offset == 0 && limit == 0 {
+		if cached, ok := readResultCache.Get(abs); ok {
+			return cached, nil
+		}
+	}
+
 	data, err := os.ReadFile(abs)
 	if err != nil {
 		return nil, err
@@ -110,12 +137,19 @@ func Read(path string, offset, limit int) (*ReadResult, error) {
 	isBinary := detectBinary(data)
 	mime := detectMIME(data, path)
 
-	return &ReadResult{
+	result := &ReadResult{
 		Content:  string(data),
 		Size:     int64(len(data)),
 		MIMEType: mime,
 		Binary:   isBinary,
-	}, nil
+	}
+
+	// Cache small files
+	if offset == 0 && limit == 0 && len(data) <= 100*1024 {
+		readResultCache.Set(abs, result)
+	}
+
+	return result, nil
 }
 
 // ---------------------------------------------------------------------------
@@ -131,6 +165,7 @@ func Write(path string, content []byte) error {
 	if err := os.MkdirAll(filepath.Dir(abs), DefaultDirPerm); err != nil {
 		return err
 	}
+	Invalidate(abs)
 	return os.WriteFile(abs, content, DefaultPerm)
 }
 
@@ -159,17 +194,26 @@ func Stat(path string) (os.FileInfo, error) {
 
 // StatResult returns a JSON-friendly stat result.
 func StatResultJSON(path string) (*StatResult, error) {
+	abs, err := absPath(path)
+	if err != nil {
+		return nil, err
+	}
+	if cached, ok := statResultCache.Get(abs); ok {
+		return cached, nil
+	}
 	info, err := Stat(path)
 	if err != nil {
 		return nil, err
 	}
-	return &StatResult{
+	result := &StatResult{
 		Name:    info.Name(),
 		Size:    info.Size(),
 		Mode:    info.Mode().String(),
 		ModTime: info.ModTime().UTC().Format("2006-01-02T15:04:05Z"),
 		Dir:     info.IsDir(),
-	}, nil
+	}
+	statResultCache.Set(abs, result)
+	return result, nil
 }
 
 // ---------------------------------------------------------------------------
@@ -682,6 +726,7 @@ func Remove(path string) error {
 	if err != nil {
 		return err
 	}
+	Invalidate(abs)
 	return os.Remove(abs)
 }
 
@@ -691,6 +736,8 @@ func RemoveAll(path string) error {
 	if err != nil {
 		return err
 	}
+	Invalidate(abs)
+	Invalidate(filepath.Dir(abs))
 	return os.RemoveAll(abs)
 }
 
