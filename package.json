@@ -11,7 +11,7 @@
     "lint": "oxlint",
     "typecheck": "bun turbo typecheck",
     "upgrade-opentui": "bun run script/upgrade-opentui.ts",
-    "postinstall": "bun run --cwd packages/teamcode fix-node-pty",
+    "postinstall": "bun run script/download-go-core.ts && bun run --cwd packages/teamcode fix-node-pty",
     "prepare": "husky",
     "issues:resolver": "bun run scripts/issue-resolver/resolver.ts",
     "issues:resolver:once": "bun run scripts/issue-resolver/resolver.ts --once",
