@@ -6,7 +6,10 @@
 import { promptCopy, promptSame } from "./prompt.shared"
 import type { RunInput, RunPrompt } from "./types"
 
-const LIMIT = 200
+// Number of session messages to load for the prompt history ring.
+// Increased from 200 to 5000 to support long sessions without truncation.
+// This matches the internal Session.messages() default limit.
+const LIMIT = 5000
 
 export type SessionMessages = NonNullable<Awaited<ReturnType<RunInput["sdk"]["session"]["messages"]>>["data"]>
 
