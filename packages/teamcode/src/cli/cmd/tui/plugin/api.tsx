@@ -95,10 +95,18 @@ function routeCurrent(route: ReturnType<typeof useRoute>): TuiPluginApi["route"]
     }
   }
 
-  return {
-    name: route.data.id,
-    params: route.data.data,
+  if (route.data.type === "editor") {
+    return { name: "editor", params: {} }
   }
+
+  if (route.data.type === "plugin") {
+    return {
+      name: route.data.id,
+      params: route.data.data,
+    }
+  }
+
+  return { name: "home" }
 }
 
 function mapOption<Value>(item: TuiDialogSelectOption<Value>): SelectOption<Value> {
