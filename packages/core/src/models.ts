@@ -9,6 +9,13 @@ import { AppFileSystem } from "./filesystem"
 import { InstallationChannel, InstallationVersion } from "./installation/version"
 
 // ---------------------------------------------------------------------------
+// DEPRECATION NOTICE
+// ==================
+// The TypeScript core (packages/core/) is DEPRECATED as of v2.4.0.
+// All new feature development must target the Go core (go-core/).
+// Only bug fixes and security patches are accepted for this package.
+// ==================
+//
 // Optional cache service — provided by the host application (e.g. ApexStore
 // in the teamcode package) to make the model catalog survive restarts.
 // ---------------------------------------------------------------------------
@@ -194,9 +201,7 @@ export const layer: Layer.Layer<Service, never, Requirements> = Layer.effect(
       // This survives restarts, unlike the file-system cache which is per-machine.
       const cacheOpt = yield* Effect.serviceOption(ModelCache)
       if (Option.isSome(cacheOpt)) {
-        const cached = yield* cacheOpt.value.get("models", "catalog").pipe(
-          Effect.catch(() => Effect.succeed(null)),
-        )
+        const cached = yield* cacheOpt.value.get("models", "catalog").pipe(Effect.catch(() => Effect.succeed(null)))
         if (cached) {
           const parsed = JSON.parse(cached) as { fetchedAt: number; data: Record<string, Provider> | undefined }
           if (parsed.data && Date.now() - parsed.fetchedAt < Duration.toMillis(ttl)) {
@@ -211,14 +216,14 @@ export const layer: Layer.Layer<Service, never, Requirements> = Layer.effect(
       if (snapshot) return snapshot
       if (Flag.TEAMCODE_DISABLE_MODELS_FETCH) return {}
       // Flock is cross-process: concurrent opencode CLIs can race on this cache file.
-      // Use a per-file lock with a timeout matching the TTL so stale lock holders
-      // do not block process startup for more than 60 seconds.
+      // Use a per-file lock with a short timeout (10s, reduced from 60s) so a stale
+      // lock holder does not block process startup.
       const text = yield* Effect.scoped(
         Effect.gen(function* () {
-          yield* Flock.effect(lockKey, { timeoutMs: 60_000, staleMs: 60_000 })
+          yield* Flock.effect(lockKey, { timeoutMs: 10_000, staleMs: 10_000 })
           return yield* fetchAndWrite()
         }),
-      )
+      ).pipe(Effect.catch(() => Effect.succeed("{}")))
       const data = JSON.parse(text) as Record<string, Provider>
 
       // Persist to the optional cache (fire-and-forget).

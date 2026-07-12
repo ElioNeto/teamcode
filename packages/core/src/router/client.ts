@@ -1,4 +1,11 @@
 /**
+ * DEPRECATION NOTICE
+ * ==================
+ * The TypeScript core (packages/core/) is DEPRECATED as of v2.4.0.
+ * All new feature development must target the Go core (go-core/).
+ * Only bug fixes and security patches are accepted for this package.
+ * ==================
+ *
  * Go core HTTP client.
  * Routes requests to the go-core server when enabled by feature flags.
  *
@@ -90,8 +97,11 @@ export interface GoCoreToolResultPayload {
 let healthyCount = 0
 let cbStarted = false
 
-// Start the circuit breaker polling loop on module load
-startCircuitBreaker()
+// NOTE: Circuit breaker is NOT started at module load anymore.
+// It is started lazily by startGoCore() after the Go core health check succeeds.
+// This avoids premature polling attempts before the Go core is ready,
+// which was causing unnecessary failed requests and race conditions.
+// See go-core.ts → startGoCore() → triggerCbPoll()
 
 /** Metrics snapshot returned by GET /metrics */
 export interface GoCoreMetrics {
@@ -139,13 +149,18 @@ function startCircuitBreaker(): void {
   // Use unref so this timer doesn't keep subprocesses alive
   const timer = setInterval(poll, CB_POLL_INTERVAL)
   timer.unref()
-
 }
 
 /** Trigger an immediate circuit breaker health check.
- *  Called by startGoCore() after the Go core becomes ready. */
+ *  Called by startGoCore() after the Go core becomes ready.
+ *  On first call, also starts the periodic polling loop. */
 export function triggerCbPoll(): void {
-  if (!cbStarted) return
+  if (!cbStarted) {
+    // First call — Go core is now ready, start the circuit breaker
+    // (polls immediately + sets up 30s interval)
+    startCircuitBreaker()
+    return
+  }
   const poll = async () => {
     try {
       const metrics = await request<GoCoreMetrics>("GET", "/metrics")
@@ -287,48 +302,38 @@ export const GoCoreClient = {
       request<GoCoreReadResult>("POST", "/fs/read", { path, offset, limit }),
 
     /** Read a file safely — returns { content, found } instead of throwing on ENOENT. */
-    readSafe: (path: string) =>
-      request<{ content: string; found: boolean }>("POST", "/fs/read-safe", { path }),
+    readSafe: (path: string) => request<{ content: string; found: boolean }>("POST", "/fs/read-safe", { path }),
 
     /** Read and parse a JSON file. */
-    readJSON: (path: string) =>
-      request<unknown>("POST", "/fs/read-json", { path }),
+    readJSON: (path: string) => request<unknown>("POST", "/fs/read-json", { path }),
 
     /** Write content to a file (creates parent dirs). */
-    write: (path: string, content: string) =>
-      request<void>("POST", "/fs/write", { path, content }),
+    write: (path: string, content: string) => request<void>("POST", "/fs/write", { path, content }),
 
     /** Write data as indented JSON to a file. */
-    writeJSON: (path: string, data: unknown) =>
-      request<void>("POST", "/fs/write-json", { path, data }),
+    writeJSON: (path: string, data: unknown) => request<void>("POST", "/fs/write-json", { path, data }),
 
     /** List files in a directory, optionally recursive with pattern filter. */
     list: (path: string, pattern?: string, recursive?: boolean) =>
       request<{ files: string[] }>("POST", "/fs/list", { path, pattern, recursive }),
 
     /** Get file/directory metadata. */
-    stat: (path: string) =>
-      request<GoCoreStatResult>("POST", "/fs/stat", { path }),
+    stat: (path: string) => request<GoCoreStatResult>("POST", "/fs/stat", { path }),
 
     /** Check if a path exists. */
-    exists: (path: string) =>
-      request<{ exists: boolean }>("POST", "/fs/exists", { path }),
+    exists: (path: string) => request<{ exists: boolean }>("POST", "/fs/exists", { path }),
 
     /** Check if path is a directory. */
-    isDir: (path: string) =>
-      request<{ dir: boolean }>("POST", "/fs/is-dir", { path }),
+    isDir: (path: string) => request<{ dir: boolean }>("POST", "/fs/is-dir", { path }),
 
     /** Check if path is a file. */
-    isFile: (path: string) =>
-      request<{ file: boolean }>("POST", "/fs/is-file", { path }),
+    isFile: (path: string) => request<{ file: boolean }>("POST", "/fs/is-file", { path }),
 
     /** Create a directory and all parents. */
-    ensureDir: (path: string) =>
-      request<void>("POST", "/fs/ensure-dir", { path }),
+    ensureDir: (path: string) => request<void>("POST", "/fs/ensure-dir", { path }),
 
     /** Read directory entries with type information. */
-    readdir: (path: string) =>
-      request<{ entries: GoCoreDirEntry[] }>("POST", "/fs/readdir", { path }),
+    readdir: (path: string) => request<{ entries: GoCoreDirEntry[] }>("POST", "/fs/readdir", { path }),
 
     /** Glob files matching a pattern. */
     glob: (pattern: string, cwd?: string, dot?: boolean) =>
@@ -351,20 +356,16 @@ export const GoCoreClient = {
       request<GoCoreFindUpResponse>("POST", "/fs/glob-up", { pattern, start, stop }),
 
     /** Copy a file. */
-    copy: (src: string, dst: string) =>
-      request<void>("POST", "/fs/copy", { src, dst }),
+    copy: (src: string, dst: string) => request<void>("POST", "/fs/copy", { src, dst }),
 
     /** Move (rename) a file. */
-    move: (src: string, dst: string) =>
-      request<void>("POST", "/fs/move", { src, dst }),
+    move: (src: string, dst: string) => request<void>("POST", "/fs/move", { src, dst }),
 
     /** Remove a file or empty directory. */
-    remove: (path: string) =>
-      request<void>("POST", "/fs/remove", { path }),
+    remove: (path: string) => request<void>("POST", "/fs/remove", { path }),
 
     /** Remove a file or directory tree. */
-    removeAll: (path: string) =>
-      request<void>("POST", "/fs/remove-all", { path }),
+    removeAll: (path: string) => request<void>("POST", "/fs/remove-all", { path }),
 
     /** Watch a file or directory for changes via SSE. */
     watch: (path: string, intervalMs?: number): EventSource => {
@@ -395,8 +396,7 @@ export const GoCoreClient = {
 
   providers: {
     /** List all providers. */
-    list: () =>
-      request<GoCoreProviderListResponse>("GET", "/providers"),
+    list: () => request<GoCoreProviderListResponse>("GET", "/providers"),
 
     /** Get models for a provider. */
     models: (name: string) =>
@@ -407,12 +407,10 @@ export const GoCoreClient = {
 
   config: {
     /** Get merged config for a directory. */
-    get: (directory: string) =>
-      request<Record<string, unknown>>("POST", "/config/get", { directory }),
+    get: (directory: string) => request<Record<string, unknown>>("POST", "/config/get", { directory }),
 
     /** Invalidate cached config for a directory. */
-    invalidate: (directory: string) =>
-      request<void>("POST", "/config/invalidate", { directory }),
+    invalidate: (directory: string) => request<void>("POST", "/config/invalidate", { directory }),
   },
 
   // ---- Session Events ----
@@ -423,8 +421,7 @@ export const GoCoreClient = {
       request<void>("POST", "/session/event", { session_id: sessionID, event_type: eventType, data }),
 
     /** Get the status of the event streaming system. */
-    status: () =>
-      request<{ status: string; sessions: number }>("GET", "/session/events-status"),
+    status: () => request<{ status: string; sessions: number }>("GET", "/session/events-status"),
 
     /** Create an SSE EventSource for a session's event stream. */
     stream: (sessionID: string): EventSource => {
@@ -460,24 +457,24 @@ export const GoCoreClient = {
       }),
 
     /** Delete a session. */
-    delete: (sessionID: string) =>
-      request<void>("POST", "/session/delete", { session_id: sessionID }),
+    delete: (sessionID: string) => request<void>("POST", "/session/delete", { session_id: sessionID }),
 
     /** List sessions, optionally filtered by directory. */
     list: (directory?: string) =>
-      request<GoCoreSessionListResponse>("GET", `/session/list${directory ? `?directory=${encodeURIComponent(directory)}` : ""}`),
+      request<GoCoreSessionListResponse>(
+        "GET",
+        `/session/list${directory ? `?directory=${encodeURIComponent(directory)}` : ""}`,
+      ),
   },
 
   // ---- Agent Swarm (ADR #1074, impl #1075, contract #1076) ----
 
   swarm: {
     /** Start a swarm with the given agent specs and return the swarm ID. */
-    run: (req: GoCoreSwarmRunRequest) =>
-      request<GoCoreSwarmRunResponse>("POST", "/swarm/run", req),
+    run: (req: GoCoreSwarmRunRequest) => request<GoCoreSwarmRunResponse>("POST", "/swarm/run", req),
 
     /** Cancel a running swarm by ID. */
-    cancel: (swarmId: string) =>
-      request<void>("DELETE", `/swarm/${encodeURIComponent(swarmId)}`),
+    cancel: (swarmId: string) => request<void>("DELETE", `/swarm/${encodeURIComponent(swarmId)}`),
 
     /** Get the current status of all agents in a swarm. */
     status: (swarmId: string) =>
@@ -485,6 +482,10 @@ export const GoCoreClient = {
 
     /** Submit a tool result back to an agent in a swarm. */
     toolResult: (swarmId: string, agentId: string, result: GoCoreToolResultPayload) =>
-      request<void>("POST", `/swarm/${encodeURIComponent(swarmId)}/agent/${encodeURIComponent(agentId)}/tool_result`, result),
+      request<void>(
+        "POST",
+        `/swarm/${encodeURIComponent(swarmId)}/agent/${encodeURIComponent(agentId)}/tool_result`,
+        result,
+      ),
   },
 }
