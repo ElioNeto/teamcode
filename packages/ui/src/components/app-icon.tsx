@@ -3,7 +3,6 @@ import { createSignal, onCleanup, onMount, splitProps } from "solid-js"
 import type { IconName } from "./app-icons/types"
 
 import androidStudio from "../assets/icons/app/android-studio.svg"
-import antigravity from "../assets/icons/app/antigravity.svg"
 import cursor from "../assets/icons/app/cursor.svg"
 import fileExplorer from "../assets/icons/app/file-explorer.svg"
 import finder from "../assets/icons/app/finder.png"
@@ -31,7 +30,6 @@ const icons = {
   warp,
   xcode,
   "android-studio": androidStudio,
-  antigravity,
   textmate,
   powershell,
   "sublime-text": sublimetext,
