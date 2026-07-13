@@ -65,11 +65,22 @@ export const Event = {
 // Native watcher loader
 // ---------------------------------------------------------------------------
 
+/** In test environments the forked native-subscribe fiber cannot be
+ *  interrupted once the Promise is in-flight (Effect can only interrupt
+ *  at yield points).  When a test scope closes before the subscribe
+ *  completes, the inotify callback fires on a deleted temp directory and
+ *  logs `error: inotify_add_watch failed`.  We skip the native binding
+ *  altogether so the polling fallback is used, which is fully sync and
+ *  properly scoped. */
+const _isTestEnv = typeof process !== "undefined" && process.env?.NODE_ENV === "test"
+
+const _TEAMCODE_LIBC: string | undefined = typeof TEAMCODE_LIBC !== "undefined" ? TEAMCODE_LIBC : undefined
+
 const nativeWatcher = lazy((): typeof import("@parcel/watcher") | undefined => {
+  if (_isTestEnv) return
   try {
-    const binding = require(
-      `@parcel/watcher-${process.platform}-${process.arch}${process.platform === "linux" ? `-${TEAMCODE_LIBC || "glibc"}` : ""}`,
-    )
+    const libc = process.platform === "linux" ? `-${_TEAMCODE_LIBC || "glibc"}` : ""
+    const binding = require(`@parcel/watcher-${process.platform}-${process.arch}${libc}`)
     return createWrapper(binding) as typeof import("@parcel/watcher")
   } catch (error) {
     log.warn("native watcher binding unavailable, using polling fallback", { error: (error as Error).message })

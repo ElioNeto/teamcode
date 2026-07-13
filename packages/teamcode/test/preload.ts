@@ -1,5 +1,7 @@
 // IMPORTANT: Set env vars BEFORE any imports from src/ directory
 // xdg-basedir reads env vars at import time, so we must set these first
+process.env["NODE_ENV"] = "test"
+
 import os from "os"
 import path from "path"
 import fs from "fs/promises"

@@ -1,27 +1,22 @@
-import { $ } from "bun"
-import { describe, expect, test } from "bun:test"
+import { describe, expect } from "bun:test"
 import { Effect } from "effect"
-import fs from "fs/promises"
 import path from "path"
 
-const it =
-  process.platform === "win32"
-    ? (await import("../lib/effect")).testEffect((await import("../../src/file")).File.defaultLayer)
-    : undefined
+// git fsmonitor--daemon is available on Linux (git >=2.37) and Windows.
+// The tests verify that readonly git operations (status, read) do NOT
+// start the fsmonitor daemon — the File service passes
+// `-c core.fsmonitor=false` to every git invocation to prevent this.
+const it = (await import("../lib/effect")).testEffect((await import("../../src/file")).File.defaultLayer)
 
 describe("file fsmonitor", () => {
-  if (!it) {
-    test.skip("status does not start fsmonitor for readonly git checks", () => {})
-    test.skip("read does not start fsmonitor for git diffs", () => {})
-    return
-  }
-
   it.instance(
     "status does not start fsmonitor for readonly git checks",
     () =>
       Effect.gen(function* () {
+        const { $ } = yield* Effect.promise(() => import("bun"))
         const { File } = yield* Effect.promise(() => import("../../src/file"))
         const { TestInstance } = yield* Effect.promise(() => import("../fixture/fixture"))
+        const fs = yield* Effect.promise(() => import("fs/promises"))
         const directory = (yield* TestInstance).directory
         const target = path.join(directory, "tracked.txt")
 
@@ -48,8 +43,10 @@ describe("file fsmonitor", () => {
     "read does not start fsmonitor for git diffs",
     () =>
       Effect.gen(function* () {
+        const { $ } = yield* Effect.promise(() => import("bun"))
         const { File } = yield* Effect.promise(() => import("../../src/file"))
         const { TestInstance } = yield* Effect.promise(() => import("../fixture/fixture"))
+        const fs = yield* Effect.promise(() => import("fs/promises"))
         const directory = (yield* TestInstance).directory
         const target = path.join(directory, "tracked.txt")
 
