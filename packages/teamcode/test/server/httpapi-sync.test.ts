@@ -138,27 +138,29 @@ describe("sync HttpApi", () => {
     { git: true, config: { formatter: false, lsp: false } },
   )
 
-  it.instance.skip(
+  it.instance(
     "returns structured validation errors",
     () =>
       Effect.gen(function* () {
         const tmp = yield* TestInstance
+        const headers = { "x-teamcode-directory": tmp.directory, "content-type": "application/json" }
+
         const response = yield* Effect.promise(() =>
-          HttpApiApp.webHandler().handler(
-            new Request(`http://localhost${SyncPaths.history}`, {
+          Promise.resolve(
+            app().request(SyncPaths.history, {
               method: "POST",
-              headers: { "x-teamcode-directory": tmp.directory, "content-type": "application/json" },
+              headers,
               body: JSON.stringify({ aggregate: -1 }),
             }),
-            context,
           ),
         )
 
         expect(response.status).toBe(400)
         expect(response.headers.get("content-type") ?? "").toContain("application/json")
         const body = (yield* Effect.promise(() => response.json())) as Record<string, unknown>
-        expect(body.success).toBe(false)
-        expect(Array.isArray(body.error) || Array.isArray(body.errors)).toBe(true)
+        expect(body.name).toBe("BadRequest")
+        expect(body.data).toBeTruthy()
+        expect(typeof (body.data as Record<string, unknown>)?.message).toBe("string")
       }),
     { git: true, config: { formatter: false, lsp: false } },
   )

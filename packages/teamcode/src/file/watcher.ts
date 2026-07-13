@@ -65,11 +65,12 @@ export const Event = {
 // Native watcher loader
 // ---------------------------------------------------------------------------
 
+const _TEAMCODE_LIBC: string | undefined = typeof TEAMCODE_LIBC !== "undefined" ? TEAMCODE_LIBC : undefined
+
 const nativeWatcher = lazy((): typeof import("@parcel/watcher") | undefined => {
   try {
-    const binding = require(
-      `@parcel/watcher-${process.platform}-${process.arch}${process.platform === "linux" ? `-${TEAMCODE_LIBC || "glibc"}` : ""}`,
-    )
+    const libc = process.platform === "linux" ? `-${_TEAMCODE_LIBC || "glibc"}` : ""
+    const binding = require(`@parcel/watcher-${process.platform}-${process.arch}${libc}`)
     return createWrapper(binding) as typeof import("@parcel/watcher")
   } catch (error) {
     log.warn("native watcher binding unavailable, using polling fallback", { error: (error as Error).message })

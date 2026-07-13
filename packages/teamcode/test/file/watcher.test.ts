@@ -10,8 +10,17 @@ import { Config } from "@/config/config"
 import { FileWatcher } from "../../src/file/watcher"
 import { Git } from "../../src/git"
 
-// Native @parcel/watcher bindings aren't reliably available in CI (missing on Linux, flaky on Windows)
-const describeWatcher = FileWatcher.hasNativeBinding() && !process.env.CI ? describe : describe.skip
+// The FileWatcher uses @parcel/watcher native bindings with a polling fallback.
+// The native subscribe has an 8-second per-attempt timeout with 3 retries, so
+// the watcher can take 25+ seconds to become ready when the binding is present
+// but the subscribe fails for any reason.  To keep tests fast and deterministic
+// we only run them when the native binding is available — if it's not, the
+// polling fallback would make these tests impractically slow (>30s per test).
+const hasNative = FileWatcher.hasNativeBinding()
+if (!hasNative) {
+  console.warn("[watcher.test] native binding unavailable, skipping FileWatcher tests")
+}
+const describeWatcher = hasNative ? describe : describe.skip
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -80,6 +89,10 @@ function wait(directory: string, check: (evt: WatcherEvent) => boolean) {
   })
 }
 
+/** Timeout for watching a single file-system event.  The native subscribe
+ *  typically delivers events within a few hundred milliseconds. */
+const WATCH_TIMEOUT = "5 seconds"
+
 function nextUpdate<E>(directory: string, check: (evt: WatcherEvent) => boolean, trigger: Effect.Effect<void, E>) {
   return Effect.acquireUseRelease(
     wait(directory, check),
@@ -88,7 +101,7 @@ function nextUpdate<E>(directory: string, check: (evt: WatcherEvent) => boolean,
         yield* trigger
         return yield* Deferred.await(deferred).pipe(
           Effect.timeoutOrElse({
-            duration: "5 seconds",
+            duration: WATCH_TIMEOUT,
             orElse: () => Effect.fail(new Error("timed out waiting for file watcher update")),
           }),
         )

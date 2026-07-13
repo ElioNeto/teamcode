@@ -29,13 +29,17 @@ export const Event = {
   ),
 }
 
+/** Compile-time constant injected by the bundler (`script/build.ts`).
+ *  At runtime (e.g. `bun test`) it is not defined, so we guard with
+ *  `typeof` before referencing it. */
 declare const TEAMCODE_LIBC: string | undefined
+
+const _TEAMCODE_LIBC: string | undefined = typeof TEAMCODE_LIBC !== "undefined" ? TEAMCODE_LIBC : undefined
 
 const watcher = lazy((): typeof import("@parcel/watcher") | undefined => {
   try {
-    const binding = require(
-      `@parcel/watcher-${process.platform}-${process.arch}${process.platform === "linux" ? `-${TEAMCODE_LIBC || "glibc"}` : ""}`,
-    )
+    const libc = process.platform === "linux" ? `-${_TEAMCODE_LIBC || "glibc"}` : ""
+    const binding = require(`@parcel/watcher-${process.platform}-${process.arch}${libc}`)
     return createWrapper(binding) as typeof import("@parcel/watcher")
   } catch (error) {
     log.warn("failed to load watcher binding", { error })
@@ -141,7 +145,9 @@ export const layer = Layer.effect(
                 Effect.timeout(SUBSCRIBE_TIMEOUT_MS),
                 Effect.catchCause((cause) => {
                   log.error("failed to subscribe config watcher", {
-                    dir, cause: Cause.pretty(cause), attempt: retry.count + 1,
+                    dir,
+                    cause: Cause.pretty(cause),
+                    attempt: retry.count + 1,
                   })
                   pending.then((s) => s.unsubscribe()).catch(() => {})
                   if (retry.count < retry.max) {

@@ -31,10 +31,7 @@ export type FileDiff = typeof FileDiff.Type
 const log = Log.create({ service: "snapshot" })
 const prune = "7.days"
 const limit = 2 * 1024 * 1024
-const core = [
-  "-c", "core.longpaths=true",
-  "-c", `core.symlinks=${process.platform === "win32" ? "false" : "true"}`,
-]
+const core = ["-c", "core.longpaths=true", "-c", `core.symlinks=${process.platform === "win32" ? "false" : "true"}`]
 const cfg = ["-c", "core.autocrlf=input", ...core]
 const quote = [...cfg, "-c", "core.quotepath=false"]
 interface GitResult {
@@ -92,18 +89,17 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
           const git = Effect.fnUntraced(
             function* (cmd: string[], opts?: { cwd?: string; env?: Record<string, string>; stdin?: string }) {
               const env = { ...opts?.env, GIT_OPTIONAL_LOCKS: "0" }
-              const result = yield* appProcess.run(
-                ChildProcess.make("git", cmd, { cwd: opts?.cwd, env, extendEnv: true }),
-                { stdin: opts?.stdin },
-              ).pipe(
-                Effect.retry({
-                  times: 5,
-                  schedule: Schedule.exponential(Duration.millis(100), 2.0),
-                  while: (err) =>
-                    err instanceof Error &&
-                    (err.message.includes("index.lock") || err.message.includes("Unable to create")),
-                }),
-              )
+              const result = yield* appProcess
+                .run(ChildProcess.make("git", cmd, { cwd: opts?.cwd, env, extendEnv: true }), { stdin: opts?.stdin })
+                .pipe(
+                  Effect.retry({
+                    times: 5,
+                    schedule: Schedule.exponential(Duration.millis(100), 2.0),
+                    while: (err) =>
+                      err instanceof Error &&
+                      (err.message.includes("index.lock") || err.message.includes("Unable to create")),
+                  }),
+                )
               return {
                 code: ChildProcessSpawner.ExitCode(result.exitCode),
                 text: result.stdout.toString("utf8"),
@@ -164,7 +160,14 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
             const result = yield* git(
               [
                 ...cfg,
-                ...args(["add", "--all", "--sparse", "--ignore-errors", "--pathspec-from-file=-", "--pathspec-file-nul"]),
+                ...args([
+                  "add",
+                  "--all",
+                  "--sparse",
+                  "--ignore-errors",
+                  "--pathspec-from-file=-",
+                  "--pathspec-file-nul",
+                ]),
               ],
               {
                 cwd: state.worktree,
@@ -179,9 +182,7 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
             // Clear the index so write-tree returns a fresh tree reflecting
             // the files that were actually staged, rather than reusing the
             // stale tree from a previous successful add.
-            yield* git([...cfg, "reset"], { cwd: state.worktree }).pipe(
-              Effect.catch(() => Effect.void),
-            )
+            yield* git([...cfg, "reset"], { cwd: state.worktree }).pipe(Effect.catch(() => Effect.void))
           })
 
           const exists = (file: string) => fs.exists(file).pipe(Effect.orDie)
@@ -312,7 +313,13 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
                   })
                   yield* git(["--git-dir", state.gitdir, "config", "core.autocrlf", "input"])
                   yield* git(["--git-dir", state.gitdir, "config", "core.longpaths", "true"])
-                  yield* git(["--git-dir", state.gitdir, "config", "core.symlinks", process.platform === "win32" ? "false" : "true"])
+                  yield* git([
+                    "--git-dir",
+                    state.gitdir,
+                    "config",
+                    "core.symlinks",
+                    process.platform === "win32" ? "false" : "true",
+                  ])
                   yield* git(["--git-dir", state.gitdir, "config", "core.fsmonitor", "false"])
                   log.info("initialized")
                 }
@@ -395,15 +402,19 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
 
                 const single = Effect.fnUntraced(function* (op: (typeof ops)[number]) {
                   log.info("reverting", { file: op.file, hash: op.hash })
-                  const result = yield* git([...core, ...args(["checkout", op.hash, "--", op.file])], {
+                  const result = yield* git([...quote, ...args(["checkout", op.hash, "--", op.file])], {
                     cwd: state.worktree,
                   })
                   if (result.code === 0) return
-                  const tree = yield* git([...core, ...args(["ls-tree", op.hash, "--", op.rel])], {
+                  const tree = yield* git([...quote, ...args(["ls-tree", op.hash, "--", op.rel])], {
                     cwd: state.worktree,
                   })
                   if (tree.code === 0 && tree.text.trim()) {
-                    log.error("file existed in snapshot but checkout failed, aborting", { file: op.file, hash: op.hash, stderr: result.stderr })
+                    log.error("file existed in snapshot but checkout failed, aborting", {
+                      file: op.file,
+                      hash: op.hash,
+                      stderr: result.stderr,
+                    })
                     return
                   }
                   log.info("file did not exist in snapshot, deleting", { file: op.file, hash: op.hash })
@@ -412,7 +423,7 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
 
                 const clash = (a: string, b: string) => a === b || a.startsWith(`${b}/`) || b.startsWith(`${a}/`)
 
-                for (let i = 0; i < ops.length; ) {
+                for (let i = 0; i < ops.length;) {
                   const first = ops[i]!
                   const run = [first]
                   let j = i + 1
@@ -432,7 +443,7 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
                   }
 
                   const tree = yield* git(
-                    [...core, ...args(["ls-tree", "--name-only", first.hash, "--", ...run.map((item) => item.rel)])],
+                    [...quote, ...args(["ls-tree", "--name-only", first.hash, "--", ...run.map((item) => item.rel)])],
                     {
                       cwd: state.worktree,
                     },
@@ -461,7 +472,7 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | AppProce
                   if (list.length) {
                     log.info("reverting", { hash: first.hash, files: list.length })
                     const result = yield* git(
-                      [...core, ...args(["checkout", first.hash, "--", ...list.map((item) => item.file)])],
+                      [...quote, ...args(["checkout", first.hash, "--", ...list.map((item) => item.file)])],
                       {
                         cwd: state.worktree,
                       },

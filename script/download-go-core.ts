@@ -82,8 +82,9 @@ async function downloadFromDist(platform: Platform, arch: Arch): Promise<string>
     return dest
   }
 
-  // Download from GitHub releases
-  const url = `https://github.com/${REPO}/releases/download/${VERSION}/go-core-${pn}-${arch}.tar.gz`
+  // Download from GitHub releases — the assets are named `teamcode-*`,
+  // not `go-core-*` (the repo was renamed).
+  const url = `https://github.com/${REPO}/releases/download/${VERSION}/teamcode-${pn}-${arch}.tar.gz`
   console.log(`[teamcode] Downloading Go core from ${url}...`)
 
   const tmp = path.join(dir, `go-core-${Date.now()}.tar.gz`)

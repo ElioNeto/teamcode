@@ -298,7 +298,7 @@ it.instance(
   { git: true },
 )
 
-it.instance.skip(
+it.instance(
   "unicode filenames modification and restore",
   Effect.gen(function* () {
     const tmp = yield* bootstrap()
