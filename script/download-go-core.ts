@@ -1,10 +1,8 @@
 /**
  * Download/install the Go core binary for the current platform.
- *
  * The Go core runs as a sidecar server alongside the TypeScript CLI,
  * providing native-performance filesystem operations, process spawning,
  * session management, and file watching.
- *
  * The binary is downloaded from GitHub releases and cached in
  * ~/.local/share/teamcode/bin/ (or XDG_DATA_HOME equivalent).
  */

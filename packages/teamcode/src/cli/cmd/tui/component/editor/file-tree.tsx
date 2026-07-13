@@ -84,7 +84,6 @@ export function FileTree(props: FileTreeProps) {
             const isCursor = idx() === cursor()
             const prefix = item.entry.isDir ? (item.entry.expanded ? "▼ " : "▶ ") : "  "
             const attr = item.entry.isDir ? TextAttributes.BOLD : undefined
-            const icon = isCursor ? "* " : "  "
             return (
               <box height={1}>
                 <text fg={isCursor ? theme.accent : item.entry.isDir ? "#ffaa00" : theme.text} attributes={attr}>
