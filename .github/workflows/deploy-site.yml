@@ -23,9 +23,44 @@ jobs:
       - name: Prepare site content
         run: |
           mkdir -p site/schema
+          touch site/.nojekyll
           cp -rL packages/docs/* site/
           cp schemas/teamcode.json site/schema/config.json
           cp schemas/tui.json site/schema/tui.json
+
+          # Generate a landing page — the raw .mdx files are Mintlify-source and
+          # can't be served as HTML by GitHub Pages.
+          cat > site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width,initial-scale=1">
+          <title>teamcode</title>
+          <style>
+            body { font-family: system-ui, sans-serif; max-width: 680px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6 }
+            h1 { color: #16A34A }
+            a { color: #15803D }
+            ul { padding-left: 1.2rem }
+            li { margin: .5rem 0 }
+          </style>
+          <h1>teamcode</h1>
+          <p>AI-powered development tool.</p>
+          <h2>Schema reference</h2>
+          <ul>
+            <li><a href="schema/config.json">Configuration schema</a></li>
+            <li><a href="schema/tui.json">TUI schema</a></li>
+          </ul>
+          <h2>Documentation</h2>
+          <ul>
+            <li><a href="quickstart.mdx">Quickstart</a></li>
+            <li><a href="development.mdx">Development guide</a></li>
+            <li><a href="essentials/navigation.mdx">Navigation essentials</a></li>
+            <li><a href="essentials/settings.mdx">Settings</a></li>
+            <li><a href="essentials/images.mdx">Images</a></li>
+            <li><a href="essentials/reusable-snippets.mdx">Reusable snippets</a></li>
+            <li><a href="essentials/code.mdx">Code</a></li>
+            <li><a href="essentials/markdown.mdx">Markdown</a></li>
+          </ul>
+          EOF
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
