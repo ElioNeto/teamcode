@@ -61,11 +61,16 @@ const baselineFlag = process.argv.includes("--baseline")
 const skipInstall = process.argv.includes("--skip-install")
 const sourcemapsFlag = process.argv.includes("--sourcemaps")
 const plugin = createSolidTransformPlugin()
-const skipEmbedWebUi = process.argv.includes("--skip-embed-web-ui")
+const appDir = path.join(import.meta.dirname, "../../app")
+const { existsSync } = await import("node:fs")
+const skipEmbedWebUi = process.argv.includes("--skip-embed-web-ui") || !existsSync(appDir)
 
 const createEmbeddedWebUIBundle = async () => {
+  if (skipEmbedWebUi) {
+    console.log(`Web UI directory not found, skipping embedded UI`)
+    return null
+  }
   console.log(`Building Web UI to embed in the binary`)
-  const appDir = path.join(import.meta.dirname, "../../app")
   const dist = path.join(appDir, "dist")
   await $`bun run --cwd ${appDir} build`
   const files = (await Array.fromAsync(new Bun.Glob("**/*").scan({ cwd: dist })))
@@ -303,7 +308,8 @@ if (Script.release) {
   // publish step would fail trying to ``gh release edit`` a release that was
   // never created.
   const archives = ["./dist/*.zip", "./dist/*.tar.gz"]
-  const createResult = await $`gh release create v${Script.version} --title "v${Script.version}" --generate-notes ${archives} --repo ${process.env.GH_REPO}`.nothrow()
+  const createResult =
+    await $`gh release create v${Script.version} --title "v${Script.version}" --generate-notes ${archives} --repo ${process.env.GH_REPO}`.nothrow()
   if (createResult.exitCode !== 0) {
     await $`gh release upload v${Script.version} ${archives} --clobber --repo ${process.env.GH_REPO}`.nothrow()
   }
