@@ -23,6 +23,7 @@ jobs:
       - name: Prepare site content
         run: |
           mkdir -p site/schema
+          touch site/.nojekyll
           cp -rL packages/docs/* site/
           cp schemas/teamcode.json site/schema/config.json
           cp schemas/tui.json site/schema/tui.json
