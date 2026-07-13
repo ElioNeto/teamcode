@@ -11,18 +11,15 @@ import { FileWatcher } from "../../src/file/watcher"
 import { Git } from "../../src/git"
 
 // The FileWatcher uses @parcel/watcher native bindings with a polling fallback.
-// The native subscribe has an 8-second per-attempt timeout with 3 retries, so
-// the watcher can take 25+ seconds to become ready when the binding is present
-// but the subscribe fails for any reason.  To keep tests fast and deterministic
-// we only run them when the native binding is available — if it's not, the
-// polling fallback would make these tests impractically slow (>30s per test).
-// In CI the native binding can fail to subscribe (missing inotify cap, temp dirs
-// cleaned up before subscribe completes), so we skip there too.
-const hasNative = FileWatcher.hasNativeBinding() && !process.env.CI
-if (!hasNative) {
-  console.warn("[watcher.test] native binding unavailable in this environment, skipping FileWatcher tests")
+// In `bun test` the native binding is disabled (see `_isTestEnv` in watcher.ts)
+// to prevent the forked subscribe fiber from firing on deleted temp dirs after
+// scope cleanup.  The polling fallback is used instead, but it makes these tests
+// impractically slow (>30s per test), so we skip them in test environments.
+const isTestEnv = process.env.NODE_ENV === "test"
+if (isTestEnv) {
+  console.warn("[watcher.test] native binding disabled in test env, skipping FileWatcher tests")
 }
-const describeWatcher = hasNative ? describe : describe.skip
+const describeWatcher = isTestEnv ? describe.skip : describe
 
 // ---------------------------------------------------------------------------
 // Helpers

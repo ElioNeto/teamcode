@@ -34,9 +34,15 @@ export const Event = {
  *  `typeof` before referencing it. */
 declare const TEAMCODE_LIBC: string | undefined
 
+/** In test environments the forked native-subscribe fiber cannot be
+ *  interrupted once the Promise is in-flight.  Avoid loading the native
+ *  binding so the polling fallback is used instead. */
+const _isTestEnv = typeof process !== "undefined" && process.env?.NODE_ENV === "test"
+
 const _TEAMCODE_LIBC: string | undefined = typeof TEAMCODE_LIBC !== "undefined" ? TEAMCODE_LIBC : undefined
 
 const watcher = lazy((): typeof import("@parcel/watcher") | undefined => {
+  if (_isTestEnv) return
   try {
     const libc = process.platform === "linux" ? `-${_TEAMCODE_LIBC || "glibc"}` : ""
     const binding = require(`@parcel/watcher-${process.platform}-${process.arch}${libc}`)
