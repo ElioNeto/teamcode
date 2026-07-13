@@ -460,11 +460,10 @@ export const GoCoreClient = {
     delete: (sessionID: string) => request<void>("POST", "/session/delete", { session_id: sessionID }),
 
     /** List sessions, optionally filtered by directory. */
-    list: (directory?: string) =>
-      request<GoCoreSessionListResponse>(
-        "GET",
-        `/session/list${directory ? `?directory=${encodeURIComponent(directory)}` : ""}`,
-      ),
+    list: (directory?: string) => {
+      const query = directory ? `?directory=${encodeURIComponent(directory)}` : ""
+      return request<GoCoreSessionListResponse>("GET", `/session/list${query}`)
+    },
   },
 
   // ---- Agent Swarm (ADR #1074, impl #1075, contract #1076) ----

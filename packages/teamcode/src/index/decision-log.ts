@@ -12,9 +12,9 @@
  */
 
 import * as Global from "@teamcode-ai/core/global"
-import path from "path"
-import fs from "fs/promises"
-import { createWriteStream, existsSync, mkdirSync } from "fs"
+import path from "node:path"
+import fs from "node:fs/promises"
+import { createWriteStream, mkdirSync } from "node:fs"
 
 const log = createWriteStream
 
@@ -70,9 +70,9 @@ function decisionDir(projectRoot: string): string {
 function simpleHash(s: string): string {
   let hash = 0
   for (let i = 0; i < s.length; i++) {
-    const char = s.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
-    hash |= 0
+    const char = s.codePointAt(i) ?? 0
+    hash = (hash << 5) - hash + char
+    hash = Math.trunc(hash)
   }
   return Math.abs(hash).toString(36)
 }
@@ -152,18 +152,12 @@ export async function getDecisions(projectRoot: string): Promise<Decision[]> {
   }
 }
 
-export async function getDecisionsByType(
-  projectRoot: string,
-  type: DecisionType,
-): Promise<Decision[]> {
+export async function getDecisionsByType(projectRoot: string, type: DecisionType): Promise<Decision[]> {
   const all = await getDecisions(projectRoot)
   return all.filter((d) => d.type === type)
 }
 
-export async function getRecentDecisions(
-  projectRoot: string,
-  limit = 10,
-): Promise<Decision[]> {
+export async function getRecentDecisions(projectRoot: string, limit = 10): Promise<Decision[]> {
   const all = await getDecisions(projectRoot)
   return all.slice(-limit).reverse()
 }
@@ -172,11 +166,7 @@ export async function getRecentDecisions(
 // Updating outcomes
 // ---------------------------------------------------------------------------
 
-export async function updateOutcome(
-  projectRoot: string,
-  decisionId: string,
-  outcome: string,
-): Promise<void> {
+export async function updateOutcome(projectRoot: string, decisionId: string, outcome: string): Promise<void> {
   const dir = decisionDir(projectRoot)
   const filePath = path.join(dir, "decisions.jsonl")
   try {
@@ -206,10 +196,10 @@ export async function generateSummary(projectRoot: string): Promise<string> {
   const recent = await getRecentDecisions(projectRoot, 20)
   if (recent.length === 0) return ""
 
-  const lines = recent.map(
-    (d) =>
-      `[${new Date(d.timestamp).toISOString()}] [${d.type}] ${d.decision} — ${d.rationale}${d.outcome ? ` → ${d.outcome}` : ""}`,
-  )
+  const lines = recent.map((d) => {
+    const outcomePart = d.outcome ? ` → ${d.outcome}` : ""
+    return `[${new Date(d.timestamp).toISOString()}] [${d.type}] ${d.decision} — ${d.rationale}${outcomePart}`
+  })
 
   return [
     "---",

@@ -338,11 +338,19 @@ func (ps *PersistentStore) load() error {
 	}
 
 	now := time.Now()
-	loaded := 0
 
-	// Build set of expired session IDs from raw TTL data
+	expired := buildExpiredSet(pd.TTL, now)
+	loaded := restoreSessions(ps.mem, pd.SessionMap, expired)
+	restoreTTL(ps.sessions, pd.TTL, expired)
+
+	log.Printf("[session] loaded %d sessions from %s", loaded, ps.path)
+	return nil
+}
+
+// buildExpiredSet returns IDs of sessions whose TTL has expired.
+func buildExpiredSet(entries []*sessionEntry, now time.Time) map[string]bool {
 	expired := make(map[string]bool)
-	for _, entry := range pd.TTL {
+	for _, entry := range entries {
 		if entry == nil {
 			continue
 		}
@@ -350,14 +358,21 @@ func (ps *PersistentStore) load() error {
 			expired[entry.ID] = true
 		}
 	}
+	return expired
+}
 
-	// Restore full session objects (skip expired ones)
-	ps.mem.mu.Lock()
-	for id, s := range pd.SessionMap {
+// restoreSessions populates the memory store with non-expired sessions.
+// Returns the number of restored sessions.
+func restoreSessions(mem *Store, sessionMap map[string]*Session, expired map[string]bool) int {
+	loaded := 0
+	mem.mu.Lock()
+	defer mem.mu.Unlock()
+
+	for id, s := range sessionMap {
 		if s == nil || expired[id] {
 			continue
 		}
-		ps.mem.sessions[id] = &Session{
+		mem.sessions[id] = &Session{
 			ID:        s.ID,
 			Title:     s.Title,
 			Directory: s.Directory,
@@ -368,18 +383,17 @@ func (ps *PersistentStore) load() error {
 		}
 		loaded++
 	}
-	ps.mem.mu.Unlock()
+	return loaded
+}
 
-	// Restore non-expired TTL entries
-	for _, entry := range pd.TTL {
+// restoreTTL restores non-expired TTL entries into the sessions map.
+func restoreTTL(sessions map[string]*sessionEntry, entries []*sessionEntry, expired map[string]bool) {
+	for _, entry := range entries {
 		if entry == nil || expired[entry.ID] {
 			continue
 		}
-		ps.sessions[entry.ID] = entry
+		sessions[entry.ID] = entry
 	}
-
-	log.Printf("[session] loaded %d sessions from %s", loaded, ps.path)
-	return nil
 }
 
 // ---------------------------------------------------------------------------

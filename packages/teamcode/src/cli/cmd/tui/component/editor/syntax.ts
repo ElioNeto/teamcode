@@ -462,7 +462,7 @@ export interface HighlightedLine {
 // ---------------------------------------------------------------------------
 
 export class SyntaxHighlighter {
-  private fallback: SimpleHighlighter
+  private readonly fallback: SimpleHighlighter
 
   constructor() {
     this.fallback = new SimpleHighlighter()
@@ -541,109 +541,161 @@ class SimpleHighlighter {
     if (!lang) return { tokens: [], endsInBlockComment: false }
 
     const tokens: SyntaxToken[] = []
-    let remaining = line
-    let pos = 0
-    let endsBlock = false
 
-    // Handle block comments
-    if (lang.blockComment && inBlockComment) {
-      const [_, end] = lang.blockComment
-      const endIdx = remaining.indexOf(end)
-      if (endIdx !== -1) {
-        tokens.push({ start: pos, end: pos + endIdx + end.length, type: "comment" })
-        pos += endIdx + end.length
-        remaining = remaining.slice(endIdx + end.length)
-      } else {
-        // Entire line is still in block comment
-        return { tokens: [{ start: 0, end: line.length, type: "comment" }], endsInBlockComment: true }
+    // Handle block comment continuation from previous line
+    if (inBlockComment) {
+      if (this.handleOpenBlockComment(line, lang, tokens)) {
+        return { tokens, endsInBlockComment: true }
       }
     }
 
-    // Tokenize the remaining text
-    const tokenRegex =
-      /(\/\/[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b)|(\b[a-zA-Z_$][\w$]*\b)|(\/[*]|[*]\/)|(\S)|(\s+)/g
-    tokenRegex.lastIndex = 0
+    const endsBlock = this.scanLineTokens(line, lang, tokens)
+    return { tokens, endsInBlockComment: endsBlock }
+  }
 
-    let match: RegExpExecArray | null
-    while ((match = tokenRegex.exec(line)) !== null) {
-      const start = match.index
-      const end = start + match[0].length
-      const full = match[0]
+  /** Handles a line that continues from a block comment on the previous line.
+   *  Returns true if the entire line is still inside the block comment. */
+  private handleOpenBlockComment(line: string, lang: LanguageDef, tokens: SyntaxToken[]): boolean {
+    const end = lang.blockComment![1]
+    const endIdx = line.indexOf(end)
+    if (endIdx !== -1) {
+      tokens.push({ start: 0, end: endIdx + end.length, type: "comment" })
+      return false
+    }
+    tokens.push({ start: 0, end: line.length, type: "comment" })
+    return true
+  }
+
+  /** Scans a line character-by-character and classifies tokens.
+   *  Returns true if the line ends inside an unclosed block comment. */
+  private scanLineTokens(line: string, lang: LanguageDef, tokens: SyntaxToken[]): boolean {
+    let i = 0
+
+    while (i < line.length) {
+      const ch = line[i]
+      const next = i + 1 < line.length ? line[i + 1] : ""
 
       // Line comment
-      if (match[1]) {
-        tokens.push({ start, end, type: "comment" })
-        break // rest of the line is comment
+      if (ch === "/" && next === "/") {
+        tokens.push({ start: i, end: line.length, type: "comment" })
+        break
       }
 
-      // String
-      if (match[2]) {
-        tokens.push({ start, end, type: "string" })
+      // Block comment start
+      if (ch === "/" && next === "*" && lang.blockComment) {
+        const closed = this.handleBlockCommentStart(line, i, tokens)
+        if (closed === -1) return true // unclosed — line ends in block comment
+        i = closed
+        continue
+      }
+
+      // Block comment end (orphan)
+      if (ch === "*" && next === "/") {
+        tokens.push({ start: i, end: i + 2, type: "comment" })
+        i += 2
+        continue
+      }
+
+      // String literal
+      if (ch === '"' || ch === "'" || ch === "`") {
+        const end = this.scanString(line, i)
+        tokens.push({ start: i, end, type: "string" })
+        i = end
         continue
       }
 
       // Number
-      if (match[3]) {
-        tokens.push({ start, end, type: "number" })
+      if (/^\d$/.test(ch)) {
+        const end = this.scanNumber(line, i)
+        tokens.push({ start: i, end, type: "number" })
+        i = end
         continue
       }
 
-      // Word
-      if (match[4]) {
-        const word = full
-        if (lang.keywords.has(word)) {
-          // Check if it's a type keyword (starts with uppercase)
-          if (/^[A-Z]/.test(word) && !/^(const|let|var|import|export|from|return)$/.test(word)) {
-            tokens.push({ start, end, type: "type" })
-          } else {
-            tokens.push({ start, end, type: "keyword" })
-          }
-        } else if (/^[A-Z]/.test(word)) {
-          tokens.push({ start, end, type: "type" })
-        } else {
-          tokens.push({ start, end, type: "normal" })
-        }
-        continue
-      }
-
-      // Block comment start/end
-      if (match[5]) {
-        if (full === "/*" && lang.blockComment) {
-          tokens.push({ start, end, type: "comment" })
-          // Find closing */
-          const rest = line.slice(end)
-          const closeIdx = rest.indexOf("*/")
-          if (closeIdx !== -1) {
-            tokens.push({ start: end, end: end + closeIdx + 2, type: "comment" })
-            tokenRegex.lastIndex = end + closeIdx + 2
-          } else {
-            endsBlock = true
-            // Rest of the line is comment
-            if (end < line.length) {
-              tokens.push({ start: end, end: line.length, type: "comment" })
-            }
-            break
-          }
-        } else {
-          tokens.push({ start, end, type: "punctuation" })
-        }
-        continue
-      }
-
-      // Other non-whitespace
-      if (match[6]) {
-        if (/^[{}()\[\];,.:=+\-*/<>&|!~^%]$/.test(full)) {
-          tokens.push({ start, end, type: "punctuation" })
-        } else {
-          tokens.push({ start, end, type: "operator" })
-        }
+      // Word (identifier)
+      if (/^[a-zA-Z_$]$/.test(ch)) {
+        const end = this.scanWord(line, i, lang, tokens)
+        i = end
         continue
       }
 
       // Whitespace — skip
+      if (/^\s$/.test(ch)) {
+        i++
+        continue
+      }
+
+      // Other non-whitespace (punctuation or operator)
+      if (/^[{}()[\];,.:=+*/<>&|!~^%-]$/.test(ch)) {
+        tokens.push({ start: i, end: i + 1, type: "punctuation" })
+      } else {
+        tokens.push({ start: i, end: i + 1, type: "operator" })
+      }
+      i++
     }
 
-    return { tokens, endsInBlockComment: endsBlock }
+    return false
+  }
+
+  /** Handle block comment start marker.
+   *  Returns the position after the closing marker if found, or -1 if unclosed. */
+  private handleBlockCommentStart(line: string, pos: number, tokens: SyntaxToken[]): number {
+    tokens.push({ start: pos, end: pos + 2, type: "comment" })
+    const closeIdx = line.indexOf("*/", pos + 2)
+    if (closeIdx !== -1) {
+      tokens.push({ start: pos + 2, end: closeIdx + 2, type: "comment" })
+      return closeIdx + 2
+    }
+    if (pos + 2 < line.length) {
+      tokens.push({ start: pos + 2, end: line.length, type: "comment" })
+    }
+    return -1
+  }
+
+  /** Consume a string literal starting at pos and return the end position. */
+  private scanString(line: string, pos: number): number {
+    const quote = line[pos]
+    let j = pos + 1
+    while (j < line.length && line[j] !== quote) {
+      if (line[j] === "\\") j++ // skip escaped character
+      j++
+    }
+    if (j < line.length) j++ // include closing quote
+    return j
+  }
+
+  /** Consume a number starting at pos and return the end position. */
+  private scanNumber(line: string, pos: number): number {
+    let j = pos + 1
+    while (j < line.length && /^[\d.]$/.test(line[j])) j++
+    // Handle scientific notation
+    if (j + 1 < line.length && /^[eE][+-]?\d/.test(line.slice(j))) {
+      j += 2
+      while (j < line.length && /^\d$/.test(line[j])) j++
+    }
+    return j
+  }
+
+  /** Consume a word/identifier starting at pos and classify its token type. */
+  private scanWord(line: string, pos: number, lang: LanguageDef, tokens: SyntaxToken[]): number {
+    let j = pos + 1
+    while (j < line.length && /^[\w$]$/.test(line[j])) j++
+    const word = line.slice(pos, j)
+    const tokenType = this.classifyWord(word, lang)
+    tokens.push({ start: pos, end: j, type: tokenType })
+    return j
+  }
+
+  /** Classify a word as keyword, type, or normal. */
+  private classifyWord(word: string, lang: LanguageDef): SyntaxTokenType {
+    if (lang.keywords.has(word)) {
+      if (/^[A-Z]/.test(word) && !/^(const|let|var|import|export|from|return)$/.test(word)) {
+        return "type"
+      }
+      return "keyword"
+    }
+    if (/^[A-Z]/.test(word)) return "type"
+    return "normal"
   }
 
   highlightAll(lines: string[], language: string): HighlightedLine[] {

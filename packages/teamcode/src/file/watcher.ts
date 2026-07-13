@@ -4,8 +4,8 @@ import { Cause, Duration, Effect, Layer, Context, Schema, Queue } from "effect"
 // @ts-ignore
 import { createWrapper } from "@parcel/watcher/wrapper"
 import type ParcelWatcher from "@parcel/watcher"
-import { readdir, realpath, stat } from "fs/promises"
-import path from "path"
+import { readdir, realpath, stat } from "node:fs/promises"
+import path from "node:path"
 import { Bus } from "@/bus"
 import { BusEvent } from "@/bus/bus-event"
 import { EffectBridge } from "@/effect/bridge"
@@ -136,7 +136,9 @@ function createPollWatcher(
   }
 
   // Initial scan
-  scan().then((files) => { prevFiles = files })
+  scan().then((files) => {
+    prevFiles = files
+  })
 
   const interval = setInterval(async () => {
     if (stopped) return
@@ -292,7 +294,9 @@ export const layer = Layer.effect(
               // Native watcher with retry + polling fallback
               const tryNative = (attempt: number): Effect.Effect<void> =>
                 Effect.gen(function* () {
-                  const sub = yield* Effect.promise(() => w.subscribe(dir, bridge.bind(cb), { ignore: ignoreList, backend }))
+                  const sub = yield* Effect.promise(() =>
+                    w.subscribe(dir, bridge.bind(cb), { ignore: ignoreList, backend }),
+                  )
                   subs.push(sub)
                 }).pipe(
                   Effect.timeout(Duration.millis(SUBSCRIBE_TIMEOUT_MS)),
@@ -309,11 +313,15 @@ export const layer = Layer.effect(
                     }
                     // Fall back to polling
                     log.info("falling back to polling watcher", { dir })
-                    const poller = createPollWatcher(dir, (events) => {
-                      for (const evt of events) {
-                        Queue.offer(eventQueue, evt).pipe(Effect.runFork)
-                      }
-                    }, ignoreList)
+                    const poller = createPollWatcher(
+                      dir,
+                      (events) => {
+                        for (const evt of events) {
+                          Queue.offer(eventQueue, evt).pipe(Effect.runFork)
+                        }
+                      },
+                      ignoreList,
+                    )
                     subs.push({ unsubscribe: poller.stop })
                     return Effect.void
                   }),
@@ -323,11 +331,15 @@ export const layer = Layer.effect(
             } else {
               // No native watcher — use polling
               log.info("using polling watcher (no native binding)", { dir })
-              const poller = createPollWatcher(dir, (events) => {
-                for (const evt of events) {
-                  Queue.offer(eventQueue, evt).pipe(Effect.runFork)
-                }
-              }, ignoreList)
+              const poller = createPollWatcher(
+                dir,
+                (events) => {
+                  for (const evt of events) {
+                    Queue.offer(eventQueue, evt).pipe(Effect.runFork)
+                  }
+                },
+                ignoreList,
+              )
               subs.push({ unsubscribe: poller.stop })
             }
           }

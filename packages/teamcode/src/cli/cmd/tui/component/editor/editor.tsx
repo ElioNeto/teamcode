@@ -33,7 +33,7 @@ interface EditorProps {
 export function Editor(props: EditorProps) {
   const { theme } = useTheme()
   const dims = useTerminalDimensions()
-  const { buffer, vim } = props
+  const { buffer } = props
 
   const [scrollRow, setScrollRow] = createSignal(0)
   const [showTree, setShowTree] = createSignal(props.showFileTree ?? false)

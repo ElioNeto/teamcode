@@ -57,11 +57,11 @@ export class TextBuffer {
   mode: EditorMode = "normal"
   options: EditorOptions = { tabSize: 2, readonly: false }
 
-  private undoStack: UndoEntry[] = []
+  private readonly undoStack: UndoEntry[] = []
   private redoStack: UndoEntry[] = []
-  private maxUndo = 500
+  private readonly maxUndo = 500
   private dirty = false
-  private filePath?: string
+  private readonly filePath?: string
 
   /** Callback fired on every edit. (buffer) => void */
   onEdit?: (buf: TextBuffer) => void
@@ -213,20 +213,22 @@ export class TextBuffer {
   /** Return selection normalized (start < end). */
   normalizedSelection(): { start: Cursor; end: Cursor } {
     const sel = this.selection!
-    const startRow = sel.start.row < sel.end.row ? sel.start.row : sel.end.row
-    const startCol =
-      sel.start.row === sel.end.row
-        ? Math.min(sel.start.col, sel.end.col)
-        : sel.start.row < sel.end.row
-          ? sel.start.col
-          : sel.end.col
-    const endRow = sel.start.row < sel.end.row ? sel.end.row : sel.start.row
-    const endCol =
-      sel.start.row === sel.end.row
-        ? Math.max(sel.start.col, sel.end.col)
-        : sel.start.row < sel.end.row
-          ? sel.end.col
-          : sel.start.col
+    const startRow = Math.min(sel.start.row, sel.end.row)
+    const endRow = Math.max(sel.start.row, sel.end.row)
+
+    let startCol: number
+    let endCol: number
+    if (sel.start.row === sel.end.row) {
+      startCol = Math.min(sel.start.col, sel.end.col)
+      endCol = Math.max(sel.start.col, sel.end.col)
+    } else if (sel.start.row < sel.end.row) {
+      startCol = sel.start.col
+      endCol = sel.end.col
+    } else {
+      startCol = sel.end.col
+      endCol = sel.start.col
+    }
+
     return {
       start: { row: startRow, col: startCol },
       end: { row: endRow, col: endCol },
@@ -447,7 +449,6 @@ export class TextBuffer {
       case "join-line": {
         const removed = entry.data as string
         this.lines.splice(entry.pos.row, 0, removed)
-        const prevLen = this.lines[entry.pos.row - 1].length
         this.lines[entry.pos.row - 1] = this.lines[entry.pos.row - 1].slice(0, -removed.length)
         break
       }

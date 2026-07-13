@@ -23,8 +23,9 @@ import (
 
 // Defaults
 const (
-	DefaultUnixPath = "/tmp/teamcode-core.sock"
-	DefaultTCPPort  = 43001
+	DefaultUnixPath   = "/tmp/teamcode-core.sock"
+	DefaultTCPPort    = 43001
+	DefaultAddrPrefix = "127.0.0.1:"
 )
 
 // Addr returns the auto-detected best address for the environment.
@@ -34,12 +35,12 @@ func Addr() string {
 		return addr
 	}
 	if port := os.Getenv("GO_CORE_PORT"); port != "" {
-		return "127.0.0.1:" + port
+		return DefaultAddrPrefix + port
 	}
 	if useUnix() {
 		return DefaultUnixPath
 	}
-	return fmt.Sprintf("127.0.0.1:%d", DefaultTCPPort)
+	return fmt.Sprintf("%s%d", DefaultAddrPrefix, DefaultTCPPort)
 }
 
 // IsUnixSocket returns true if the address is a Unix Domain Socket path.
@@ -88,10 +89,10 @@ func listenUnix(path string) (net.Listener, string, error) {
 func listenTCP(addr string) (net.Listener, string, error) {
 	// Default to 127.0.0.1 if only port is given
 	if _, err := strconv.Atoi(addr); err == nil {
-		addr = "127.0.0.1:" + addr
+		addr = DefaultAddrPrefix + addr
 	}
 	if !strings.Contains(addr, ":") {
-		addr = "127.0.0.1:" + addr
+		addr = DefaultAddrPrefix + addr
 	}
 
 	listener, err := net.Listen("tcp", addr)

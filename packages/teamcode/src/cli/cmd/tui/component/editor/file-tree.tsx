@@ -45,8 +45,8 @@ export function FileTree(props: FileTreeProps) {
   const project = useProject()
 
   const [entries, setEntries] = createSignal<FileEntry[]>([])
-  const [cursor, setCursor] = createSignal(0)
-  const [filter, setFilter] = createSignal("")
+  const [cursor] = createSignal(0)
+  const [filter] = createSignal("")
   const [loading, setLoading] = createSignal(true)
 
   onMount(async () => {
@@ -68,7 +68,6 @@ export function FileTree(props: FileTreeProps) {
     if (!q) return flat()
     return flat().filter(({ entry }) => entry.name.toLowerCase().includes(q))
   })
-  const selected = createMemo(() => filtered()[cursor()])
 
   return (
     <box width={30}>
@@ -81,18 +80,19 @@ export function FileTree(props: FileTreeProps) {
       </Show>
       <Show when={!loading()} fallback={<text fg={theme.textMuted}>Loading...</text>}>
         <For each={filtered()}>
-          {(item, idx) => (
-            <box height={1}>
-              <text
-                fg={idx() === cursor() ? theme.accent : item.entry.isDir ? "#ffaa00" : theme.text}
-                attributes={item.entry.isDir ? TextAttributes.BOLD : undefined}
-              >
-                {"  ".repeat(item.depth)}
-                {item.entry.isDir ? (item.entry.expanded ? "▼ " : "▶ ") : "  "}
-                {item.entry.name}
-              </text>
-            </box>
-          )}
+          {(item, idx) => {
+            const fgColor = idx() === cursor() ? theme.accent : item.entry.isDir ? "#ffaa00" : theme.text
+            const prefix = item.entry.isDir ? (item.entry.expanded ? "▼ " : "▶ ") : "  "
+            return (
+              <box height={1}>
+                <text fg={fgColor} attributes={item.entry.isDir ? TextAttributes.BOLD : undefined}>
+                  {"  ".repeat(item.depth)}
+                  {prefix}
+                  {item.entry.name}
+                </text>
+              </box>
+            )
+          }}
         </For>
       </Show>
     </box>
@@ -109,7 +109,7 @@ function buildTree(rootDir: string, files: string[]): FileEntry[] {
       const part = parts[i]
       const isLast = i === parts.length - 1
       const existing = current.find((e) => e.name === part && e.isDir !== isLast)
-      if (existing && existing.isDir) {
+      if (existing?.isDir) {
         current = existing.children!
       } else if (!isLast) {
         const dir: FileEntry = {

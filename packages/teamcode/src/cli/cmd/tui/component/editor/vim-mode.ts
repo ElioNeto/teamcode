@@ -5,7 +5,7 @@
  * Handles VIM command sequences (e.g., `dd`, `yy`, `p`, `/search`).
  */
 
-import type { EditorMode, Cursor } from "./buffer"
+import type { EditorMode } from "./buffer"
 import { TextBuffer } from "./buffer"
 
 // ---------------------------------------------------------------------------
@@ -171,14 +171,29 @@ export class VimEngine {
 
     // Digit prefix for count
     if (/^[1-9]$/.test(key)) {
-      this.pending.count = this.pending.count * 10 + parseInt(key, 10)
+      this.pending.count = this.pending.count * 10 + Number.parseInt(key, 10)
       return true
     }
 
     const count = Math.max(1, this.pending.count)
 
+    if (this.handleMovementKey(key, buf, count)) return true
+    if (this.handleInsertEntryKey(key, buf)) return true
+    if (this.handleEditingKey(key, buf, count)) return true
+    if (this.handleVisualModeKey(key, buf)) return true
+    if (this.handleOtherKey(key, buf)) return true
+
+    this.clearPending()
+    return false
+  }
+
+  private handleMovementKey(key: string, buf: TextBuffer, count: number): boolean {
+    if (this.pending.sequence === "g" && key === "g") {
+      buf.moveToFirstLine()
+      this.clearPending()
+      return true
+    }
     switch (key) {
-      // Movement
       case "h":
       case "left":
         buf.moveLeft(count)
@@ -199,7 +214,6 @@ export class VimEngine {
         buf.moveRight(count)
         this.clearPending()
         return true
-
       case "w":
         buf.moveWordForward()
         this.clearPending()
@@ -208,7 +222,6 @@ export class VimEngine {
         buf.moveWordBackward()
         this.clearPending()
         return true
-
       case "0":
       case "home":
         buf.moveToLineStart()
@@ -224,27 +237,24 @@ export class VimEngine {
           this.pending.sequence = "g"
           return true
         }
-        if (this.pending.sequence === "g") {
-          buf.moveToFirstLine()
-          this.clearPending()
-          return true
-        }
         return false
       case "G":
         buf.moveToLastLine()
         this.clearPending()
         return true
+    }
+    return false
+  }
 
-      // Insert mode entry
+  private handleInsertEntryKey(key: string, buf: TextBuffer): boolean {
+    switch (key) {
       case "i":
         buf.mode = "insert"
         this.clearPending()
         buf.onModeChange?.(buf.mode)
         return true
       case "a":
-        if (buf.cursor.col < buf.lineLength(buf.cursor.row)) {
-          buf.moveRight()
-        }
+        if (buf.cursor.col < buf.lineLength(buf.cursor.row)) buf.moveRight()
         buf.mode = "insert"
         this.clearPending()
         buf.onModeChange?.(buf.mode)
@@ -262,6 +272,7 @@ export class VimEngine {
         buf.onModeChange?.(buf.mode)
         return true
       case "o":
+      case "p":
         buf.insertLineBelow()
         buf.mode = "insert"
         this.clearPending()
@@ -273,8 +284,12 @@ export class VimEngine {
         this.clearPending()
         buf.onModeChange?.(buf.mode)
         return true
+    }
+    return false
+  }
 
-      // Editing
+  private handleEditingKey(key: string, buf: TextBuffer, count: number): boolean {
+    switch (key) {
       case "x":
         for (let i = 0; i < count; i++) buf.delete()
         this.clearPending()
@@ -285,43 +300,40 @@ export class VimEngine {
           return true
         }
         if (this.pending.sequence === "d") {
-          // dd — delete line
           for (let i = 0; i < count; i++) buf.deleteLine()
           this.clearPending()
           return true
         }
         return false
-
       case "y":
         if (this.pending.sequence === "") {
           this.pending.sequence = "y"
           return true
         }
         if (this.pending.sequence === "y") {
-          // yy — yank line (copy to clipboard is OS-level)
           this.clearPending()
           return true
         }
         return false
-
-      case "p":
-        buf.insertLineBelow()
-        buf.mode = "insert"
-        this.clearPending()
-        buf.onModeChange?.(buf.mode)
-        return true
-
       case "u":
         buf.undo()
         this.clearPending()
         return true
       case "r":
-        // Ctrl+R — redo
         buf.redo()
         this.clearPending()
         return true
+      case "delete":
+      case "del":
+        buf.delete()
+        this.clearPending()
+        return true
+    }
+    return false
+  }
 
-      // Visual mode
+  private handleVisualModeKey(key: string, buf: TextBuffer): boolean {
+    switch (key) {
       case "v":
         buf.selection = { start: { ...buf.cursor }, end: { ...buf.cursor } }
         buf.mode = "visual"
@@ -337,38 +349,28 @@ export class VimEngine {
         this.clearPending()
         buf.onModeChange?.(buf.mode)
         return true
+    }
+    return false
+  }
 
-      // Delete selection or character
-      case "delete":
-      case "del":
-        buf.delete()
-        this.clearPending()
-        return true
-
-      // Search
+  private handleOtherKey(key: string, buf: TextBuffer): boolean {
+    switch (key) {
       case "/":
         this.searchMode = true
         this.searchQuery = ""
         this.clearPending()
         return true
-
-      // Save
       case "ctrl+s":
         this.callbacks.onSave?.()
         this.clearPending()
         return true
-
-      // Quit
       case "ctrl+q":
       case "ctrl+w":
         this.callbacks.onCloseEditor?.()
         this.clearPending()
         return true
-
-      default:
-        this.clearPending()
-        return false
     }
+    return false
   }
 
   // -----------------------------------------------------------------------
