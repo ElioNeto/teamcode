@@ -16,9 +16,11 @@ import { Git } from "../../src/git"
 // but the subscribe fails for any reason.  To keep tests fast and deterministic
 // we only run them when the native binding is available — if it's not, the
 // polling fallback would make these tests impractically slow (>30s per test).
-const hasNative = FileWatcher.hasNativeBinding()
+// In CI the native binding can fail to subscribe (missing inotify cap, temp dirs
+// cleaned up before subscribe completes), so we skip there too.
+const hasNative = FileWatcher.hasNativeBinding() && !process.env.CI
 if (!hasNative) {
-  console.warn("[watcher.test] native binding unavailable, skipping FileWatcher tests")
+  console.warn("[watcher.test] native binding unavailable in this environment, skipping FileWatcher tests")
 }
 const describeWatcher = hasNative ? describe : describe.skip
 
