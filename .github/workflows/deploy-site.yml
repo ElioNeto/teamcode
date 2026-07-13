@@ -1,0 +1,46 @@
+name: deploy-site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/docs/**"
+      - "schemas/**"
+      - ".github/workflows/deploy-site.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare site content
+        run: |
+          mkdir -p site/schema
+          cp -r packages/docs/* site/
+          cp schemas/teamcode.json site/schema/config.json
+          cp schemas/tui.json site/schema/tui.json
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    runs-on: ubuntu-24.04
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

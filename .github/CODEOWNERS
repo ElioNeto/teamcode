@@ -1,0 +1,24 @@
+# TeamCode CODEOWNERS
+#
+# This file defines the teams/individuals responsible for reviewing changes
+# to specific paths in the repository.
+#
+# DEPRECATION NOTICE:
+# The TypeScript core (packages/core/) is DEPRECATED as of v2.4.0.
+# Only bug fixes and security patches are accepted.
+# All new development must target the Go core (go-core/).
+
+# Default owners for everything
+* @ElioNeto
+
+# TypeScript core — DEPRECATED
+# Only bug fixes and security patches. Any PR touching this path
+# MUST include a clear justification in the description.
+# New features implemented here will be rejected.
+/packages/core/ @ElioNeto
+
+# Go core — all new feature development
+/go-core/ @ElioNeto
+
+# Docs — architecture decisions and plans
+/docs/ @ElioNeto

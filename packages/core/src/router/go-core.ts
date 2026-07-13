@@ -1,4 +1,11 @@
 /**
+ * DEPRECATION NOTICE
+ * ==================
+ * The TypeScript core (packages/core/) is DEPRECATED as of v2.4.0.
+ * All new feature development must target the Go core (go-core/).
+ * Only bug fixes and security patches are accepted for this package.
+ * ==================
+ *
  * Go Core spawner — detects and manages the Go core server process.
  *
  * At startup, this module:
@@ -182,8 +189,7 @@ async function downloadGoCore(): Promise<string | null> {
   if (!archive) return null
 
   // For local/dev builds use the latest release; for released versions pin the tag
-  const isLatest =
-    typeof TEAMCODE_VERSION !== "string" || TEAMCODE_VERSION === "local"
+  const isLatest = typeof TEAMCODE_VERSION !== "string" || TEAMCODE_VERSION === "local"
   const url = isLatest
     ? `https://github.com/${GITHUB_REPO}/releases/latest/download/${archive}`
     : `https://github.com/${GITHUB_REPO}/releases/download/v${TEAMCODE_VERSION}/${archive}`

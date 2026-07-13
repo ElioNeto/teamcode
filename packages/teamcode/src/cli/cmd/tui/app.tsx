@@ -46,6 +46,7 @@ import { DialogConsoleOrg } from "@tui/component/dialog-console-org"
 import { ThemeProvider, useTheme } from "@tui/context/theme"
 import { Home } from "@tui/routes/home"
 import { Session } from "@tui/routes/session"
+import { EditorPage } from "@tui/routes/editor"
 import { PromptHistoryProvider } from "./component/prompt/history"
 import { FrecencyProvider } from "./component/prompt/frecency"
 import { PromptStashProvider } from "./component/prompt/stash"
@@ -195,14 +196,8 @@ export function tui(input: {
           return originalSetRawMode(mode)
         } catch (error: unknown) {
           if (
-            (typeof error === "object" &&
-              error !== null &&
-              "code" in error &&
-              error.code === "EBADF") ||
-            (typeof error === "object" &&
-              error !== null &&
-              "errno" in error &&
-              error.errno === 9)
+            (typeof error === "object" && error !== null && "code" in error && error.code === "EBADF") ||
+            (typeof error === "object" && error !== null && "errno" in error && error.errno === 9)
           ) {
             console.warn(
               "Warning: stdin setRawMode failed (EBADF). Running without raw mode. Keyboard input may be limited.",
@@ -236,7 +231,7 @@ If the problem persists, use --no-tui or run in headless mode: opencode run`)
           const brightness = (bg.r * 299 + bg.g * 587 + bg.b * 114) / 1000
           return brightness > 0.5 ? "light" : "dark"
         })()
-      : (await renderer.waitForThemeMode(1000)) ?? "dark"
+      : ((await renderer.waitForThemeMode(1000)) ?? "dark")
 
     const keymap = createDefaultOpenTuiKeymap(renderer)
     const offKeymap = registerOpencodeKeymap(keymap, renderer, input.config)
@@ -257,9 +252,9 @@ If the problem persists, use --no-tui or run in headless mode: opencode run`)
                       initialRoute={
                         input.args.continue
                           ? {
-                            type: "session",
-                            sessionID: "dummy",
-                          }
+                              type: "session",
+                              sessionID: "dummy",
+                            }
                           : undefined
                       }
                     >
@@ -671,18 +666,18 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
       },
       ...(sync.data.console_state.switchableOrgCount > 1
         ? [
-          {
-            name: "console.org.switch",
-            title: "Switch org",
-            suggested: Boolean(sync.data.console_state.activeOrgName),
-            slashName: "org",
-            slashAliases: ["orgs", "switch-org"],
-            run: () => {
-              dialog.replace(() => <DialogConsoleOrg />)
+            {
+              name: "console.org.switch",
+              title: "Switch org",
+              suggested: Boolean(sync.data.console_state.activeOrgName),
+              slashName: "org",
+              slashAliases: ["orgs", "switch-org"],
+              run: () => {
+                dialog.replace(() => <DialogConsoleOrg />)
+              },
+              category: "Provider",
             },
-            category: "Provider",
-          },
-        ]
+          ]
         : []),
       {
         name: "teamcode.status",
@@ -734,7 +729,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
         name: "docs.open",
         title: "Open docs",
         run: () => {
-          open("https://teamcode.ai/docs").catch(() => { })
+          open("https://teamcode.ai/docs").catch(() => {})
           dialog.clear()
         },
         category: "System",
@@ -815,6 +810,15 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
         run: () => {
           kv.set("animations_enabled", !kv.get("animations_enabled", true))
           dialog.clear()
+        },
+      },
+      {
+        name: "editor.open",
+        title: "Open code editor",
+        category: "Editor",
+        slashName: "editor",
+        run: () => {
+          route.navigate({ type: "editor" })
         },
       },
       {
@@ -1010,6 +1014,9 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
             </Match>
             <Match when={route.data.type === "session"}>
               <Session />
+            </Match>
+            <Match when={route.data.type === "editor"}>
+              <EditorPage />
             </Match>
           </Switch>
           {plugin()}

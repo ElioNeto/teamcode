@@ -127,7 +127,7 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
       if (!page.cursor) return page.items
 
       const request = yield* HttpServerRequest.HttpServerRequest
-      // toURL() honors the Host + x-forwarded-proto headers, so the Link
+      // toURL() honors the Host + x-forwarded-proxy headers, so the Link
       // header echoes the real origin instead of a hard-coded localhost.
       const url = Option.getOrElse(HttpServerRequest.toURL(request), () => new URL(request.url, "http://localhost"))
       url.searchParams.set("limit", ctx.query.limit.toString())

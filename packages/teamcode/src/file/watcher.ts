@@ -1,9 +1,11 @@
-import { Cause, Duration, Effect, Layer, Context, Schema } from "effect"
+/// <reference lib="ES2023" />
+
+import { Cause, Duration, Effect, Layer, Context, Schema, Queue } from "effect"
 // @ts-ignore
 import { createWrapper } from "@parcel/watcher/wrapper"
 import type ParcelWatcher from "@parcel/watcher"
-import { readdir, realpath } from "fs/promises"
-import path from "path"
+import { readdir, realpath, stat } from "node:fs/promises"
+import path from "node:path"
 import { Bus } from "@/bus"
 import { BusEvent } from "@/bus/bus-event"
 import { EffectBridge } from "@/effect/bridge"
@@ -19,15 +21,35 @@ import * as Log from "@teamcode-ai/core/util/log"
 declare const TEAMCODE_LIBC: string | undefined
 
 const log = Log.create({ service: "file.watcher" })
-const SUBSCRIBE_TIMEOUT_MS = 10_000
 
-// Suppress file-watcher-triggered reloads for a period after a user-initiated
-// revert (undo), preventing the watcher from reloading files from disk and
-// overwriting the undo buffer in the editor. See #817.
+// ---------------------------------------------------------------------------
+// Configuration
+// ---------------------------------------------------------------------------
+
+/** Maximum time to wait for a native subscribe call */
+const SUBSCRIBE_TIMEOUT_MS = 8_000
+
+/** Debounce window for coalescing file events */
+const DEBOUNCE_MS = 100
+
+/** Polling interval used when native watcher is unavailable */
+const POLL_INTERVAL_MS = 2_000
+
+/** After this many subscribe timeouts, fall back to polling permanently */
+const MAX_SUBSCRIBE_RETRIES = 3
+
+// ---------------------------------------------------------------------------
+// Suppression (for undo operations, see #817)
+// ---------------------------------------------------------------------------
+
 let suppressWatcherUntil = 0
 export function suppressWatcherFor(ms: number) {
   suppressWatcherUntil = Date.now() + ms
 }
+
+// ---------------------------------------------------------------------------
+// Event
+// ---------------------------------------------------------------------------
 
 export const Event = {
   Updated: BusEvent.define(
@@ -39,17 +61,23 @@ export const Event = {
   ),
 }
 
-const watcher = lazy((): typeof import("@parcel/watcher") | undefined => {
+// ---------------------------------------------------------------------------
+// Native watcher loader
+// ---------------------------------------------------------------------------
+
+const nativeWatcher = lazy((): typeof import("@parcel/watcher") | undefined => {
   try {
     const binding = require(
       `@parcel/watcher-${process.platform}-${process.arch}${process.platform === "linux" ? `-${TEAMCODE_LIBC || "glibc"}` : ""}`,
     )
     return createWrapper(binding) as typeof import("@parcel/watcher")
   } catch (error) {
-    log.error("failed to load watcher binding", { error })
+    log.warn("native watcher binding unavailable, using polling fallback", { error: (error as Error).message })
     return
   }
 })
+
+export const hasNativeBinding = () => !!nativeWatcher()
 
 function getBackend() {
   if (process.platform === "win32") return "windows"
@@ -64,7 +92,94 @@ function protecteds(dir: string) {
   })
 }
 
-export const hasNativeBinding = () => !!watcher()
+// ---------------------------------------------------------------------------
+// Polling fallback watcher
+// ---------------------------------------------------------------------------
+
+function createPollWatcher(
+  dir: string,
+  onChange: (events: ParcelWatcher.Event[]) => void,
+  ignore: string[],
+): { stop: () => void } {
+  const ignoreSet = new Set(ignore)
+  let prevFiles = new Map<string, number>()
+  let stopped = false
+
+  // Pre-populate initial file map
+  const scan = async () => {
+    const files = new Map<string, number>()
+    const walk = async (d: string) => {
+      if (stopped) return
+      try {
+        const entries = await readdir(d, { withFileTypes: true })
+        for (const entry of entries) {
+          const fullPath = path.join(d, entry.name)
+          if (ignoreSet.has(entry.name)) continue
+          if (entry.isDirectory()) {
+            if (entry.name === ".git" || entry.name === "node_modules") continue
+            await walk(fullPath)
+          } else if (entry.isFile()) {
+            try {
+              const s = await stat(fullPath)
+              files.set(fullPath, s.mtimeMs)
+            } catch {
+              // file might have been deleted during scan
+            }
+          }
+        }
+      } catch {
+        // permission denied, skip
+      }
+    }
+    await walk(dir)
+    return files
+  }
+
+  // Initial scan
+  scan().then((files) => {
+    prevFiles = files
+  })
+
+  const interval = setInterval(async () => {
+    if (stopped) return
+    const current = await scan()
+    const events: ParcelWatcher.Event[] = []
+
+    // Check for added/modified files
+    for (const [filePath, mtime] of current) {
+      const prevMtime = prevFiles.get(filePath)
+      if (prevMtime === undefined) {
+        events.push({ path: filePath, type: "create" })
+      } else if (prevMtime !== mtime) {
+        events.push({ path: filePath, type: "update" })
+      }
+    }
+
+    // Check for deleted files
+    for (const [filePath] of prevFiles) {
+      if (!current.has(filePath)) {
+        events.push({ path: filePath, type: "delete" })
+      }
+    }
+
+    if (events.length > 0) {
+      onChange(events)
+    }
+
+    prevFiles = current
+  }, POLL_INTERVAL_MS)
+
+  return {
+    stop: () => {
+      stopped = true
+      clearInterval(interval)
+    },
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Service
+// ---------------------------------------------------------------------------
 
 export interface Interface {
   readonly init: () => Effect.Effect<void>
@@ -88,109 +203,144 @@ export const layer = Layer.effect(
 
           log.info("init", { directory: ctx.directory })
 
-          const backend = getBackend()
-          if (!backend) {
-            log.error("watcher backend not supported", { directory: ctx.directory, platform: process.platform })
+          // Skip filesystem root directories — recursive inotify on "/" would
+          // register watches on the entire filesystem and timeout.
+          if (path.dirname(ctx.directory) === ctx.directory) {
+            log.warn("skipped filesystem root directory", { directory: ctx.directory })
             return
           }
 
-          const w = watcher()
-          if (!w) return
+          const backend = getBackend()
+          if (!backend) {
+            log.error("watcher backend not supported", { platform: process.platform })
+            return
+          }
 
-          log.info("watcher backend", { directory: ctx.directory, platform: process.platform, backend })
-          const bridge = yield* EffectBridge.make()
-          const subs: ParcelWatcher.AsyncSubscription[] = []
+          const w = nativeWatcher()
+
+          // Determine which dirs to watch
+          const cfg = yield* config.get()
+          const cfgIgnores = cfg.watcher?.ignore ?? []
+          const watchDirs: Array<{ dir: string; ignore: string[] }> = []
+
+          // Main project directory
+          watchDirs.push({
+            dir: ctx.directory,
+            ignore: [...FileIgnore.PATTERNS, ...cfgIgnores, ...protecteds(ctx.directory)],
+          })
+
+          // Git directory (for branch/tracking changes)
+          if (ctx.project.vcs === "git") {
+            const result = yield* git.run(["rev-parse", "--git-dir"], { cwd: ctx.worktree })
+            const resolved = result.exitCode === 0 ? path.resolve(ctx.worktree, result.text().trim()) : undefined
+            const vcsDir = resolved ? yield* Effect.promise(() => realpath(resolved).catch(() => resolved)) : undefined
+            if (vcsDir && !cfgIgnores.includes(".git") && !cfgIgnores.includes(vcsDir)) {
+              const ignore = (yield* Effect.promise(() => readdir(vcsDir).catch(() => []))).filter(
+                (entry) => entry !== "HEAD",
+              )
+              watchDirs.push({ dir: vcsDir, ignore })
+            }
+          }
+
+          // Subscribe all dirs in parallel
+          const subs: Array<ParcelWatcher.AsyncSubscription | { unsubscribe: () => void }> = []
           yield* Effect.addFinalizer(() =>
-            Effect.promise(() => Promise.allSettled(subs.map((sub) => sub.unsubscribe()))),
+            Effect.promise(() => Promise.allSettled(subs.map((sub) => sub.unsubscribe?.() ?? sub.unsubscribe()))),
           )
 
-          // Debounce file-watcher events to prevent a burst of N parallel bus
-          // publishes (and therefore N parallel HTTP sync requests to the web UI)
-          // when an agent writes many files at once. Accumulate events during
-          // the debounce window so none are lost.
-          let debounceTimer: ReturnType<typeof setTimeout> | null = null
-          let pending: ParcelWatcher.Event[] = []
+          const bridge = yield* EffectBridge.make()
+
+          // Event queue to decouple watcher callbacks from bus publishing
+          const eventQueue = yield* Queue.unbounded<ParcelWatcher.Event>()
+
+          // Consumer: debounce and publish
+          yield* Effect.forkScoped(
+            Effect.gen(function* () {
+              let pending: ParcelWatcher.Event[] = []
+              let timer: ReturnType<typeof setTimeout> | null = null
+              const flush = () => {
+                timer = null
+                const batch = pending
+                pending = []
+                if (Date.now() < suppressWatcherUntil) return
+                for (const evt of batch) {
+                  if (evt.type === "create") void Bus.publish(ctx, Event.Updated, { file: evt.path, event: "add" })
+                  if (evt.type === "update") void Bus.publish(ctx, Event.Updated, { file: evt.path, event: "change" })
+                  if (evt.type === "delete") void Bus.publish(ctx, Event.Updated, { file: evt.path, event: "unlink" })
+                }
+              }
+              while (true) {
+                const evt = yield* Queue.take(eventQueue)
+                pending.push(evt)
+                if (timer) clearTimeout(timer)
+                timer = setTimeout(flush, DEBOUNCE_MS)
+              }
+            }),
+          )
+
           const cb: ParcelWatcher.SubscribeCallback = bridge.bind((err, evts) => {
             if (err) {
               log.warn("watcher error", { error: err })
               return
             }
-            pending.push(...evts)
-            if (debounceTimer) clearTimeout(debounceTimer)
-            debounceTimer = setTimeout(() => {
-              debounceTimer = null
-              const batch = pending
-              pending = []
-              // Skip watcher events during the suppression window to prevent
-              // fighting undo operations (the watcher would reload files from
-              // disk and overwrite the undo buffer in the editor). See #817.
-              if (Date.now() < suppressWatcherUntil) return
-              for (const evt of batch) {
-                if (evt.type === "create") void Bus.publish(ctx, Event.Updated, { file: evt.path, event: "add" })
-                if (evt.type === "update") void Bus.publish(ctx, Event.Updated, { file: evt.path, event: "change" })
-                if (evt.type === "delete") void Bus.publish(ctx, Event.Updated, { file: evt.path, event: "unlink" })
-              }
-            }, 100) // 100ms debounce — coalesces bursts while staying interactive
+            for (const evt of evts) {
+              Queue.offer(eventQueue, evt).pipe(Effect.runFork)
+            }
           })
 
-          const subscribe = (dir: string, ignore: string[]) => {
-            const retry = { count: 0, max: 5 }
-            const trySubscribe = (): Effect.Effect<void> => {
-              const pending = w.subscribe(dir, cb, { ignore, backend })
-              return Effect.gen(function* () {
-                const sub = yield* Effect.promise(() => pending)
-                subs.push(sub)
-              }).pipe(
-                Effect.timeout(SUBSCRIBE_TIMEOUT_MS),
-                Effect.catchCause((cause) => {
-                  log.error("failed to subscribe", { dir, cause: Cause.pretty(cause), attempt: retry.count + 1 })
-                  pending.then((s) => s.unsubscribe()).catch(() => {})
-                  if (retry.count < retry.max) {
-                    const base = Math.min(100 * Math.pow(2, retry.count), 10000)
-                    const jitter = Math.random() * base
-                    retry.count++
-                    return Effect.sleep(Duration.millis(base + jitter)).pipe(Effect.andThen(trySubscribe))
+          // Subscribe each directory
+          for (const { dir, ignore: ignoreList } of watchDirs) {
+            if (w) {
+              // Native watcher with retry + polling fallback
+              const tryNative = (attempt: number): Effect.Effect<void> =>
+                Effect.gen(function* () {
+                  const sub = yield* Effect.promise(() =>
+                    w.subscribe(dir, bridge.bind(cb), { ignore: ignoreList, backend }),
+                  )
+                  subs.push(sub)
+                }).pipe(
+                  Effect.timeout(Duration.millis(SUBSCRIBE_TIMEOUT_MS)),
+                  Effect.catchCause((cause) => {
+                    log.warn("native subscribe failed, retrying", {
+                      dir,
+                      attempt: attempt + 1,
+                      error: Cause.pretty(cause),
+                    })
+                    if (attempt < MAX_SUBSCRIBE_RETRIES) {
+                      return Effect.sleep(Duration.millis(200 * Math.pow(2, attempt))).pipe(
+                        Effect.andThen(tryNative(attempt + 1)),
+                      )
+                    }
+                    // Fall back to polling
+                    log.info("falling back to polling watcher", { dir })
+                    const poller = createPollWatcher(
+                      dir,
+                      (events) => {
+                        for (const evt of events) {
+                          Queue.offer(eventQueue, evt).pipe(Effect.runFork)
+                        }
+                      },
+                      ignoreList,
+                    )
+                    subs.push({ unsubscribe: poller.stop })
+                    return Effect.void
+                  }),
+                )
+
+              yield* Effect.forkScoped(tryNative(0))
+            } else {
+              // No native watcher — use polling
+              log.info("using polling watcher (no native binding)", { dir })
+              const poller = createPollWatcher(
+                dir,
+                (events) => {
+                  for (const evt of events) {
+                    Queue.offer(eventQueue, evt).pipe(Effect.runFork)
                   }
-                  return Effect.void
-                }),
+                },
+                ignoreList,
               )
-            }
-            return trySubscribe()
-          }
-
-          const cfg = yield* config.get()
-          const cfgIgnores = cfg.watcher?.ignore ?? []
-
-          // Skip filesystem root directories — recursive inotify on "/" would
-          // register watches on the entire filesystem, causing timeouts and
-          // an infinite retry loop.
-          if (path.dirname(ctx.directory) !== ctx.directory) {
-            // Watch the project directory for file changes so the file tree
-            // and open tabs auto-refresh when files are modified externally.
-            // The subscribe call gracefully handles missing native bindings.
-            yield* Effect.forkScoped(
-              subscribe(ctx.directory, [...FileIgnore.PATTERNS, ...cfgIgnores, ...protecteds(ctx.directory)]),
-            )
-          } else {
-            log.warn("skipped filesystem root directory", { directory: ctx.directory })
-          }
-
-          if (ctx.project.vcs === "git") {
-            const result = yield* git.run(["rev-parse", "--git-dir"], {
-              cwd: ctx.worktree,
-            })
-            const resolved = result.exitCode === 0 ? path.resolve(ctx.worktree, result.text().trim()) : undefined
-            const vcsDir = resolved ? yield* Effect.promise(() => realpath(resolved).catch(() => resolved)) : undefined
-            if (
-              vcsDir &&
-              !cfgIgnores.includes(".git") &&
-              !cfgIgnores.includes(vcsDir) &&
-              (!resolved || !cfgIgnores.includes(resolved))
-            ) {
-              const ignore = (yield* Effect.promise(() => readdir(vcsDir).catch(() => []))).filter(
-                (entry) => entry !== "HEAD",
-              )
-              yield* Effect.forkScoped(subscribe(vcsDir, ignore))
+              subs.push({ unsubscribe: poller.stop })
             }
           }
         },

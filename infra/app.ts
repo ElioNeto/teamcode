@@ -49,11 +49,4 @@ export const api = new sst.cloudflare.Worker("Api", {
   },
 })
 
-new sst.cloudflare.StaticSite("WebApp", {
-  domain: "app." + domain,
-  path: "packages/app",
-  build: {
-    command: "bun turbo build",
-    output: "./dist",
-  },
-})
+// WebApp removed — frontend served via GitHub Pages

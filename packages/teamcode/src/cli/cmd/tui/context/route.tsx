@@ -19,7 +19,15 @@ export type PluginRoute = {
   data?: Record<string, unknown>
 }
 
-export type Route = HomeRoute | SessionRoute | PluginRoute
+export type EditorRoute = {
+  type: "editor"
+  /** Optional file path to open on launch */
+  filePath?: string
+  /** Optional project root directory */
+  rootDir?: string
+}
+
+export type Route = HomeRoute | SessionRoute | PluginRoute | EditorRoute
 
 export const { use: useRoute, provider: RouteProvider } = createSimpleContext({
   name: "Route",

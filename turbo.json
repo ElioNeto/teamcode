@@ -17,15 +17,6 @@
       "outputs": [".artifacts/unit/junit.xml"],
       "passThroughEnv": ["*"]
     },
-    "@teamcode-ai/app#test": {
-      "dependsOn": ["^build"],
-      "outputs": []
-    },
-    "@teamcode-ai/app#test:ci": {
-      "dependsOn": ["^build"],
-      "outputs": [".artifacts/unit/junit.xml"],
-      "passThroughEnv": ["*"]
-    },
     "@teamcode-ai/ui#test": {
       "dependsOn": ["^build"],
       "outputs": []

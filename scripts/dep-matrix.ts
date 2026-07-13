@@ -42,9 +42,7 @@ const matrix: Record<string, string> = {
 
   // ── Ready for future publishing ────────────────────────────────────────
   "@teamcode-ai/slack:@teamcode-ai/sdk": ">=1.0.0",
-  "@teamcode-ai/app:@teamcode-ai/core":  ">=1.0.0",
-  "@teamcode-ai/app:@teamcode-ai/sdk":   ">=1.0.0",
-  "@teamcode-ai/app:@teamcode-ai/ui":    ">=1.0.0",
+
   "@teamcode-ai/ui:@teamcode-ai/core":   ">=1.0.0",
   "@teamcode-ai/ui:@teamcode-ai/sdk":    ">=1.0.0",
 }
