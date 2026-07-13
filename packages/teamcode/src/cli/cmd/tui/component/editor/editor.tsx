@@ -19,7 +19,8 @@ import { FileTree } from "./file-tree"
 
 interface EditorProps {
   buffer: TextBuffer
-  vim: VimEngine
+  /** VimEngine instance for keyboard handling. Passed through for child components. */
+  vim?: VimEngine
   onSave?: () => void
   onClose?: () => void
   showFileTree?: boolean
@@ -33,11 +34,16 @@ interface EditorProps {
 export function Editor(props: EditorProps) {
   const { theme } = useTheme()
   const dims = useTerminalDimensions()
-  const { buffer } = props
+  const { buffer, vim } = props
 
   const [scrollRow, setScrollRow] = createSignal(0)
   const [showTree, setShowTree] = createSignal(props.showFileTree ?? false)
   const [message] = createSignal("")
+
+  // Process keyboard events through VIM engine
+  function handleKey(key: string): boolean {
+    return vim?.handleKey(key) ?? false
+  }
 
   // Editor height (terminal - status bar - tab bar)
   const editorHeight = createMemo(() => {

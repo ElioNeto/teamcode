@@ -81,11 +81,13 @@ export function FileTree(props: FileTreeProps) {
       <Show when={!loading()} fallback={<text fg={theme.textMuted}>Loading...</text>}>
         <For each={filtered()}>
           {(item, idx) => {
-            const fgColor = idx() === cursor() ? theme.accent : item.entry.isDir ? "#ffaa00" : theme.text
+            const isCursor = idx() === cursor()
             const prefix = item.entry.isDir ? (item.entry.expanded ? "▼ " : "▶ ") : "  "
+            const attr = item.entry.isDir ? TextAttributes.BOLD : undefined
+            const icon = isCursor ? "* " : "  "
             return (
               <box height={1}>
-                <text fg={fgColor} attributes={item.entry.isDir ? TextAttributes.BOLD : undefined}>
+                <text fg={isCursor ? theme.accent : item.entry.isDir ? "#ffaa00" : theme.text} attributes={attr}>
                   {"  ".repeat(item.depth)}
                   {prefix}
                   {item.entry.name}

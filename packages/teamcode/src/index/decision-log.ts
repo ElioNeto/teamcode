@@ -16,8 +16,6 @@ import path from "node:path"
 import fs from "node:fs/promises"
 import { createWriteStream, mkdirSync } from "node:fs"
 
-const log = createWriteStream
-
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------

@@ -9,12 +9,9 @@
  * ~/.local/share/teamcode/bin/ (or XDG_DATA_HOME equivalent).
  */
 
-import { existsSync } from "fs"
-import fs from "fs/promises"
-import path from "path"
-import { createHash } from "crypto"
-import { request } from "https"
-import { extract } from "tar" // falls back to manual untar
+import { existsSync } from "node:fs"
+import fs from "node:fs/promises"
+import path from "node:path"
 
 const REPO = "ElioNeto/teamcode"
 const VERSION = "v2.3.1" // should match the current release tag
@@ -36,8 +33,10 @@ function detect(): { platform: Platform; arch: Arch } {
 
 function platformName(platform: Platform): string {
   switch (platform) {
-    case "win32": return "windows"
-    default: return platform
+    case "win32":
+      return "windows"
+    default:
+      return platform
   }
 }
 
@@ -91,7 +90,7 @@ async function downloadFromDist(platform: Platform, arch: Arch): Promise<string>
   // Download from GitHub releases
   const url = `https://github.com/${REPO}/releases/download/${VERSION}/go-core-${pn}-${arch}.tar.gz`
   console.log(`[teamcode] Downloading Go core from ${url}...`)
-  
+
   const tmp = path.join(dir, `go-core-${Date.now()}.tar.gz`)
   try {
     await download(url, tmp)

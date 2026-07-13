@@ -6,12 +6,11 @@
  * A indexação é VIVA: polling a cada 5s detecta mudanças.
  */
 
-import { Effect, Schedule, Duration } from "effect"
-import type { Scope } from "effect"
+import { Effect } from "effect"
 import * as Log from "@teamcode-ai/core/util/log"
 import * as Global from "@teamcode-ai/core/global"
-import path from "path"
-import fs from "fs/promises"
+import path from "node:path"
+import fs from "node:fs/promises"
 
 const log = Log.create({ service: "indexer" })
 
@@ -47,14 +46,31 @@ export interface IndexDiff {
 // ---------------------------------------------------------------------------
 
 const KEY_FILE_PATTERNS = [
-  "README.md", "package.json", "tsconfig.json", ".gitignore",
-  "Dockerfile", "Makefile", "go.mod", "Cargo.toml",
+  "README.md",
+  "package.json",
+  "tsconfig.json",
+  ".gitignore",
+  "Dockerfile",
+  "Makefile",
+  "go.mod",
+  "Cargo.toml",
 ]
 
 const IGNORE_DIRS = new Set([
-  "node_modules", ".git", ".teamcode", "dist", "build",
-  ".cache", "target", "vendor", ".next", ".turbo",
-  ".nyc_output", "coverage", "__pycache__", ".venv",
+  "node_modules",
+  ".git",
+  ".teamcode",
+  "dist",
+  "build",
+  ".cache",
+  "target",
+  "vendor",
+  ".next",
+  ".turbo",
+  ".nyc_output",
+  "coverage",
+  "__pycache__",
+  ".venv",
 ])
 
 const MAX_FILE_SIZE = 100_000
@@ -66,8 +82,9 @@ const MAX_FILE_SIZE = 100_000
 function simpleHash(s: string): string {
   let hash = 0
   for (let i = 0; i < s.length; i++) {
-    hash = ((hash << 5) - hash) + s.charCodeAt(i)
-    hash |= 0
+    const char = s.codePointAt(i) ?? 0
+    hash = (hash << 5) - hash + char
+    hash = Math.trunc(hash)
   }
   return Math.abs(hash).toString(36)
 }
@@ -93,7 +110,11 @@ async function walkDir(
     const fullPath = path.join(dir, child)
     const relPath = path.relative(root, fullPath)
     let stat
-    try { stat = await fs.stat(fullPath) } catch { continue }
+    try {
+      stat = await fs.stat(fullPath)
+    } catch {
+      continue
+    }
     if (!stat) continue
 
     if (stat.isDirectory()) {
@@ -198,10 +219,7 @@ export async function computeDiff(root: string, index: ProjectIndex): Promise<In
  * Start polling-based watcher that re-indexes on changes.
  * Returns a cancel effect.
  */
-export function watchIndex(
-  root: string,
-  onUpdate: (diff: IndexDiff) => void,
-): Effect.Effect<void> {
+export function watchIndex(root: string, onUpdate: (diff: IndexDiff) => void): Effect.Effect<void> {
   let cancel = false
 
   const poll = async () => {
@@ -230,7 +248,9 @@ export function watchIndex(
 
   poll()
 
-  return Effect.sync(() => { cancel = true })
+  return Effect.sync(() => {
+    cancel = true
+  })
 }
 
 export function searchIndex(index: ProjectIndex, query: string): IndexEntry[] {

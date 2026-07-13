@@ -13,10 +13,9 @@
  */
 
 import * as Global from "@teamcode-ai/core/global"
-import path from "path"
-import fs from "fs/promises"
-import { mkdirSync, createWriteStream, existsSync } from "fs"
-import type { Decision } from "./decision-log"
+import path from "node:path"
+import fs from "node:fs/promises"
+import { mkdirSync, createWriteStream, existsSync } from "node:fs"
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -104,9 +103,9 @@ export async function linkDecisionLog(projectRoot: string): Promise<void> {
 function simpleHash(s: string): string {
   let hash = 0
   for (let i = 0; i < s.length; i++) {
-    const char = s.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
-    hash |= 0
+    const char = s.codePointAt(i) ?? 0
+    hash = (hash << 5) - hash + char
+    hash = Math.trunc(hash)
   }
   return Math.abs(hash).toString(36)
 }
@@ -115,10 +114,7 @@ function simpleHash(s: string): string {
 // Cleanup old session logs
 // ---------------------------------------------------------------------------
 
-export async function cleanOldSessionLogs(
-  projectRoot: string,
-  keepDays = 30,
-): Promise<void> {
+export async function cleanOldSessionLogs(projectRoot: string, keepDays = 30): Promise<void> {
   const dir = ensureProjectLogDir(projectRoot)
   const cutoff = Date.now() - keepDays * 24 * 60 * 60 * 1000
 

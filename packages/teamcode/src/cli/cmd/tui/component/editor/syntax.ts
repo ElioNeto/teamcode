@@ -626,7 +626,7 @@ class SimpleHighlighter {
       }
 
       // Other non-whitespace (punctuation or operator)
-      if (/^[{}()[\];,.:=+*/<>&|!~^%-]$/.test(ch)) {
+      if ("[]{}();,.:=+*-/<>&|!~^%".includes(ch)) {
         tokens.push({ start: i, end: i + 1, type: "punctuation" })
       } else {
         tokens.push({ start: i, end: i + 1, type: "operator" })

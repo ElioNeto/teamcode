@@ -272,7 +272,6 @@ export class VimEngine {
         buf.onModeChange?.(buf.mode)
         return true
       case "o":
-      case "p":
         buf.insertLineBelow()
         buf.mode = "insert"
         this.clearPending()

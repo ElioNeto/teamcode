@@ -15,7 +15,7 @@
 import { flag, setFlag, getFlag } from "./flag"
 
 const GO_CORE_PORT = process.env["GO_CORE_PORT"] ?? "43001"
-const BASE_URL = `http://127.0.0.1:${GO_CORE_PORT}`
+const BASE_URL = "http://127.0.0.1:" + GO_CORE_PORT
 
 const CB_POLL_INTERVAL = parseInt(process.env["GO_CORE_CB_POLL"] ?? "30000", 10)
 const CB_ERROR_RATE_THRESHOLD = 1.0 // 1% error rate triggers circuit breaker
