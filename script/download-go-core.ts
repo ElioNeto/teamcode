@@ -30,12 +30,8 @@ function detect(): { platform: Platform; arch: Arch } {
 }
 
 function platformName(platform: Platform): string {
-  switch (platform) {
-    case "win32":
-      return "windows"
-    default:
-      return platform
-  }
+  if (platform === "win32") return "windows"
+  return platform
 }
 
 function binDir(): string {
@@ -60,7 +56,8 @@ async function download(url: string, dest: string): Promise<void> {
   }
   const buffer = Buffer.from(await response.arrayBuffer())
   await fs.writeFile(dest, buffer)
-  await fs.chmod(dest, 0o755)
+  // Owner-only read/execute: the binary is a local sidecar, not a shared resource
+  await fs.chmod(dest, 0o700)
 }
 
 async function downloadFromDist(platform: Platform, arch: Arch): Promise<string> {
@@ -81,7 +78,7 @@ async function downloadFromDist(platform: Platform, arch: Arch): Promise<string>
   if (existsSync(localPath)) {
     console.log(`[teamcode] Installing Go core from local build: ${localPath}`)
     await fs.copyFile(localPath, dest)
-    await fs.chmod(dest, 0o755)
+    await fs.chmod(dest, 0o700)
     return dest
   }
 
@@ -94,9 +91,9 @@ async function downloadFromDist(platform: Platform, arch: Arch): Promise<string>
     await download(url, tmp)
     // Extract the binary from the tarball
     // For now, assume the tarball contains the binary at the root
-    const { execSync } = await import("child_process")
+    const { execSync } = await import("node:child_process")
     execSync(`tar -xzf "${tmp}" -C "${dir}"`, { stdio: "inherit" })
-    await fs.chmod(dest, 0o755)
+    await fs.chmod(dest, 0o700)
     console.log(`[teamcode] Go core installed at ${dest}`)
   } finally {
     await fs.unlink(tmp).catch(() => {})
@@ -115,4 +112,4 @@ async function main() {
   }
 }
 
-main()
+await main()
