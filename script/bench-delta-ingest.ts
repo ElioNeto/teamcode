@@ -50,7 +50,12 @@ async function publishOnce(index: number): Promise<number> {
 }
 
 async function assertServerUp(): Promise<void> {
-  const res = await fetch(`${BASE_URL}/health`)
+  let res: Response
+  try {
+    res = await fetch(`${BASE_URL}/health`)
+  } catch {
+    throw new Error(`go-core not healthy at ${BASE_URL}`)
+  }
   if (!res.ok) throw new Error(`go-core not healthy at ${BASE_URL}: ${res.status}`)
 }
 
