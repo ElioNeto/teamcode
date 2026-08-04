@@ -361,7 +361,7 @@ Run this task **only** if Task 2 Step 8 sent you here.
 git rev-parse HEAD && git diff --stat packages/teamcode/src/session/processor.ts
 ```
 
-Expected: `1 file changed, 97 insertions(+), 150 deletions(-)` — the pre-existing event-bridge refactor. Note this figure; Step 6 must reproduce it exactly.
+Expected: empty output from `git diff --stat` — the event-bridge refactor (`e8ebe7f`) is now committed, so the working tree for this file starts clean. Note this (the absence of any diffstat line); Step 6 must reproduce it exactly.
 
 - [ ] **Step 2: Add the throwaway publish**
 
@@ -425,7 +425,7 @@ This restores the file to the committed state, which **discards the event-bridge
 git diff --stat packages/teamcode/src/session/processor.ts && grep -c "SP1 THROWAWAY" packages/teamcode/src/session/processor.ts
 ```
 
-Expected: the diffstat from Step 1 reproduced exactly, and `0` occurrences of the marker. If the marker count is not 0, the spike has violated its own contract — fix before continuing.
+Expected: empty `git diff --stat` output, same as Step 1, and `0` occurrences of the marker. If the marker count is not 0, the spike has violated its own contract — fix before continuing.
 
 - [ ] **Step 7: Re-run the suite to confirm the revert restored the baseline**
 

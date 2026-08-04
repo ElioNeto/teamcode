@@ -60,7 +60,7 @@ session.next.text.ended          (full text, all at once)
 ```
 
 The intermediate tokens exist **only** in the v1 `updatePartDelta` stream. `tool-input-delta`
-(processor.ts:319–320) is an outright no-op in both paths.
+(processor.ts:322–323) is an outright no-op in both paths.
 
 ### Why this matters for the ordering in EVENT_MIGRATION_MAP.md
 
