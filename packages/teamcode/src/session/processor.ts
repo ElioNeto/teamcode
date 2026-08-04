@@ -28,6 +28,7 @@ import { ModelV2 } from "@teamcode-ai/core/model"
 import { ProviderV2 } from "@teamcode-ai/core/provider"
 import * as DateTime from "effect/DateTime"
 import { RuntimeFlags } from "@/effect/runtime-flags"
+import { makeGoCoreForwarder } from "./go-core-events"
 import { Caveman } from "@/caveman"
 
 const DOOM_LOOP_THRESHOLD = 3
@@ -103,6 +104,7 @@ export const layer = Layer.effect(
     const image = yield* Image.Service
     const events = yield* EventV2Bridge.Service
     const flags = yield* RuntimeFlags.Service
+    const goCore = makeGoCoreForwarder()
 
     const create = Effect.fn("SessionProcessor.create")(function* (input: Input) {
       // Pre-capture snapshot before the LLM stream starts. The AI SDK
@@ -139,6 +141,10 @@ export const layer = Layer.effect(
         data: Omit<EventV2.Data<D>, "sessionID" | "timestamp">,
       ) =>
         Effect.gen(function* () {
+          // The sidecar stream needs the full event sequence to consolidate,
+          // independent of whether the TS durable bridge below is on. The Go
+          // side stamps its own id/timestamp.
+          yield* goCore.forward(ctx.sessionID, definition.type, data as Record<string, unknown>)
           if (!flags.experimentalEventSystem) return
           yield* events.publish(definition, {
             ...data,
@@ -265,6 +271,14 @@ export const layer = Layer.effect(
 
           case "reasoning-delta":
             if (!(value.id in ctx.reasoningMap)) return
+            // Deltas must not go through events.publish: SessionEvent declares
+            // version:1, which routes into the durable seq log at one DB
+            // transaction per token (measured 3.3x slowdown). The sidecar's
+            // ephemeral bus is the delta transport.
+            yield* goCore.forward(ctx.sessionID, SessionEvent.Reasoning.Delta.type, {
+              reasoningID: value.id,
+              delta: value.text,
+            })
             ctx.reasoningMap[value.id].text += value.text
             if (value.providerMetadata) ctx.reasoningMap[value.id].metadata = value.providerMetadata
             yield* session.updatePartDelta({
@@ -320,6 +334,10 @@ export const layer = Layer.effect(
             return
 
           case "tool-input-delta":
+            yield* goCore.forward(ctx.sessionID, SessionEvent.Tool.Input.Delta.type, {
+              callID: value.id,
+              delta: value.delta,
+            })
             return
 
           case "tool-input-end": {
@@ -581,6 +599,7 @@ export const layer = Layer.effect(
 
           case "text-delta":
             if (!ctx.currentText) return
+            yield* goCore.forward(ctx.sessionID, SessionEvent.Text.Delta.type, { delta: value.text })
             ctx.currentText.text += value.text
             if (value.providerMetadata) ctx.currentText.metadata = value.providerMetadata
             yield* session.updatePartDelta({
