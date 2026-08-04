@@ -35,14 +35,31 @@ function platformName(platform: Platform): string {
 }
 
 function binDir(): string {
+  const home = process.env.HOME || process.env.USERPROFILE || "/tmp"
   const dataDir = process.env.XDG_DATA_HOME
     ? path.join(process.env.XDG_DATA_HOME, "teamcode")
-    : path.join(process.env.HOME || "/tmp", ".local", "share", "teamcode")
+    : path.join(home, ".local", "share", "teamcode")
   return path.join(dataDir, "bin")
 }
 
-function binaryName(platform: Platform): string {
+export function binaryName(platform: Platform): string {
   return platform === "win32" ? "go-core-server.exe" : "go-core-server"
+}
+
+// Release assets are packaged differently per platform: linux ships .tar.gz,
+// darwin and windows ship .zip (verified against the v2.3.1 release).
+export function assetFileName(platform: Platform, arch: Arch): string {
+  const ext = platform === "linux" ? "tar.gz" : "zip"
+  return `teamcode-${platformName(platform)}-${arch}.${ext}`
+}
+
+// bsdtar (Windows 10+ tar.exe, macOS tar) extracts zip archives; GNU tar on
+// linux only sees .tar.gz, which keeps the original linux path byte-identical.
+// For zip we extract only the server binary — the archive also bundles the
+// full CLI (~145 MB) which has no business in the go-core bin dir.
+export function extractCommand(archive: string, destDir: string, member: string): string {
+  if (archive.endsWith(".tar.gz")) return `tar -xzf "${archive}" -C "${destDir}"`
+  return `tar -xf "${archive}" -C "${destDir}" "${member}"`
 }
 
 async function ensureDir(dir: string) {
@@ -84,16 +101,16 @@ async function downloadFromDist(platform: Platform, arch: Arch): Promise<string>
 
   // Download from GitHub releases — the assets are named `teamcode-*`,
   // not `go-core-*` (the repo was renamed).
-  const url = `https://github.com/${REPO}/releases/download/${VERSION}/teamcode-${pn}-${arch}.tar.gz`
+  const asset = assetFileName(platform, arch)
+  const url = `https://github.com/${REPO}/releases/download/${VERSION}/${asset}`
   console.log(`[teamcode] Downloading Go core from ${url}...`)
 
-  const tmp = path.join(dir, `go-core-${Date.now()}.tar.gz`)
+  const tmp = path.join(dir, `go-core-${Date.now()}${asset.endsWith(".zip") ? ".zip" : ".tar.gz"}`)
   try {
     await download(url, tmp)
-    // Extract the binary from the tarball
-    // For now, assume the tarball contains the binary at the root
+    // The archive contains the binary at the root
     const { execSync } = await import("node:child_process")
-    execSync(`tar -xzf "${tmp}" -C "${dir}"`, { stdio: "inherit" })
+    execSync(extractCommand(tmp, dir, name), { stdio: "inherit" })
     await fs.chmod(dest, 0o700)
     console.log(`[teamcode] Go core installed at ${dest}`)
   } finally {
@@ -113,4 +130,4 @@ async function main() {
   }
 }
 
-await main()
+if (import.meta.main) await main()
