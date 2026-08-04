@@ -127,6 +127,26 @@ export const layer = Layer.effect(
       let aborted = false
       const slog = log.clone().tag("session.id", input.sessionID).tag("messageID", input.assistantMessage.id)
 
+      // Single emission point for v2 session events. Each call site would
+      // otherwise repeat the flag guard, `sessionID` and `timestamp` verbatim.
+      //
+      // FIXME(v2-migration): to finish the migration, drop the flag guard below
+      // and remove the *legacy* writes at each call site. Deleting these calls
+      // would remove the v2 event system rather than complete its migration —
+      // see docs/EVENT_MIGRATION_MAP.md.
+      const publishSessionEvent = <D extends EventV2.Definition>(
+        definition: D,
+        data: Omit<EventV2.Data<D>, "sessionID" | "timestamp">,
+      ) =>
+        Effect.gen(function* () {
+          if (!flags.experimentalEventSystem) return
+          yield* events.publish(definition, {
+            ...data,
+            sessionID: ctx.sessionID,
+            timestamp: DateTime.makeUnsafe(Date.now()),
+          } as EventV2.Data<D>)
+        })
+
       const parse = (e: unknown) =>
         MessageV2.fromError(e, {
           providerID: input.model.providerID,
@@ -230,14 +250,7 @@ export const layer = Layer.effect(
               return
             }
             if (value.id in ctx.reasoningMap) return
-            // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
-            if (flags.experimentalEventSystem) {
-              yield* events.publish(SessionEvent.Reasoning.Started, {
-                sessionID: ctx.sessionID,
-                reasoningID: value.id,
-                timestamp: DateTime.makeUnsafe(Date.now()),
-              })
-            }
+            yield* publishSessionEvent(SessionEvent.Reasoning.Started, { reasoningID: value.id })
             ctx.reasoningMap[value.id] = {
               id: PartID.ascending(),
               messageID: ctx.assistantMessage.id,
@@ -268,15 +281,10 @@ export const layer = Layer.effect(
             // Save the ended part so it can be reused if the provider sends
             // another start cycle for the same reasoning chunk.
             lastReasoningPart = { ...ctx.reasoningMap[value.id] }
-            // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
-            if (flags.experimentalEventSystem) {
-              yield* events.publish(SessionEvent.Reasoning.Ended, {
-                sessionID: ctx.sessionID,
-                reasoningID: value.id,
-                text: ctx.reasoningMap[value.id].text,
-                timestamp: DateTime.makeUnsafe(Date.now()),
-              })
-            }
+            yield* publishSessionEvent(SessionEvent.Reasoning.Ended, {
+              reasoningID: value.id,
+              text: ctx.reasoningMap[value.id].text,
+            })
             // oxlint-disable-next-line no-self-assign -- reactivity trigger
             ctx.reasoningMap[value.id].text = ctx.reasoningMap[value.id].text
             ctx.reasoningMap[value.id].time = { ...ctx.reasoningMap[value.id].time, end: Date.now() }
@@ -289,15 +297,10 @@ export const layer = Layer.effect(
             if (ctx.assistantMessage.summary) {
               return
             }
-            // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
-            if (flags.experimentalEventSystem) {
-              yield* events.publish(SessionEvent.Tool.Input.Started, {
-                sessionID: ctx.sessionID,
-                callID: value.id,
-                name: value.toolName,
-                timestamp: DateTime.makeUnsafe(Date.now()),
-              })
-            }
+            yield* publishSessionEvent(SessionEvent.Tool.Input.Started, {
+              callID: value.id,
+              name: value.toolName,
+            })
             const part = yield* session.updatePart({
               id: ctx.toolcalls[value.id]?.partID ?? PartID.ascending(),
               messageID: ctx.assistantMessage.id,
@@ -320,15 +323,7 @@ export const layer = Layer.effect(
             return
 
           case "tool-input-end": {
-            // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
-            if (flags.experimentalEventSystem) {
-              yield* events.publish(SessionEvent.Tool.Input.Ended, {
-                sessionID: ctx.sessionID,
-                callID: value.id,
-                text: "",
-                timestamp: DateTime.makeUnsafe(Date.now()),
-              })
-            }
+            yield* publishSessionEvent(SessionEvent.Tool.Input.Ended, { callID: value.id, text: "" })
             return
           }
 
@@ -337,20 +332,15 @@ export const layer = Layer.effect(
               return
             }
             const toolCall = yield* readToolCall(value.toolCallId)
-            // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
-            if (flags.experimentalEventSystem) {
-              yield* events.publish(SessionEvent.Tool.Called, {
-                sessionID: ctx.sessionID,
-                callID: value.toolCallId,
-                tool: value.toolName,
-                input: value.input,
-                provider: {
-                  executed: toolCall?.part.metadata?.providerExecuted === true,
-                  ...(value.providerMetadata ? { metadata: value.providerMetadata } : {}),
-                },
-                timestamp: DateTime.makeUnsafe(Date.now()),
-              })
-            }
+            yield* publishSessionEvent(SessionEvent.Tool.Called, {
+              callID: value.toolCallId,
+              tool: value.toolName,
+              input: value.input,
+              provider: {
+                executed: toolCall?.part.metadata?.providerExecuted === true,
+                ...(value.providerMetadata ? { metadata: value.providerMetadata } : {}),
+              },
+            })
             yield* updateToolCall(value.toolCallId, (match) => ({
               ...match,
               tool: value.toolName,
@@ -433,30 +423,25 @@ export const layer = Layer.effect(
                   : `${rawOutputStr}\n\n[${omitted} image${omitted === 1 ? "" : "s"} omitted: could not be resized below the image size limit.]`,
               attachments: attachments?.length ? attachments : undefined,
             }
-            // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
-            if (flags.experimentalEventSystem) {
-              yield* events.publish(SessionEvent.Tool.Success, {
-                sessionID: ctx.sessionID,
-                callID: value.toolCallId,
-                structured: output.metadata,
-                content: [
-                  {
-                    type: "text",
-                    text: output.output,
-                  },
-                  ...(output.attachments?.map((item: MessageV2.FilePart) => ({
-                    type: "file",
-                    uri: item.url,
-                    mime: item.mime,
-                    name: item.filename,
-                  })) ?? []),
-                ],
-                provider: {
-                  executed: toolCall?.part.metadata?.providerExecuted === true,
+            yield* publishSessionEvent(SessionEvent.Tool.Success, {
+              callID: value.toolCallId,
+              structured: output.metadata,
+              content: [
+                {
+                  type: "text",
+                  text: output.output,
                 },
-                timestamp: DateTime.makeUnsafe(Date.now()),
-              })
-            }
+                ...(output.attachments?.map((item: MessageV2.FilePart) => ({
+                  type: "file",
+                  uri: item.url,
+                  mime: item.mime,
+                  name: item.filename,
+                })) ?? []),
+              ],
+              provider: {
+                executed: toolCall?.part.metadata?.providerExecuted === true,
+              },
+            })
             yield* completeToolCall(value.toolCallId, output)
             yield* plugin.trigger(
               "tool.execute.after",
@@ -471,21 +456,16 @@ export const layer = Layer.effect(
               return
             }
             const toolCall = yield* readToolCall(value.toolCallId)
-            // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
-            if (flags.experimentalEventSystem) {
-              yield* events.publish(SessionEvent.Tool.Failed, {
-                sessionID: ctx.sessionID,
-                callID: value.toolCallId,
-                error: {
-                  type: "unknown",
-                  message: errorMessage(value.error),
-                },
-                provider: {
-                  executed: toolCall?.part.metadata?.providerExecuted === true,
-                },
-                timestamp: DateTime.makeUnsafe(Date.now()),
-              })
-            }
+            yield* publishSessionEvent(SessionEvent.Tool.Failed, {
+              callID: value.toolCallId,
+              error: {
+                type: "unknown",
+                message: errorMessage(value.error),
+              },
+              provider: {
+                executed: toolCall?.part.metadata?.providerExecuted === true,
+              },
+            })
             yield* failToolCall(value.toolCallId, value.error)
             return
           }
@@ -499,20 +479,15 @@ export const layer = Layer.effect(
           case "start-step":
             if (!ctx.snapshot) ctx.snapshot = yield* snapshot.track()
             if (!ctx.assistantMessage.summary) {
-              // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
-              if (flags.experimentalEventSystem) {
-                yield* events.publish(SessionEvent.Step.Started, {
-                  sessionID: ctx.sessionID,
-                  agent: input.assistantMessage.agent,
-                  model: {
-                    id: ModelV2.ID.make(ctx.model.id),
-                    providerID: ProviderV2.ID.make(ctx.model.providerID),
-                    variant: ModelV2.VariantID.make(input.assistantMessage.variant ?? "default"),
-                  },
-                  snapshot: ctx.snapshot,
-                  timestamp: DateTime.makeUnsafe(Date.now()),
-                })
-              }
+              yield* publishSessionEvent(SessionEvent.Step.Started, {
+                agent: input.assistantMessage.agent,
+                model: {
+                  id: ModelV2.ID.make(ctx.model.id),
+                  providerID: ProviderV2.ID.make(ctx.model.providerID),
+                  variant: ModelV2.VariantID.make(input.assistantMessage.variant ?? "default"),
+                },
+                snapshot: ctx.snapshot,
+              })
             }
             yield* session.updatePart({
               id: PartID.ascending(),
@@ -531,17 +506,12 @@ export const layer = Layer.effect(
               metadata: value.providerMetadata,
             })
             if (!ctx.assistantMessage.summary) {
-              // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
-              if (flags.experimentalEventSystem) {
-                yield* events.publish(SessionEvent.Step.Ended, {
-                  sessionID: ctx.sessionID,
-                  finish: value.finishReason,
-                  cost: usage.cost,
-                  tokens: usage.tokens,
-                  snapshot: completedSnapshot,
-                  timestamp: DateTime.makeUnsafe(Date.now()),
-                })
-              }
+              yield* publishSessionEvent(SessionEvent.Step.Ended, {
+                finish: value.finishReason,
+                cost: usage.cost,
+                tokens: usage.tokens,
+                snapshot: completedSnapshot,
+              })
             }
             ctx.assistantMessage.finish = value.finishReason
             if (value.response?.headers) ctx.assistantMessage.responseHeaders = value.response.headers
@@ -595,13 +565,7 @@ export const layer = Layer.effect(
 
           case "text-start":
             if (!ctx.assistantMessage.summary) {
-              // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
-              if (flags.experimentalEventSystem) {
-                yield* events.publish(SessionEvent.Text.Started, {
-                  sessionID: ctx.sessionID,
-                  timestamp: DateTime.makeUnsafe(Date.now()),
-                })
-              }
+              yield* publishSessionEvent(SessionEvent.Text.Started, {})
             }
             ctx.currentText = {
               id: PartID.ascending(),
@@ -655,14 +619,7 @@ export const layer = Layer.effect(
               }
             }
             if (!ctx.assistantMessage.summary) {
-              // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
-              if (flags.experimentalEventSystem) {
-                yield* events.publish(SessionEvent.Text.Ended, {
-                  sessionID: ctx.sessionID,
-                  text: ctx.currentText.text,
-                  timestamp: DateTime.makeUnsafe(Date.now()),
-                })
-              }
+              yield* publishSessionEvent(SessionEvent.Text.Ended, { text: ctx.currentText.text })
             }
             {
               const end = Date.now()
@@ -751,17 +708,12 @@ export const layer = Layer.effect(
           return
         }
         if (!ctx.assistantMessage.summary) {
-          // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
-          if (flags.experimentalEventSystem) {
-            yield* events.publish(SessionEvent.Step.Failed, {
-              sessionID: ctx.sessionID,
-              error: {
-                type: "unknown",
-                message: errorMessage(e),
-              },
-              timestamp: DateTime.makeUnsafe(Date.now()),
-            })
-          }
+          yield* publishSessionEvent(SessionEvent.Step.Failed, {
+            error: {
+              type: "unknown",
+              message: errorMessage(e),
+            },
+          })
         }
         ctx.assistantMessage.error = error
         yield* bus.publish(Session.Event.Error, {
@@ -806,18 +758,13 @@ export const layer = Layer.effect(
                 provider: input.model.providerID,
                 parse: parse as unknown as (error: unknown) => { name: string; data: unknown },
                 set: (info) => {
-                  // FIXME(v2-migration): remove this dual-write block once v2 event system fully replaces legacy session messages
-                  const event = flags.experimentalEventSystem
-                    ? events.publish(SessionEvent.Retried, {
-                        sessionID: ctx.sessionID,
-                        attempt: info.attempt,
-                        error: {
-                          message: info.message,
-                          isRetryable: true,
-                        },
-                        timestamp: DateTime.makeUnsafe(Date.now()),
-                      })
-                    : Effect.void
+                  const event = publishSessionEvent(SessionEvent.Retried, {
+                    attempt: info.attempt,
+                    error: {
+                      message: info.message,
+                      isRetryable: true,
+                    },
+                  })
                   return event.pipe(
                     Effect.andThen(
                       status.set(ctx.sessionID, {
