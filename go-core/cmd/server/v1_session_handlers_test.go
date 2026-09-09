@@ -151,11 +151,16 @@ func TestV1MessagesAndParts(t *testing.T) {
 	}
 }
 
-func TestV1LateWriteIs200(t *testing.T) {
+func TestV1LateWriteIs204(t *testing.T) {
 	srv := v1Server(t)
-	code, _ := call(t, srv, "POST", "/v1/session/ses_gone/message", map[string]any{"role": "user", "agent": "a", "model": map[string]string{"providerID": "p", "modelID": "m"}, "time": map[string]int64{"created": 1}})
-	if code != 200 {
-		t.Fatalf("late write must be swallowed, got %d", code)
+	body := map[string]any{"role": "user", "agent": "a", "model": map[string]string{"providerID": "p", "modelID": "m"}, "time": map[string]int64{"created": 1}}
+	code, raw := call(t, srv, "POST", "/v1/session/ses_gone/message", body)
+	if code != 204 || len(raw) != 0 {
+		t.Fatalf("late message write must be swallowed, got %d %s", code, raw)
+	}
+	code, raw = call(t, srv, "POST", "/v1/session/ses_gone/message/msg_gone/part", map[string]any{"type": "text", "text": "x"})
+	if code != 204 || len(raw) != 0 {
+		t.Fatalf("late part write must be swallowed, got %d %s", code, raw)
 	}
 }
 

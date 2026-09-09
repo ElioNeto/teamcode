@@ -134,6 +134,8 @@ Listadas aqui porque cada uma tem teste próprio:
 | `Todo.get` | `GET /v1/session/{id}/todo` | | `Todo[]` em `position ASC` |
 | `Todo.update` | `PUT /v1/session/{id}/todo` | `Todo[]` | `Todo[]` |
 
+Em `updateMessage` e `updatePart`, escrita tardia (sessão já apagada) responde 204 sem corpo.
+
 Paginação de mensagens replica `MessageV2.page` (`message-v2.ts:947-986`): `ORDER BY time_created DESC, id DESC LIMIT limit+1`, predicado `time_created < t OR (time_created = t AND id < id)`, cursor `base64url({id, time})`, resposta invertida para ordem cronológica, partes ordenadas por `id`. Resposta vazia consulta a existência da sessão e devolve 404 se não existir.
 
 `fork` replica `session.ts:768-808`: nova sessão com mesmo `projectID`, `directory`, `parentID`; copia mensagens e partes com `id < messageID` (ou todas), gerando IDs novos e mantendo a ordem, e emite `message.updated` e `message.part.updated` para cada uma.

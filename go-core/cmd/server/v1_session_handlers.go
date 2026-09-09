@@ -201,7 +201,7 @@ func (s *v1State) handleUpsertMessage(w http.ResponseWriter, r *http.Request) {
 	body = withPathID(body, "id", r.PathValue("messageID"))
 	message, err := s.store.UpsertMessage(r.Context(), sessionID, body)
 	if errors.Is(err, sessiondb.ErrLateWrite) {
-		writeJSONStatus(w, http.StatusOK, map[string]any{"ignored": "late message update"})
+		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 	if err != nil {
@@ -233,7 +233,7 @@ func (s *v1State) handleUpsertPart(w http.ResponseWriter, r *http.Request) {
 	now := time.Now().UnixMilli()
 	part, err := s.store.UpsertPart(r.Context(), sessionID, messageID, body, now)
 	if errors.Is(err, sessiondb.ErrLateWrite) {
-		writeJSONStatus(w, http.StatusOK, map[string]any{"ignored": "late part update"})
+		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 	if err != nil {
