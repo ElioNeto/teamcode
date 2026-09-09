@@ -59,6 +59,31 @@ func TestTimestampMatchesTS(t *testing.T) {
 	}
 }
 
+func TestDescendingHexMatchesTS(t *testing.T) {
+	for _, row := range loadFixture(t) {
+		if row.Prefix != "ses" {
+			continue
+		}
+		id := NewAt(PrefixSession, true, row.Timestamp)
+		if id[4:16] != row.ID[4:16] {
+			t.Fatalf("%s: got hex %s want %s", row.ID, id[4:16], row.ID[4:16])
+		}
+	}
+}
+
+func TestAscendingHexMatchesTS(t *testing.T) {
+	for _, row := range loadFixture(t) {
+		if row.Prefix != "msg" {
+			continue
+		}
+		NewAt(PrefixMessage, false, row.Timestamp)
+		id := NewAt(PrefixMessage, false, row.Timestamp)
+		if id[4:16] != row.ID[4:16] {
+			t.Fatalf("%s: got hex %s want %s", row.ID, id[4:16], row.ID[4:16])
+		}
+	}
+}
+
 func TestTimestampTruncatesLikeTS(t *testing.T) {
 	id := NewAt(PrefixMessage, false, 1757419200000)
 	got, err := Timestamp(id)
