@@ -80,15 +80,53 @@ export async function api(baseUrl: string, method: string, path: string, body?: 
 
 type Row = Record<string, unknown>
 
-const volatileColumns = new Set(["id", "session_id", "message_id", "parent_id", "slug", "time_created", "time_updated", "time_compacting", "time_archived"])
+const idColumns = new Set(["id", "session_id", "message_id", "parent_id"])
+const ignoredColumns = new Set(["slug"])
 
-function normalizeData(value: unknown, idMap: Map<string, string>): unknown {
-  if (typeof value === "string") {
-    let out = value
-    for (const [from, to] of idMap) out = out.split(from).join(to)
-    return out
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+}
+
+function parseObject(value: string): Record<string, unknown> {
+  const parsed: unknown = JSON.parse(value)
+  return isRecord(parsed) ? parsed : {}
+}
+
+function isTimeColumn(column: string): boolean {
+  return column.startsWith("time_")
+}
+
+function dataTime(value: unknown): Record<string, unknown> {
+  if (typeof value !== "string") return {}
+  const time = parseObject(value)["time"]
+  return isRecord(time) ? time : {}
+}
+
+function timestampRanks(rows: Row[]): Map<number, string> {
+  const values: number[] = []
+  for (const row of rows) {
+    for (const [column, value] of Object.entries(row)) {
+      if (isTimeColumn(column) && typeof value === "number") values.push(value)
+      if (column !== "data") continue
+      for (const inner of Object.values(dataTime(value))) if (typeof inner === "number") values.push(inner)
+    }
   }
-  return value
+  const sorted = [...new Set(values)].sort((a, b) => a - b)
+  return new Map(sorted.map((value, index) => [value, `t#${index}`]))
+}
+
+function rankDataTime(parsed: Record<string, unknown>, ranks: Map<number, string>): Record<string, unknown> {
+  const time = parsed["time"]
+  if (!isRecord(time)) return parsed
+  const ranked: Record<string, unknown> = {}
+  for (const [key, inner] of Object.entries(time)) ranked[key] = typeof inner === "number" ? ranks.get(inner) : inner
+  return { ...parsed, time: ranked }
+}
+
+function normalizeIDs(value: string, idMap: Map<string, string>): string {
+  let out = value
+  for (const [from, to] of idMap) out = out.split(from).join(to)
+  return out
 }
 
 export function dumpTables(dbPath: string) {
@@ -103,23 +141,28 @@ export function dumpTables(dbPath: string) {
   label("msg", messages, "id")
   label("prt", parts, "id")
   db.close()
-  const strip = (rows: Row[]) =>
-    rows.map((row) => {
+  const strip = (rows: Row[]) => {
+    const ranks = timestampRanks(rows)
+    return rows.map((row) => {
       const out: Row = {}
       for (const [column, value] of Object.entries(row)) {
-        if (volatileColumns.has(column)) {
+        if (ignoredColumns.has(column)) continue
+        if (idColumns.has(column)) {
           if (typeof value === "string" && idMap.has(value)) out[column] = idMap.get(value)
           continue
         }
+        if (isTimeColumn(column)) {
+          out[column] = typeof value === "number" ? ranks.get(value) : value
+          continue
+        }
         if (column === "data" && typeof value === "string") {
-          const parsed = JSON.parse(value) as Record<string, unknown>
-          delete parsed["time"]
-          out[column] = JSON.parse(String(normalizeData(JSON.stringify(parsed), idMap)))
+          out[column] = parseObject(normalizeIDs(JSON.stringify(rankDataTime(parseObject(value), ranks)), idMap))
           continue
         }
         out[column] = value
       }
       return out
     })
+  }
   return { sessions: strip(sessions), messages: strip(messages), parts: strip(parts), todos: strip(todos) }
 }

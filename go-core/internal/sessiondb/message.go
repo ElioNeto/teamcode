@@ -124,7 +124,7 @@ func (s *Store) UpsertMessage(ctx context.Context, sessionID string, body json.R
 			return err
 		}
 		if _, err := tx.ExecContext(ctx, `INSERT INTO message (id, session_id, time_created, time_updated, data) VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(id) DO UPDATE SET data = excluded.data`, id, sessionID, created, created, string(data)); err != nil {
+            ON CONFLICT(id) DO UPDATE SET data = excluded.data`, id, sessionID, created, time.Now().UnixMilli(), string(data)); err != nil {
 			return err
 		}
 		return tx.QueryRowContext(ctx, `SELECT time_created FROM message WHERE id = ?`, id).Scan(&storedCreated)
@@ -187,7 +187,7 @@ func (s *Store) UpsertPart(ctx context.Context, sessionID, messageID string, bod
 			return err
 		}
 		_, err = tx.ExecContext(ctx, `INSERT INTO part (id, message_id, session_id, time_created, time_updated, data) VALUES (?, ?, ?, ?, ?, ?)
-            ON CONFLICT(id) DO UPDATE SET data = excluded.data`, id, messageID, sessionID, timeCreated, timeCreated, string(data))
+            ON CONFLICT(id) DO UPDATE SET data = excluded.data`, id, messageID, sessionID, timeCreated, time.Now().UnixMilli(), string(data))
 		if err != nil {
 			return err
 		}
