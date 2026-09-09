@@ -249,7 +249,7 @@ func TestWriteErrorEscapesQuotes(t *testing.T) {
 	if code != 404 {
 		t.Fatalf("%d %s", code, raw)
 	}
-	if got := decode(t, raw)["error"]; got != `Session not found: ses_"x` {
+	if decode(t, raw)["error"] != `Session not found: ses_"x` {
 		t.Fatalf("%s", raw)
 	}
 }

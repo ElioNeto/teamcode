@@ -34,20 +34,26 @@ type usage struct {
 	input, output, reasoning, cacheRead, cacheWrite int64
 }
 
+type cacheTokenProbe struct {
+	Read  int64 `json:"read"`
+	Write int64 `json:"write"`
+}
+
+type tokenProbe struct {
+	Input     int64           `json:"input"`
+	Output    int64           `json:"output"`
+	Reasoning int64           `json:"reasoning"`
+	Cache     cacheTokenProbe `json:"cache"`
+}
+
+type stepFinishProbe struct {
+	Type   string      `json:"type"`
+	Cost   *float64    `json:"cost"`
+	Tokens *tokenProbe `json:"tokens"`
+}
+
 func usageOf(data json.RawMessage) (usage, bool) {
-	var probe struct {
-		Type   string   `json:"type"`
-		Cost   *float64 `json:"cost"`
-		Tokens *struct {
-			Input     int64 `json:"input"`
-			Output    int64 `json:"output"`
-			Reasoning int64 `json:"reasoning"`
-			Cache     struct {
-				Read  int64 `json:"read"`
-				Write int64 `json:"write"`
-			} `json:"cache"`
-		} `json:"tokens"`
-	}
+	var probe stepFinishProbe
 	if err := json.Unmarshal(data, &probe); err != nil || probe.Type != "step-finish" || probe.Cost == nil || probe.Tokens == nil {
 		return usage{}, false
 	}

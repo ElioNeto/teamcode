@@ -180,6 +180,40 @@ func TestReplayAtOldestMinusOneReturnsWholeRing(t *testing.T) {
 	}
 }
 
+func publishBurst(l *Log, sessionID string, count int) {
+	for i := 0; i < count; i++ {
+		l.Publish("x", sessionID, map[string]int{"i": i})
+	}
+}
+
+func drainSome(sub *Subscription, count int) {
+	for i := 0; i < count; i++ {
+		select {
+		case <-sub.Events():
+		case <-time.After(20 * time.Millisecond):
+		}
+	}
+}
+
+func subscribeRounds(t *testing.T, l *Log, sessionID string, rounds int) {
+	t.Helper()
+	for round := 0; round < rounds; round++ {
+		afterSeq := uint64(0)
+		if round%2 == 1 {
+			afterSeq = 1
+		}
+		sub, err := l.Subscribe(sessionID, afterSeq, 4)
+		if err != nil {
+			if !errors.Is(err, ErrReplayUnavailable) {
+				t.Errorf("subscribe error: %v", err)
+			}
+			continue
+		}
+		drainSome(sub, 2)
+		sub.Close()
+	}
+}
+
 func TestConcurrentPublishSubscribeClose(t *testing.T) {
 	const (
 		publishers   = 8
@@ -198,10 +232,7 @@ func TestConcurrentPublishSubscribeClose(t *testing.T) {
 	for p := 0; p < publishers; p++ {
 		go func(p int) {
 			defer wg.Done()
-			sessionID := sessionIDs[p%sessions]
-			for i := 0; i < perPublisher; i++ {
-				l.Publish("x", sessionID, map[string]int{"i": i})
-			}
+			publishBurst(l, sessionIDs[p%sessions], perPublisher)
 		}(p)
 	}
 
@@ -209,28 +240,7 @@ func TestConcurrentPublishSubscribeClose(t *testing.T) {
 	for s := 0; s < subscribers; s++ {
 		go func(s int) {
 			defer wg.Done()
-			sessionID := sessionIDs[s%sessions]
-			for round := 0; round < 5; round++ {
-				afterSeq := uint64(0)
-				if round%2 == 1 {
-					afterSeq = 1
-				}
-				sub, err := l.Subscribe(sessionID, afterSeq, 4)
-				if err != nil {
-					if errors.Is(err, ErrReplayUnavailable) {
-						continue
-					}
-					t.Errorf("subscribe error: %v", err)
-					continue
-				}
-				for i := 0; i < 2; i++ {
-					select {
-					case <-sub.Events():
-					case <-time.After(20 * time.Millisecond):
-					}
-				}
-				sub.Close()
-			}
+			subscribeRounds(t, l, sessionIDs[s%sessions], 5)
 		}(s)
 	}
 

@@ -377,14 +377,7 @@ func decodeScalar(raw json.RawMessage) (any, error) {
 	return v, err
 }
 
-func patchColumns(patch json.RawMessage) ([]patchColumn, error) {
-	var top map[string]json.RawMessage
-	if err := json.Unmarshal(patch, &top); err != nil {
-		return nil, err
-	}
-	if err := checkNonNullablePatchPaths("", top); err != nil {
-		return nil, err
-	}
+func scalarPatches(top map[string]json.RawMessage) ([]patchColumn, error) {
 	var out []patchColumn
 	for key, column := range scalarPatchColumns {
 		raw, ok := top[key]
@@ -397,60 +390,109 @@ func patchColumns(patch json.RawMessage) ([]patchColumn, error) {
 		}
 		out = append(out, patchColumn{column, v})
 	}
+	return out, nil
+}
+
+func jsonPatches(top map[string]json.RawMessage) []patchColumn {
+	var out []patchColumn
 	for key, column := range jsonPatchColumns {
 		if raw, ok := top[key]; ok {
 			out = append(out, patchColumn{column, nullableJSON(raw)})
 		}
 	}
+	return out
+}
+
+func clearedPatches(columns map[string]string) []patchColumn {
+	out := make([]patchColumn, 0, len(columns))
+	for _, column := range columns {
+		out = append(out, patchColumn{column, nil})
+	}
+	return out
+}
+
+func fieldPatches(columns map[string]string, obj map[string]json.RawMessage) ([]patchColumn, error) {
+	var out []patchColumn
+	for field, column := range columns {
+		inner, ok := obj[field]
+		if !ok {
+			continue
+		}
+		if jsonNestedColumns[column] {
+			out = append(out, patchColumn{column, nullableJSON(inner)})
+			continue
+		}
+		v, err := decodeScalar(inner)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, patchColumn{column, v})
+	}
+	return out, nil
+}
+
+func tokenPatches(tokens map[string]json.RawMessage) ([]patchColumn, error) {
+	cache, ok := tokens["cache"]
+	if !ok || string(cache) == "null" {
+		return nil, nil
+	}
+	var obj map[string]json.RawMessage
+	if err := json.Unmarshal(cache, &obj); err != nil {
+		return nil, err
+	}
+	return fieldPatches(tokensCacheColumns, obj)
+}
+
+func nestedPatches(top map[string]json.RawMessage) ([]patchColumn, error) {
+	var out []patchColumn
 	for key, columns := range nestedPatchColumns {
 		raw, ok := top[key]
 		if !ok {
 			continue
 		}
 		if string(raw) == "null" {
-			for _, column := range columns {
-				out = append(out, patchColumn{column, nil})
-			}
+			out = append(out, clearedPatches(columns)...)
 			continue
 		}
 		var obj map[string]json.RawMessage
 		if err := json.Unmarshal(raw, &obj); err != nil {
 			return nil, err
 		}
-		for field, column := range columns {
-			inner, ok := obj[field]
-			if !ok {
-				continue
-			}
-			if jsonNestedColumns[column] {
-				out = append(out, patchColumn{column, nullableJSON(inner)})
-				continue
-			}
-			v, err := decodeScalar(inner)
-			if err != nil {
-				return nil, err
-			}
-			out = append(out, patchColumn{column, v})
+		fields, err := fieldPatches(columns, obj)
+		if err != nil {
+			return nil, err
 		}
-		if key == "tokens" {
-			if cache, ok := obj["cache"]; ok && string(cache) != "null" {
-				var c map[string]json.RawMessage
-				if err := json.Unmarshal(cache, &c); err != nil {
-					return nil, err
-				}
-				for field, column := range tokensCacheColumns {
-					if inner, ok := c[field]; ok {
-						v, err := decodeScalar(inner)
-						if err != nil {
-							return nil, err
-						}
-						out = append(out, patchColumn{column, v})
-					}
-				}
-			}
+		out = append(out, fields...)
+		if key != "tokens" {
+			continue
 		}
+		cached, err := tokenPatches(obj)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, cached...)
 	}
 	return out, nil
+}
+
+func patchColumns(patch json.RawMessage) ([]patchColumn, error) {
+	var top map[string]json.RawMessage
+	if err := json.Unmarshal(patch, &top); err != nil {
+		return nil, err
+	}
+	if err := checkNonNullablePatchPaths("", top); err != nil {
+		return nil, err
+	}
+	out, err := scalarPatches(top)
+	if err != nil {
+		return nil, err
+	}
+	out = append(out, jsonPatches(top)...)
+	nested, err := nestedPatches(top)
+	if err != nil {
+		return nil, err
+	}
+	return append(out, nested...), nil
 }
 
 var patchStatements = map[string]string{
