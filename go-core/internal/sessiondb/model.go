@@ -90,6 +90,17 @@ func IsNotFound(err error) bool {
 	return errors.As(err, &target)
 }
 
+type ErrInvalidInput struct {
+	Msg string
+}
+
+func (e ErrInvalidInput) Error() string { return e.Msg }
+
+func IsInvalidInput(err error) bool {
+	var target ErrInvalidInput
+	return errors.As(err, &target)
+}
+
 func mergeIDs(data json.RawMessage, ids map[string]string) ([]byte, error) {
 	obj := map[string]json.RawMessage{}
 	if len(data) > 0 {
@@ -115,7 +126,7 @@ func (p Part) MarshalJSON() ([]byte, error) {
 func splitIDs(body []byte, keys ...string) (map[string]string, json.RawMessage, error) {
 	obj := map[string]json.RawMessage{}
 	if err := json.Unmarshal(body, &obj); err != nil {
-		return nil, nil, err
+		return nil, nil, ErrInvalidInput{Msg: "body must be a JSON object"}
 	}
 	ids := map[string]string{}
 	for _, k := range keys {
@@ -125,7 +136,7 @@ func splitIDs(body []byte, keys ...string) (map[string]string, json.RawMessage, 
 		}
 		var s string
 		if err := json.Unmarshal(raw, &s); err != nil {
-			return nil, nil, fmt.Errorf("%s must be a string", k)
+			return nil, nil, ErrInvalidInput{Msg: fmt.Sprintf("%s must be a string", k)}
 		}
 		ids[k] = s
 		delete(obj, k)

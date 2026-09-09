@@ -156,7 +156,7 @@ func (s *Store) CreateSession(ctx context.Context, in CreateSessionInput) (Sessi
 	id := ident.Session()
 	if in.ID != nil && *in.ID != "" {
 		if !ident.HasPrefix(*in.ID, ident.PrefixSession) {
-			return Session{}, fmt.Errorf("ID %s does not start with ses", *in.ID)
+			return Session{}, ErrInvalidInput{Msg: fmt.Sprintf("ID %s does not start with ses", *in.ID)}
 		}
 		id = *in.ID
 	}
@@ -178,6 +178,9 @@ func (s *Store) CreateSession(ctx context.Context, in CreateSessionInput) (Sessi
 		}
 		return err
 	})
+	if isForeignKeyFailure(err) {
+		return Session{}, ErrInvalidInput{Msg: "project not found: " + in.ProjectID}
+	}
 	if err != nil {
 		return Session{}, err
 	}
@@ -317,7 +320,7 @@ func checkNonNullablePatchPaths(prefix string, obj map[string]json.RawMessage) e
 		trimmed := strings.TrimSpace(string(raw))
 		if trimmed == "null" {
 			if nonNullablePatchPaths[path] {
-				return fmt.Errorf("%s cannot be null", path)
+				return ErrInvalidInput{Msg: path + " cannot be null"}
 			}
 			continue
 		}

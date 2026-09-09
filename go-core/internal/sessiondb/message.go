@@ -104,7 +104,7 @@ func (s *Store) UpsertMessage(ctx context.Context, sessionID string, body json.R
 	if id == "" {
 		id = ident.Message()
 	} else if !ident.HasPrefix(id, ident.PrefixMessage) {
-		return Message{}, fmt.Errorf("ID %s does not start with msg", id)
+		return Message{}, ErrInvalidInput{Msg: fmt.Sprintf("ID %s does not start with msg", id)}
 	}
 	created := timeCreatedOf(data)
 	if created == 0 {
@@ -176,7 +176,7 @@ func (s *Store) UpsertPart(ctx context.Context, sessionID, messageID string, bod
 	if id == "" {
 		id = ident.Part()
 	} else if !ident.HasPrefix(id, ident.PrefixPart) {
-		return Part{}, fmt.Errorf("ID %s does not start with prt", id)
+		return Part{}, ErrInvalidInput{Msg: fmt.Sprintf("ID %s does not start with prt", id)}
 	}
 	var storedCreated int64
 	err = s.db.ExecWrite(ctx, func(tx *sql.Tx) error {
@@ -349,7 +349,7 @@ func (s *Store) PageMessages(ctx context.Context, sessionID string, limit int, b
 	if before != "" {
 		id, tm, err := DecodeCursor(before)
 		if err != nil {
-			return MessagePage{}, err
+			return MessagePage{}, ErrInvalidInput{Msg: "malformed cursor"}
 		}
 		query += ` AND (time_created < ? OR (time_created = ? AND id < ?))`
 		args = append(args, tm, tm, id)

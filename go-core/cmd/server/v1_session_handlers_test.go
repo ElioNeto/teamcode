@@ -256,3 +256,33 @@ func TestWriteErrorEscapesQuotes(t *testing.T) {
 		t.Fatalf("%s", raw)
 	}
 }
+
+func TestV1BadCursorIs400(t *testing.T) {
+	srv := v1Server(t)
+	ses := newSession(t, srv)
+	code, raw := call(t, srv, "GET", "/v1/session/"+ses["id"].(string)+"/messages?before=not-a-cursor", nil)
+	if code != 400 {
+		t.Fatalf("%d %s", code, raw)
+	}
+}
+
+func TestV1WrongIdPrefixIs400(t *testing.T) {
+	srv := v1Server(t)
+	code, raw := call(t, srv, "POST", "/v1/session", map[string]any{"id": "prj_wrong", "projectID": "prj_test", "directory": "/tmp/d", "version": "t"})
+	if code != 400 {
+		t.Fatalf("%d %s", code, raw)
+	}
+	ses := newSession(t, srv)
+	code, raw = call(t, srv, "PUT", "/v1/session/"+ses["id"].(string)+"/message/prt_wrong", map[string]any{"role": "user"})
+	if code != 400 {
+		t.Fatalf("message %d %s", code, raw)
+	}
+}
+
+func TestV1MissingProjectIs400(t *testing.T) {
+	srv := v1Server(t)
+	code, raw := call(t, srv, "POST", "/v1/session", map[string]any{"projectID": "prj_missing", "directory": "/tmp/d", "version": "t"})
+	if code != 400 || decode(t, raw)["error"] != "project not found: prj_missing" {
+		t.Fatalf("%d %s", code, raw)
+	}
+}

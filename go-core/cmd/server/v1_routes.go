@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync/atomic"
 
 	"github.com/ElioNeto/teamcode/go-core/internal/eventlog"
@@ -134,7 +133,7 @@ func writeStoreError(w http.ResponseWriter, err error) {
 	switch {
 	case sessiondb.IsNotFound(err):
 		writeError(w, err.Error(), http.StatusNotFound)
-	case strings.Contains(err.Error(), "cannot be null"):
+	case sessiondb.IsInvalidInput(err):
 		writeError(w, err.Error(), http.StatusBadRequest)
 	case store.IsBusy(err):
 		writeError(w, "busy", http.StatusServiceUnavailable)
