@@ -1,11 +1,24 @@
 import { Database } from "bun:sqlite"
 import fs from "fs"
 import net from "net"
+import os from "os"
+import path from "path"
 
 export function goCoreBinary(): string | undefined {
   const binary = process.env["GO_CORE_BINARY"]
   if (!binary || !fs.existsSync(binary)) return undefined
   return binary
+}
+
+export function useSharedGocoreDatabase(): () => void {
+  const dir = path.join(process.env["XDG_DATA_HOME"] ?? os.tmpdir(), "gocore")
+  fs.mkdirSync(dir, { recursive: true })
+  const before = process.env["TEAMCODE_DB"]
+  process.env["TEAMCODE_DB"] = path.join(dir, "opencode.db")
+  return () => {
+    if (before === undefined) delete process.env["TEAMCODE_DB"]
+    else process.env["TEAMCODE_DB"] = before
+  }
 }
 
 async function freePort(): Promise<number> {

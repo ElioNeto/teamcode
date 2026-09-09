@@ -1,11 +1,9 @@
 import { afterAll, describe, expect, test } from "bun:test"
-import fs from "fs"
-import os from "os"
-import path from "path"
 import { Effect, Layer } from "effect"
 import { Session as SessionNs } from "@/session/session"
 import { MessageV2 } from "@/session/message-v2"
 import { MessageID, PartID } from "@/session/schema"
+import { ModelID, ProviderID } from "@/provider/schema"
 import { Bus } from "@/bus"
 import { Storage } from "@/storage/storage"
 import { SyncEvent } from "@/sync"
@@ -14,7 +12,7 @@ import { BackgroundJob } from "@/background/job"
 import { Database } from "@/storage/db"
 import { CrossSpawnSpawner } from "@teamcode-ai/core/cross-spawn-spawner"
 import { testEffect } from "../lib/effect"
-import { api, goCoreBinary, startGoCore } from "./harness"
+import { api, goCoreBinary, startGoCore, useSharedGocoreDatabase } from "./harness"
 
 const it = testEffect(
   Layer.mergeAll(
@@ -48,14 +46,10 @@ describe("go-core and TS writing the same SQLite file", () => {
     return
   }
 
-  const realFileDbDirOverridingInMemoryPreload = path.join(process.env["XDG_DATA_HOME"] ?? os.tmpdir(), "gocore-concurrency")
-  fs.mkdirSync(realFileDbDirOverridingInMemoryPreload, { recursive: true })
-  const teamcodeDbBeforeOverride = process.env["TEAMCODE_DB"]
-  process.env["TEAMCODE_DB"] = path.join(realFileDbDirOverridingInMemoryPreload, "opencode.db")
+  const restoreTeamcodeDb = useSharedGocoreDatabase()
 
   afterAll(() => {
-    if (teamcodeDbBeforeOverride === undefined) delete process.env["TEAMCODE_DB"]
-    else process.env["TEAMCODE_DB"] = teamcodeDbBeforeOverride
+    restoreTeamcodeDb()
   })
 
   it.instance(
@@ -66,6 +60,8 @@ describe("go-core and TS writing the same SQLite file", () => {
         const ambientInstanceContext = yield* Effect.context()
         const run = <A, E>(effect: Effect.Effect<A, E>) => Effect.runPromiseWith(ambientInstanceContext)(effect)
 
+        Database.use((db) => db.run("DELETE FROM session"))
+
         const info = yield* session.create({ title: "Concurrency" })
         const message = yield* session.updateMessage({
           id: MessageID.ascending(),
@@ -73,7 +69,7 @@ describe("go-core and TS writing the same SQLite file", () => {
           role: "user" as const,
           time: { created: Date.now() },
           agent: "build",
-          model: { providerID: "p", modelID: "m" },
+          model: { providerID: ProviderID.make("p"), modelID: ModelID.make("m") },
         })
 
         const go = yield* Effect.promise(() => startGoCore({ dbPath: Database.getPath() }))

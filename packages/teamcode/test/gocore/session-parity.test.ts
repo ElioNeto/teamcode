@@ -1,6 +1,5 @@
 import { afterAll, describe, expect, test } from "bun:test"
 import fs from "fs"
-import os from "os"
 import path from "path"
 import { Effect, Layer } from "effect"
 import { Session as SessionNs } from "@/session/session"
@@ -17,7 +16,7 @@ import { CrossSpawnSpawner } from "@teamcode-ai/core/cross-spawn-spawner"
 import { InstallationVersion } from "@teamcode-ai/core/installation/version"
 import { InstanceState } from "@/effect/instance-state"
 import { testEffect } from "../lib/effect"
-import { api, dumpTables, goCoreBinary, startGoCore } from "./harness"
+import { api, dumpTables, goCoreBinary, startGoCore, useSharedGocoreDatabase } from "./harness"
 
 const it = testEffect(
   Layer.mergeAll(
@@ -109,14 +108,10 @@ describe("go-core session parity", () => {
     return
   }
 
-  const realFileDbDirOverridingInMemoryPreload = path.join(process.env["XDG_DATA_HOME"] ?? os.tmpdir(), "gocore-parity")
-  fs.mkdirSync(realFileDbDirOverridingInMemoryPreload, { recursive: true })
-  const teamcodeDbBeforeOverride = process.env["TEAMCODE_DB"]
-  process.env["TEAMCODE_DB"] = path.join(realFileDbDirOverridingInMemoryPreload, "opencode.db")
+  const restoreTeamcodeDb = useSharedGocoreDatabase()
 
   afterAll(() => {
-    if (teamcodeDbBeforeOverride === undefined) delete process.env["TEAMCODE_DB"]
-    else process.env["TEAMCODE_DB"] = teamcodeDbBeforeOverride
+    restoreTeamcodeDb()
   })
 
   it.instance("TS and Go produce the same tables for the same scenario", () =>
@@ -130,6 +125,7 @@ describe("go-core session parity", () => {
 
       const tsDb = Database.getPath()
       const goDb = tsDb.replace(/\.db$/, "-go.db")
+      Database.use((db) => db.run("DELETE FROM session"))
       Database.use((db) => db.run("PRAGMA wal_checkpoint(TRUNCATE)"))
       fs.copyFileSync(tsDb, goDb)
 
