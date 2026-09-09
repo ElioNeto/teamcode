@@ -148,6 +148,28 @@ func TestPatchSessionNullClearsAndAbsentKeeps(t *testing.T) {
 	}
 }
 
+func TestPatchSessionRejectsNullOnNotNullColumns(t *testing.T) {
+	s := newStore(t)
+	created := create(t, s, sessiondb.CreateSessionInput{Title: strp("t")})
+	cases := []json.RawMessage{
+		json.RawMessage(`{"cost":null}`),
+		json.RawMessage(`{"time":null}`),
+		json.RawMessage(`{"tokens":null}`),
+		json.RawMessage(`{"tokens":{"cache":null}}`),
+		json.RawMessage(`{"time":{"updated":null}}`),
+		json.RawMessage(`{"title":null}`),
+	}
+	for _, patch := range cases {
+		if _, err := s.PatchSession(ctx, created.ID, patch); err == nil || !strings.Contains(err.Error(), "cannot be null") {
+			t.Fatalf("patch %s: got %v", patch, err)
+		}
+		after, err := s.GetSession(ctx, created.ID)
+		if err != nil || !sameSession(after, created) {
+			t.Fatalf("patch %s left session mutated: %+v vs %+v", patch, after, created)
+		}
+	}
+}
+
 func TestDeleteSessionRecursive(t *testing.T) {
 	s := newStore(t)
 	root := create(t, s, sessiondb.CreateSessionInput{})

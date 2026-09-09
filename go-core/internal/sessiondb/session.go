@@ -286,7 +286,52 @@ var nestedPatchColumns = map[string]map[string]string{
 	"tokens":  {"input": "tokens_input", "output": "tokens_output", "reasoning": "tokens_reasoning"},
 }
 
+var tokensCacheColumns = map[string]string{"read": "tokens_cache_read", "write": "tokens_cache_write"}
+
 var jsonNestedColumns = map[string]bool{"summary_diffs": true}
+
+var nonNullablePatchPaths = map[string]bool{
+	"cost":               true,
+	"title":              true,
+	"slug":               true,
+	"directory":          true,
+	"version":            true,
+	"time":               true,
+	"time.created":       true,
+	"time.updated":       true,
+	"tokens":             true,
+	"tokens.input":       true,
+	"tokens.output":      true,
+	"tokens.reasoning":   true,
+	"tokens.cache":       true,
+	"tokens.cache.read":  true,
+	"tokens.cache.write": true,
+}
+
+func checkNonNullablePatchPaths(prefix string, obj map[string]json.RawMessage) error {
+	for key, raw := range obj {
+		path := key
+		if prefix != "" {
+			path = prefix + "." + key
+		}
+		trimmed := strings.TrimSpace(string(raw))
+		if trimmed == "null" {
+			if nonNullablePatchPaths[path] {
+				return fmt.Errorf("%s cannot be null", path)
+			}
+			continue
+		}
+		if strings.HasPrefix(trimmed, "{") {
+			var nested map[string]json.RawMessage
+			if err := json.Unmarshal(raw, &nested); err == nil {
+				if err := checkNonNullablePatchPaths(path, nested); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
 
 func decodeScalar(raw json.RawMessage) (any, error) {
 	var v any
@@ -297,6 +342,9 @@ func decodeScalar(raw json.RawMessage) (any, error) {
 func patchColumns(patch json.RawMessage) ([]patchColumn, error) {
 	var top map[string]json.RawMessage
 	if err := json.Unmarshal(patch, &top); err != nil {
+		return nil, err
+	}
+	if err := checkNonNullablePatchPaths("", top); err != nil {
 		return nil, err
 	}
 	var out []patchColumn
@@ -352,7 +400,7 @@ func patchColumns(patch json.RawMessage) ([]patchColumn, error) {
 				if err := json.Unmarshal(cache, &c); err != nil {
 					return nil, err
 				}
-				for field, column := range map[string]string{"read": "tokens_cache_read", "write": "tokens_cache_write"} {
+				for field, column := range tokensCacheColumns {
 					if inner, ok := c[field]; ok {
 						v, err := decodeScalar(inner)
 						if err != nil {
