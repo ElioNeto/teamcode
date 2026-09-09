@@ -83,6 +83,15 @@ type Row = Record<string, unknown>
 const idColumns = new Set(["id", "session_id", "message_id", "parent_id"])
 const ignoredColumns = new Set(["slug"])
 
+type TimePolicy = "exact" | "order" | "presence"
+
+const timePolicies: Record<string, Record<string, TimePolicy>> = {
+  session: { time_created: "presence", time_updated: "presence", time_compacting: "presence", time_archived: "presence" },
+  message: { time_created: "exact", time_updated: "presence" },
+  part: { time_created: "order", time_updated: "presence" },
+  todo: { time_created: "presence", time_updated: "presence" },
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
 }
@@ -92,41 +101,16 @@ function parseObject(value: string): Record<string, unknown> {
   return isRecord(parsed) ? parsed : {}
 }
 
-function isTimeColumn(column: string): boolean {
-  return column.startsWith("time_")
-}
-
-function dataTime(value: unknown): Record<string, unknown> {
-  if (typeof value !== "string") return {}
-  const time = parseObject(value)["time"]
-  return isRecord(time) ? time : {}
-}
-
-function timestampRanks(rows: Row[]): Map<number, string> {
-  const values: number[] = []
-  for (const row of rows) {
-    for (const [column, value] of Object.entries(row)) {
-      if (isTimeColumn(column) && typeof value === "number") values.push(value)
-      if (column !== "data") continue
-      for (const inner of Object.values(dataTime(value))) if (typeof inner === "number") values.push(inner)
-    }
-  }
-  const sorted = [...new Set(values)].sort((a, b) => a - b)
-  return new Map(sorted.map((value, index) => [value, `t#${index}`]))
-}
-
-function rankDataTime(parsed: Record<string, unknown>, ranks: Map<number, string>): Record<string, unknown> {
-  const time = parsed["time"]
-  if (!isRecord(time)) return parsed
-  const ranked: Record<string, unknown> = {}
-  for (const [key, inner] of Object.entries(time)) ranked[key] = typeof inner === "number" ? ranks.get(inner) : inner
-  return { ...parsed, time: ranked }
-}
-
 function normalizeIDs(value: string, idMap: Map<string, string>): string {
   let out = value
   for (const [from, to] of idMap) out = out.split(from).join(to)
   return out
+}
+
+function atLeastCreated(row: Row, value: unknown): boolean | null {
+  const created = row["time_created"]
+  if (typeof value !== "number" || typeof created !== "number") return null
+  return value >= created
 }
 
 export function dumpTables(dbPath: string) {
@@ -141,9 +125,9 @@ export function dumpTables(dbPath: string) {
   label("msg", messages, "id")
   label("prt", parts, "id")
   db.close()
-  const strip = (rows: Row[]) => {
-    const ranks = timestampRanks(rows)
-    return rows.map((row) => {
+  const strip = (table: string, rows: Row[]) => {
+    const policies = timePolicies[table] ?? {}
+    return rows.map((row, position) => {
       const out: Row = {}
       for (const [column, value] of Object.entries(row)) {
         if (ignoredColumns.has(column)) continue
@@ -151,12 +135,22 @@ export function dumpTables(dbPath: string) {
           if (typeof value === "string" && idMap.has(value)) out[column] = idMap.get(value)
           continue
         }
-        if (isTimeColumn(column)) {
-          out[column] = typeof value === "number" ? ranks.get(value) : value
+        const policy = policies[column]
+        if (policy === "exact") {
+          out[column] = value
+          continue
+        }
+        if (policy === "order") {
+          out[column] = typeof value === "number" ? `t#${position}` : value
+          continue
+        }
+        if (policy === "presence") {
+          out[`${column}_present`] = value !== null
+          if (column === "time_updated") out["time_updated_ge_created"] = atLeastCreated(row, value)
           continue
         }
         if (column === "data" && typeof value === "string") {
-          out[column] = parseObject(normalizeIDs(JSON.stringify(rankDataTime(parseObject(value), ranks)), idMap))
+          out[column] = parseObject(normalizeIDs(value, idMap))
           continue
         }
         out[column] = value
@@ -164,5 +158,5 @@ export function dumpTables(dbPath: string) {
       return out
     })
   }
-  return { sessions: strip(sessions), messages: strip(messages), parts: strip(parts), todos: strip(todos) }
+  return { sessions: strip("session", sessions), messages: strip("message", messages), parts: strip("part", parts), todos: strip("todo", todos) }
 }
