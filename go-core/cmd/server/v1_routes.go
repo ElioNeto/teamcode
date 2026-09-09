@@ -144,7 +144,3 @@ func writeStoreError(w http.ResponseWriter, err error) {
 		writeError(w, err.Error(), http.StatusInternalServerError)
 	}
 }
-
-func (s *v1State) handleEvents(w http.ResponseWriter, r *http.Request) {
-	writeError(w, "not implemented", http.StatusNotImplemented)
-}
