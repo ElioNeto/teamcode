@@ -1,8 +1,8 @@
 import { Database } from "bun:sqlite"
-import fs from "fs"
-import net from "net"
-import os from "os"
-import path from "path"
+import fs from "node:fs"
+import net from "node:net"
+import os from "node:os"
+import path from "node:path"
 
 export function goCoreBinary(): string | undefined {
   const binary = process.env["GO_CORE_BINARY"]
@@ -113,9 +113,51 @@ function atLeastCreated(row: Row, value: unknown): boolean | null {
   return value >= created
 }
 
+type IDMap = Map<string, string>
+
+function idPatch(column: string, value: unknown, idMap: IDMap): Row {
+  const mapped = typeof value === "string" ? idMap.get(value) : undefined
+  return mapped === undefined ? {} : { [column]: mapped }
+}
+
+function timePatch(policy: TimePolicy, column: string, value: unknown, row: Row, position: number): Row {
+  if (policy === "exact") return { [column]: value }
+  if (policy === "order") return { [column]: typeof value === "number" ? `t#${position}` : value }
+  const out: Row = { [`${column}_present`]: value !== null }
+  if (column === "time_updated") out["time_updated_ge_created"] = atLeastCreated(row, value)
+  return out
+}
+
+function normalizeRow(row: Row, position: number, policies: Record<string, TimePolicy>, idMap: IDMap): Row {
+  const out: Row = {}
+  for (const [column, value] of Object.entries(row)) {
+    if (ignoredColumns.has(column)) continue
+    if (idColumns.has(column)) {
+      Object.assign(out, idPatch(column, value, idMap))
+      continue
+    }
+    const policy = policies[column]
+    if (policy) {
+      Object.assign(out, timePatch(policy, column, value, row, position))
+      continue
+    }
+    if (column === "data" && typeof value === "string") {
+      out[column] = parseObject(normalizeIDs(value, idMap))
+      continue
+    }
+    out[column] = value
+  }
+  return out
+}
+
+function normalizeTable(table: string, rows: Row[], idMap: IDMap): Row[] {
+  const policies = timePolicies[table] ?? {}
+  return rows.map((row, position) => normalizeRow(row, position, policies, idMap))
+}
+
 export function dumpTables(dbPath: string) {
   const db = new Database(dbPath, { readonly: true })
-  const idMap = new Map<string, string>()
+  const idMap: IDMap = new Map()
   const label = (prefix: string, rows: Row[], key: string) => rows.forEach((row, i) => idMap.set(String(row[key]), `${prefix}#${i}`))
   const sessions = db.query("SELECT * FROM session ORDER BY time_created, title").all() as Row[]
   const messages = db.query("SELECT * FROM message ORDER BY time_created, id").all() as Row[]
@@ -125,38 +167,10 @@ export function dumpTables(dbPath: string) {
   label("msg", messages, "id")
   label("prt", parts, "id")
   db.close()
-  const strip = (table: string, rows: Row[]) => {
-    const policies = timePolicies[table] ?? {}
-    return rows.map((row, position) => {
-      const out: Row = {}
-      for (const [column, value] of Object.entries(row)) {
-        if (ignoredColumns.has(column)) continue
-        if (idColumns.has(column)) {
-          if (typeof value === "string" && idMap.has(value)) out[column] = idMap.get(value)
-          continue
-        }
-        const policy = policies[column]
-        if (policy === "exact") {
-          out[column] = value
-          continue
-        }
-        if (policy === "order") {
-          out[column] = typeof value === "number" ? `t#${position}` : value
-          continue
-        }
-        if (policy === "presence") {
-          out[`${column}_present`] = value !== null
-          if (column === "time_updated") out["time_updated_ge_created"] = atLeastCreated(row, value)
-          continue
-        }
-        if (column === "data" && typeof value === "string") {
-          out[column] = parseObject(normalizeIDs(value, idMap))
-          continue
-        }
-        out[column] = value
-      }
-      return out
-    })
+  return {
+    sessions: normalizeTable("session", sessions, idMap),
+    messages: normalizeTable("message", messages, idMap),
+    parts: normalizeTable("part", parts, idMap),
+    todos: normalizeTable("todo", todos, idMap),
   }
-  return { sessions: strip("session", sessions), messages: strip("message", messages), parts: strip("part", parts), todos: strip("todo", todos) }
 }

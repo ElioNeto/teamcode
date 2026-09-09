@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, test } from "bun:test"
+import { afterAll, beforeAll, describe, expect } from "bun:test"
 import fs from "fs"
 import path from "path"
 import { Effect, Layer } from "effect"
@@ -101,14 +101,12 @@ const scenario = {
   },
 }
 
-describe("go-core session parity", () => {
-  const binary = goCoreBinary()
-  if (!binary) {
-    test.skip("GO_CORE_BINARY not set; skipping parity", () => {})
-    return
-  }
+describe.skipIf(!goCoreBinary())("go-core session parity", () => {
+  let restoreTeamcodeDb: () => void = () => {}
 
-  const restoreTeamcodeDb = useSharedGocoreDatabase()
+  beforeAll(() => {
+    restoreTeamcodeDb = useSharedGocoreDatabase()
+  })
 
   afterAll(() => {
     restoreTeamcodeDb()
@@ -179,7 +177,7 @@ describe("go-core session parity", () => {
       expect(goDump.messages).toEqual(tsDump.messages)
       expect(goDump.parts).toEqual(tsDump.parts)
       expect(goDump.todos).toEqual(tsDump.todos)
-      expect(tsDump.sessions.length).toBe(2)
+      expect(tsDump.sessions).toHaveLength(2)
       expect(tsDump.sessions[0]["cost"]).toBe(0.25)
     }),
     { timeout: 30000 },

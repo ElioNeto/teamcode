@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, test } from "bun:test"
+import { afterAll, beforeAll, describe, expect } from "bun:test"
 import { Effect, Layer } from "effect"
 import { Session as SessionNs } from "@/session/session"
 import { MessageV2 } from "@/session/message-v2"
@@ -39,14 +39,12 @@ const stepFinish = (sessionID: string, messageID: string, id: string) => ({
   tokens: { input: 1, output: 1, reasoning: 1, cache: { read: 1, write: 1 } },
 })
 
-describe("go-core and TS writing the same SQLite file", () => {
-  const binary = goCoreBinary()
-  if (!binary) {
-    test.skip("GO_CORE_BINARY not set; skipping concurrency", () => {})
-    return
-  }
+describe.skipIf(!goCoreBinary())("go-core and TS writing the same SQLite file", () => {
+  let restoreTeamcodeDb: () => void = () => {}
 
-  const restoreTeamcodeDb = useSharedGocoreDatabase()
+  beforeAll(() => {
+    restoreTeamcodeDb = useSharedGocoreDatabase()
+  })
 
   afterAll(() => {
     restoreTeamcodeDb()
@@ -88,10 +86,10 @@ describe("go-core and TS writing the same SQLite file", () => {
           expect(stored.tokens.input).toBe(PARTS_PER_SIDE * 2)
 
           const page = yield* Effect.promise(() => api(go.baseUrl, "GET", `/v1/session/${info.id}/messages?limit=10`))
-          expect(page.messages[0].parts.length).toBe(PARTS_PER_SIDE * 2)
+          expect(page.messages[0].parts).toHaveLength(PARTS_PER_SIDE * 2)
 
           const fromTs = yield* session.messages({ sessionID: info.id })
-          expect(fromTs[0].parts.length).toBe(PARTS_PER_SIDE * 2)
+          expect(fromTs[0].parts).toHaveLength(PARTS_PER_SIDE * 2)
         } finally {
           yield* Effect.promise(() => go.stop())
         }
