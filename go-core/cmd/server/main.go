@@ -24,6 +24,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ElioNeto/teamcode/go-core/internal/parentwatch"
 	"github.com/ElioNeto/teamcode/go-core/internal/pool"
 	"github.com/ElioNeto/teamcode/go-core/internal/transport"
 )
@@ -140,13 +141,23 @@ func main() {
 	// Graceful shutdown
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+	ctx, parentGone := context.WithCancel(ctx)
+	defer parentGone()
+	if parentPid, ok := parentPidFromEnv(); ok {
+		go parentwatch.Watch(ctx, parentPid, parentPollInterval, func() {
+			log.Printf("go-core: parent process %d exited, shutting down", parentPid)
+			parentGone()
+		})
+	}
 
 	go func() {
 		<-ctx.Done()
 		log.Println("go-core: shutting down...")
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		server.Shutdown(shutdownCtx)
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			log.Printf("go-core: shutdown error: %v", err)
+		}
 	}()
 
 	isUnix := transport.IsUnixSocket(resolvedAddr)
@@ -162,7 +173,9 @@ func main() {
 
 	// Cleanup unix socket on exit
 	if isUnix {
-		os.Remove(resolvedAddr)
+		if err := os.Remove(resolvedAddr); err != nil && !os.IsNotExist(err) {
+			log.Printf("go-core: socket cleanup error: %v", err)
+		}
 	}
 }
 
@@ -246,12 +259,12 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-var errorPool = pool.Buffer64K
-
 func writeError(w http.ResponseWriter, msg string, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	fmt.Fprintf(w, `{"error":"%s"}`, msg)
+	if _, err := fmt.Fprintf(w, `{"error":"%s"}`, msg); err != nil {
+		log.Printf("go-core: write error response: %v", err)
+	}
 }
 
 func writeErrorWithCode(w http.ResponseWriter, err error) {
@@ -268,6 +281,8 @@ func recordMetrics(_ string, d time.Duration, isError bool) {
 
 func handleInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, `{"version":"%s","commit":"%s","buildTime":"%s","goos":"%s","goarch":"%s"}`,
-		Version, Commit, BuildTime, runtime.GOOS, runtime.GOARCH)
+	if _, err := fmt.Fprintf(w, `{"version":"%s","commit":"%s","buildTime":"%s","goos":"%s","goarch":"%s"}`,
+		Version, Commit, BuildTime, runtime.GOOS, runtime.GOARCH); err != nil {
+		log.Printf("go-core: write info response: %v", err)
+	}
 }
