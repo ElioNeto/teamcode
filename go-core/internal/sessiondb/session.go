@@ -66,10 +66,11 @@ func defaultTitle(isChild bool, now int64) string {
 	return prefix + time.UnixMilli(now).UTC().Format("2006-01-02T15:04:05.000Z")
 }
 
-const sessionColumns = `id, project_id, workspace_id, parent_id, slug, directory, path, title, version, share_url,
+const selectSessionByIDQuery = `SELECT id, project_id, workspace_id, parent_id, slug, directory, path, title, version, share_url,
     summary_additions, summary_deletions, summary_files, summary_diffs, cost,
     tokens_input, tokens_output, tokens_reasoning, tokens_cache_read, tokens_cache_write,
-    revert, permission, agent, model, time_created, time_updated, time_compacting, time_archived`
+    revert, permission, agent, model, time_created, time_updated, time_compacting, time_archived
+    FROM session WHERE id = ?`
 
 type sessionRow struct {
 	id, projectID, slug, directory, title, version   string
@@ -204,7 +205,7 @@ func (s *Store) CreateSession(ctx context.Context, in CreateSessionInput) (Sessi
 }
 
 func (s *Store) GetSession(ctx context.Context, id string) (Session, error) {
-	row := s.db.Reader().QueryRowContext(ctx, `SELECT `+sessionColumns+` FROM session WHERE id = ?`, id)
+	row := s.db.Reader().QueryRowContext(ctx, selectSessionByIDQuery, id)
 	out, err := scanSession(row)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Session{}, ErrNotFound{Kind: "Session", ID: id}
@@ -220,7 +221,11 @@ func normalizeDirectory(dir string) string {
 	return absolute
 }
 
-const listSessionsQuery = `SELECT ` + sessionColumns + ` FROM session
+const listSessionsQuery = `SELECT id, project_id, workspace_id, parent_id, slug, directory, path, title, version, share_url,
+    summary_additions, summary_deletions, summary_files, summary_diffs, cost,
+    tokens_input, tokens_output, tokens_reasoning, tokens_cache_read, tokens_cache_write,
+    revert, permission, agent, model, time_created, time_updated, time_compacting, time_archived
+    FROM session
     WHERE (? = '' OR project_id = ?)
       AND (? = '' OR workspace_id = ?)
       AND (? = '' OR directory = ?)
