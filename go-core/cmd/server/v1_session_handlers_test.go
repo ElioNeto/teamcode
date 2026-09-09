@@ -6,6 +6,9 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/ElioNeto/teamcode/go-core/internal/store/testdb"
@@ -88,6 +91,16 @@ func TestV1SessionLifecycle(t *testing.T) {
 	}
 	code, raw = call(t, srv, "GET", "/v1/session/"+id, nil)
 	if code != 404 || decode(t, raw)["error"] != "Session not found: "+id {
+		t.Fatalf("%d %s", code, raw)
+	}
+}
+
+func TestV1PatchNullOnNotNullColumnIs400(t *testing.T) {
+	srv := v1Server(t)
+	ses := newSession(t, srv)
+	id := ses["id"].(string)
+	code, raw := call(t, srv, "PATCH", "/v1/session/"+id, map[string]any{"title": nil})
+	if code != 400 || !strings.Contains(decode(t, raw)["error"].(string), "cannot be null") {
 		t.Fatalf("%d %s", code, raw)
 	}
 }
@@ -182,6 +195,30 @@ func TestV1SchemaOutdatedIs503(t *testing.T) {
 	defer srv.Close()
 	code, raw := call(t, srv, "GET", "/v1/session?projectID=x", nil)
 	if code != 503 || decode(t, raw)["error"] != "schema_outdated" {
+		t.Fatalf("%d %s", code, raw)
+	}
+	if !state.degraded() {
+		t.Fatal("state should be degraded")
+	}
+}
+
+func TestV1StoreUnavailableIs503(t *testing.T) {
+	dir := t.TempDir()
+	blocker := filepath.Join(dir, "blocker")
+	if err := os.WriteFile(blocker, []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	state, err := newV1State(filepath.Join(blocker, "x.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = state.Close() }()
+	mux := http.NewServeMux()
+	state.register(mux)
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	code, raw := call(t, srv, "GET", "/v1/session?projectID=x", nil)
+	if code != 503 || decode(t, raw)["error"] != "store_unavailable" {
 		t.Fatalf("%d %s", code, raw)
 	}
 	if !state.degraded() {

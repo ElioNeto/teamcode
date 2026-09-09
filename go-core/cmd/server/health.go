@@ -15,7 +15,7 @@ func handleHealth(w http.ResponseWriter, r *http.Request) {
 	}
 	if v1 != nil && v1.degraded() {
 		payload["status"] = "degraded"
-		payload["reason"] = "schema_outdated"
+		payload["reason"] = v1.degradedReason()
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(payload); err != nil {
