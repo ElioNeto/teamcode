@@ -13,6 +13,7 @@ type fixtureRow struct {
 	Prefix    string `json:"prefix"`
 	Direction string `json:"direction"`
 	Timestamp int64  `json:"timestamp"`
+	Decoded   *int64 `json:"decoded"`
 }
 
 func loadFixture(t *testing.T) []fixtureRow {
@@ -49,9 +50,24 @@ func TestTimestampMatchesTS(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if got != row.Timestamp {
-			t.Fatalf("%s: got %d want %d", row.ID, got, row.Timestamp)
+		if row.Decoded == nil {
+			t.Fatalf("%s: fixture missing decoded value", row.ID)
 		}
+		if got != *row.Decoded {
+			t.Fatalf("%s: got %d want %d", row.ID, got, *row.Decoded)
+		}
+	}
+}
+
+func TestTimestampTruncatesLikeTS(t *testing.T) {
+	id := NewAt(PrefixMessage, false, 1757419200000)
+	got, err := Timestamp(id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := int64(1757419200000) & ((int64(1) << 36) - 1)
+	if got != want {
+		t.Fatalf("got %d want %d", got, want)
 	}
 }
 
@@ -90,7 +106,8 @@ func TestGoIdsInterleaveWithTSIds(t *testing.T) {
 	idx := sort.SearchStrings(all, goID)
 	before, _ := Timestamp(all[idx-1])
 	after, _ := Timestamp(all[idx+1])
-	if before > mid.Timestamp+1 || after < mid.Timestamp+1 {
+	wantDecoded := (mid.Timestamp + 1) & ((int64(1) << 36) - 1)
+	if before > wantDecoded || after < wantDecoded {
 		t.Fatalf("go id %s sorted between %d and %d", goID, before, after)
 	}
 }
