@@ -7,12 +7,12 @@ package provider
 
 // Provider represents an LLM provider/service.
 type Provider struct {
-	ID          string   `json:"id"`
-	Name        string   `json:"name"`
-	Description string   `json:"description,omitempty"`
-	Website     string   `json:"website,omitempty"`
-	ModelCount  int      `json:"model_count"`
-	Models      []Model  `json:"models,omitempty"`
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description,omitempty"`
+	Website     string  `json:"website,omitempty"`
+	ModelCount  int     `json:"model_count"`
+	Models      []Model `json:"models,omitempty"`
 }
 
 // Model represents a specific model offered by a provider.

@@ -84,12 +84,12 @@ func TestIsBusyDetectsSQLiteBusy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer other.Close()
+	defer func() { _ = other.Close() }()
 	tx, err := db.Writer().Begin()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	if _, err := tx.Exec("INSERT INTO t VALUES (1)"); err != nil {
 		t.Fatal(err)
 	}

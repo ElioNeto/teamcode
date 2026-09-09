@@ -564,7 +564,7 @@ func handleFSWatch(w http.ResponseWriter, r *http.Request) {
 
 	// Send initial connected event
 	evData, _ := json.Marshal(map[string]string{"path": path})
-	fmt.Fprintf(w, "event: connected\ndata: %s\n\n", string(evData))
+	_, _ = fmt.Fprintf(w, "event: connected\ndata: %s\n\n", string(evData))
 	flusher.Flush()
 
 	for {
@@ -573,7 +573,7 @@ func handleFSWatch(w http.ResponseWriter, r *http.Request) {
 			return
 		case ev := <-wtr.Events():
 			data, _ := json.Marshal(ev)
-			fmt.Fprintf(w, "event: %s\ndata: %s\n\n", ev.Type, string(data))
+			_, _ = fmt.Fprintf(w, "event: %s\ndata: %s\n\n", ev.Type, string(data))
 			flusher.Flush()
 		}
 	}
@@ -585,5 +585,5 @@ func handleFSWatch(w http.ResponseWriter, r *http.Request) {
 
 func writeJSON(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
+	_ = json.NewEncoder(w).Encode(data)
 }

@@ -232,7 +232,7 @@ The TypeScript layer serves as a **thin orchestration layer**:
 
 - Unix domain socket + TCP transport (auto-detected)
 - Generic LRU cache (`internal/cache/lru.go`) with TTL
-- Persistent session store with 7-day TTL (`internal/session/persistent_store.go`)
+- SQLite session store shared with the TypeScript side (`internal/sessiondb`, see "Session Store (M1)" below)
 - Worker pool for CPU-bound tasks (`internal/pool/pool.go`)
 - File watcher via fsnotify (`internal/watcher/watcher.go`)
 - Event bus for async communication (`internal/eventbus/event.go`)

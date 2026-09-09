@@ -31,10 +31,6 @@ type sessionIDRequest struct {
 	SessionID string `json:"session_id"`
 }
 
-type sessionListRequest struct {
-	Directory string `json:"directory"`
-}
-
 // ---------------------------------------------------------------------------
 // POST /session/create — create a new session
 // ---------------------------------------------------------------------------

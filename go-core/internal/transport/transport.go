@@ -70,7 +70,7 @@ func listenUnix(path string) (net.Listener, string, error) {
 	}
 
 	// Remove stale socket file
-	os.Remove(path)
+	_ = os.Remove(path)
 
 	listener, err := net.Listen("unix", path)
 	if err != nil {
@@ -79,7 +79,7 @@ func listenUnix(path string) (net.Listener, string, error) {
 
 	// Set permissions so only the owner can connect
 	if err := os.Chmod(path, 0600); err != nil {
-		listener.Close()
+		_ = listener.Close()
 		return nil, "", fmt.Errorf("socket chmod: %w", err)
 	}
 

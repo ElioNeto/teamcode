@@ -22,7 +22,7 @@ func TestCheckSchemaRejectsEmptyFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 	err = store.CheckSchema(context.Background(), db.Reader())
 	if !errors.Is(err, store.ErrSchemaOutdated) {
 		t.Fatalf("got %v", err)

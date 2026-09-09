@@ -37,12 +37,12 @@ const (
 // AgentSpec describes an agent to be scheduled.
 // Sent by the TypeScript runtime via POST /swarm/run.
 type AgentSpec struct {
-	ID       AgentID          `json:"id"`
-	Name     string           `json:"name"`
-	Input    json.RawMessage  `json:"input"`
+	ID        AgentID         `json:"id"`
+	Name      string          `json:"name"`
+	Input     json.RawMessage `json:"input"`
 	DependsOn []AgentID       `json:"depends_on,omitempty"`
 	TimeoutMs int             `json:"timeout,omitempty"`
-	Model    *ModelSpec       `json:"model,omitempty"`
+	Model     *ModelSpec      `json:"model,omitempty"`
 }
 
 // ModelSpec describes an optional model override for an agent.
@@ -62,14 +62,14 @@ type SwarmID string
 type AgentEventType string
 
 const (
-	EventAgentStarted  AgentEventType = "agent.started"
-	EventAgentToken    AgentEventType = "agent.token"
-	EventAgentToolCall AgentEventType = "agent.tool_call"
+	EventAgentStarted    AgentEventType = "agent.started"
+	EventAgentToken      AgentEventType = "agent.token"
+	EventAgentToolCall   AgentEventType = "agent.tool_call"
 	EventAgentToolResult AgentEventType = "agent.tool_result"
-	EventAgentDone     AgentEventType = "agent.done"
-	EventAgentError    AgentEventType = "agent.error"
-	EventSwarmDone     AgentEventType = "swarm.done"
-	EventSwarmCanceled AgentEventType = "swarm.canceled"
+	EventAgentDone       AgentEventType = "agent.done"
+	EventAgentError      AgentEventType = "agent.error"
+	EventSwarmDone       AgentEventType = "swarm.done"
+	EventSwarmCanceled   AgentEventType = "swarm.canceled"
 )
 
 // AgentEvent is emitted by an agent during execution.
@@ -101,13 +101,12 @@ func NewAgentEvent(swarmID SwarmID, agentID AgentID, typ AgentEventType, data js
 // All exported fields are safe for concurrent read access via the getter methods.
 // Status changes must go through setStatus to ensure thread safety.
 type Agent struct {
-	mu       sync.Mutex
-	ID       AgentID
-	Spec     AgentSpec
-	status   AgentStatus
-	resultCh chan AgentResult // receives result when done
-	eventCh  chan AgentEvent  // emits events for the Event Bus
-	cancel   context.CancelFunc
+	mu        sync.Mutex
+	ID        AgentID
+	Spec      AgentSpec
+	status    AgentStatus
+	resultCh  chan AgentResult // receives result when done
+	cancel    context.CancelFunc
 	startedAt time.Time
 }
 
@@ -133,9 +132,9 @@ func (a *Agent) IsDone() bool {
 
 // AgentResult is sent to the scheduler when an agent finishes.
 type AgentResult struct {
-	AgentID AgentID        `json:"agent_id"`
+	AgentID AgentID         `json:"agent_id"`
 	Output  json.RawMessage `json:"output,omitempty"`
-	Err     error          `json:"error,omitempty"`
+	Err     error           `json:"error,omitempty"`
 }
 
 // ToolCallPayload is sent in AgentEvent when an agent requests a tool execution.

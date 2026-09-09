@@ -89,5 +89,3 @@ func handleSwarmToolResult(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[swarm] tool result received: swarm=%s agent=%s call=%s", id, agentID, payload.CallID)
 	w.WriteHeader(http.StatusNoContent)
 }
-
-

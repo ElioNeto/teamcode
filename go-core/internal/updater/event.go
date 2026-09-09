@@ -13,7 +13,8 @@ type SessionEvent struct {
 // EventData holds the type-specific payload.
 //
 // This mirrors the event types in SessionEvent (TS):
-//   session-event.ts → EventV2.define() payload.data
+//
+//	session-event.ts → EventV2.define() payload.data
 type EventData struct {
 	Timestamp int64  `json:"timestamp"`
 	SessionID string `json:"sessionID"`
@@ -34,10 +35,10 @@ type EventData struct {
 	Output  string `json:"output,omitempty"`
 
 	// Step (step.started, step.ended, step.failed)
-	Snapshot string       `json:"snapshot,omitempty"`
-	Finish   string       `json:"finish,omitempty"`
-	Cost     *float64     `json:"cost,omitempty"`
-	Tokens   *TokenCount  `json:"tokens,omitempty"`
+	Snapshot string        `json:"snapshot,omitempty"`
+	Finish   string        `json:"finish,omitempty"`
+	Cost     *float64      `json:"cost,omitempty"`
+	Tokens   *TokenCount   `json:"tokens,omitempty"`
 	Error    *UnknownError `json:"error,omitempty"`
 
 	// Text deltas (text.delta, text.ended)

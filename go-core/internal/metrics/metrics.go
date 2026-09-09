@@ -20,9 +20,9 @@ type Snapshot struct {
 
 // entry is a single event record.
 type entry struct {
-	at     time.Time
+	at      time.Time
 	latency time.Duration
-	err    bool
+	err     bool
 }
 
 // Collector holds sliding-window metrics with a configurable window size.

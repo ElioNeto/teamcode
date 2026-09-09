@@ -147,7 +147,7 @@ func handleSessionEvents(w http.ResponseWriter, r *http.Request) {
 
 func handleSessionStreamStatus(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, map[string]interface{}{
-		"status": "ok",
+		"status":   "ok",
 		"sessions": eventBus.SessionCount(),
 	})
 }

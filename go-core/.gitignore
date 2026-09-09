@@ -1,6 +1,7 @@
 # Go binary output
 /server
 /build/
+*.exe
 
 # IDE
 .idea/

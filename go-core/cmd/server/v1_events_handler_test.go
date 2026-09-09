@@ -51,7 +51,7 @@ func TestV1EventsStreamsSessionUpdates(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.Header.Get("Content-Type") != "text/event-stream" {
 		t.Fatalf("content-type %q", resp.Header.Get("Content-Type"))
 	}
@@ -84,7 +84,7 @@ func TestV1EventsReplayWithLastEventID(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	reader := bufio.NewReader(resp.Body)
 	readFrame(t, reader)
 	event, seq, data := readFrame(t, reader)
@@ -107,7 +107,7 @@ func TestV1EventsReplayUnavailableIsSignalled(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	reader := bufio.NewReader(resp.Body)
 	event, _, _ := readFrame(t, reader)
 	if event != "server.replay_unavailable" {

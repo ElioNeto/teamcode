@@ -64,7 +64,7 @@ func handleSessionMessages(w http.ResponseWriter, r *http.Request) {
 	messages := u.Messages()
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"session_id": sessionID,
 		"messages":   messages,
 	})
