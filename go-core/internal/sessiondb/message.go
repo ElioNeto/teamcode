@@ -276,19 +276,39 @@ func DecodeCursor(cursor string) (string, int64, error) {
 	return c.ID, c.Time, nil
 }
 
-func (s *Store) hydrate(ctx context.Context, messages []Message) ([]MessageWithParts, error) {
+func (s *Store) hydrate(ctx context.Context, messages []Message, allForSession bool) ([]MessageWithParts, error) {
 	out := make([]MessageWithParts, len(messages))
 	if len(messages) == 0 {
 		return out, nil
 	}
+	index := map[string]int{}
+	for i, m := range messages {
+		index[m.ID] = i
+		out[i] = MessageWithParts{Info: m, Parts: []Part{}}
+	}
+	if allForSession && len(messages) > 0 {
+		sessionID := messages[0].SessionID
+		rows, err := s.db.Reader().QueryContext(ctx, `SELECT id, message_id, session_id, time_created, data FROM part WHERE session_id = ? ORDER BY message_id, id`, sessionID)
+		if err != nil {
+			return nil, err
+		}
+		defer func() { _ = rows.Close() }()
+		for rows.Next() {
+			p, err := scanPart(rows)
+			if err != nil {
+				return nil, err
+			}
+			if i, ok := index[p.MessageID]; ok {
+				out[i].Parts = append(out[i].Parts, p)
+			}
+		}
+		return out, rows.Err()
+	}
 	placeholders := make([]string, len(messages))
 	args := make([]any, len(messages))
-	index := map[string]int{}
 	for i, m := range messages {
 		placeholders[i] = "?"
 		args[i] = m.ID
-		index[m.ID] = i
-		out[i] = MessageWithParts{Info: m, Parts: []Part{}}
 	}
 	rows, err := s.db.Reader().QueryContext(ctx, `SELECT id, message_id, session_id, time_created, data FROM part WHERE message_id IN (`+strings.Join(placeholders, ",")+`) ORDER BY message_id, id`, args...)
 	if err != nil {
@@ -355,7 +375,7 @@ func (s *Store) PageMessages(ctx context.Context, sessionID string, limit int, b
 	if more {
 		messages = messages[:limit]
 	}
-	items, err := s.hydrate(ctx, messages)
+	items, err := s.hydrate(ctx, messages, false)
 	if err != nil {
 		return MessagePage{}, err
 	}
@@ -385,7 +405,7 @@ func (s *Store) AllMessages(ctx context.Context, sessionID string) ([]MessageWit
 			return nil, err
 		}
 	}
-	return s.hydrate(ctx, messages)
+	return s.hydrate(ctx, messages, true)
 }
 
 func (s *Store) GetMessage(ctx context.Context, sessionID, messageID string) (MessageWithParts, error) {
@@ -401,7 +421,7 @@ func (s *Store) GetMessage(ctx context.Context, sessionID, messageID string) (Me
 	if len(messages) == 0 {
 		return MessageWithParts{}, ErrNotFound{Kind: "Message", ID: messageID}
 	}
-	items, err := s.hydrate(ctx, messages)
+	items, err := s.hydrate(ctx, messages, false)
 	if err != nil {
 		return MessageWithParts{}, err
 	}
