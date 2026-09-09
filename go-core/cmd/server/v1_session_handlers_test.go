@@ -245,3 +245,14 @@ func TestV1PublishesEvents(t *testing.T) {
 		t.Fatalf("%s", ev.Data)
 	}
 }
+
+func TestWriteErrorEscapesQuotes(t *testing.T) {
+	srv := v1Server(t)
+	code, raw := call(t, srv, "GET", "/v1/session/ses_%22x", nil)
+	if code != 404 {
+		t.Fatalf("%d %s", code, raw)
+	}
+	if got := decode(t, raw)["error"]; got != `Session not found: ses_"x` {
+		t.Fatalf("%s", raw)
+	}
+}

@@ -14,6 +14,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -264,7 +265,7 @@ type ErrorResponse struct {
 func writeError(w http.ResponseWriter, msg string, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	if _, err := fmt.Fprintf(w, `{"error":"%s"}`, msg); err != nil {
+	if err := json.NewEncoder(w).Encode(ErrorResponse{Error: msg}); err != nil {
 		log.Printf("go-core: write error response: %v", err)
 	}
 }
