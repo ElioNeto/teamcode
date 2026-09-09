@@ -225,3 +225,22 @@ func TestCursorRoundTrip(t *testing.T) {
 		t.Fatal("expected error")
 	}
 }
+
+func TestUpsertPartReturnsStoredOwner(t *testing.T) {
+	s := newStore(t)
+	ses := create(t, s, sessiondb.CreateSessionInput{})
+	first := userMessage(t, s, ses.ID, 1000)
+	second := userMessage(t, s, ses.ID, 1001)
+	part, err := s.UpsertPart(ctx, ses.ID, first.ID, json.RawMessage(`{"type":"text","text":"x"}`), 5000)
+	if err != nil {
+		t.Fatal(err)
+	}
+	body := fmt.Sprintf(`{"id":"%s","type":"text","text":"y"}`, part.ID)
+	again, err := s.UpsertPart(ctx, ses.ID, second.ID, json.RawMessage(body), 6000)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if again.MessageID != first.ID || again.SessionID != ses.ID || again.TimeCreated != 5000 {
+		t.Fatalf("%+v", again)
+	}
+}

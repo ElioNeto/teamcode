@@ -111,6 +111,7 @@ func (s *Store) UpsertMessage(ctx context.Context, sessionID string, body json.R
 		created = time.Now().UnixMilli()
 	}
 	var storedCreated int64
+	var storedSession string
 	err = s.db.ExecWrite(ctx, func(tx *sql.Tx) error {
 		var maxExisting sql.NullInt64
 		if err := tx.QueryRowContext(ctx, `SELECT max(time_created) FROM message WHERE session_id = ?`, sessionID).Scan(&maxExisting); err != nil {
@@ -127,7 +128,7 @@ func (s *Store) UpsertMessage(ctx context.Context, sessionID string, body json.R
             ON CONFLICT(id) DO UPDATE SET data = excluded.data`, id, sessionID, created, time.Now().UnixMilli(), string(data)); err != nil {
 			return err
 		}
-		return tx.QueryRowContext(ctx, `SELECT time_created FROM message WHERE id = ?`, id).Scan(&storedCreated)
+		return tx.QueryRowContext(ctx, `SELECT session_id, time_created FROM message WHERE id = ?`, id).Scan(&storedSession, &storedCreated)
 	})
 	if isForeignKeyFailure(err) {
 		log.Printf("sessiondb: ignored late message update message=%s session=%s", id, sessionID)
@@ -136,7 +137,7 @@ func (s *Store) UpsertMessage(ctx context.Context, sessionID string, body json.R
 	if err != nil {
 		return Message{}, err
 	}
-	return Message{ID: id, SessionID: sessionID, TimeCreated: storedCreated, Data: data}, nil
+	return Message{ID: id, SessionID: storedSession, TimeCreated: storedCreated, Data: data}, nil
 }
 
 func (s *Store) RemoveMessage(ctx context.Context, sessionID, messageID string) error {
@@ -179,6 +180,7 @@ func (s *Store) UpsertPart(ctx context.Context, sessionID, messageID string, bod
 		return Part{}, ErrInvalidInput{Msg: fmt.Sprintf("ID %s does not start with prt", id)}
 	}
 	var storedCreated int64
+	var storedSession, storedMessage string
 	err = s.db.ExecWrite(ctx, func(tx *sql.Tx) error {
 		var previousData sql.NullString
 		var previousSession sql.NullString
@@ -203,7 +205,7 @@ func (s *Store) UpsertPart(ctx context.Context, sessionID, messageID string, bod
 				return err
 			}
 		}
-		return tx.QueryRowContext(ctx, `SELECT time_created FROM part WHERE id = ?`, id).Scan(&storedCreated)
+		return tx.QueryRowContext(ctx, `SELECT session_id, message_id, time_created FROM part WHERE id = ?`, id).Scan(&storedSession, &storedMessage, &storedCreated)
 	})
 	if isForeignKeyFailure(err) {
 		log.Printf("sessiondb: ignored late part update part=%s message=%s session=%s", id, messageID, sessionID)
@@ -212,7 +214,7 @@ func (s *Store) UpsertPart(ctx context.Context, sessionID, messageID string, bod
 	if err != nil {
 		return Part{}, err
 	}
-	return Part{ID: id, SessionID: sessionID, MessageID: messageID, TimeCreated: storedCreated, Data: data}, nil
+	return Part{ID: id, SessionID: storedSession, MessageID: storedMessage, TimeCreated: storedCreated, Data: data}, nil
 }
 
 func scanPart(r rowScanner) (Part, error) {
