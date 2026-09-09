@@ -41,6 +41,9 @@ func TestOpenAppliesPragmas(t *testing.T) {
 		if got := pragma(t, conn, "synchronous"); got != "1" {
 			t.Fatalf("synchronous=%s", got)
 		}
+		if got := pragma(t, conn, "cache_size"); got != "-64000" {
+			t.Fatalf("cache_size=%s", got)
+		}
 	}
 }
 
@@ -80,7 +83,7 @@ func TestIsBusyDetectsSQLiteBusy(t *testing.T) {
 	if _, err := db.Writer().Exec("CREATE TABLE t (v INTEGER)"); err != nil {
 		t.Fatal(err)
 	}
-	other, err := openWithBusyTimeout(db.Path(), 50)
+	other, err := OpenWithBusyTimeout(db.Path(), 50)
 	if err != nil {
 		t.Fatal(err)
 	}

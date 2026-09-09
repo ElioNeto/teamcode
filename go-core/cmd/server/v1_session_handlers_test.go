@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ElioNeto/teamcode/go-core/internal/store"
 	"github.com/ElioNeto/teamcode/go-core/internal/store/testdb"
 )
 
@@ -279,6 +280,40 @@ func TestV1MissingProjectIs400(t *testing.T) {
 	srv := v1Server(t)
 	code, raw := call(t, srv, "POST", "/v1/session", map[string]any{"projectID": "prj_missing", "directory": "/tmp/d", "version": "t"})
 	if code != 400 || decode(t, raw)["error"] != "project not found: prj_missing" {
+		t.Fatalf("%d %s", code, raw)
+	}
+}
+
+func TestV1BusyIs503(t *testing.T) {
+	db := testdb.New(t)
+	testdb.SeedProject(t, db, "prj_test")
+	path := db.Path()
+	_ = db.Close()
+	previousOpen := openStore
+	openStore = func(p string) (*store.DB, error) { return store.OpenWithBusyTimeout(p, 50) }
+	state := newV1State(path)
+	openStore = previousOpen
+	t.Cleanup(func() { _ = state.Close() })
+	mux := http.NewServeMux()
+	state.register(mux)
+	srv := httptest.NewServer(mux)
+	t.Cleanup(srv.Close)
+	ses := newSession(t, srv)
+	blocker, err := store.Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = blocker.Close() }()
+	tx, err := blocker.Writer().Begin()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	if _, err := tx.Exec(`INSERT INTO project (id, worktree, time_created, time_updated, sandboxes) VALUES ('prj_blocker', '/tmp/b', 1, 1, '[]')`); err != nil {
+		t.Fatal(err)
+	}
+	code, raw := call(t, srv, "PATCH", "/v1/session/"+ses["id"].(string), map[string]any{"title": "busy"})
+	if code != 503 || decode(t, raw)["error"] != "busy" {
 		t.Fatalf("%d %s", code, raw)
 	}
 }

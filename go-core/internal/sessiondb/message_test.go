@@ -2,6 +2,7 @@ package sessiondb_test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -242,5 +243,13 @@ func TestUpsertPartReturnsStoredOwner(t *testing.T) {
 	}
 	if again.MessageID != first.ID || again.SessionID != ses.ID || again.TimeCreated != 5000 {
 		t.Fatalf("%+v", again)
+	}
+}
+
+func TestUpsertPartLateWriteIsSwallowed(t *testing.T) {
+	s := newStore(t)
+	_, err := s.UpsertPart(ctx, "ses_gone", "msg_gone", json.RawMessage(`{"type":"text","text":"x"}`), 1000)
+	if !errors.Is(err, sessiondb.ErrLateWrite) {
+		t.Fatalf("got %v", err)
 	}
 }

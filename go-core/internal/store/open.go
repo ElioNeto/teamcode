@@ -33,10 +33,10 @@ func pragmaDSN(path string, busyTimeoutMs int) string {
 }
 
 func Open(path string) (*DB, error) {
-	return openWithBusyTimeout(path, defaultBusyTimeoutMs)
+	return OpenWithBusyTimeout(path, defaultBusyTimeoutMs)
 }
 
-func openWithBusyTimeout(path string, busyTimeoutMs int) (*DB, error) {
+func OpenWithBusyTimeout(path string, busyTimeoutMs int) (*DB, error) {
 	writer, err := sql.Open("sqlite", pragmaDSN(path, busyTimeoutMs)+"&_txlock=immediate")
 	if err != nil {
 		return nil, err
