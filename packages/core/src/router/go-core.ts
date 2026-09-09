@@ -35,6 +35,19 @@ let goCoreProcess: ChildProcess | null = null
 let goCoreReady = false
 let goCorePort: string = GO_CORE_PORT
 
+type ExitHost = Pick<NodeJS.EventEmitter, "once">
+const hostsWithExitHook = new WeakSet<ExitHost>()
+
+export function childEnv(base: NodeJS.ProcessEnv, port: string, parentPid: number): NodeJS.ProcessEnv {
+  return { ...base, GO_CORE_PORT: port, GO_CORE_PARENT_PID: String(parentPid) }
+}
+
+export function installExitHook(host: ExitHost, stop: () => void): void {
+  if (hostsWithExitHook.has(host)) return
+  hostsWithExitHook.add(host)
+  host.once("exit", stop)
+}
+
 /**
  * Find an available port starting from the given base port.
  * Checks if the health endpoint of the port responds — if another Go core
@@ -261,7 +274,7 @@ async function downloadGoCore(): Promise<string | null> {
     console.log(`[go-core] installed to ${dest}`)
     return dest
   } catch (err) {
-    console.warn(`[go-core] download failed: ${err}`)
+    console.warn(`[go-core] download failed: ${String(err)}`)
     return null
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true })
@@ -299,9 +312,10 @@ export async function startGoCore(): Promise<boolean> {
     const healthUrl = `http://127.0.0.1:${goCorePort}/health`
 
     goCoreProcess = spawn(binary, [], {
-      env: { ...process.env, GO_CORE_PORT: goCorePort },
+      env: childEnv(process.env, goCorePort, process.pid),
       stdio: ["ignore", "pipe", "pipe"],
     })
+    installExitHook(process, stopGoCore)
 
     goCoreProcess.on("error", (err) => {
       console.warn(`[go-core] failed to start: ${err.message}`)
@@ -342,7 +356,7 @@ export async function startGoCore(): Promise<boolean> {
     stopGoCore()
     return false
   } catch (err) {
-    console.warn(`[go-core] error: ${err}`)
+    console.warn(`[go-core] error: ${String(err)}`)
     return false
   }
 }
