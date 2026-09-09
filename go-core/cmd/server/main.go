@@ -161,6 +161,11 @@ func main() {
 		if err := server.Shutdown(shutdownCtx); err != nil {
 			log.Printf("go-core: shutdown error: %v", err)
 		}
+		if v1 != nil {
+			if err := v1.Close(); err != nil {
+				log.Printf("go-core: session store close error: %v", err)
+			}
+		}
 	}()
 
 	isUnix := transport.IsUnixSocket(resolvedAddr)

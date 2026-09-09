@@ -20,10 +20,7 @@ func v1Server(t *testing.T) *httptest.Server {
 	testdb.SeedProject(t, db, "prj_test")
 	path := db.Path()
 	_ = db.Close()
-	state, err := newV1State(path)
-	if err != nil {
-		t.Fatal(err)
-	}
+	state := newV1State(path)
 	t.Cleanup(func() { _ = state.Close() })
 	mux := http.NewServeMux()
 	state.register(mux)
@@ -184,10 +181,7 @@ func TestV1TodosAndFork(t *testing.T) {
 
 func TestV1SchemaOutdatedIs503(t *testing.T) {
 	dir := t.TempDir()
-	state, err := newV1State(dir + "/empty.db")
-	if err != nil {
-		t.Fatal(err)
-	}
+	state := newV1State(dir + "/empty.db")
 	defer func() { _ = state.Close() }()
 	mux := http.NewServeMux()
 	state.register(mux)
@@ -208,10 +202,7 @@ func TestV1StoreUnavailableIs503(t *testing.T) {
 	if err := os.WriteFile(blocker, []byte("x"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	state, err := newV1State(filepath.Join(blocker, "x.db"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	state := newV1State(filepath.Join(blocker, "x.db"))
 	defer func() { _ = state.Close() }()
 	mux := http.NewServeMux()
 	state.register(mux)

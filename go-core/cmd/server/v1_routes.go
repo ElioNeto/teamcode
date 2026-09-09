@@ -29,14 +29,16 @@ type v1State struct {
 
 var v1 *v1State
 
-func newV1State(dbPath string) (*v1State, error) {
+var openStore = store.Open
+
+func newV1State(dbPath string) *v1State {
 	state := &v1State{events: eventlog.New(perSessionRing, globalRing)}
-	db, err := store.Open(dbPath)
+	db, err := openStore(dbPath)
 	if err != nil {
 		state.openErr = err
 		log.Printf("go-core: session store unavailable: %v", err)
 		v1 = state
-		return state, nil
+		return state
 	}
 	state.db = db
 	state.store = sessiondb.New(db)
@@ -45,7 +47,7 @@ func newV1State(dbPath string) (*v1State, error) {
 		state.schemaErr.Store(err)
 	}
 	v1 = state
-	return state, nil
+	return state
 }
 
 func (s *v1State) degraded() bool {
@@ -112,11 +114,7 @@ func registerV1Routes(mux *http.ServeMux) {
 			log.Printf("go-core: session store directory unavailable at %s: %v", filepath.Dir(path), err)
 		}
 	}
-	state, err := newV1State(path)
-	if err != nil {
-		log.Printf("go-core: session store unavailable at %s: %v", path, err)
-		return
-	}
+	state := newV1State(path)
 	state.register(mux)
 	log.Printf("go-core: session store at %s (degraded=%v)", path, state.degraded())
 }
