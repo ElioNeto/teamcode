@@ -124,7 +124,7 @@ Listadas aqui porque cada uma tem teste próprio:
 | `children` | `GET /v1/session/{id}/children` | | `Info[]` |
 | `touch`, `setTitle`, `setArchived`, `setPermission`, `setRevert`, `clearRevert`, `setSummary` | `PATCH /v1/session/{id}` | patch parcial `UpdatedInfo` (`session/session.ts:356-380`) | `Info` completo relido |
 | `remove` | `DELETE /v1/session/{id}` | | 204 |
-| `fork` | `POST /v1/session/{id}/fork` | `{messageID?}` | 201 `Info` da nova sessão |
+| `fork` | `POST /v1/session/{id}/fork` | `{messageID?, directory, path?, version}` | 201 `Info` da nova sessão |
 | `messages` | `GET /v1/session/{id}/messages` | `limit` (padrão 50), `before` (cursor opaco) | `{messages: WithParts[], more, cursor}` |
 | `updateMessage` | `PUT /v1/session/{id}/message/{messageID}` | `Info` de mensagem | `Info` |
 | `removeMessage` | `DELETE /v1/session/{id}/message/{messageID}` | | 204 |
@@ -136,9 +136,13 @@ Listadas aqui porque cada uma tem teste próprio:
 
 Em `updateMessage` e `updatePart`, escrita tardia (sessão já apagada) responde 204 sem corpo.
 
+`GET /v1/session` aplica `time_archived IS NULL` a menos que `archived=true`; M2 precisa passar `archived=true` nos caminhos em que o `listByProject` do TS não filtrava arquivadas.
+
+`DELETE /v1/session/{id}` emite `session.deleted` do descendente mais profundo para o pai.
+
 Paginação de mensagens replica `MessageV2.page` (`message-v2.ts:947-986`): `ORDER BY time_created DESC, id DESC LIMIT limit+1`, predicado `time_created < t OR (time_created = t AND id < id)`, cursor `base64url({id, time})`, resposta invertida para ordem cronológica, partes ordenadas por `id`. Resposta vazia consulta a existência da sessão e devolve 404 se não existir.
 
-`fork` replica `session.ts:768-808`: nova sessão com mesmo `projectID`, `directory`, `parentID`; copia mensagens e partes com `id < messageID` (ou todas), gerando IDs novos e mantendo a ordem, e emite `message.updated` e `message.part.updated` para cada uma.
+`fork` replica `session.ts:768-808`: nova sessão com mesmo `projectID`, `directory`, `parentID`; copia mensagens e partes com `id < messageID` (ou todas), gerando IDs novos e mantendo a ordem, e emite `message.updated` e `message.part.updated` para cada uma. O corpo exige `directory` e `version`, e aceita `path` opcional, porque o Go não tem o contexto de instância de onde o TS tira esses valores.
 
 ### 4.3 O que o Go não valida
 
