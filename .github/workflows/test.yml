@@ -45,3 +45,34 @@ jobs:
           check_name: "unit results"
           detailed_summary: true
           fail_on_failure: false
+
+  go-core:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go-core/go.mod
+          cache-dependency-path: go-core/go.sum
+      - uses: ./.github/actions/setup-bun
+      - name: Format check
+        working-directory: go-core
+        run: test -z "$(gofmt -l ./cmd ./internal)"
+      - name: Vet
+        working-directory: go-core
+        run: go vet ./...
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          working-directory: go-core
+      - name: Unit tests
+        working-directory: go-core
+        run: go test -race -count=1 ./...
+      - name: Build server
+        working-directory: go-core
+        run: go build -o build/go-core-server ./cmd/server
+      - name: Parity and concurrency against TypeScript
+        working-directory: packages/teamcode
+        run: bun test test/gocore/
+        env:
+          GO_CORE_BINARY: ${{ github.workspace }}/go-core/build/go-core-server
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
