@@ -104,6 +104,8 @@ func main() {
 	mux.HandleFunc("POST /session/delete", handleSessionDelete)
 	mux.HandleFunc("GET /session/list", handleSessionList)
 
+	registerV1Routes(mux)
+
 	// Swarm
 	mux.HandleFunc("POST /swarm/run", handleSwarmRun)
 	mux.HandleFunc("DELETE /swarm/{id}", handleSwarmCancel)
