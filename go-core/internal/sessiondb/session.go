@@ -220,53 +220,72 @@ func normalizeDirectory(dir string) string {
 	return absolute
 }
 
-func (s *Store) ListSessions(ctx context.Context, f ListFilter) ([]Session, error) {
-	var where []string
-	var args []any
-	add := func(cond string, vals ...any) {
-		where = append(where, cond)
-		args = append(args, vals...)
+const listSessionsQuery = `SELECT ` + sessionColumns + ` FROM session
+    WHERE (? = '' OR project_id = ?)
+      AND (? = '' OR workspace_id = ?)
+      AND (? = '' OR directory = ?)
+      AND (? = '' OR path = ? OR path LIKE ? OR (? = 1 AND path IS NULL AND directory = ?))
+      AND (? = 0 OR parent_id IS NULL)
+      AND (? = '' OR parent_id = ?)
+      AND (? = 0 OR time_updated >= ?)
+      AND (? = '' OR title LIKE ?)
+      AND (? = 1 OR time_archived IS NULL)
+    ORDER BY time_updated DESC, id DESC LIMIT ?`
+
+func boolFlag(v bool) int64 {
+	if v {
+		return 1
 	}
-	if f.ProjectID != "" {
-		add("project_id = ?", f.ProjectID)
+	return 0
+}
+
+func listSessionsArgs(f ListFilter) []any {
+	directoryOnly := ""
+	if f.Path == "" && f.Directory != "" {
+		directoryOnly = normalizeDirectory(f.Directory)
 	}
-	if f.WorkspaceID != "" {
-		add("workspace_id = ?", f.WorkspaceID)
-	}
+	pathPrefix := ""
+	pathFallbackDirectory := ""
+	pathFallback := int64(0)
 	if f.Path != "" {
+		pathPrefix = f.Path + "/%"
 		if f.Directory != "" {
-			add("(path = ? OR path LIKE ? OR (path IS NULL AND directory = ?))", f.Path, f.Path+"/%", normalizeDirectory(f.Directory))
-		} else {
-			add("(path = ? OR path LIKE ?)", f.Path, f.Path+"/%")
+			pathFallback = 1
+			pathFallbackDirectory = normalizeDirectory(f.Directory)
 		}
-	} else if f.Directory != "" {
-		add("directory = ?", normalizeDirectory(f.Directory))
 	}
+	parentID := f.ParentID
 	if f.RootsOnly {
-		add("parent_id IS NULL")
-	} else if f.ParentID != "" {
-		add("parent_id = ?", f.ParentID)
+		parentID = ""
 	}
+	start := int64(0)
 	if f.Start > 0 {
-		add("time_updated >= ?", f.Start)
+		start = f.Start
 	}
+	search := ""
 	if f.Search != "" {
-		add("title LIKE ?", "%"+f.Search+"%")
-	}
-	if !f.IncludeArchived {
-		add("time_archived IS NULL")
+		search = "%" + f.Search + "%"
 	}
 	limit := f.Limit
 	if limit <= 0 {
 		limit = 100
 	}
-	query := `SELECT ` + sessionColumns + ` FROM session`
-	if len(where) > 0 {
-		query += " WHERE " + strings.Join(where, " AND ")
+	return []any{
+		f.ProjectID, f.ProjectID,
+		f.WorkspaceID, f.WorkspaceID,
+		directoryOnly, directoryOnly,
+		f.Path, f.Path, pathPrefix, pathFallback, pathFallbackDirectory,
+		boolFlag(f.RootsOnly),
+		parentID, parentID,
+		start, start,
+		search, search,
+		boolFlag(f.IncludeArchived),
+		limit,
 	}
-	query += " ORDER BY time_updated DESC, id DESC LIMIT ?"
-	args = append(args, limit)
-	rows, err := s.db.Reader().QueryContext(ctx, query, args...)
+}
+
+func (s *Store) ListSessions(ctx context.Context, f ListFilter) ([]Session, error) {
+	rows, err := s.db.Reader().QueryContext(ctx, listSessionsQuery, listSessionsArgs(f)...)
 	if err != nil {
 		return nil, err
 	}
@@ -434,25 +453,58 @@ func patchColumns(patch json.RawMessage) ([]patchColumn, error) {
 	return out, nil
 }
 
+var patchStatements = map[string]string{
+	"title":              `UPDATE session SET time_updated = time_updated, title = ? WHERE id = ?`,
+	"slug":               `UPDATE session SET time_updated = time_updated, slug = ? WHERE id = ?`,
+	"directory":          `UPDATE session SET time_updated = time_updated, directory = ? WHERE id = ?`,
+	"path":               `UPDATE session SET time_updated = time_updated, path = ? WHERE id = ?`,
+	"version":            `UPDATE session SET time_updated = time_updated, version = ? WHERE id = ?`,
+	"agent":              `UPDATE session SET time_updated = time_updated, agent = ? WHERE id = ?`,
+	"cost":               `UPDATE session SET time_updated = time_updated, cost = ? WHERE id = ?`,
+	"workspace_id":       `UPDATE session SET time_updated = time_updated, workspace_id = ? WHERE id = ?`,
+	"parent_id":          `UPDATE session SET time_updated = time_updated, parent_id = ? WHERE id = ?`,
+	"model":              `UPDATE session SET time_updated = time_updated, model = ? WHERE id = ?`,
+	"permission":         `UPDATE session SET time_updated = time_updated, permission = ? WHERE id = ?`,
+	"revert":             `UPDATE session SET time_updated = time_updated, revert = ? WHERE id = ?`,
+	"share_url":          `UPDATE session SET time_updated = time_updated, share_url = ? WHERE id = ?`,
+	"summary_additions":  `UPDATE session SET time_updated = time_updated, summary_additions = ? WHERE id = ?`,
+	"summary_deletions":  `UPDATE session SET time_updated = time_updated, summary_deletions = ? WHERE id = ?`,
+	"summary_files":      `UPDATE session SET time_updated = time_updated, summary_files = ? WHERE id = ?`,
+	"summary_diffs":      `UPDATE session SET time_updated = time_updated, summary_diffs = ? WHERE id = ?`,
+	"time_created":       `UPDATE session SET time_updated = time_updated, time_created = ? WHERE id = ?`,
+	"time_compacting":    `UPDATE session SET time_updated = time_updated, time_compacting = ? WHERE id = ?`,
+	"time_archived":      `UPDATE session SET time_updated = time_updated, time_archived = ? WHERE id = ?`,
+	"tokens_input":       `UPDATE session SET time_updated = time_updated, tokens_input = ? WHERE id = ?`,
+	"tokens_output":      `UPDATE session SET time_updated = time_updated, tokens_output = ? WHERE id = ?`,
+	"tokens_reasoning":   `UPDATE session SET time_updated = time_updated, tokens_reasoning = ? WHERE id = ?`,
+	"tokens_cache_read":  `UPDATE session SET time_updated = time_updated, tokens_cache_read = ? WHERE id = ?`,
+	"tokens_cache_write": `UPDATE session SET time_updated = time_updated, tokens_cache_write = ? WHERE id = ?`,
+	"time_updated":       `UPDATE session SET time_updated = ? WHERE id = ?`,
+}
+
+const patchTouchStatement = `UPDATE session SET time_updated = time_updated WHERE id = ?`
+
 func (s *Store) PatchSession(ctx context.Context, id string, patch json.RawMessage) (Session, error) {
 	columns, err := patchColumns(patch)
 	if err != nil {
 		return Session{}, err
 	}
 	err = s.db.ExecWrite(ctx, func(tx *sql.Tx) error {
-		sets := []string{"time_updated = time_updated"}
-		args := []any{}
-		for _, c := range columns {
-			sets = append(sets, c.column+" = ?")
-			args = append(args, c.value)
-		}
-		args = append(args, id)
-		res, err := tx.ExecContext(ctx, `UPDATE session SET `+strings.Join(sets, ", ")+` WHERE id = ?`, args...)
+		res, err := tx.ExecContext(ctx, patchTouchStatement, id)
 		if err != nil {
 			return err
 		}
 		if n, _ := res.RowsAffected(); n == 0 {
 			return ErrNotFound{Kind: "Session", ID: id}
+		}
+		for _, c := range columns {
+			statement, ok := patchStatements[c.column]
+			if !ok {
+				return fmt.Errorf("column %s is not patchable", c.column)
+			}
+			if _, err := tx.ExecContext(ctx, statement, c.value, id); err != nil {
+				return err
+			}
 		}
 		return nil
 	})

@@ -12,6 +12,15 @@ const KnownMigrationCreatedAt int64 = 1781910501000
 
 var ErrSchemaOutdated = errors.New("schema_outdated")
 
+var tableInfoQueries = map[string]string{
+	"session":   "PRAGMA table_info(session)",
+	"message":   "PRAGMA table_info(message)",
+	"part":      "PRAGMA table_info(part)",
+	"todo":      "PRAGMA table_info(todo)",
+	"project":   "PRAGMA table_info(project)",
+	"workspace": "PRAGMA table_info(workspace)",
+}
+
 var requiredColumns = map[string][]string{
 	"session": {
 		"id", "project_id", "workspace_id", "parent_id", "slug", "directory", "path", "title", "version", "share_url",
@@ -55,7 +64,11 @@ func CheckSchema(ctx context.Context, db *sql.DB) error {
 }
 
 func tableColumns(ctx context.Context, db *sql.DB, table string) (map[string]bool, error) {
-	rows, err := db.QueryContext(ctx, fmt.Sprintf("PRAGMA table_info(%q)", table))
+	query, ok := tableInfoQueries[table]
+	if !ok {
+		return nil, fmt.Errorf("%w: unknown table %s", ErrSchemaOutdated, table)
+	}
+	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}

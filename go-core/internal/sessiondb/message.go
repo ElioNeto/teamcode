@@ -306,13 +306,15 @@ func (s *Store) hydrate(ctx context.Context, messages []Message, allForSession b
 		}
 		return out, rows.Err()
 	}
-	placeholders := make([]string, len(messages))
-	args := make([]any, len(messages))
+	ids := make([]string, len(messages))
 	for i, m := range messages {
-		placeholders[i] = "?"
-		args[i] = m.ID
+		ids[i] = m.ID
 	}
-	rows, err := s.db.Reader().QueryContext(ctx, `SELECT id, message_id, session_id, time_created, data FROM part WHERE message_id IN (`+strings.Join(placeholders, ",")+`) ORDER BY message_id, id`, args...)
+	encodedIDs, err := json.Marshal(ids)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := s.db.Reader().QueryContext(ctx, `SELECT id, message_id, session_id, time_created, data FROM part WHERE message_id IN (SELECT value FROM json_each(?)) ORDER BY message_id, id`, string(encodedIDs))
 	if err != nil {
 		return nil, err
 	}
