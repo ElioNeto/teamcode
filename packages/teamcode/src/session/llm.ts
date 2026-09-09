@@ -18,6 +18,7 @@ import { Wildcard } from "@/util/wildcard"
 import { SessionID } from "@/session/schema"
 import { Auth } from "@/auth"
 import { InstallationVersion } from "@teamcode-ai/core/installation/version"
+import { LLMHeaders } from "./llm-headers"
 import { EffectBridge } from "@/effect/bridge"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 const log = Log.create({ service: "llm" })
@@ -27,6 +28,13 @@ type Result = Awaited<ReturnType<typeof streamText>>
 // Avoid re-instantiating remeda's deep merge types in this hot LLM path; the runtime behavior is still mergeDeep.
 const mergeOptions = (target: Record<string, any>, source: Record<string, any> | undefined): Record<string, any> =>
   mergeDeep(target, source ?? {}) as Record<string, any>
+
+const approvalTitle = (parsed: unknown): string => {
+  if (typeof parsed !== "object" || parsed === null) return ""
+  const record: Record<string, unknown> = Object.fromEntries(Object.entries(parsed))
+  const candidate = record.title ?? record.name ?? ""
+  return typeof candidate === "string" ? candidate : ""
+}
 
 export type StreamInput = {
   user: MessageV2.User
@@ -83,7 +91,7 @@ const live: Layer.Layer<
         providerID: input.model.providerID,
       })
 
-      const [language, cfg, item, info] = yield* Effect.all(
+      const [language, , item, info] = yield* Effect.all(
         [
           provider.getLanguage(input.model),
           config.get(),
@@ -225,7 +233,7 @@ const live: Layer.Layer<
             return { result: "", error: `Unknown tool: ${toolName}` }
           }
           try {
-            const result = await t.execute!(JSON.parse(argsJson), {
+            const result = await t.execute(JSON.parse(argsJson), {
               toolCallId: _requestID,
               messages: input.messages,
               abortSignal: input.abort,
@@ -265,8 +273,8 @@ const live: Layer.Layer<
             })
             const toolPatterns = approvalTools.map((t: { name: string; args: string }) => {
               try {
-                const parsed = JSON.parse(t.args) as Record<string, unknown>
-                const title = (parsed?.title ?? parsed?.name ?? "") as string
+                const parsed: unknown = JSON.parse(t.args)
+                const title = approvalTitle(parsed)
                 return title ? `${t.name}: ${title}` : t.name
               } catch {
                 return t.name
@@ -295,7 +303,7 @@ const live: Layer.Layer<
         })
       }
 
-      const opencodeProjectID = input.model.providerID.startsWith("teamcode")
+      const opencodeProjectID = LLMHeaders.isZenProvider(input.model.providerID)
         ? (yield* InstanceState.context).project.id
         : undefined
 
@@ -373,19 +381,15 @@ const live: Layer.Layer<
         maxOutputTokens: params.maxOutputTokens,
         abortSignal: input.abort,
         headers: {
-          ...(input.model.providerID.startsWith("teamcode")
-            ? {
-                "x-teamcode-project": opencodeProjectID,
-                "x-teamcode-session": input.sessionID,
-                "x-teamcode-request": input.user.id,
-                "x-teamcode-client": flags.client,
-                "User-Agent": `teamcode/${InstallationVersion}`,
-              }
-            : {
-                "x-session-affinity": input.sessionID,
-                ...(input.parentSessionID ? { "x-parent-session-id": input.parentSessionID } : {}),
-                "User-Agent": `teamcode/${InstallationVersion}`,
-              }),
+          ...LLMHeaders.build({
+            providerID: input.model.providerID,
+            sessionID: input.sessionID,
+            parentSessionID: input.parentSessionID,
+            requestID: input.user.id,
+            client: flags.client,
+            version: InstallationVersion,
+            projectID: opencodeProjectID,
+          }),
           ...input.model.headers,
           ...headers,
         },
