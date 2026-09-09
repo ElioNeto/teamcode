@@ -110,31 +110,30 @@ func (s *Store) UpsertMessage(ctx context.Context, sessionID string, body json.R
 	if created == 0 {
 		created = time.Now().UnixMilli()
 	}
-	var maxExisting sql.NullInt64
-	if err := s.db.Reader().QueryRowContext(ctx, `SELECT max(time_created) FROM message WHERE session_id = ?`, sessionID).Scan(&maxExisting); err != nil {
-		return Message{}, err
-	}
-	if maxExisting.Valid && maxExisting.Int64 > time.Now().UnixMilli()+clockGuardMs {
-		created = maxExisting.Int64 + 1
-	}
-	if data, err = withTimeCreated(data, created); err != nil {
-		return Message{}, err
-	}
+	var storedCreated int64
 	err = s.db.ExecWrite(ctx, func(tx *sql.Tx) error {
-		_, err := tx.ExecContext(ctx, `INSERT INTO message (id, session_id, time_created, time_updated, data) VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(id) DO UPDATE SET data = excluded.data`, id, sessionID, created, created, string(data))
-		return err
+		var maxExisting sql.NullInt64
+		if err := tx.QueryRowContext(ctx, `SELECT max(time_created) FROM message WHERE session_id = ?`, sessionID).Scan(&maxExisting); err != nil {
+			return err
+		}
+		if maxExisting.Valid && maxExisting.Int64 > time.Now().UnixMilli()+clockGuardMs {
+			created = maxExisting.Int64 + 1
+		}
+		var err error
+		if data, err = withTimeCreated(data, created); err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, `INSERT INTO message (id, session_id, time_created, time_updated, data) VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET data = excluded.data`, id, sessionID, created, created, string(data)); err != nil {
+			return err
+		}
+		return tx.QueryRowContext(ctx, `SELECT time_created FROM message WHERE id = ?`, id).Scan(&storedCreated)
 	})
 	if isForeignKeyFailure(err) {
 		log.Printf("sessiondb: ignored late message update message=%s session=%s", id, sessionID)
 		return Message{}, ErrLateWrite
 	}
 	if err != nil {
-		return Message{}, err
-	}
-	row := s.db.Reader().QueryRowContext(ctx, `SELECT time_created FROM message WHERE id = ?`, id)
-	var storedCreated int64
-	if err := row.Scan(&storedCreated); err != nil {
 		return Message{}, err
 	}
 	return Message{ID: id, SessionID: sessionID, TimeCreated: storedCreated, Data: data}, nil
@@ -179,6 +178,7 @@ func (s *Store) UpsertPart(ctx context.Context, sessionID, messageID string, bod
 	} else if !ident.HasPrefix(id, ident.PrefixPart) {
 		return Part{}, fmt.Errorf("ID %s does not start with prt", id)
 	}
+	var storedCreated int64
 	err = s.db.ExecWrite(ctx, func(tx *sql.Tx) error {
 		var previousData sql.NullString
 		var previousSession sql.NullString
@@ -199,9 +199,11 @@ func (s *Store) UpsertPart(ctx context.Context, sessionID, messageID string, bod
 			}
 		}
 		if u, ok := usageOf(data); ok {
-			return applyUsage(ctx, tx, sessionID, u, 1)
+			if err := applyUsage(ctx, tx, sessionID, u, 1); err != nil {
+				return err
+			}
 		}
-		return nil
+		return tx.QueryRowContext(ctx, `SELECT time_created FROM part WHERE id = ?`, id).Scan(&storedCreated)
 	})
 	if isForeignKeyFailure(err) {
 		log.Printf("sessiondb: ignored late part update part=%s message=%s session=%s", id, messageID, sessionID)
@@ -210,7 +212,7 @@ func (s *Store) UpsertPart(ctx context.Context, sessionID, messageID string, bod
 	if err != nil {
 		return Part{}, err
 	}
-	return s.GetPart(ctx, sessionID, messageID, id)
+	return Part{ID: id, SessionID: sessionID, MessageID: messageID, TimeCreated: storedCreated, Data: data}, nil
 }
 
 func scanPart(r rowScanner) (Part, error) {
@@ -235,7 +237,7 @@ func (s *Store) GetPart(ctx context.Context, sessionID, messageID, partID string
 func (s *Store) RemovePart(ctx context.Context, sessionID, messageID, partID string) error {
 	return s.db.ExecWrite(ctx, func(tx *sql.Tx) error {
 		var data sql.NullString
-		err := tx.QueryRowContext(ctx, `SELECT data FROM part WHERE id = ? AND session_id = ?`, partID, sessionID).Scan(&data)
+		err := tx.QueryRowContext(ctx, `SELECT data FROM part WHERE id = ? AND message_id = ? AND session_id = ?`, partID, messageID, sessionID).Scan(&data)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return err
 		}
@@ -246,7 +248,7 @@ func (s *Store) RemovePart(ctx context.Context, sessionID, messageID, partID str
 				}
 			}
 		}
-		_, err = tx.ExecContext(ctx, `DELETE FROM part WHERE id = ? AND session_id = ?`, partID, sessionID)
+		_, err = tx.ExecContext(ctx, `DELETE FROM part WHERE id = ? AND message_id = ? AND session_id = ?`, partID, messageID, sessionID)
 		return err
 	})
 }

@@ -129,6 +129,24 @@ func TestPartUsageDeltas(t *testing.T) {
 	}
 }
 
+func TestRemovePartWithWrongMessageIDLeavesPartIntact(t *testing.T) {
+	s := newStore(t)
+	ses := create(t, s, sessiondb.CreateSessionInput{})
+	msg := userMessage(t, s, ses.ID, 1000)
+	part := stepFinish(t, s, ses.ID, msg.ID, 0.5, 10)
+	if err := s.RemovePart(ctx, ses.ID, "msg_other", part.ID); err != nil {
+		t.Fatal(err)
+	}
+	got, err := s.GetPart(ctx, ses.ID, msg.ID, part.ID)
+	if err != nil || got.ID != part.ID {
+		t.Fatalf("%+v %v", got, err)
+	}
+	after, _ := s.GetSession(ctx, ses.ID)
+	if after.Cost != 0.5 {
+		t.Fatalf("cost changed: %+v", after)
+	}
+}
+
 func TestPartsOrderedByIDAndTextPartIgnoredForUsage(t *testing.T) {
 	s := newStore(t)
 	ses := create(t, s, sessiondb.CreateSessionInput{})
