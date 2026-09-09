@@ -48,15 +48,17 @@ func (r *ring) append(ev Event) Event {
 }
 
 func (r *ring) after(seq uint64) ([]Event, error) {
-	if len(r.items) == 0 {
-		if seq >= r.nextSeq-1 {
-			return nil, nil
-		}
+	if seq > 0 && r.nextSeq == 1 {
 		return nil, ErrReplayUnavailable
 	}
-	oldest := r.items[0].Seq
-	if seq+1 < oldest {
+	if seq >= r.nextSeq {
 		return nil, ErrReplayUnavailable
+	}
+	if len(r.items) > 0 {
+		oldest := r.items[0].Seq
+		if seq+1 < oldest {
+			return nil, ErrReplayUnavailable
+		}
 	}
 	var out []Event
 	for _, ev := range r.items {
@@ -68,6 +70,7 @@ func (r *ring) after(seq uint64) ([]Event, error) {
 }
 
 type Subscription struct {
+	log       *Log
 	sessionID string
 	events    chan Event
 	lagged    chan struct{}
@@ -77,8 +80,16 @@ type Subscription struct {
 
 func (s *Subscription) Events() <-chan Event    { return s.events }
 func (s *Subscription) Lagged() <-chan struct{} { return s.lagged }
-func (s *Subscription) Close() {
+
+func (s *Subscription) markClosed() {
 	s.closeOnce.Do(func() { close(s.done) })
+}
+
+func (s *Subscription) Close() {
+	s.markClosed()
+	s.log.mu.Lock()
+	delete(s.log.subscribers, s)
+	s.log.mu.Unlock()
 }
 
 func (s *Subscription) deliver(ev Event) bool {
@@ -95,7 +106,7 @@ func (s *Subscription) deliver(ev Event) bool {
 		case s.lagged <- struct{}{}:
 		default:
 		}
-		s.Close()
+		s.markClosed()
 		return false
 	}
 }
@@ -119,6 +130,26 @@ func (l *Log) sessionRing(sessionID string) *ring {
 		l.perSession[sessionID] = r
 	}
 	return r
+}
+
+func (l *Log) subscriberCount() int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return len(l.subscribers)
+}
+
+func (l *Log) sessionSeqs(sessionID string) []uint64 {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	r, ok := l.perSession[sessionID]
+	if !ok {
+		return nil
+	}
+	seqs := make([]uint64, len(r.items))
+	for i, ev := range r.items {
+		seqs[i] = ev.Seq
+	}
+	return seqs
 }
 
 func (l *Log) Publish(eventType, sessionID string, data any) Event {
@@ -165,7 +196,7 @@ func (l *Log) Subscribe(sessionID string, afterSeq uint64, buffer int) (*Subscri
 	if buffer < len(backlog)+1 {
 		buffer = len(backlog) + 1
 	}
-	sub := &Subscription{sessionID: sessionID, events: make(chan Event, buffer), lagged: make(chan struct{}, 1), done: make(chan struct{})}
+	sub := &Subscription{log: l, sessionID: sessionID, events: make(chan Event, buffer), lagged: make(chan struct{}, 1), done: make(chan struct{})}
 	for _, ev := range backlog {
 		sub.events <- ev
 	}
