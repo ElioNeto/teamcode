@@ -123,6 +123,22 @@ func rawIfValidJSON(v sql.NullString, field, id string) json.RawMessage {
 	return json.RawMessage(v.String)
 }
 
+func modelIfDecodable(v sql.NullString, id string) json.RawMessage {
+	raw := rawIfValidJSON(v, "model", id)
+	if raw == nil {
+		return nil
+	}
+	var probe struct {
+		ID         string `json:"id"`
+		ProviderID string `json:"providerID"`
+	}
+	if err := json.Unmarshal(raw, &probe); err != nil || probe.ID == "" || probe.ProviderID == "" {
+		log.Printf("sessiondb: session %s has model without id or providerID, dropping field", id)
+		return nil
+	}
+	return raw
+}
+
 func (row sessionRow) toSession() Session {
 	out := Session{
 		ID: row.id, Slug: row.slug, ProjectID: row.projectID, Directory: row.directory, Title: row.title, Version: row.version,
@@ -131,7 +147,7 @@ func (row sessionRow) toSession() Session {
 		Tokens: Tokens{Input: row.tokensInput, Output: row.tokensOutput, Reasoning: row.tokensReasoning,
 			Cache: TokensCache{Read: row.tokensCacheRead, Write: row.tokensCacheWrite}},
 		Time:  Time{Created: row.timeCreated, Updated: row.timeUpdated, Compacting: optInt(row.timeCompacting), Archived: optInt(row.timeArchived)},
-		Model: rawIfValidJSON(row.model, "model", row.id), Permission: rawIfValidJSON(row.permission, "permission", row.id),
+		Model: modelIfDecodable(row.model, row.id), Permission: rawIfValidJSON(row.permission, "permission", row.id),
 		Revert: rawIfValidJSON(row.revert, "revert", row.id),
 	}
 	if row.shareURL.Valid && row.shareURL.String != "" {

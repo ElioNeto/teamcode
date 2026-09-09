@@ -226,3 +226,15 @@ func TestListSessionsFiltersByDirectoryAsStored(t *testing.T) {
 		t.Fatalf("relative directory: list=%v err=%v", ids(list), err)
 	}
 }
+
+func TestSessionRowWithModelMissingIdIsDropped(t *testing.T) {
+	s := newStore(t)
+	partial := create(t, s, sessiondb.CreateSessionInput{Model: json.RawMessage(`{"providerID":"p"}`)})
+	if partial.Model != nil {
+		t.Fatalf("model=%s", partial.Model)
+	}
+	complete := create(t, s, sessiondb.CreateSessionInput{Model: json.RawMessage(`{"id":"m","providerID":"p"}`)})
+	if string(complete.Model) != `{"id":"m","providerID":"p"}` {
+		t.Fatalf("model=%s", complete.Model)
+	}
+}
