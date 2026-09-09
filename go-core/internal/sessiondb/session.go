@@ -194,11 +194,11 @@ func (s *Store) GetSession(ctx context.Context, id string) (Session, error) {
 }
 
 func normalizeDirectory(dir string) string {
-	dir = filepath.ToSlash(filepath.Clean(dir))
-	for len(dir) > 1 && strings.HasSuffix(dir, "/") {
-		dir = strings.TrimSuffix(dir, "/")
+	absolute, err := filepath.Abs(dir)
+	if err != nil {
+		return filepath.Clean(dir)
 	}
-	return dir
+	return absolute
 }
 
 func (s *Store) ListSessions(ctx context.Context, f ListFilter) ([]Session, error) {

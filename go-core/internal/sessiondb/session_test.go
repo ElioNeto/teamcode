@@ -3,6 +3,8 @@ package sessiondb_test
 import (
 	"context"
 	"encoding/json"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -199,5 +201,28 @@ func TestSessionRowWithBadModelStillLoads(t *testing.T) {
 	got, err := s.GetSession(ctx, created.ID)
 	if err != nil || got.Model != nil {
 		t.Fatalf("%+v %v", got, err)
+	}
+}
+
+func TestListSessionsFiltersByDirectoryAsStored(t *testing.T) {
+	s := newStore(t)
+	dir := filepath.Join(t.TempDir(), "proj")
+	created := create(t, s, sessiondb.CreateSessionInput{Directory: dir})
+	if created.Directory != dir {
+		t.Fatalf("stored %q, want %q", created.Directory, dir)
+	}
+	if runtime.GOOS == "windows" && strings.ContainsRune(created.Directory, '/') {
+		t.Fatalf("stored directory must keep the OS separator: %q", created.Directory)
+	}
+	for _, filter := range []string{dir, dir + string(filepath.Separator), filepath.ToSlash(dir)} {
+		list, err := s.ListSessions(ctx, sessiondb.ListFilter{Directory: filter})
+		if err != nil || len(list) != 1 || list[0].ID != created.ID {
+			t.Fatalf("directory %q: list=%v err=%v", filter, ids(list), err)
+		}
+	}
+	t.Chdir(filepath.Dir(dir))
+	list, err := s.ListSessions(ctx, sessiondb.ListFilter{Directory: "proj"})
+	if err != nil || len(list) != 1 || list[0].ID != created.ID {
+		t.Fatalf("relative directory: list=%v err=%v", ids(list), err)
 	}
 }
