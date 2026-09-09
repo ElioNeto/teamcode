@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test"
+import { afterAll, describe, expect, test } from "bun:test"
 import fs from "fs"
 import os from "os"
 import path from "path"
@@ -111,7 +111,13 @@ describe("go-core session parity", () => {
 
   const realFileDbDirOverridingInMemoryPreload = path.join(process.env["XDG_DATA_HOME"] ?? os.tmpdir(), "gocore-parity")
   fs.mkdirSync(realFileDbDirOverridingInMemoryPreload, { recursive: true })
+  const teamcodeDbBeforeOverride = process.env["TEAMCODE_DB"]
   process.env["TEAMCODE_DB"] = path.join(realFileDbDirOverridingInMemoryPreload, "opencode.db")
+
+  afterAll(() => {
+    if (teamcodeDbBeforeOverride === undefined) delete process.env["TEAMCODE_DB"]
+    else process.env["TEAMCODE_DB"] = teamcodeDbBeforeOverride
+  })
 
   it.instance("TS and Go produce the same tables for the same scenario", () =>
     Effect.gen(function* () {
