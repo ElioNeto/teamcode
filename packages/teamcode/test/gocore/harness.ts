@@ -1,0 +1,112 @@
+import { Database } from "bun:sqlite"
+import fs from "fs"
+import net from "net"
+
+export function goCoreBinary(): string | undefined {
+  const binary = process.env["GO_CORE_BINARY"]
+  if (!binary || !fs.existsSync(binary)) return undefined
+  return binary
+}
+
+async function freePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer()
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address()
+      server.close(() => (typeof address === "object" && address ? resolve(address.port) : reject(new Error("no port"))))
+    })
+  })
+}
+
+export async function startGoCore(input: { dbPath: string }) {
+  const binary = goCoreBinary()
+  if (!binary) throw new Error("GO_CORE_BINARY not set")
+  const port = await freePort()
+  const proc = Bun.spawn([binary], {
+    env: { ...process.env, GO_CORE_PORT: String(port), TEAMCODE_DB: input.dbPath, GO_CORE_PARENT_PID: String(process.pid) },
+    stdout: "pipe",
+    stderr: "pipe",
+  })
+  const baseUrl = `http://127.0.0.1:${port}`
+  for (let attempt = 0; attempt < 50; attempt++) {
+    try {
+      const resp = await fetch(`${baseUrl}/health`)
+      if (resp.ok) {
+        const body = (await resp.json()) as { status: string }
+        if (body.status !== "ok") throw new Error(`go-core health ${body.status}`)
+        return {
+          baseUrl,
+          stop: async () => {
+            proc.kill()
+            await proc.exited
+          },
+        }
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith("go-core health")) {
+        proc.kill()
+        throw error
+      }
+    }
+    await new Promise((r) => setTimeout(r, 100))
+  }
+  proc.kill()
+  throw new Error("go-core did not become healthy")
+}
+
+export async function api(baseUrl: string, method: string, path: string, body?: unknown) {
+  const resp = await fetch(baseUrl + path, {
+    method,
+    headers: body === undefined ? {} : { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  })
+  const text = await resp.text()
+  if (!resp.ok) throw new Error(`${method} ${path} -> ${resp.status} ${text}`)
+  return text ? JSON.parse(text) : undefined
+}
+
+type Row = Record<string, unknown>
+
+const volatileColumns = new Set(["id", "session_id", "message_id", "parent_id", "slug", "time_created", "time_updated", "time_compacting", "time_archived"])
+
+function normalizeData(value: unknown, idMap: Map<string, string>): unknown {
+  if (typeof value === "string") {
+    let out = value
+    for (const [from, to] of idMap) out = out.split(from).join(to)
+    return out
+  }
+  return value
+}
+
+export function dumpTables(dbPath: string) {
+  const db = new Database(dbPath, { readonly: true })
+  const idMap = new Map<string, string>()
+  const label = (prefix: string, rows: Row[], key: string) => rows.forEach((row, i) => idMap.set(String(row[key]), `${prefix}#${i}`))
+  const sessions = db.query("SELECT * FROM session ORDER BY time_created, title").all() as Row[]
+  const messages = db.query("SELECT * FROM message ORDER BY time_created, id").all() as Row[]
+  const parts = db.query("SELECT * FROM part ORDER BY time_created, id").all() as Row[]
+  const todos = db.query("SELECT * FROM todo ORDER BY session_id, position").all() as Row[]
+  label("ses", sessions, "id")
+  label("msg", messages, "id")
+  label("prt", parts, "id")
+  db.close()
+  const strip = (rows: Row[]) =>
+    rows.map((row) => {
+      const out: Row = {}
+      for (const [column, value] of Object.entries(row)) {
+        if (volatileColumns.has(column)) {
+          if (typeof value === "string" && idMap.has(value)) out[column] = idMap.get(value)
+          continue
+        }
+        if (column === "data" && typeof value === "string") {
+          const parsed = JSON.parse(value) as Record<string, unknown>
+          delete parsed["time"]
+          out[column] = JSON.parse(String(normalizeData(JSON.stringify(parsed), idMap)))
+          continue
+        }
+        out[column] = value
+      }
+      return out
+    })
+  return { sessions: strip(sessions), messages: strip(messages), parts: strip(parts), todos: strip(todos) }
+}
