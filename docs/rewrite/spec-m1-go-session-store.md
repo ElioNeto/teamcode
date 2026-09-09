@@ -211,7 +211,7 @@ Teste que grava 1.000 partes em paralelo pelo TS e pelo Go no mesmo arquivo. Cri
 
 ### 7.5 Desempenho
 
-`GET /v1/session/{id}/messages` com 50.000 mensagens e 5 partes cada, medido no teste de paridade com limite de 5 segundos em CI. Serve para decidir se `modernc.org/sqlite` basta ou se M2 precisa de driver cgo.
+`GET /v1/session/{id}/messages` com 50.000 mensagens e 5 partes cada, medido no teste de paridade com limite de 5 segundos em CI. Serve para decidir se `modernc.org/sqlite` basta ou se M2 precisa de driver cgo. O limite é medido sem o detector de corrida, em passo próprio de CI (`Read budget`), porque o `-race` multiplica o tempo da leitura e mediria o instrumento em vez do driver.
 
 ### 7.6 CI
 

@@ -67,6 +67,9 @@ jobs:
       - name: Unit tests
         working-directory: go-core
         run: go test -race -count=1 ./...
+      - name: Read budget
+        working-directory: go-core
+        run: go test -count=1 -run TestAllMessagesWithinBudget ./internal/sessiondb/
       - name: Build server
         working-directory: go-core
         run: go build -o build/go-core-server ./cmd/server

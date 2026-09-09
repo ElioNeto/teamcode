@@ -15,8 +15,8 @@ const perfPartsPerMessage = 5
 const perfBudget = 5 * time.Second
 
 func TestAllMessagesWithinBudget(t *testing.T) {
-	if testing.Short() {
-		t.Skip("perf test skipped with -short")
+	if testing.Short() || raceEnabled {
+		t.Skip("perf budget is measured without the race detector")
 	}
 	s := newStore(t)
 	ses := create(t, s, sessiondb.CreateSessionInput{})
