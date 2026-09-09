@@ -120,6 +120,9 @@ func (s *v1State) handleDeleteSession(w http.ResponseWriter, r *http.Request) {
 	for _, info := range deleted {
 		s.publishSession("session.deleted", info)
 	}
+	for _, info := range deleted {
+		s.events.Drop(info.ID)
+	}
 	w.WriteHeader(http.StatusNoContent)
 }
 

@@ -132,6 +132,19 @@ func (l *Log) sessionRing(sessionID string) *ring {
 	return r
 }
 
+func (l *Log) Drop(sessionID string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	delete(l.perSession, sessionID)
+	for sub := range l.subscribers {
+		if sub.sessionID != sessionID {
+			continue
+		}
+		sub.markClosed()
+		delete(l.subscribers, sub)
+	}
+}
+
 func (l *Log) subscriberCount() int {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -160,8 +173,11 @@ func (l *Log) Publish(eventType, sessionID string, data any) Event {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	ev := Event{ID: ident.Event(), Type: eventType, SessionID: sessionID, Data: body, Timestamp: time.Now().UnixMilli()}
-	stored := l.sessionRing(sessionID).append(ev)
 	globalCopy := l.global.append(ev)
+	stored := globalCopy
+	if sessionID != "" {
+		stored = l.sessionRing(sessionID).append(ev)
+	}
 	for sub := range l.subscribers {
 		var toDeliver Event
 		switch sub.sessionID {
@@ -182,12 +198,16 @@ func (l *Log) Publish(eventType, sessionID string, data any) Event {
 func (l *Log) Subscribe(sessionID string, afterSeq uint64, buffer int) (*Subscription, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	source := l.global
-	if sessionID != "" {
-		source = l.sessionRing(sessionID)
-	}
 	var backlog []Event
 	if afterSeq > 0 {
+		source := l.global
+		if sessionID != "" {
+			existing, ok := l.perSession[sessionID]
+			if !ok {
+				return nil, ErrReplayUnavailable
+			}
+			source = existing
+		}
 		var err error
 		if backlog, err = source.after(afterSeq); err != nil {
 			return nil, err

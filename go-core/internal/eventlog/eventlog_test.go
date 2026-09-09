@@ -253,3 +253,79 @@ func TestConcurrentPublishSubscribeClose(t *testing.T) {
 		t.Fatalf("subscriberCount = %d, want 0 after all closes", got)
 	}
 }
+
+func TestSubscribeDoesNotCreateRing(t *testing.T) {
+	l := New(10, 10)
+	sub, err := l.Subscribe("ses_new", 0, 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer sub.Close()
+	if _, ok := l.perSession["ses_new"]; ok {
+		t.Fatal("subscribe created a ring")
+	}
+	if _, err := l.Subscribe("ses_other", 1, 8); !errors.Is(err, ErrReplayUnavailable) {
+		t.Fatalf("got %v", err)
+	}
+	if _, ok := l.perSession["ses_other"]; ok {
+		t.Fatal("failed replay created a ring")
+	}
+	l.Publish("y", "ses_new", nil)
+	if ev := recv(t, sub); ev.Type != "y" {
+		t.Fatalf("got %s", ev.Type)
+	}
+}
+
+func TestDropRemovesRingAndClosesSubscribers(t *testing.T) {
+	l := New(10, 10)
+	sub, err := l.Subscribe("ses_a", 0, 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer sub.Close()
+	other, err := l.Subscribe("ses_b", 0, 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer other.Close()
+	l.Publish("x", "ses_a", nil)
+	if ev := recv(t, sub); ev.Type != "x" {
+		t.Fatalf("got %s", ev.Type)
+	}
+	l.Drop("ses_a")
+	if _, ok := l.perSession["ses_a"]; ok {
+		t.Fatal("ring not removed")
+	}
+	if got := l.subscriberCount(); got != 1 {
+		t.Fatalf("subscriberCount = %d, want 1", got)
+	}
+	l.Publish("y", "ses_a", nil)
+	select {
+	case ev := <-sub.Events():
+		t.Fatalf("dropped subscription received %+v", ev)
+	default:
+	}
+	l.Publish("z", "ses_b", nil)
+	if ev := recv(t, other); ev.Type != "z" {
+		t.Fatalf("got %s", ev.Type)
+	}
+}
+
+func TestPublishEmptySessionOnlyGlobal(t *testing.T) {
+	l := New(10, 10)
+	global, err := l.Subscribe("", 0, 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer global.Close()
+	ev := l.Publish("x", "", nil)
+	if ev.Seq != 1 {
+		t.Fatalf("seq %d", ev.Seq)
+	}
+	if len(l.perSession) != 0 {
+		t.Fatalf("rings %d", len(l.perSession))
+	}
+	if got := recv(t, global); got.Type != "x" {
+		t.Fatalf("got %s", got.Type)
+	}
+}
