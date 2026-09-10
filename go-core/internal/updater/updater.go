@@ -74,7 +74,7 @@ func (u *Updater) ProcessEvent(ev SessionEvent) []Message {
 		u.handleCompactionDelta(ev)
 	case "session.next.compaction.ended":
 		u.handleCompactionEnded(ev)
-	// session.next.tool.input.ended and session.next.retried are no-ops
+		// session.next.tool.input.ended and session.next.retried are no-ops
 	}
 	return u.messages
 }
@@ -303,9 +303,9 @@ func (u *Updater) handleTextEnded(ev SessionEvent) {
 func (u *Updater) handleToolInputStarted(ev SessionEvent) {
 	u.updateAssistant(func(m *Message) {
 		m.Content = append(m.Content, ContentBlock{
-			Type:   "tool",
-			ID:     ev.Data.CallID,
-			Name:   ev.Data.Name,
+			Type:     "tool",
+			ID:       ev.Data.CallID,
+			Name:     ev.Data.Name,
 			ToolTime: &ToolTime{Created: ev.Data.Timestamp},
 			State: &ToolState{
 				Status: "pending",

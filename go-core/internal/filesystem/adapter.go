@@ -396,7 +396,7 @@ func List(dir string, pattern string, recursive bool) ([]string, error) {
 		return nil
 	}
 
-	filepath.Walk(abs, walkFn)
+	_ = filepath.Walk(abs, walkFn)
 	return files, nil
 }
 

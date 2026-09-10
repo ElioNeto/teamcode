@@ -39,8 +39,8 @@
 
 | Prioridade | Funcionalidade               | Core TS                    | Go Core Alvo                          | Justificativa                                 |
 | ---------- | ---------------------------- | -------------------------- | ------------------------------------- | --------------------------------------------- |
-| P0         | Session store + CRUD         | `session.ts`               | `session/store.go`                    | Atual é in-memory sem persistência            |
-| P0         | Message persistence          | `message-v2.ts`            | Novo: `session/message_store.go`      | Essencial para sessões sobreviverem a restart |
+| P0         | Session store + CRUD         | `session.ts`               | `internal/sessiondb` (`session.go`)   | Entregue em M1 sobre o SQLite existente       |
+| P0         | Message persistence          | `message-v2.ts`            | `internal/sessiondb` (`message.go`)   | Entregue em M1 sobre o SQLite existente       |
 | P1         | Provider catalog + discovery | `provider.ts`, `models.ts` | `provider/catalog.go` (hoje estático) | Precisa de refresh dinâmico                   |
 | P1         | Project indexing             | `project-index/`           | Novo: `project/indexer.go`            | Base para busca rápida                        |
 | P2         | File system operations       | `filesystem.ts`            | `internal/filesystem/adapter.go`      | Já parcial em Go                              |

@@ -116,9 +116,8 @@ func (s *Subscription) Done() <-chan struct{} {
 // It maintains a map of sessionID → []*Subscription.
 // All operations are thread-safe.
 type Bus struct {
-	mu      sync.RWMutex
-	subs    map[string][]*Subscription
-	running atomic.Bool
+	mu   sync.RWMutex
+	subs map[string][]*Subscription
 }
 
 // NewBus creates a new event bus.

@@ -447,6 +447,36 @@ Circuit breaker metrics (sliding window 60s).
 
 ---
 
+## 8. Session Store v1
+
+SQLite-backed session store. Detail, write rules and event payloads live in `docs/rewrite/spec-m1-go-session-store.md`; this table is the route index.
+
+| Method | Path | Body | Response |
+|--------|------|------|----------|
+| `POST` | `/v1/session` | `{id?, projectID, workspaceID?, parentID?, title?, agent?, model?, permission?, directory, path?, version}` | 201 `Session.Info` |
+| `GET` | `/v1/session` | query `projectID`, `workspaceID`, `directory`, `path`, `parentID` (`null` for roots only), `search`, `start`, `archived`, `limit` | 200 `Session.Info[]` |
+| `GET` | `/v1/session/{id}` | no body | 200 `Session.Info`; 404 |
+| `PATCH` | `/v1/session/{id}` | partial `Session.Info` patch | 200 `Session.Info`; 400 on a null non-nullable path |
+| `DELETE` | `/v1/session/{id}` | no body | 204, descendants deleted deepest-first |
+| `GET` | `/v1/session/{id}/children` | no body | 200 `Session.Info[]` |
+| `POST` | `/v1/session/{id}/fork` | `{messageID?, directory, path?, version}` | 201 `Session.Info` of the new session |
+| `GET` | `/v1/session/{id}/messages` | query `limit` (default 50), `before` (opaque cursor) | 200 `{messages, more, cursor}`; 400 on a malformed cursor |
+| `POST` | `/v1/session/{id}/message` | `MessageV2.Info`, `id` generated when absent | 200 `Info`; 204 on a late write |
+| `PUT` | `/v1/session/{id}/message/{messageID}` | `MessageV2.Info` | 200 `Info`; 204 on a late write |
+| `GET` | `/v1/session/{id}/message/{messageID}` | no body | 200 `{info, parts}`; 404 |
+| `DELETE` | `/v1/session/{id}/message/{messageID}` | no body | 204 |
+| `POST` | `/v1/session/{id}/message/{messageID}/part` | `MessageV2.Part`, `id` generated when absent | 200 `Part`; 204 on a late write |
+| `PUT` | `/v1/session/{id}/message/{messageID}/part/{partID}` | `MessageV2.Part` | 200 `Part`; 204 on a late write |
+| `GET` | `/v1/session/{id}/message/{messageID}/part/{partID}` | no body | 200 `Part`; 404 |
+| `DELETE` | `/v1/session/{id}/message/{messageID}/part/{partID}` | no body | 204 |
+| `GET` | `/v1/session/{id}/todo` | no body | 200 `Todo[]` in `position ASC` |
+| `PUT` | `/v1/session/{id}/todo` | `Todo[]` | 200 `Todo[]` |
+| `GET` | `/v1/events` | query `sessionID` (absent streams every session), header `Last-Event-ID` for replay | 200 `text/event-stream` of `{id, seq, type, sessionID, data, timestamp}` frames |
+
+Every `/v1/session/*` route answers 503 `{"error":"schema_outdated"}` or 503 `{"error":"store_unavailable"}` while the store is degraded, and 503 `{"error":"busy"}` when a write cannot take the lock. `/v1/events` stays available and emits `server.connected`, `server.heartbeat`, `server.lagged` and `server.replay_unavailable` control frames.
+
+---
+
 ## Type Validation
 
 The types in `client.ts` must exactly match the Go structs.

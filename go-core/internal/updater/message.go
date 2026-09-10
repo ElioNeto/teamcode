@@ -9,9 +9,9 @@ type Message struct {
 	Type string `json:"type"`
 
 	// Shared fields
-	ID       string                 `json:"id"`
-	Metadata map[string]any         `json:"metadata,omitempty"`
-	Time     MessageTime            `json:"time"`
+	ID       string         `json:"id"`
+	Metadata map[string]any `json:"metadata,omitempty"`
+	Time     MessageTime    `json:"time"`
 
 	// Agent-switched
 	Agent string `json:"agent,omitempty"`
@@ -20,10 +20,10 @@ type Message struct {
 	Model string `json:"model,omitempty"`
 
 	// User
-	Text       string      `json:"text,omitempty"`
-	Files      []any       `json:"files,omitempty"`
-	Agents     []any       `json:"agents,omitempty"`
-	References []any       `json:"references,omitempty"`
+	Text       string `json:"text,omitempty"`
+	Files      []any  `json:"files,omitempty"`
+	Agents     []any  `json:"agents,omitempty"`
+	References []any  `json:"references,omitempty"`
 
 	// Synthetic
 	SessionID string `json:"sessionID,omitempty"`
@@ -105,8 +105,8 @@ type ToolTime struct {
 
 // Provider records whether a tool was executed.
 type Provider struct {
-	Executed bool                   `json:"executed"`
-	Metadata map[string]any         `json:"metadata,omitempty"`
+	Executed bool           `json:"executed"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
 // ToolState tracks the status of a tool call.

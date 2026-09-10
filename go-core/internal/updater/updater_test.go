@@ -147,8 +147,8 @@ func TestShellStartEnd(t *testing.T) {
 
 	u.ProcessEvent(event(t, "session.next.shell.ended", map[string]any{
 		"data": map[string]any{
-			"callID":  "call_001",
-			"output":  "file1.txt\nfile2.txt",
+			"callID":    "call_001",
+			"output":    "file1.txt\nfile2.txt",
 			"timestamp": 2000000,
 		},
 	}))
@@ -272,16 +272,16 @@ func TestToolCallCycle(t *testing.T) {
 	// Tool progress
 	u.ProcessEvent(event(t, "session.next.tool.progress", map[string]any{
 		"data": map[string]any{
-			"callID": "tool_001",
+			"callID":     "tool_001",
 			"structured": map[string]any{"progress": 50},
-			"content": []any{},
+			"content":    []any{},
 		},
 	}))
 
 	// Tool success
 	u.ProcessEvent(event(t, "session.next.tool.success", map[string]any{
 		"data": map[string]any{
-			"callID": "tool_001",
+			"callID":     "tool_001",
 			"structured": map[string]any{"result": "ok"},
 			"content":    []any{},
 			"provider":   map[string]any{"executed": true},
@@ -421,7 +421,7 @@ func TestFullConversation(t *testing.T) {
 
 	u.ProcessEvent(event(t, "session.next.prompted", map[string]any{
 		"data": map[string]any{
-			"prompt": map[string]any{"text": "Hello, how are you?"},
+			"prompt":    map[string]any{"text": "Hello, how are you?"},
 			"timestamp": 1000,
 		},
 	}))
@@ -461,7 +461,7 @@ func TestFullConversation(t *testing.T) {
 
 	u.ProcessEvent(event(t, "session.next.prompted", map[string]any{
 		"data": map[string]any{
-			"prompt": map[string]any{"text": "Tell me a joke"},
+			"prompt":    map[string]any{"text": "Tell me a joke"},
 			"timestamp": 9000,
 		},
 	}))
@@ -495,7 +495,7 @@ func TestFullConversation(t *testing.T) {
 	}))
 	u.ProcessEvent(event(t, "session.next.compaction.ended", map[string]any{
 		"data": map[string]any{
-			"text": "User asked about feelings, assistant responded.",
+			"text":      "User asked about feelings, assistant responded.",
 			"timestamp": 16000,
 		},
 	}))
@@ -523,18 +523,18 @@ func TestToolFailed(t *testing.T) {
 	}))
 	u.ProcessEvent(event(t, "session.next.tool.called", map[string]any{
 		"data": map[string]any{
-			"callID":   "tool_001",
-			"tool":     "read_file",
-			"input":    map[string]any{},
-			"provider": map[string]any{"executed": true},
+			"callID":    "tool_001",
+			"tool":      "read_file",
+			"input":     map[string]any{},
+			"provider":  map[string]any{"executed": true},
 			"timestamp": 2000,
 		},
 	}))
 	u.ProcessEvent(event(t, "session.next.tool.failed", map[string]any{
 		"data": map[string]any{
-			"callID":   "tool_001",
-			"error":    map[string]any{"type": "unknown", "message": "file not found"},
-			"provider": map[string]any{"executed": true},
+			"callID":    "tool_001",
+			"error":     map[string]any{"type": "unknown", "message": "file not found"},
+			"provider":  map[string]any{"executed": true},
 			"timestamp": 3000,
 		},
 	}))

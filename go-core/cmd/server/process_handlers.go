@@ -42,7 +42,7 @@ func handleSpawn(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	_ = json.NewEncoder(w).Encode(result)
 }
 
 type npmRequest struct {
@@ -66,7 +66,7 @@ func handleNpmInstall(w http.ResponseWriter, r *http.Request) {
 	result := process.NpmInstall(req.Dir, req.Args...)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	_ = json.NewEncoder(w).Encode(result)
 }
 
 func handleNpx(w http.ResponseWriter, r *http.Request) {
@@ -79,5 +79,5 @@ func handleNpx(w http.ResponseWriter, r *http.Request) {
 	result := process.Npx(req.Dir, req.Args, time.Duration(req.Timeout)*time.Millisecond)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	_ = json.NewEncoder(w).Encode(result)
 }

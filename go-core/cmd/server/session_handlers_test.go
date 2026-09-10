@@ -21,7 +21,7 @@ func TestHandleSessionEvent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusNoContent {
 		t.Fatalf("expected 204, got %d", resp.StatusCode)
@@ -50,7 +50,7 @@ func TestHandleSessionEventValidation(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 			if resp.StatusCode != tt.code {
 				t.Fatalf("expected %d, got %d", tt.code, resp.StatusCode)
 			}
@@ -74,7 +74,7 @@ func TestSSEStreaming(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer sseResp.Body.Close()
+	defer func() { _ = sseResp.Body.Close() }()
 
 	if sseResp.StatusCode != http.StatusOK {
 		t.Fatalf("expected 200, got %d", sseResp.StatusCode)
@@ -121,7 +121,7 @@ func TestSSEStreaming(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	pubResp.Body.Close()
+	_ = pubResp.Body.Close()
 
 	if pubResp.StatusCode != http.StatusNoContent {
 		t.Fatalf("expected 204 from publish, got %d", pubResp.StatusCode)
@@ -169,7 +169,7 @@ func TestSSEOnlyReceivesOwnSession(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer sseResp.Body.Close()
+	defer func() { _ = sseResp.Body.Close() }()
 
 	// Consume the connected event
 	scanner := bufio.NewScanner(sseResp.Body)
@@ -181,7 +181,7 @@ func TestSSEOnlyReceivesOwnSession(t *testing.T) {
 	// Publish to ses_b
 	publishBody := `{"session_id":"ses_b","event_type":"test.event","data":{}}`
 	pubResp, _ := http.Post(server.URL+"/session/event", "application/json", strings.NewReader(publishBody))
-	pubResp.Body.Close()
+	_ = pubResp.Body.Close()
 
 	// Read a few lines from the stream — should NOT receive test.event
 	type dataLine struct {
@@ -230,7 +230,7 @@ func TestSSESessionValidation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusBadRequest {
 		t.Fatalf("expected 400 for missing session_id, got %d", resp.StatusCode)
@@ -248,7 +248,7 @@ func TestSSEHeartbeat(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Read events in a goroutine, collecting heartbeat data
 	type event struct {

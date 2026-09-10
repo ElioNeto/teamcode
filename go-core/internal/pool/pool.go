@@ -7,7 +7,6 @@
 package pool
 
 import (
-	"encoding/json"
 	"sync"
 )
 
@@ -44,16 +43,6 @@ func (p *BufferPool) Put(buf *[]byte) {
 	if buf != nil {
 		p.pool.Put(buf)
 	}
-}
-
-// ---------------------------------------------------------------------------
-// JSON encoder pool (reduces encoder allocations)
-// ---------------------------------------------------------------------------
-
-var jsonEncoderPool = sync.Pool{
-	New: func() any {
-		return json.NewEncoder(nil)
-	},
 }
 
 // ---------------------------------------------------------------------------

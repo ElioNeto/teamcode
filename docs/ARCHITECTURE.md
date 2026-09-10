@@ -232,31 +232,24 @@ The TypeScript layer serves as a **thin orchestration layer**:
 
 - Unix domain socket + TCP transport (auto-detected)
 - Generic LRU cache (`internal/cache/lru.go`) with TTL
-- Persistent session store with 7-day TTL (`internal/session/persistent_store.go`)
+- SQLite session store shared with the TypeScript side (`internal/sessiondb`, see "Session Store (M1)" below)
 - Worker pool for CPU-bound tasks (`internal/pool/pool.go`)
 - File watcher via fsnotify (`internal/watcher/watcher.go`)
 - Event bus for async communication (`internal/eventbus/event.go`)
 - Swarm agent scheduler (`internal/swarm/`)
 - Prometheus-style metrics (`internal/metrics/`)
 
-**Session Store Architecture:**
+**Session Store (M1):**
 
-```
-┌─────────────────────────────────────────┐
-│           PersistentStore               │
-├─────────────────────────────────────────┤
-│  ┌──────────┐  ┌──────────┐  ┌──────┐  │
-│  │ In-Memory│  │ LRU Cache│  │ TTL  │  │
-│  │ Store    │  │ (hot)    │  │ Track│  │
-│  └──────────┘  └──────────┘  └──────┘  │
-│  ┌──────────────────────────────────┐   │
-│  │    Disk Persistence (JSON)       │   │
-│  │  Atomic writes (tmp + rename)    │   │
-│  └──────────────────────────────────┘   │
-└─────────────────────────────────────────┘
-```
+`internal/sessiondb` persists sessions, messages, parts and todos in the same SQLite file and
+drizzle schema used by `packages/teamcode` (`opencode.db` or `opencode-<channel>.db`). The Go side
+never migrates the schema; `internal/store.CheckSchema` verifies `__drizzle_migrations` and the
+server runs `/v1/session/*` in degraded mode (`503 schema_outdated`) when the file is behind.
+Message and part payloads are stored as opaque JSON; only `step-finish` parts are inspected to
+maintain session usage counters. Events are published through `internal/eventlog` with a
+per-session sequence and a replay ring, exposed at `GET /v1/events`.
 
-**TTL Policy:** Sessions expire after **7 days** (configurable). TTL is renewed on every `Get()`, `List()`, or `Create()` call. Background cleanup runs every hour.
+Design and test plan: `docs/rewrite/spec-m1-go-session-store.md`.
 
 ---
 
@@ -267,9 +260,8 @@ The TypeScript layer serves as a **thin orchestration layer**:
 | Path                                            | Purpose                              |
 | ----------------------------------------------- | ------------------------------------ |
 | `~/.local/share/teamcode/`                      | Primary data directory               |
-| `~/.local/share/teamcode/opencode.db`           | SQLite database (sessions, messages) |
+| `~/.local/share/teamcode/opencode.db`           | SQLite database (sessions, messages) shared by TypeScript and go-core |
 | `~/.local/share/teamcode/storage/`              | Legacy JSON storage (migrating away) |
-| `~/.local/share/teamcode/go-core/sessions.json` | Go core session persistence          |
 | `~/.local/share/teamcode/log/`                  | Application logs                     |
 | `~/.local/share/teamcode/apexstore/`            | ApexStore LSM-tree data (future)     |
 | `~/.cache/teamcode/bin/`                        | Downloaded Go core binaries          |

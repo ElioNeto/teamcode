@@ -122,7 +122,9 @@ func TestUnwatch(t *testing.T) {
 
 	// Modify the file
 	time.Sleep(50 * time.Millisecond)
-	os.WriteFile(file, []byte("world"), 0644)
+	if err := os.WriteFile(file, []byte("world"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Should not receive event since we unwatched
 	select {
@@ -145,12 +147,20 @@ func TestMultipleWatches(t *testing.T) {
 	dir := t.TempDir()
 	f1 := filepath.Join(dir, "a.txt")
 	f2 := filepath.Join(dir, "b.txt")
-	os.WriteFile(f1, []byte("a"), 0644)
-	os.WriteFile(f2, []byte("b"), 0644)
+	if err := os.WriteFile(f1, []byte("a"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(f2, []byte("b"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	w := New(100 * time.Millisecond)
-	w.Watch(f1)
-	w.Watch(f2)
+	if err := w.Watch(f1); err != nil {
+		t.Fatal(err)
+	}
+	if err := w.Watch(f2); err != nil {
+		t.Fatal(err)
+	}
 
 	if w.WatchedCount() != 2 {
 		t.Errorf("expected 2 watched paths, got %d", w.WatchedCount())

@@ -152,11 +152,15 @@ func TestFindConfigFiles(t *testing.T) {
 
 	// Root config
 	rootCfg := filepath.Join(root, "teamcode.json")
-	os.WriteFile(rootCfg, []byte(`{"version": "root"}`), 0644)
+	if err := os.WriteFile(rootCfg, []byte(`{"version": "root"}`), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Project config
 	projCfg := filepath.Join(sub, "teamcode.jsonc")
-	os.WriteFile(projCfg, []byte(`{"version": "project"}`), 0644)
+	if err := os.WriteFile(projCfg, []byte(`{"version": "project"}`), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	files := findConfigFiles(sub)
 	if len(files) != 2 {
@@ -211,7 +215,9 @@ func TestLoadAndCache(t *testing.T) {
 
 	dir := t.TempDir()
 	cfgPath := filepath.Join(dir, "teamcode.json")
-	os.WriteFile(cfgPath, []byte(`{"agent": "cached-agent"}`), 0644)
+	if err := os.WriteFile(cfgPath, []byte(`{"agent": "cached-agent"}`), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// First load
 	cfg, err := loader.Load(dir)
@@ -223,7 +229,9 @@ func TestLoadAndCache(t *testing.T) {
 	}
 
 	// Modify file
-	os.WriteFile(cfgPath, []byte(`{"agent": "new-agent"}`), 0644)
+	if err := os.WriteFile(cfgPath, []byte(`{"agent": "new-agent"}`), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Load again — should still be cached
 	cfg, _ = loader.Load(dir)

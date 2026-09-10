@@ -14,6 +14,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -104,6 +105,8 @@ func main() {
 	mux.HandleFunc("POST /session/delete", handleSessionDelete)
 	mux.HandleFunc("GET /session/list", handleSessionList)
 
+	registerV1Routes(mux)
+
 	// Swarm
 	mux.HandleFunc("POST /swarm/run", handleSwarmRun)
 	mux.HandleFunc("DELETE /swarm/{id}", handleSwarmCancel)
@@ -157,6 +160,11 @@ func main() {
 		defer cancel()
 		if err := server.Shutdown(shutdownCtx); err != nil {
 			log.Printf("go-core: shutdown error: %v", err)
+		}
+		if v1 != nil {
+			if err := v1.Close(); err != nil {
+				log.Printf("go-core: session store close error: %v", err)
+			}
 		}
 	}()
 
@@ -262,7 +270,7 @@ type ErrorResponse struct {
 func writeError(w http.ResponseWriter, msg string, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	if _, err := fmt.Fprintf(w, `{"error":"%s"}`, msg); err != nil {
+	if err := json.NewEncoder(w).Encode(ErrorResponse{Error: msg}); err != nil {
 		log.Printf("go-core: write error response: %v", err)
 	}
 }

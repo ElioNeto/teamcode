@@ -16,5 +16,5 @@ var metricsCollector = metrics.New(60 * time.Second)
 // Used by the TypeScript runtime to detect when the Go core is unhealthy.
 func handleMetrics(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(metricsCollector.Snapshot())
+	_ = json.NewEncoder(w).Encode(metricsCollector.Snapshot())
 }

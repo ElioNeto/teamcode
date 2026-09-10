@@ -16,7 +16,7 @@ func tmpDir(t *testing.T) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { os.RemoveAll(dir) })
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
 	return dir
 }
 
@@ -205,7 +205,9 @@ func TestIsDirIsFile(t *testing.T) {
 	sub := filepath.Join(dir, "subdir")
 	file := filepath.Join(dir, "afile.txt")
 
-	os.Mkdir(sub, 0755)
+	if err := os.Mkdir(sub, 0755); err != nil {
+		t.Fatal(err)
+	}
 	writeFile(t, file, "data")
 
 	d1, _ := IsDir(sub)
@@ -308,7 +310,9 @@ func TestReadDirectoryEntries(t *testing.T) {
 	dir := tmpDir(t)
 	writeFile(t, filepath.Join(dir, "a.txt"), "a")
 	writeFile(t, filepath.Join(dir, "b.txt"), "b")
-	os.Mkdir(filepath.Join(dir, "sub"), 0755)
+	if err := os.Mkdir(filepath.Join(dir, "sub"), 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	entries, err := ReadDirectoryEntries(dir)
 	if err != nil {
@@ -341,7 +345,9 @@ func TestList(t *testing.T) {
 	dir := tmpDir(t)
 	writeFile(t, filepath.Join(dir, "a.txt"), "a")
 	writeFile(t, filepath.Join(dir, "b.txt"), "b")
-	os.Mkdir(filepath.Join(dir, "sub"), 0755)
+	if err := os.Mkdir(filepath.Join(dir, "sub"), 0755); err != nil {
+		t.Fatal(err)
+	}
 	writeFile(t, filepath.Join(dir, "sub", "c.txt"), "c")
 
 	// Non-recursive
@@ -381,7 +387,9 @@ func TestList(t *testing.T) {
 func TestFindUp(t *testing.T) {
 	dir := tmpDir(t)
 	sub := filepath.Join(dir, "a", "b", "c")
-	os.MkdirAll(sub, 0755)
+	if err := os.MkdirAll(sub, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	// Place target at dir level
 	writeFile(t, filepath.Join(dir, "target.txt"), "found")
@@ -409,7 +417,9 @@ func TestFindUpNotFound(t *testing.T) {
 func TestUp(t *testing.T) {
 	dir := tmpDir(t)
 	sub := filepath.Join(dir, "x", "y")
-	os.MkdirAll(sub, 0755)
+	if err := os.MkdirAll(sub, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	writeFile(t, filepath.Join(dir, "a.txt"), "a")
 	writeFile(t, filepath.Join(dir, "b.txt"), "b")
@@ -432,7 +442,9 @@ func TestGlob(t *testing.T) {
 	writeFile(t, filepath.Join(dir, "a.txt"), "a")
 	writeFile(t, filepath.Join(dir, "b.txt"), "b")
 	writeFile(t, filepath.Join(dir, "c.go"), "c")
-	os.MkdirAll(filepath.Join(dir, "sub"), 0755)
+	if err := os.MkdirAll(filepath.Join(dir, "sub"), 0755); err != nil {
+		t.Fatal(err)
+	}
 	writeFile(t, filepath.Join(dir, "sub", "d.txt"), "d")
 
 	matches, err := Glob("*.txt", GlobOptions{Cwd: dir})
@@ -448,7 +460,9 @@ func TestGlob(t *testing.T) {
 func TestGlobDoubleStar(t *testing.T) {
 	dir := tmpDir(t)
 	writeFile(t, filepath.Join(dir, "a.txt"), "a")
-	os.MkdirAll(filepath.Join(dir, "sub", "nested"), 0755)
+	if err := os.MkdirAll(filepath.Join(dir, "sub", "nested"), 0755); err != nil {
+		t.Fatal(err)
+	}
 	writeFile(t, filepath.Join(dir, "sub", "nested", "b.txt"), "b")
 
 	matches, err := Glob("**/*.txt", GlobOptions{Cwd: dir})
@@ -609,7 +623,9 @@ func TestPNGDetection(t *testing.T) {
 	dir := tmpDir(t)
 	p := filepath.Join(dir, "image.png")
 	// PNG header \x89PNG\r\n\x1a\n followed by more data including null byte
-	Write(p, []byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n', 0})
+	if err := Write(p, []byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n', 0}); err != nil {
+		t.Fatal(err)
+	}
 
 	r, _ := Read(p, 0, 0)
 	if !r.Binary {
@@ -664,7 +680,9 @@ func TestWriteString(t *testing.T) {
 func TestGlobUpIntegration(t *testing.T) {
 	dir := tmpDir(t)
 	sub := filepath.Join(dir, "deep", "path", "here")
-	os.MkdirAll(sub, 0755)
+	if err := os.MkdirAll(sub, 0755); err != nil {
+		t.Fatal(err)
+	}
 	writeFile(t, filepath.Join(dir, "marker.txt"), "marker")
 
 	results, err := GlobUp("*.txt", sub)

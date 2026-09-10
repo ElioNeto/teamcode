@@ -33,8 +33,8 @@ type Config struct {
 
 // Loader finds, parses, merges, and caches teamcode configuration files.
 type Loader struct {
-	mu     sync.RWMutex
-	cache  map[string]*Config // keyed by directory
+	mu    sync.RWMutex
+	cache map[string]*Config // keyed by directory
 }
 
 // NewLoader creates a new Loader.
@@ -187,7 +187,7 @@ func stripComments(data []byte) []byte {
 		// Multi-line comment
 		if i+1 < len(text) && text[i] == '/' && text[i+1] == '*' {
 			i += 2
-			for i+1 < len(text) && !(text[i] == '*' && text[i+1] == '/') {
+			for i+1 < len(text) && (text[i] != '*' || text[i+1] != '/') {
 				if text[i] == '\n' {
 					result.WriteByte('\n')
 				}

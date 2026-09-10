@@ -34,24 +34,19 @@ type fileState struct {
 	modTime time.Time
 }
 
-// eventPool reduces allocations for event delivery.
-var eventPool = sync.Pool{
-	New: func() any { return &FileEvent{} },
-}
-
 // ---------------------------------------------------------------------------
 // Watcher
 // ---------------------------------------------------------------------------
 
 // Watcher monitors files for changes using the best available mechanism.
 type Watcher struct {
-	mu         sync.Mutex
-	paths      map[string]fileState
-	events     chan FileEvent
-	done       chan struct{}
-	wg         sync.WaitGroup
-	interval   time.Duration
-	pollOnly   bool
+	mu       sync.Mutex
+	paths    map[string]fileState
+	events   chan FileEvent
+	done     chan struct{}
+	wg       sync.WaitGroup
+	interval time.Duration
+	pollOnly bool
 }
 
 // New creates a new Watcher.
