@@ -1,7 +1,7 @@
 import type { Session as SDKSession, Message, Part } from "@teamcode-ai/sdk/v2"
 import { Session } from "@/session/session"
 import { MessageV2 } from "../../session/message-v2"
-import { CliError, effectCmd } from "../effect-cmd"
+import { CliError, effectCmd, fail } from "../effect-cmd"
 import { Database } from "@/storage/db"
 import { SessionTable, MessageTable, PartTable } from "../../session/session.sql"
 import { InstanceRef } from "@/effect/instance-ref"
@@ -9,6 +9,7 @@ import { ShareNext } from "@/share/share-next"
 import { EOL } from "os"
 import { AppFileSystem } from "@teamcode-ai/core/filesystem"
 import { Effect, Schema } from "effect"
+import { ImportCli } from "@/import/cli"
 
 const decodeMessageInfo = Schema.decodeUnknownSync(MessageV2.Info)
 const decodePart = Schema.decodeUnknownSync(MessageV2.Part)
@@ -78,17 +79,20 @@ export function transformShareData(shareData: ShareData[]): {
 type ExportData = { info: SDKSession; messages: Array<{ info: Message; parts: Part[] }> }
 
 export const ImportCommand = effectCmd({
-  command: "import <file>",
-  describe: "import session data from JSON file or URL",
+  command: "import [file]",
+  describe: "import session data from JSON file, URL, or another agent (--from)",
   builder: (yargs) =>
-    yargs.positional("file", {
-      describe: "path to JSON file or share URL",
-      type: "string",
-      demandOption: true,
-    }),
+    ImportCli.options(
+      yargs.positional("file", {
+        describe: "path to JSON file or share URL (omit when using --from)",
+        type: "string",
+      }),
+    ),
   handler: Effect.fn("Cli.import")(function* (args) {
     const ctx = yield* InstanceRef
     if (!ctx) return yield* Effect.die("InstanceRef not provided")
+    if (args.from) return yield* ImportCli.run({ ...args, from: args.from }, ctx.project.id)
+    if (!args.file) return yield* fail("Provide a file/URL to import, or use --from claude-code|codex")
     return yield* runImport(args.file, ctx.project.id)
   }),
 })
