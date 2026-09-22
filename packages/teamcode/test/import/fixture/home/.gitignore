@@ -1,0 +1,2 @@
+# Fixtures mirror a real $HOME; the root .gitignore hides .codex, so re-include it here.
+!.codex/

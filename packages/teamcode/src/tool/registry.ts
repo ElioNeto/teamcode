@@ -8,6 +8,7 @@ import { GrepTool } from "./grep"
 import { ReadTool } from "./read"
 import { TaskTool } from "./task"
 import { TaskStatusTool } from "./task_status"
+import { ExternalSessionTool } from "./external_session"
 import { TodoWriteTool } from "./todo"
 import { WebFetchTool } from "./webfetch"
 import { WriteTool } from "./write"
@@ -118,6 +119,7 @@ export const layer: Layer.Layer<
     const invalid = yield* InvalidTool
     const task = yield* TaskTool
     const taskStatus = yield* TaskStatusTool
+    const externalSession = yield* ExternalSessionTool
     const read = yield* ReadTool
     const question = yield* QuestionTool
     const todo = yield* TodoWriteTool
@@ -250,6 +252,10 @@ export const layer: Layer.Layer<
             return Effect.succeed(undefined)
           })),
           task: Tool.init(task),
+          external_session: Tool.init(externalSession).pipe(Effect.catch((error) => {
+            log.warn("tool initialization failed, skipping", { tool: "external_session", error: String(error) })
+            return Effect.succeed(undefined)
+          })),
           task_status: Tool.init(taskStatus).pipe(Effect.catch((error) => {
             log.warn("tool initialization failed, skipping", { tool: "task_status", error: String(error) })
             return Effect.succeed(undefined)
@@ -313,6 +319,7 @@ export const layer: Layer.Layer<
             tool.write,
             tool.task,
             ...(flags.experimentalBackgroundSubagents && tool.task_status ? [tool.task_status] : []),
+            tool.external_session,
             tool.fetch,
             tool.todo,
             tool.search,

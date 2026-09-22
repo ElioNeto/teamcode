@@ -18,6 +18,7 @@ import { errorMessage } from "@/util/error"
 import { DialogSessionDeleteFailed } from "./dialog-session-delete-failed"
 import { WorkspaceLabel } from "./workspace-label"
 import { useCommandShortcut } from "../keymap"
+import { Origin } from "@/import/origin"
 
 export function DialogSessionList() {
   const dialog = useDialog()
@@ -167,21 +168,28 @@ export function DialogSessionList() {
       if (!x) return undefined
       const workspace = x.workspaceID ? project.workspace.get(x.workspaceID) : undefined
 
-      let footer: JSX.Element | string = ""
+      // Origin column: sessions imported from Claude Code / Codex sit next to native ones.
+      const origin = Origin.of(x)
+      let footer: JSX.Element | string = origin
       if (Flag.TEAMCODE_EXPERIMENTAL_WORKSPACES) {
         if (x.workspaceID) {
-          footer = workspace ? (
-            <WorkspaceLabel
-              type={workspace.type}
-              name={workspace.name}
-              status={project.workspace.status(x.workspaceID) ?? "error"}
-            />
-          ) : (
-            <WorkspaceLabel type="unknown" name={x.workspaceID} status="error" />
+          footer = (
+            <box flexDirection="row" gap={1}>
+              <text fg={theme.textMuted}>{origin}</text>
+              {workspace ? (
+                <WorkspaceLabel
+                  type={workspace.type}
+                  name={workspace.name}
+                  status={project.workspace.status(x.workspaceID) ?? "error"}
+                />
+              ) : (
+                <WorkspaceLabel type="unknown" name={x.workspaceID} status="error" />
+              )}
+            </box>
           )
         }
       } else {
-        footer = Locale.time(x.time.updated)
+        footer = `${origin.padEnd(8)} ${Locale.time(x.time.updated)}`
       }
 
       const isDeleting = toDelete() === x.id

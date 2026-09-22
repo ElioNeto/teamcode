@@ -1,0 +1,13 @@
+Query sessions recorded by other coding agents (Claude Code, Codex CLI) or by TeamCode itself, from inside the current session.
+
+Sessions from other agents appear only after `teamcode import --from claude-code` or `--from codex` has been run.
+
+Parameters:
+- `action` (required): `list` to enumerate sessions, `read` to print one session's transcript
+- `origin` (optional): filter by `claude`, `codex`, or `teamcode`
+- `search` (optional, list only): substring matched against session titles
+- `session_id` (required for `read`): a session id returned by `list`
+- `limit` (optional): max sessions for `list` (default 20) or max trailing messages for `read` (default 50)
+
+`list` returns one line per session: id, origin, last update, title and working directory.
+`read` returns the conversation in order: user prompts, assistant text, reasoning summaries, tool calls with their inputs and truncated outputs.

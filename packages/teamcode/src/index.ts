@@ -229,7 +229,7 @@ const cli = yargs(args)
     ),
   )
   .command(
-    lazyCmd("import <file>", "import session data from JSON file or URL", () =>
+    lazyCmd("import [file]", "import session data from JSON file, URL, or another agent (--from)", () =>
       import("./cli/cmd/import").then((m) => m.ImportCommand),
     ),
   )
