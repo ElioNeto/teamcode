@@ -109,6 +109,7 @@
   "permission": {
     "edit": "allow",
     "bash": {
+      "*": "ask",
       "git *": "allow",
       "bun *": "allow",
       "npm *": "allow",
@@ -120,11 +121,21 @@
       "cat *": "allow",
       "sleep *": "allow",
       "which *": "allow",
-      "*": "ask"
+      "nmap *": "allow",
+      "nikto *": "allow",
+      "whatweb *": "allow",
+      "dig *": "allow",
+      "whois *": "allow",
+      "curl *": "allow",
+      "python *": "allow",
+      "openssl *": "allow"
     },
+    "security-tools_*": "allow",
+    "doom_loop": "allow",
     "external_directory": {
-      "/tmp/teamcode": "allow",
-      "*": "ask"
+      "*": "ask",
+      "~/scans/*": "allow",
+      "~/AppData/Local/Temp/teamcode/*": "allow"
     }
   },
   // === EXPERIMENTAL FEATURES ===

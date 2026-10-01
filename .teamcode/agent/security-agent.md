@@ -5,31 +5,38 @@ mode: primary
 temperature: 0.2
 color: "#ff4444"
 permission:
-  read: allow
+  read:
+    "*.env": allow
+    "*.env.*": allow
   glob: allow
   grep: allow
   list: allow
+  edit: deny
+  write: deny
   bash:
-    "nmap *": allow
-    "nikto *": allow
-    "whois *": allow
-    "whatweb *": allow
-    "dig *": allow
-    "curl *": allow
-    "git *": allow
-    "ls *": allow
-    "cat *": allow
-    "mkdir *": allow
-    "*": deny
+    "*": allow
+    "rm -rf *": deny
+    "mkfs *": deny
+    "dd *": deny
+    "shutdown *": deny
+    "diskpart *": deny
+    "format *": deny
   todowrite: allow
+  doom_loop: allow
   webfetch: allow
   websearch: allow
   lsp: allow
+  skill: allow
+  "security-tools_*": allow
+  external_directory:
+    "*": ask
+    "~/scans/*": allow
   task:
     god: allow
     researcher: allow
     explore: allow
     security-agent: allow
+    pentest-agent: allow
   question: deny
 ---
 
