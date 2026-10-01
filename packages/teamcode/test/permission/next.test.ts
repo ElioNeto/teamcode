@@ -593,6 +593,50 @@ it.instance(
 )
 
 it.instance(
+  "ask - HARD_FLOOR denies even when the ruleset allows everything",
+  () =>
+    Effect.gen(function* () {
+      const err = yield* fail(
+        ask({
+          sessionID: SessionID.make("session_test"),
+          permission: "bash",
+          patterns: ["rm -rf /"],
+          metadata: {},
+          always: [],
+          ruleset: [{ permission: "bash", pattern: "*", action: "allow" }],
+        }),
+      )
+      expect(err).toBeInstanceOf(Permission.DeniedError)
+    }),
+  { git: true },
+)
+
+it.instance(
+  "ask - HARD_FLOOR does not block recon commands under an allow-all ruleset",
+  () =>
+    Effect.gen(function* () {
+      const result = yield* ask({
+        sessionID: SessionID.make("session_test"),
+        permission: "bash",
+        patterns: ["nmap -v target", "curl -sk https://target"],
+        metadata: {},
+        always: [],
+        ruleset: [{ permission: "bash", pattern: "*", action: "allow" }],
+      })
+      expect(result).toBeUndefined()
+    }),
+  { git: true },
+)
+
+test("evaluate - HARD_FLOOR wins over allow rules regardless of position", () => {
+  const allowed = [{ permission: "bash", pattern: "*", action: "allow" as const }]
+  expect(Permission.evaluate("bash", "shutdown /s /t 0", allowed, Permission.HARD_FLOOR).action).toBe("deny")
+  expect(Permission.evaluate("bash", "diskpart /s script.txt", allowed, Permission.HARD_FLOOR).action).toBe("deny")
+  expect(Permission.evaluate("bash", "nmap -v target", allowed, Permission.HARD_FLOOR).action).toBe("allow")
+  expect(Permission.evaluate("edit", "src/a.ts", allowed, Permission.HARD_FLOOR).action).toBe("ask")
+})
+
+it.instance(
   "ask - stays pending when action is ask",
   () =>
     Effect.gen(function* () {

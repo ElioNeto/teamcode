@@ -96,6 +96,9 @@ export const layer = Layer.effect(
         const whitelistedDirs = [
           Truncate.GLOB,
           path.join(Global.Path.tmp, "*"),
+          // Cyber engagements write scan output outside the repo; the engine allows
+          // it by default so no agent needs its own external_directory rule.
+          path.join(Global.Path.home, "scans", "*"),
           ...skillDirs.map((dir) => path.join(dir, "*")),
           path.join(instanceDir, "*"),
         ]

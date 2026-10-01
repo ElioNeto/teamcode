@@ -8,29 +8,13 @@ permission:
   read:
     "*.env": allow
     "*.env.*": allow
-  glob: allow
-  grep: allow
-  list: allow
   edit: deny
   write: deny
-  bash:
-    "*": allow
-    "rm -rf *": deny
-    "mkfs *": deny
-    "dd *": deny
-    "shutdown *": deny
-    "diskpart *": deny
-    "format *": deny
   todowrite: allow
   doom_loop: allow
   webfetch: allow
   websearch: allow
-  lsp: allow
   skill: allow
-  "security-tools_*": allow
-  external_directory:
-    "*": ask
-    "~/scans/*": allow
   task:
     god: allow
     researcher: allow

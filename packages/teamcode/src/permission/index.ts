@@ -30,6 +30,20 @@ export type Rule = Schema.Schema.Type<typeof Rule>
 export const Ruleset = Schema.mutable(Schema.Array(Rule)).annotate({ identifier: "PermissionRuleset" })
 export type Ruleset = Schema.Schema.Type<typeof Ruleset>
 
+// Engine-level floor, evaluated after every ruleset and after the session's
+// "always" approvals: no config, agent or reply can allow these patterns.
+// Deliberately narrow — a guardrail, not a sandbox. Variant spellings
+// (`rm -fr`), flags (`del /s /q`) and scripts that shell out to these stay
+// out of scope; cyber agents are otherwise permissive by default.
+export const HARD_FLOOR: Ruleset = [
+  { permission: "bash", pattern: "rm -rf *", action: "deny" },
+  { permission: "bash", pattern: "mkfs *", action: "deny" },
+  { permission: "bash", pattern: "dd *", action: "deny" },
+  { permission: "bash", pattern: "shutdown *", action: "deny" },
+  { permission: "bash", pattern: "diskpart *", action: "deny" },
+  { permission: "bash", pattern: "format *", action: "deny" },
+]
+
 export class Request extends Schema.Class<Request>("PermissionRequest")({
   id: PermissionID,
   sessionID: SessionID,
@@ -165,11 +179,11 @@ export const layer = Layer.effect(
       let needsAsk = false
 
       for (const pattern of request.patterns) {
-        const rule = evaluate(request.permission, pattern, ruleset, approved)
+        const rule = evaluate(request.permission, pattern, ruleset, approved, HARD_FLOOR)
         log.info("evaluated", { permission: request.permission, pattern, action: rule })
         if (rule.action === "deny") {
           return yield* new DeniedError({
-            ruleset: ruleset.filter((rule) => Wildcard.match(request.permission, rule.permission)),
+            ruleset: [...ruleset, ...HARD_FLOOR].filter((rule) => Wildcard.match(request.permission, rule.permission)),
           })
         }
         if (rule.action === "allow") continue
@@ -288,8 +302,19 @@ function expand(pattern: string): string {
   const idx = globIndex(p)
   const prefix = idx === -1 ? p : p.slice(0, idx)
   const suffix = idx === -1 ? "" : p.slice(idx)
+  // realpathSync normalizes separators and drops the trailing one, so the
+  // prefix's own trailing separator must be re-applied or the suffix gets
+  // glued onto the last segment ("~/projects/*" -> "...projects*" on Windows).
+  const sep = prefix.endsWith("/") ? "/" : prefix.endsWith("\\") ? "\\" : ""
   try {
-    return fs.realpathSync(prefix) + suffix
+    const core = sep ? prefix.slice(0, -sep.length) : prefix
+    const real = fs.realpathSync(core)
+    const normalize = (input: string) => input.replaceAll("\\", "/")
+    // Only realpath's symlink resolution is interesting; when it just reports
+    // the same directory (modulo separator style), keep the user's own
+    // separator form — Wildcard.match normalizes separators anyway.
+    if (normalize(real) === normalize(core)) return core + sep + suffix
+    return real + sep + suffix
   } catch {
     // Path may not exist yet (e.g. a future output directory); use as-is.
     return p
